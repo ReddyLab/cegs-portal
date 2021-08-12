@@ -1,0 +1,2 @@
+class SearchResultsException(BaseException):
+    pass

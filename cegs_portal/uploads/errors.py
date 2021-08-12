@@ -1,0 +1,2 @@
+class DataUploadException(BaseException):
+    pass

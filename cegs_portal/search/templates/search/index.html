@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>DHS Search</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'search/base.css' %}">
+    </head>
+    <body>
+        <div id="content">
+            <h2>Searching for DNase I Hypersensitive Sites</h2>
+            <form action="{% url 'search:results' %}" method="get">
+                {{ form }}
+                <input type="submit" value="Search">
+            </form>
+            <div><a href="{% url 'uploads:upload' %}">Upload Data</a></div>
+        </div>
+    </body>
+</html>

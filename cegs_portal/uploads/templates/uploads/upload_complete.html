@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>DHS Search</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'uploads/base.css' %}">
+    </head>
+    <body>
+        <h2>DNase I Hypersensitive Site data upload complete</h2>
+        <div><a href="{% url 'search:index' %}">Search</a></div>
+        <div><a href="{% url 'uploads:upload' %}">Upload More Data</a></div>
+    </body>
+</html>

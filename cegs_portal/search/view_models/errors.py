@@ -1,0 +1,2 @@
+class ViewModelError(Exception):
+    pass
