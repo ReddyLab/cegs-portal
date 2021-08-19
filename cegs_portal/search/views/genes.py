@@ -36,20 +36,37 @@ def gene(request, id_type, gene_id):
                 "dhss": gene_obj.dnaseihypersensitivesite_set,
             },
         )
-    else:
-        return render(request, "search/genes.html", {"genes": search_results})
+
+    return render(request, "search/genes.html", {"genes": search_results})
 
 
 # @method_decorator(csrf_exempt, name='dispatch') # only needed for POST, in dev.
 def gene_loc(request, chromo, start, end):
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
+
+    if chromo.isnumeric():
+        chromo = f"chr{chromo}"
+
     search_results = GeneSearch.loc_search(chromo, start, end, assembly, search_type)
 
-    if request.headers.get("accept") == JSON_MIME:
-        return JsonResponse([json(result) for result in search_results], safe=False)
+    if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
+        results = [json(result) for result in search_results]
+
+        if request.GET.get("format", None) == "genoverse":
+            for result in results:
+                genoverse_reformat(result)
+
+        return JsonResponse(results, safe=False)
 
     return render(request, "search/genes.html", {"genes": search_results})
+
+
+def genoverse_reformat(gene_dict):
+    gene_dict["chr"] = gene_dict["chr"].removeprefix("chr")
+    gene_dict["start"] = gene_dict["location"]["start"]
+    gene_dict["end"] = gene_dict["location"]["end"]
+    del gene_dict["location"]
 
 
 @singledispatch

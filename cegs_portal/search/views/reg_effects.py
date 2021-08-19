@@ -22,12 +22,29 @@ def dhs(request, dhs_id):
 def dhs_loc(request, chromo, start, end):
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
+
+    if chromo.isnumeric():
+        chromo = f"chr{chromo}"
+
     search_results = DHSSearch.loc_search(chromo, start, end, assembly, search_type)
 
-    if request.headers.get("accept") == JSON_MIME:
-        return JsonResponse([json(result) for result in search_results], safe=False)
+    if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
+        results = [json(result) for result in search_results]
+
+        if request.GET.get("format", None) == "genoverse":
+            for result in results:
+                genoverse_reformat(result)
+
+        return JsonResponse(results, safe=False)
 
     return render(request, "search/dhs.html", {"dhss": search_results})
+
+
+def genoverse_reformat(dhs_dict):
+    dhs_dict["chr"] = dhs_dict["chr"].removeprefix("chr")
+    dhs_dict["start"] = dhs_dict["location"]["start"]
+    dhs_dict["end"] = dhs_dict["location"]["end"]
+    del dhs_dict["location"]
 
 
 @singledispatch
