@@ -33,7 +33,7 @@ def join_fields(*field_names):
 
 class GeneSearch:
     @classmethod
-    def id_search(self, id_type, id, search_type="exact"):
+    def id_search(cls, id_type, gene_id, search_type="exact"):
         if id_type == IdType.ENSEMBL.value:
             field = "ensembl_id"
         elif id_type == IdType.HAVANA.value:
@@ -55,19 +55,19 @@ class GeneSearch:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         field_lookup = join_fields(field, lookup)
-        genes = Gene.objects.filter(**{field_lookup: id}).distinct()
+        genes = Gene.objects.filter(**{field_lookup: gene_id}).distinct()
         return genes
 
     @classmethod
-    def loc_search(self, chr, start, end, assembly, search_type):
+    def loc_search(cls, chromo, start, end, assembly, search_type):
         if search_type == LocSearchType.CLOSEST.value:
-            return self._closest_loc_search(chr, start, end, assembly)
-        else:
-            return self._std_loc_search(chr, start, end, assembly, search_type)
+            return cls._closest_loc_search(chromo, start, end, assembly)
+
+        return cls._std_loc_search(chromo, start, end, assembly, search_type)
 
     @classmethod
-    def _std_loc_search(self, chr, start, end, assembly, search_type):
-        query = {"assemblies__chrom_name": chr}
+    def _std_loc_search(cls, chromo, start, end, assembly, search_type):
+        query = {"assemblies__chrom_name": chromo}
         field = "assemblies__location"
         if search_type == LocSearchType.EXACT.value or search_type is None:
             lookup = ""
@@ -85,9 +85,9 @@ class GeneSearch:
         return genes
 
     @classmethod
-    def _closest_loc_search(self, chr, start, end, assembly):
-        query_lt = {"chrom_name": chr}
-        query_gt = {"chrom_name": chr}
+    def _closest_loc_search(cls, chromo, start, end, assembly):
+        query_lt = {"chrom_name": chromo}
+        query_gt = {"chrom_name": chromo}
 
         if assembly is not None:
             query_lt["ref_genome"] = assembly
@@ -103,14 +103,16 @@ class GeneSearch:
 
         if lower_gene is None and higher_gene is None:
             return []
+
         if lower_gene is None:
             return higher_gene.gene.all()
+
         if higher_gene is None:
             return lower_gene.gene.all()
-        else:
-            lower_dist = start - lower_gene.location.lower
-            higher_dist = higher_gene.location.lower - start
-            if lower_dist > higher_dist:
-                return higher_gene.gene.all()
-            else:
-                return lower_gene.gene.all()
+
+        lower_dist = start - lower_gene.location.lower
+        higher_dist = higher_gene.location.lower - start
+        if lower_dist > higher_dist:
+            return higher_gene.gene.all()
+
+        return lower_gene.gene.all()

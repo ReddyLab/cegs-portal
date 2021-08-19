@@ -21,7 +21,7 @@ def parse_query(query):
 
 class Search:
     @classmethod
-    def search(self, query_string):
+    def search(cls, query_string):
         parse_result = parse_query(query_string)
         entries = GencodeGFF3Entry.search(parse_result)
         annotations = {entry.annotation for entry in entries}

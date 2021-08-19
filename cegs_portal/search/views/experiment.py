@@ -9,8 +9,8 @@ from cegs_portal.search.view_models import ExperimentSearch
 JSON_MIME = "application/json"
 
 
-def experiment(request, id):
-    search_result = ExperimentSearch.id_search(id)
+def experiment(request, exp_id):
+    search_result = ExperimentSearch.id_search(exp_id)
 
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse(json(search_result), safe=False)
@@ -19,10 +19,10 @@ def experiment(request, id):
 
 
 @singledispatch
-def json(model):
+def json(_model):
     pass
 
 
 @json.register(Experiment)
-def _(experiment):
-    return {"id": experiment.id, "name": experiment.name}
+def _(experiment_obj):
+    return {"id": experiment_obj.id, "name": experiment_obj.name}

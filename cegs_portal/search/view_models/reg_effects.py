@@ -13,13 +13,13 @@ class LocSearchType(Enum):
 
 class DHSSearch:
     @classmethod
-    def id_search(self, id):
-        dhs = DNaseIHypersensitiveSite.objects.get(id=id)
+    def id_search(cls, dhs_id):
+        dhs = DNaseIHypersensitiveSite.objects.get(id=dhs_id)
         return dhs
 
     @classmethod
-    def loc_search(self, chr, start, end, assembly, search_type):
-        query = {"chromosome_name": chr}
+    def loc_search(cls, chromo, start, end, assembly, search_type):
+        query = {"chromosome_name": chromo}
         field = "location"
         if search_type == LocSearchType.OVERLAP.value:
             field += "__overlap"

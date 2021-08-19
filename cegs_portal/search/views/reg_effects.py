@@ -10,8 +10,8 @@ from cegs_portal.search.views.utils import integerRangeDict
 JSON_MIME = "application/json"
 
 
-def dhs(request, id):
-    search_results = DHSSearch.id_search(id)
+def dhs(request, dhs_id):
+    search_results = DHSSearch.id_search(dhs_id)
 
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse(json(search_results), safe=False)
@@ -19,10 +19,10 @@ def dhs(request, id):
     return render(request, "search/dhs_exact.html", {"dhs": search_results})
 
 
-def dhs_loc(request, chr, start, end):
+def dhs_loc(request, chromo, start, end):
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
-    search_results = DHSSearch.loc_search(chr, start, end, assembly, search_type)
+    search_results = DHSSearch.loc_search(chromo, start, end, assembly, search_type)
 
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse([json(result) for result in search_results], safe=False)
@@ -31,22 +31,22 @@ def dhs_loc(request, chr, start, end):
 
 
 @singledispatch
-def json(model):
+def json(_model):
     pass
 
 
 @json.register(DNaseIHypersensitiveSite)
-def _(dhs):
+def _(dhs_object):
     return {
-        "id": dhs.id,
-        "cell_line": dhs.cell_line,
-        "chr": dhs.chromosome_name,
-        "location": integerRangeDict(dhs.location),
-        "strand": dhs.strand,
-        "closest_gene": dhs.closest_gene.ensembl_id,
-        "ref_genome": dhs.ref_genome,
-        "ref_genome_patch": dhs.ref_genome_patch,
-        "regulatory_effects": [json(effect) for effect in dhs.regulatory_effects.all()],
+        "id": dhs_object.id,
+        "cell_line": dhs_object.cell_line,
+        "chr": dhs_object.chromosome_name,
+        "location": integerRangeDict(dhs_object.location),
+        "strand": dhs_object.strand,
+        "closest_gene": dhs_object.closest_gene.ensembl_id,
+        "ref_genome": dhs_object.ref_genome,
+        "ref_genome_patch": dhs_object.ref_genome_patch,
+        "regulatory_effects": [json(effect) for effect in dhs_object.regulatory_effects.all()],
     }
 
 

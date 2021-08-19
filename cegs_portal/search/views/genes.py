@@ -15,23 +15,25 @@ JSON_MIME = "application/json"
 
 
 # @method_decorator(csrf_exempt, name='dispatch')
-def gene(request, id_type, id):
+def gene(request, id_type, gene_id):
     search_type = request.GET.get("search_type", "exact")
-    search_results = GeneSearch.id_search(id_type, id, search_type)
+    search_results = GeneSearch.id_search(id_type, gene_id, search_type)
 
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse([json(result) for result in search_results], safe=False)
 
     if id_type == IdType.ENSEMBL.value:
-        gene = search_results.prefetch_related("transcript_set", "dnaseihypersensitivesite_set", "assemblies").first()
+        gene_obj = search_results.prefetch_related(
+            "transcript_set", "dnaseihypersensitivesite_set", "assemblies"
+        ).first()
         return render(
             request,
             "search/gene_exact.html",
             {
-                "gene": gene,
-                "assemblies": gene.assemblies,
-                "transcripts": gene.transcript_set,
-                "dhss": gene.dnaseihypersensitivesite_set,
+                "gene": gene_obj,
+                "assemblies": gene_obj.assemblies,
+                "transcripts": gene_obj.transcript_set,
+                "dhss": gene_obj.dnaseihypersensitivesite_set,
             },
         )
     else:
@@ -39,10 +41,10 @@ def gene(request, id_type, id):
 
 
 # @method_decorator(csrf_exempt, name='dispatch') # only needed for POST, in dev.
-def gene_loc(request, chr, start, end):
+def gene_loc(request, chromo, start, end):
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
-    search_results = GeneSearch.loc_search(chr, start, end, assembly, search_type)
+    search_results = GeneSearch.loc_search(chromo, start, end, assembly, search_type)
 
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse([json(result) for result in search_results], safe=False)
@@ -51,7 +53,7 @@ def gene_loc(request, chr, start, end):
 
 
 @singledispatch
-def json(model):
+def json(_model):
     pass
 
 
@@ -69,9 +71,9 @@ def _(gene_assembly):
 
 
 @json.register(Gene)
-def _(gene):
+def _(gene_obj):
     return {
-        "ensembl_id": gene.ensembl_id,
-        "type": gene.gene_type,
-        "locations": [json(assembly) for assembly in gene.assemblies.all()],
+        "ensembl_id": gene_obj.ensembl_id,
+        "type": gene_obj.gene_type,
+        "locations": [json(assembly) for assembly in gene_obj.assemblies.all()],
     }
