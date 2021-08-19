@@ -37,10 +37,13 @@ def dhs_loc(request, chromo, start, end):
 
         return JsonResponse(results, safe=False)
 
-    return render(request, "search/dhs.html", {"dhss": search_results})
+    return render(
+        request, "search/dhs.html", {"dhss": search_results, "loc": {"chr": chromo, "start": start, "end": end}}
+    )
 
 
 def genoverse_reformat(dhs_dict):
+    dhs_dict["id"] = str(dhs_dict["id"])
     dhs_dict["chr"] = dhs_dict["chr"].removeprefix("chr")
     dhs_dict["start"] = dhs_dict["location"]["start"]
     dhs_dict["end"] = dhs_dict["location"]["end"]

@@ -63,6 +63,7 @@ def gene_loc(request, chromo, start, end):
 
 
 def genoverse_reformat(gene_dict):
+    gene_dict["id"] = str(gene_dict["id"])
     gene_dict["chr"] = gene_dict["chr"].removeprefix("chr")
     gene_dict["start"] = gene_dict["location"]["start"]
     gene_dict["end"] = gene_dict["location"]["end"]

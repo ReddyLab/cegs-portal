@@ -15,15 +15,42 @@
                         <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
                         {% for dhs in dhss.all %}
                         <tr>
-                            <td><a href="{% url 'search:dhs' dhs.id %}">:{{ dhs.id }}</a></td>
+                            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
                             <td>{{ dhs.cell_line }}</td>
                             <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
                             <td>{{ dhs.strand }}</td>
-                            <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene_name %}">{{ dhs.closest_gene_name }}</a></td>
+                            <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
                             <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
                         </tr>
                         {% endfor %}
                     </table>
+                    <div id="genoverse">
+                        <script type="text/javascript" src="{% static 'js/genoverse.min.js' %}"></script>
+                        <script>
+                          new Genoverse({
+                            container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
+                            // If no genome supplied, it must have at least chromosomeSize, e.g.:
+                            // chromosomeSize : 249250621, // chromosome 1, human
+                            genome    : 'GRCh37', // see js/genomes/
+                            chr       : "{{ loc.chr }}".replace("chr", ""),
+                            start     : {{ loc.start }},
+                            end       : {{ loc.end }},
+                            plugins   : [ 'controlPanel', [ 'karyotype', { showAssembly: true }], 'trackControls', 'resizer', 'focusRegion', 'fullscreen', 'tooltips', 'fileDrop' ],
+                            tracks    : [
+                              Genoverse.Track.Scaleline.extend({ strand: false }),
+                              Genoverse.Track.Scalebar,
+                              Genoverse.Track.extend({
+                                name            : 'DNaseI Hypersensitive Sites',
+                                url             : '//127.0.0.1:8000/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
+                                resizable       : 'auto',
+                                model           : Genoverse.Track.Model.extend({ dataRequestLimit : 5000000 }),
+                                setFeatureColor : function (f) { f.color = '#F00'; }
+                              }),
+                              Genoverse.Track.Gene,
+                            ]
+                          });
+                        </script>
+                    </div>
                 </div>
             </div>
         </div>
