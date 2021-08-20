@@ -12,12 +12,14 @@ class IdType(Enum):
     NAME = "name"
     HAVANA = "havana"
     HGNC = "hgnc"
+    DB = "db"
 
 
 class IdSearchType(Enum):
     EXACT = "exact"
     LIKE = "like"
     START = "start"
+    IN = "in"
 
 
 class LocSearchType(Enum):
@@ -33,7 +35,7 @@ def join_fields(*field_names):
 
 class GeneSearch:
     @classmethod
-    def id_search(cls, id_type, gene_id, search_type="exact"):
+    def id_search(cls, id_type, gene_id, search_type="exact", distinct=True):
         if id_type == IdType.ENSEMBL.value:
             field = "ensembl_id"
         elif id_type == IdType.HAVANA.value:
@@ -42,6 +44,8 @@ class GeneSearch:
             field = "assemblies__ids__hgnc"
         elif id_type == IdType.NAME.value:
             field = "assemblies__name"
+        elif id_type == IdType.DB.value:
+            field = "id"
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 
@@ -51,11 +55,16 @@ class GeneSearch:
             lookup = "icontains"
         elif search_type == IdSearchType.START.value:
             lookup = "istartswith"
+        elif search_type == IdSearchType.IN.value:
+            lookup = "in"
         else:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         field_lookup = join_fields(field, lookup)
-        genes = Gene.objects.filter(**{field_lookup: gene_id}).distinct()
+        genes = Gene.objects.filter(**{field_lookup: gene_id})
+        print(f"GeneSearch: {len(genes)}")
+        if distinct:
+            genes = genes.distinct()
         return genes
 
     @classmethod

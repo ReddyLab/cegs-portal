@@ -10,21 +10,21 @@
             <h2>DNase I Hypersensitive Sites</h2>
             <div>
                 <div>
-                    <div class="subheading">Sites</div>
-                    <table>
-                        <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
-                        {% for dhs in dhss.all %}
-                        <tr>
-                            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                            <td>{{ dhs.cell_line }}</td>
-                            <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
-                            <td>{{ dhs.strand }}</td>
-                            <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
-                            <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
                     <div id="genoverse">
+                        <script>
+                            window.addEventListener("hashchange", function() {
+                                let gen = document.getElementById("genoverse");
+                                let test = document.getElementById("test");
+                                if(test === undefined || test === null) {
+                                    let testElement = document.createElement("div");
+                                    testElement.innerText = window.location.hash;
+                                    testElement.id = "test";
+                                    gen.appendChild(testElement)
+                                } else {
+                                    test.innerText = window.location.hash;
+                                }
+                            })
+                        </script>
                         <script type="text/javascript" src="{% static 'js/genoverse.min.js' %}"></script>
                         <script>
                           new Genoverse({
@@ -36,6 +36,8 @@
                             start     : {{ loc.start }},
                             end       : {{ loc.end }},
                             plugins   : [ 'controlPanel', [ 'karyotype', { showAssembly: true }], 'trackControls', 'resizer', 'focusRegion', 'fullscreen', 'tooltips', 'fileDrop' ],
+                            useHash   : true,
+                            hideEmptyTracks: false,
                             tracks    : [
                               Genoverse.Track.Scaleline.extend({ strand: false }),
                               Genoverse.Track.Scalebar,
@@ -51,6 +53,21 @@
                           });
                         </script>
                     </div>
+                    <div class="subheading">Sites</div>
+                    <table id="dhs">
+                        <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+                        {% for dhs, closest_gene in dhss %}
+                        <tr>
+                            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                            <td>{{ dhs.cell_line }}</td>
+                            <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
+                            <td>{{ dhs.strand }}</td>
+                            <td><a href="{% url 'search:genes' 'ensembl' closest_gene.ensembl_id %}">{{ closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
+                            <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+
                 </div>
             </div>
         </div>
