@@ -1,11 +1,8 @@
-from functools import singledispatch
-
 from django.http.response import JsonResponse
 from django.shortcuts import render
 
-from cegs_portal.search.models import Gene, GeneAssembly
 from cegs_portal.search.view_models import GeneSearch, IdType
-from cegs_portal.search.views.utils import integerRangeDict
+from cegs_portal.search.views.renderers import genoverse_reformat, json
 
 # from django.utils.decorators import method_decorator
 # from django.views.decorators.csrf import csrf_exempt
@@ -16,10 +13,23 @@ JSON_MIME = "application/json"
 
 # @method_decorator(csrf_exempt, name='dispatch')
 def gene(request, id_type, gene_id):
+    """
+    Headers used:
+        accept
+            * application/json
+    GET queries used:
+        accept
+            * application/json
+        search_type
+            * exact
+            * like
+            * start
+            * in
+    """
     search_type = request.GET.get("search_type", "exact")
     search_results = GeneSearch.id_search(id_type, gene_id, search_type)
 
-    if request.headers.get("accept") == JSON_MIME:
+    if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
         return JsonResponse([json(result) for result in search_results], safe=False)
 
     if id_type == IdType.ENSEMBL.value:
@@ -42,6 +52,22 @@ def gene(request, id_type, gene_id):
 
 # @method_decorator(csrf_exempt, name='dispatch') # only needed for POST, in dev.
 def gene_loc(request, chromo, start, end):
+    """
+    Headers used:
+        accept
+            * application/json
+    GET queries used:
+        accept
+            * application/json
+        format
+            * genoverse
+        search_type
+            * closest
+            * exact
+            * overlap
+        assembly
+            * free-text, but should match a genome assembly that exists in the DB
+    """
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
 
@@ -60,38 +86,3 @@ def gene_loc(request, chromo, start, end):
         return JsonResponse(results, safe=False)
 
     return render(request, "search/genes.html", {"genes": search_results})
-
-
-def genoverse_reformat(gene_dict):
-    gene_dict["id"] = str(gene_dict["id"])
-    gene_dict["chr"] = gene_dict["chr"].removeprefix("chr")
-    gene_dict["start"] = gene_dict["location"]["start"]
-    gene_dict["end"] = gene_dict["location"]["end"]
-    del gene_dict["location"]
-
-
-@singledispatch
-def json(_model):
-    pass
-
-
-@json.register(GeneAssembly)
-def _(gene_assembly):
-    return {
-        "name": gene_assembly.name,
-        "chr": gene_assembly.chrom_name,
-        "location": integerRangeDict(gene_assembly.location),
-        "strand": gene_assembly.strand,
-        "ids": gene_assembly.ids,
-        "ref_genome": gene_assembly.ref_genome,
-        "ref_genome_patch": gene_assembly.ref_genome_patch,
-    }
-
-
-@json.register(Gene)
-def _(gene_obj):
-    return {
-        "ensembl_id": gene_obj.ensembl_id,
-        "type": gene_obj.gene_type,
-        "locations": [json(assembly) for assembly in gene_obj.assemblies.all()],
-    }

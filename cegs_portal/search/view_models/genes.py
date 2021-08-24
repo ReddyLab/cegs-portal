@@ -62,7 +62,7 @@ class GeneSearch:
 
         field_lookup = join_fields(field, lookup)
         genes = Gene.objects.filter(**{field_lookup: gene_id})
-        print(f"GeneSearch: {len(genes)}")
+
         if distinct:
             genes = genes.distinct()
         return genes
