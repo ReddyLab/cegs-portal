@@ -3,7 +3,7 @@
     <head>
         <title>DNase I Hypersensitive Sites</title>
         {% load static %}
-        <link rel="stylesheet" href="{% static 'search/base.css' %}">
+        <link rel="stylesheet" href="{% static 'search/css/base.css' %}">
     </head>
     <body>
         <div id="content">
@@ -30,43 +30,9 @@
             </div>
         </div>
         <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
         <script>
-            function e(name) {
-                attributes = {}
-                children = []
-                if(arguments.length == 2) {
-                    children = arguments[1]
-                }
-                if(arguments.length == 3) {
-                    attributes = arguments[1]
-                    children = arguments[2]
-                }
-
-                element = document.createElement(name);
-                for(key in attributes) {
-                    element.setAttribute(key, attributes[key]);
-                }
-                if(Array.isArray(children)) {
-                    for(child of children) {
-                        if(typeof child === "string") {
-                            child = t(child)
-                        }
-                        element.appendChild(child);
-                    }
-                } else {
-                    if(typeof children === "string") {
-                        children = t(children)
-                    }
-                    element.appendChild(children);
-                }
-
-                return element;
-            }
-
-            function t(text) {
-                return document.createTextNode(text);
-            }
-
             window.addEventListener("hashchange", _.throttle(function() {
                 let hash = window.location.hash;
                 [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
@@ -107,7 +73,6 @@
 
             }, 500, { 'leading': true }))
         </script>
-        <script type="text/javascript" src="{% static 'js/genoverse.min.js' %}"></script>
         <script>
           new Genoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
