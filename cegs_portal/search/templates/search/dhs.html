@@ -2,10 +2,6 @@
 {% load static i18n %}
 {% block title %}DNase I Hypersensitive Sites{% endblock %}
 
-{% block css %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'search/css/base.css' %}">
-{% endblock %}
 {% block javascript %}
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
@@ -14,24 +10,25 @@
 {% endblock %}
 
 {% block content %}
-<div class="f1 b">DNase I Hypersensitive Sites</div>
+<div class="text-2xl font-bold">DNase I Hypersensitive Sites</div>
 <div>
     <div>
-        <div class="pv2" id="genoverse"></div>
-        <div class="f2 b">Sites</div>
-        <table id="dhs" class="bg-black-10 collapse ba pv2">
-            <tr class="striped--light-gray"><th class="pv2 ph3">ID</th><th class="pv2 ph3">Cell Line</th><th class="pv2 ph3">Location</th><th class="pv2 ph3">Strand</th><th class="pv2 ph3">Closest Gene</th><th class="pv2 ph3">Reference Genome</th></tr>
+        <div class="p-2" id="genoverse"></div>
+        <div class="text-xl font-bold">Sites</div>
+        {% spaceless %}
+        <table id="dhs" class="data-table"><tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
             {% for dhs, closest_gene in dhss %}
-            <tr class="striped--light-gray">
-                <td class="pv2 ph3"><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                <td class="pv2 ph3">{{ dhs.cell_line }}</td>
-                <td class="pv2 ph3"><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
-                <td class="pv2 ph3">{{ dhs.strand }}</td>
-                <td class="pv2 ph3"><a href="{% url 'search:genes' 'ensembl' closest_gene.ensembl_id %}">{{ closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
-                <td class="pv2 ph3">{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+            <tr>
+                <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                <td>{{ dhs.cell_line }}</td>
+                <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
+                <td>{{ dhs.strand }}</td>
+                <td><a href="{% url 'search:genes' 'ensembl' closest_gene.ensembl_id %}">{{ closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
+                <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
             </tr>
             {% endfor %}
         </table>
+        {% endspaceless %}
     </div>
 </div>
 {% endblock %}
@@ -46,29 +43,29 @@
                 return response.json()
             })
             .then(data => {
-                newTable = e("table", {id: "dhs",  class: "bg-black-10 collapse ba"}, [
-                    e("tr", {class: "striped--light-gray"}, [
-                        e("th", {class: "pv2 ph3"}, "ID"),
-                        e("th", {class: "pv2 ph3"}, "Cell Line"),
-                        e("th", {class: "pv2 ph3"}, "Location"),
-                        e("th", {class: "pv2 ph3"}, "Strand"),
-                        e("th", {class: "pv2 ph3"}, "Closest Gene"),
-                        e("th", {class: "pv2 ph3"}, "Reference Genome"),
+                newTable = e("table", {id: "dhs",  class: "data-table"}, [
+                    e("tr", [
+                        e("th", "ID"),
+                        e("th", "Cell Line"),
+                        e("th", "Location"),
+                        e("th", "Strand"),
+                        e("th", "Closest Gene"),
+                        e("th", "Reference Genome"),
                     ])
                 ])
                 for(dhs of data) {
                     newTable.append(
-                        e("tr",  {class: "striped--light-gray"},[
-                            e("td", {class: "pv2 ph3"}, e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
-                            e("td", {class: "pv2 ph3"}, dhs.cell_line),
-                            e("td", {class: "pv2 ph3"}, [
+                        e("tr", [
+                            e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
+                            e("td", dhs.cell_line),
+                            e("td", [
                                 e("span", dhs.chr),
                                 ": ",
                                 e("span", `${dhs.start}-${dhs.end}`)
                             ]),
-                            e("td", {class: "pv2 ph3"}, dhs.strand || "None"),
-                            e("td", {class: "pv2 ph3"}, e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene.ensembl_id} (${dhs.closest_gene_name})`)),
-                            e("td", {class: "pv2 ph3"}, `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
+                            e("td", dhs.strand || "None"),
+                            e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene.ensembl_id} (${dhs.closest_gene_name})`)),
+                            e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
                         ])
                     )
                 }

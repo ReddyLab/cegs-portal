@@ -1,0 +1,46 @@
+/* These styles are generated from project.scss. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.alert-debug {
+  color: black;
+  background-color: white;
+  border-color: #d6e9c6;
+}
+
+.alert-error {
+  color: #b94a48;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+}
+
+@layer components {
+  a {
+    @apply underline text-blue-600;
+  }
+
+  a:hover {
+    @apply text-blue-800;
+  }
+
+  a:visited {
+    @apply text-purple-600;
+  }
+
+  table.data-table {
+    @apply bg-gray-200 border border-gray-900 my-2;
+  }
+
+  table.data-table tr:nth-child(odd) {
+    background-color: rgb(249, 250, 251);
+  }
+
+  table.data-table tr > th {
+    @apply py-2 px-4;
+  }
+
+  table.data-table tr > td {
+    @apply py-2 px-4;
+  }
+}
