@@ -43,4 +43,20 @@
   table.data-table tr > td {
     @apply py-2 px-4;
   }
+
+  form.search {
+    @apply m-2;
+  }
+
+  form.search > label {
+    @apply mr-2;
+  }
+
+  #id_query {
+    @apply py-1 px-2 mr-2 border;
+  }
+
+  form.search > input.search-button {
+    @apply py-1 px-2 rounded border;
+  }
 }
