@@ -1,19 +1,31 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Gene</title>
-        {% load static %}
-        <link rel="stylesheet" href="{% static 'search/base.css' %}">
-        <link rel="stylesheet" href="{% static 'search/genes.css' %}">
-        <link rel="stylesheet" href="{% static 'search/gene_exact.css' %}">
-    </head>
-    <body>
-        <div id="content">
-            <div class="gene_title">{{ gene.ensembl_id }}</div>
-            <div>{{ gene.gene_type }}</div>
-            <table id="gene_table">
-                <tr><th>Gene Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-            {% for assembly in assemblies.all %}
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}>Gene{% endblock %}
+{% block content %}
+    <div class="gene_title">{{ gene.ensembl_id }}</div>
+    <div>{{ gene.gene_type }}</div>
+    <table id="gene_table">
+        <tr><th>Gene Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+    {% for assembly in assemblies.all %}
+        <tr>
+            <td>{{ assembly.name }}</td>
+            <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
+            <td>{{ assembly.strand }}</td>
+            <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
+    {% if transcripts.all|length > 0 %}
+    <div class="subsection">
+        <div class="subheader">Transcripts</div>
+        {% for transcript in transcripts.all %}
+
+            <div>{{ transcript.ensembl_id }}</div>
+            <table>
+                <tr><th>Transcript Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+            {% for assembly in transcript.assemblies.all %}
                 <tr>
                     <td>{{ assembly.name }}</td>
                     <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
@@ -22,46 +34,26 @@
                 </tr>
             {% endfor %}
             </table>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-            {% if transcripts.all|length > 0 %}
-            <div class="subsection">
-                <div class="subheader">Transcripts</div>
-                {% for transcript in transcripts.all %}
-
-                    <div>{{ transcript.ensembl_id }}</div>
-                    <table>
-                        <tr><th>Transcript Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-                    {% for assembly in transcript.assemblies.all %}
-                        <tr>
-                            <td>{{ assembly.name }}</td>
-                            <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
-                            <td>{{ assembly.strand }}</td>
-                            <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
-                        </tr>
-                    {% endfor %}
-                    </table>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if dhss.all|length > 0 %}
-            <div class="subsection">
-                <div class="subheader">Nearby DNase I Hypersensitive Sites</div>
-                <table>
-                    <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th></tr>
-                    {% for dhs in dhss.all %}
-                        <tr>
-                            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                            <td>{{ dhs.cell_line }}</td>
-                            <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
-                            <td>{{ dhs.strand }}</td>
-                            <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
-                            <td>{{ dhs.regulatory_effects.count }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-            {% endif %}
-        </div>
-    </body>
-</html>
+    {% if dhss.all|length > 0 %}
+    <div class="subsection">
+        <div class="subheader">Nearby DNase I Hypersensitive Sites</div>
+        <table>
+            <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th></tr>
+            {% for dhs in dhss.all %}
+                <tr>
+                    <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                    <td>{{ dhs.cell_line }}</td>
+                    <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
+                    <td>{{ dhs.strand }}</td>
+                    <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ dhs.regulatory_effects.count }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+{% endblock content %}

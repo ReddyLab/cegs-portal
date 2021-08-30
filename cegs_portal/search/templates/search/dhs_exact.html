@@ -3,51 +3,51 @@
 {% block title %}DNase I Hypersensitive Site{% endblock %}
 
 {% block content %}
-<div class="text-2xl font-bold">DNase I Hypersensitive Site</div>
-<div class="pt-8">
-    <div class="text-xl font-bold">Site Information</div>
-    {% spaceless %}
-    <table class="data-table">
-            <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
-        <tr>
-            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-            <td>{{ dhs.cell_line }}</td>
-            <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
-            <td>{{ dhs.strand }}</td>
-            <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }}</a></td>
-            <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
-        </tr>
-    </table>
-    {% endspaceless %}
-</div>
+    <div class="text-2xl font-bold">DNase I Hypersensitive Site</div>
+    <div class="pt-8">
+        <div class="text-xl font-bold">Site Information</div>
+        {% spaceless %}
+        <table class="data-table">
+                <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+            <tr>
+                <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                <td>{{ dhs.cell_line }}</td>
+                <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
+                <td>{{ dhs.strand }}</td>
+                <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }}</a></td>
+                <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+            </tr>
+        </table>
+        {% endspaceless %}
+    </div>
 
-<div class="pt-8">
-    <div class="text-xl font-bold">Regulatory Effects</div>
-    {% spaceless %}
-    <table class="data-table">
-        <tr><th>Direction</th><th>Score</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
-        {% for effect in dhs.regulatory_effects.all %}
-            {% for target in effect.targets.all %}
-            <tr>
-                <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
-                <td>{{ effect.direction }}</td>
-                <td>{{ effect.score }}</td>
-                <td>{{ effect.significance }}</td>
-                <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
-                <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>
-            </tr>
-            {% empty %}
-            <tr>
-                <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
-                <td>{{ effect.direction }}</td>
-                <td>{{ effect.score }}</td>
-                <td>{{ effect.significance }}</td>
-                <td>Unknown</td>
-                <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>
-            </tr>
+    <div class="pt-8">
+        <div class="text-xl font-bold">Regulatory Effects</div>
+        {% spaceless %}
+        <table class="data-table">
+            <tr><th>Direction</th><th>Score</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
+            {% for effect in dhs.regulatory_effects.all %}
+                {% for target in effect.targets.all %}
+                <tr>
+                    <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
+                    <td>{{ effect.direction }}</td>
+                    <td>{{ effect.score }}</td>
+                    <td>{{ effect.significance }}</td>
+                    <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
+                    <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
+                    <td>{{ effect.direction }}</td>
+                    <td>{{ effect.score }}</td>
+                    <td>{{ effect.significance }}</td>
+                    <td>Unknown</td>
+                    <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>
+                </tr>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    </table>
-    {% endspaceless %}
-</div>
+        </table>
+        {% endspaceless %}
+    </div>
 {% endblock %}

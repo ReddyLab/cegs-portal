@@ -1,37 +1,32 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>DHS Search</title>
-        {% load static %}
-        <link rel="stylesheet" href="{% static 'search/base.css' %}">
-    </head>
-    <body>
-        <h2>Results</h2>
-        <div>
-            {% for annotation in annotations %}
-                <div>{{ annotation }}</div>
-            {% endfor %}
-        </div>
-        <div>
-            {% for site in dh_sites %}
-                <div>{{ site }}</div>
-            {% endfor %}
-        </div>
-        <!-- <table id="results">
-            <thead>
-                <tr><th>Name</th><th>Line</th><th>Start Loc.</th><th>End Loc.</th><th>Score</th></tr>
-            </thead>
-            <tbody>
-            {% for dhs in results %}
-                <tr><td class="name">{{ dhs.name }}</td><td>{{ dhs.line }}</td><td><span>{{ dhs.chrom }}:{{ dhs.start }}</span></td><td>{{ dhs.chrom }}:{{ dhs.end }}</span></td><td>{{ dhs.direction }}: {{ dhs.amount }}</td></tr>
-            {% endfor %}
-            </tbody>
-        </table> -->
-        <div>Search Again</div>
-        <form action="{% url 'search:results' %}" method="get">
-            {{ form }}
-            <input type="submit" value="Search">
-        </form>
-        <div><a href="{% url 'uploads:upload' %}">Upload Data</a></div>
-    </body>
-</html>
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}DHS Search{% endblock %}
+{% block content %}
+    <h2>Results</h2>
+    <div>
+        {% for annotation in annotations %}
+            <div>{{ annotation }}</div>
+        {% endfor %}
+    </div>
+    <div>
+        {% for site in dh_sites %}
+            <div>{{ site }}</div>
+        {% endfor %}
+    </div>
+    <!-- <table id="results">
+        <thead>
+            <tr><th>Name</th><th>Line</th><th>Start Loc.</th><th>End Loc.</th><th>Score</th></tr>
+        </thead>
+        <tbody>
+        {% for dhs in results %}
+            <tr><td class="name">{{ dhs.name }}</td><td>{{ dhs.line }}</td><td><span>{{ dhs.chrom }}:{{ dhs.start }}</span></td><td>{{ dhs.chrom }}:{{ dhs.end }}</span></td><td>{{ dhs.direction }}: {{ dhs.amount }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table> -->
+    <div>Search Again</div>
+    <form action="{% url 'search:results' %}" method="get">
+        {{ form }}
+        <input type="submit" value="Search">
+    </form>
+{% endblock %}}

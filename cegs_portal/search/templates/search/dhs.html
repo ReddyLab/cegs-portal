@@ -10,95 +10,95 @@
 {% endblock %}
 
 {% block content %}
-<div class="text-2xl font-bold">DNase I Hypersensitive Sites</div>
-<div>
+    <div class="text-2xl font-bold">DNase I Hypersensitive Sites</div>
     <div>
-        <div class="p-2" id="genoverse"></div>
-        <div class="text-xl font-bold">Sites</div>
-        {% spaceless %}
-        <table id="dhs" class="data-table"><tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
-            {% for dhs, closest_gene in dhss %}
-            <tr>
-                <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                <td>{{ dhs.cell_line }}</td>
-                <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
-                <td>{{ dhs.strand }}</td>
-                <td><a href="{% url 'search:genes' 'ensembl' closest_gene.ensembl_id %}">{{ closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
-                <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% endspaceless %}
+        <div>
+            <div class="p-2" id="genoverse"></div>
+            <div class="text-xl font-bold">Sites</div>
+            {% spaceless %}
+            <table id="dhs" class="data-table"><tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+                {% for dhs, closest_gene in dhss %}
+                <tr>
+                    <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                    <td>{{ dhs.cell_line }}</td>
+                    <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
+                    <td>{{ dhs.strand }}</td>
+                    <td><a href="{% url 'search:genes' 'ensembl' closest_gene.ensembl_id %}">{{ closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
+                    <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endspaceless %}
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block inline_javascript %}
-<script>
-    window.addEventListener("hashchange", _.throttle(function() {
-        let hash = window.location.hash;
-        [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
-        fetch(`http://127.0.0.1:8000/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&extended=t`)
-            .then(response => {
-                return response.json()
-            })
-            .then(data => {
-                newTable = e("table", {id: "dhs",  class: "data-table"}, [
-                    e("tr", [
-                        e("th", "ID"),
-                        e("th", "Cell Line"),
-                        e("th", "Location"),
-                        e("th", "Strand"),
-                        e("th", "Closest Gene"),
-                        e("th", "Reference Genome"),
-                    ])
-                ])
-                for(dhs of data) {
-                    newTable.append(
+    <script>
+        window.addEventListener("hashchange", _.throttle(function() {
+            let hash = window.location.hash;
+            [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
+            fetch(`http://127.0.0.1:8000/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&extended=t`)
+                .then(response => {
+                    return response.json()
+                })
+                .then(data => {
+                    newTable = e("table", {id: "dhs",  class: "data-table"}, [
                         e("tr", [
-                            e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
-                            e("td", dhs.cell_line),
-                            e("td", [
-                                e("span", dhs.chr),
-                                ": ",
-                                e("span", `${dhs.start}-${dhs.end}`)
-                            ]),
-                            e("td", dhs.strand || "None"),
-                            e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene.ensembl_id} (${dhs.closest_gene_name})`)),
-                            e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
+                            e("th", "ID"),
+                            e("th", "Cell Line"),
+                            e("th", "Location"),
+                            e("th", "Strand"),
+                            e("th", "Closest Gene"),
+                            e("th", "Reference Genome"),
                         ])
-                    )
-                }
-                let dhsTable = document.getElementById("dhs");
-                dhsTable.replaceWith(newTable)
-            });
+                    ])
+                    for(dhs of data) {
+                        newTable.append(
+                            e("tr", [
+                                e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
+                                e("td", dhs.cell_line),
+                                e("td", [
+                                    e("span", dhs.chr),
+                                    ": ",
+                                    e("span", `${dhs.start}-${dhs.end}`)
+                                ]),
+                                e("td", dhs.strand || "None"),
+                                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene.ensembl_id} (${dhs.closest_gene_name})`)),
+                                e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
+                            ])
+                        )
+                    }
+                    let dhsTable = document.getElementById("dhs");
+                    dhsTable.replaceWith(newTable)
+                });
 
-    }, 500, { 'leading': true }))
-</script>
-<script>
-    new Genoverse({
-    container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
-    // If no genome supplied, it must have at least chromosomeSize, e.g.:
-    // chromosomeSize : 249250621, // chromosome 1, human
-    genome    : 'GRCh37', // see js/genomes/
-    chr       : "{{ loc.chr }}".replace("chr", ""),
-    start     : {{ loc.start }},
-    end       : {{ loc.end }},
-    plugins   : [ 'controlPanel', [ 'karyotype', { showAssembly: true }], 'trackControls', 'resizer', 'focusRegion', 'fullscreen', 'tooltips', 'fileDrop' ],
-    useHash   : true,
-    hideEmptyTracks: false,
-    tracks    : [
-        Genoverse.Track.Scaleline.extend({ strand: false }),
-        Genoverse.Track.Scalebar,
-        Genoverse.Track.extend({
-        name            : 'DNaseI Hypersensitive Sites',
-        url             : '//127.0.0.1:8000/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
-        resizable       : 'auto',
-        model           : Genoverse.Track.Model.extend({ dataRequestLimit : 5000000 }),
-        setFeatureColor : function (f) { f.color = '#F00'; }
-        }),
-        Genoverse.Track.Gene,
-    ]
-    });
-</script>
+        }, 500, { 'leading': true }))
+    </script>
+    <script>
+        new Genoverse({
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        genome    : 'GRCh37', // see js/genomes/
+        chr       : "{{ loc.chr }}".replace("chr", ""),
+        start     : {{ loc.start }},
+        end       : {{ loc.end }},
+        plugins   : [ 'controlPanel', [ 'karyotype', { showAssembly: true }], 'trackControls', 'resizer', 'focusRegion', 'fullscreen', 'tooltips', 'fileDrop' ],
+        useHash   : true,
+        hideEmptyTracks: false,
+        tracks    : [
+            Genoverse.Track.Scaleline.extend({ strand: false }),
+            Genoverse.Track.Scalebar,
+            Genoverse.Track.extend({
+            name            : 'DNaseI Hypersensitive Sites',
+            url             : '//127.0.0.1:8000/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
+            resizable       : 'auto',
+            model           : Genoverse.Track.Model.extend({ dataRequestLimit : 5000000 }),
+            setFeatureColor : function (f) { f.color = '#F00'; }
+            }),
+            Genoverse.Track.Gene,
+        ]
+        });
+    </script>
 {% endblock %}
