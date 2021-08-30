@@ -1,7 +1,7 @@
 from django.http.response import JsonResponse
 from django.shortcuts import render
 
-from cegs_portal.search.view_models import DHSSearch, GeneSearch
+from cegs_portal.search.view_models import DHSSearch
 from cegs_portal.search.views.renderers import genoverse_reformat, json
 
 JSON_MIME = "application/json"
@@ -50,33 +50,29 @@ def dhs_loc(request, chromo, start, end):
     if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
         return dhs_loc_json(request, dhs_list, request.GET.get("extended", False))
 
-    gene_ids = [dhs.closest_gene_id for dhs in dhs_list]
-    closest_genes = GeneSearch.id_search("db", gene_ids, "in")
-    closest_gene_dict = {gene.id: gene for gene in closest_genes}
-
-    closest_genes = [closest_gene_dict[gene_id] for gene_id in gene_ids]
-    dhss = list(zip(dhs_list, closest_genes))
-
-    return render(request, "search/dhs.html", {"dhss": dhss, "loc": {"chr": chromo, "start": start, "end": end}})
+    dhs_list = dhs_list.select_related("closest_gene")
+    return render(request, "search/dhs.html", {"dhss": dhs_list, "loc": {"chr": chromo, "start": start, "end": end}})
 
 
 def dhs_loc_json(request, dhs_list, extended):
+    if extended:
+        dhs_list = dhs_list.select_related("closest_gene")
+
     results = [json(result) for result in dhs_list]
 
-    closest_gene_dict = {}
-    closest_genes = []
     if extended:
-        gene_ids = [dhs.closest_gene_id for dhs in dhs_list]
-        closest_genes = GeneSearch.id_search("db", gene_ids, "in")
-        closest_gene_dict = {gene.id: json(gene) for gene in closest_genes}
+        closest_gene_dict = {dhs.closest_gene.id: json(dhs.closest_gene) for dhs in dhs_list}
 
     if request.GET.get("format", None) == "genoverse":
         for result in results:
             genoverse_reformat(result)
-        for gene_id in closest_gene_dict:
-            genoverse_reformat(closest_gene_dict[gene_id])
 
-    for dhs_json in results:
-        dhs_json["closest_gene"] = closest_gene_dict.get(dhs_json["closest_gene"], dhs_json["closest_gene"])
+        if extended:
+            for gene_id in closest_gene_dict:
+                genoverse_reformat(closest_gene_dict[gene_id])
+
+    if extended:
+        for dhs_json in results:
+            dhs_json["closest_gene"] = closest_gene_dict[dhs_json["closest_gene"]]
 
     return JsonResponse(results, safe=False)
