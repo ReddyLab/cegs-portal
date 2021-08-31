@@ -4,10 +4,6 @@ from django.shortcuts import render
 from cegs_portal.search.view_models import GeneSearch, IdType
 from cegs_portal.search.views.renderers import json
 
-# from django.utils.decorators import method_decorator
-# from django.views.decorators.csrf import csrf_exempt
-
-
 JSON_MIME = "application/json"
 
 

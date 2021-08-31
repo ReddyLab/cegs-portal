@@ -1,29 +1,36 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}>Gene{% endblock %}
+{% block title %}Gene{% endblock %}
 {% block content %}
-    <div class="gene_title">{{ gene.ensembl_id }}</div>
-    <div>{{ gene.gene_type }}</div>
-    <table id="gene_table">
-        <tr><th>Gene Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-    {% for assembly in assemblies.all %}
-        <tr>
-            <td>{{ assembly.name }}</td>
-            <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
-            <td>{{ assembly.strand }}</td>
-            <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
-        </tr>
-    {% endfor %}
-    </table>
+    <div class="mb-8">
+        <div>
+            <span class="text-2xl">Gene </span><span class="text-2xl font-bold">{{ gene.ensembl_id }}</span>
+            {% if transcripts.all|length > 0 %}<span><a href="#transcripts">Transcripts</a></span>{% endif %}
+            {% if dhss.all|length > 0 %}<span><a href="#dhss">DHSs</a></span>{% endif %}
+        </div>
+        <div>Type: {{ gene.gene_type }}</div>
+        <table class="data-table">
+            <tr><th>Gene Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+        {% for assembly in assemblies.all %}
+            <tr>
+                <td>{{ assembly.name }}</td>
+                <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
+                <td>{{ assembly.strand }}</td>
+                <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
 
     {% if transcripts.all|length > 0 %}
-    <div class="subsection">
-        <div class="subheader">Transcripts</div>
+    <div class="mb-8">
+        <a name="transcripts"></a>
+        <div class="text-xl font-bold">Transcripts</div>
         {% for transcript in transcripts.all %}
 
             <div>{{ transcript.ensembl_id }}</div>
-            <table>
+            <table class="data-table">
                 <tr><th>Transcript Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
             {% for assembly in transcript.assemblies.all %}
                 <tr>
@@ -39,9 +46,10 @@
     {% endif %}
 
     {% if dhss.all|length > 0 %}
-    <div class="subsection">
-        <div class="subheader">Nearby DNase I Hypersensitive Sites</div>
-        <table>
+    <div>
+        <a name="dhss"></a>
+        <div class="text-xl font-bold">Nearby DNase I Hypersensitive Sites</div>
+        <table class="data-table">
             <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th></tr>
             {% for dhs in dhss.all %}
                 <tr>
