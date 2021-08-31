@@ -38,7 +38,7 @@
         window.addEventListener("hashchange", _.throttle(function() {
             let hash = window.location.hash;
             [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
-            fetch(`http://127.0.0.1:8000/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&extended=t`)
+            fetch(`http://127.0.0.1:8000/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json`)
                 .then(response => {
                     return response.json()
                 })

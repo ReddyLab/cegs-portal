@@ -2,7 +2,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 
 from cegs_portal.search.view_models import DHSSearch
-from cegs_portal.search.views.renderers import genoverse_reformat, json
+from cegs_portal.search.views.renderers import json
 
 JSON_MIME = "application/json"
 
@@ -36,43 +36,24 @@ def dhs_loc(request, chromo, start, end):
             * overlap
         assembly
             * free-text, but should match a genome assembly that exists in the DB
-        extended
-            * a flag, only relevant for json
     """
     search_type = request.GET.get("search_type", "exact")
     assembly = request.GET.get("assembly", None)
+    is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
+    response_format = request.GET.get("format", None)
 
-    if chromo.isnumeric():
+    if not chromo.startswith("chr"):
         chromo = f"chr{chromo}"
 
     dhs_list = DHSSearch.loc_search(chromo, start, end, assembly, search_type)
 
-    if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-        return dhs_loc_json(request, dhs_list, request.GET.get("extended", False))
+    if is_json:
+        return dhs_loc_json(dhs_list, response_format)
 
-    dhs_list = dhs_list.select_related("closest_gene")
     return render(request, "search/dhs.html", {"dhss": dhs_list, "loc": {"chr": chromo, "start": start, "end": end}})
 
 
-def dhs_loc_json(request, dhs_list, extended):
-    if extended:
-        dhs_list = dhs_list.select_related("closest_gene")
-
-    results = [json(result) for result in dhs_list]
-
-    if extended:
-        closest_gene_dict = {dhs.closest_gene.id: json(dhs.closest_gene) for dhs in dhs_list}
-
-    if request.GET.get("format", None) == "genoverse":
-        for result in results:
-            genoverse_reformat(result)
-
-        if extended:
-            for gene_id in closest_gene_dict:
-                genoverse_reformat(closest_gene_dict[gene_id])
-
-    if extended:
-        for dhs_json in results:
-            dhs_json["closest_gene"] = closest_gene_dict[dhs_json["closest_gene"]]
+def dhs_loc_json(dhs_list, response_format):
+    results = [json(result, response_format) for result in dhs_list]
 
     return JsonResponse(results, safe=False)

@@ -8,21 +8,29 @@ from cegs_portal.search.models import (
 )
 
 
-def genoverse_reformat(json_dict):
-    if value := json_dict.get("id", False):
-        json_dict["id"] = str(value)
-
-    if chromo := json_dict.get("chr", False):
-        json_dict["chr"] = chromo.removeprefix("chr")
-
-
 @singledispatch
-def json(model):
+def json(model, _json_format=None):
     return model
 
 
 @json.register(DNaseIHypersensitiveSite)
-def _(dhs_object):
+def _(dhs_object, json_format=None):
+    if json_format == "genoverse":
+        return {
+            "id": str(dhs_object.id),
+            "cell_line": dhs_object.cell_line,
+            "chr": dhs_object.chromosome_name.removeprefix("chr"),
+            "start": dhs_object.location.lower,
+            "end": dhs_object.location.upper,
+            "strand": dhs_object.strand,
+            "closest_gene": json(dhs_object.closest_gene, json_format),
+            "closest_gene_id": dhs_object.closest_gene_id,
+            "closest_gene_name": dhs_object.closest_gene_name,
+            "ref_genome": dhs_object.ref_genome,
+            "ref_genome_patch": dhs_object.ref_genome_patch,
+            "regulatory_effects": [json(effect) for effect in dhs_object.regulatory_effects.all()],
+        }
+
     return {
         "id": dhs_object.id,
         "cell_line": dhs_object.cell_line,
@@ -30,7 +38,8 @@ def _(dhs_object):
         "start": dhs_object.location.lower,
         "end": dhs_object.location.upper,
         "strand": dhs_object.strand,
-        "closest_gene": dhs_object.closest_gene_id,
+        "closest_gene": json(dhs_object.closest_gene, json_format),
+        "closest_gene_id": dhs_object.closest_gene_id,
         "closest_gene_name": dhs_object.closest_gene_name,
         "ref_genome": dhs_object.ref_genome,
         "ref_genome_patch": dhs_object.ref_genome_patch,
@@ -39,7 +48,7 @@ def _(dhs_object):
 
 
 @json.register(RegulatoryEffect)
-def _(reg_effect):
+def _(reg_effect, json_format=None):
     return {
         "id": reg_effect.id,
         "direction": reg_effect.direction,
@@ -50,7 +59,7 @@ def _(reg_effect):
 
 
 @json.register(GeneAssembly)
-def _(gene_assembly):
+def _(gene_assembly, json_format=None):
     return {
         "name": gene_assembly.name,
         "chr": gene_assembly.chrom_name,
@@ -64,7 +73,7 @@ def _(gene_assembly):
 
 
 @json.register(Gene)
-def _(gene_obj):
+def _(gene_obj, json_format=None):
     return {
         "ensembl_id": gene_obj.ensembl_id,
         "type": gene_obj.gene_type,

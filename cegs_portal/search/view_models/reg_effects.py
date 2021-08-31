@@ -32,5 +32,5 @@ class DHSSearch:
             query["ref_genome"] = assembly
 
         query[field] = NumericRange(int(start), int(end), "[]")
-        genes = DNaseIHypersensitiveSite.objects.filter(**query).distinct()
+        genes = DNaseIHypersensitiveSite.objects.filter(**query).select_related("closest_gene").distinct()
         return genes

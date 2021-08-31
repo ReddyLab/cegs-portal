@@ -2,7 +2,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 
 from cegs_portal.search.view_models import GeneSearch, IdType
-from cegs_portal.search.views.renderers import genoverse_reformat, json
+from cegs_portal.search.views.renderers import json
 
 # from django.utils.decorators import method_decorator
 # from django.views.decorators.csrf import csrf_exempt
@@ -77,11 +77,7 @@ def gene_loc(request, chromo, start, end):
     search_results = GeneSearch.loc_search(chromo, start, end, assembly, search_type)
 
     if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-        results = [json(result) for result in search_results]
-
-        if request.GET.get("format", None) == "genoverse":
-            for result in results:
-                genoverse_reformat(result)
+        results = [json(result, request.GET.get("format", None)) for result in search_results]
 
         return JsonResponse(results, safe=False)
 
