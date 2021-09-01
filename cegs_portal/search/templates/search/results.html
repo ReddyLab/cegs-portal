@@ -5,8 +5,13 @@
 {% block content %}
     <h2>Results</h2>
     <div>
-        {% for annotation in annotations %}
-            <div>{{ annotation }}</div>
+        {% for assembly in assemblies %}
+            <div>{{ assembly }}</div>
+        {% endfor %}
+    </div>
+    <div>
+        {% for gene in genes %}
+            <div>{{ gene }}</div>
         {% endfor %}
     </div>
     <div>

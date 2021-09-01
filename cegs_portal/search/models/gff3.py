@@ -1,8 +1,9 @@
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
+from django.db.models import Q
 
-from cegs_portal.search.models.utils import ChromosomeLocation
+from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
@@ -20,6 +21,18 @@ class GeneAssembly(models.Model):
     strand = models.CharField(max_length=1, null=True)
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
+
+    @classmethod
+    def search(cls, terms):
+        q = None
+        for term, value in terms:
+            if term == QueryToken.LOCATION:
+                if q is None:
+                    q = Q(chrom_name=value.chromo, location__overlap=value.range)
+                else:
+                    q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
+        print(q)
+        return cls.objects.filter(q) if q is not None else []
 
 
 class TranscriptAssembly(models.Model):
@@ -54,6 +67,17 @@ class Gene(models.Model):
     assemblies = models.ManyToManyField(GeneAssembly, related_name="gene")
     ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
     gene_type = models.CharField(max_length=50)
+
+    @classmethod
+    def search(cls, terms):
+        q = None
+        for term, value in terms:
+            if term == QueryToken.ENSEMBL_ID:
+                if q is None:
+                    q = Q(ensembl_id=value)
+                else:
+                    q = q | Q(ensembl_id=value)
+        return cls.objects.filter(q) if q is not None else []
 
 
 class Transcript(models.Model):
@@ -140,17 +164,6 @@ class GencodeGFF3Entry(models.Model):
 
     def __str__(self):
         return f"{self.annotation.id_attr}: {self.location.lower} - {self.location.upper}:{self.strand}"
-
-    @classmethod
-    def search(self, terms):
-        query = None
-        for term in terms:
-            if isinstance(term, ChromosomeLocation):
-                if query is None:
-                    query = self.objects.filter(seqid=term.chromo, location__overlap=term.range)
-                else:
-                    query = query | self.objects.filter(seqid=term.chromo, location__overlap=term.range)
-        return query.filter(annotation__annotation_type="gene") if query is not None else []
 
 
 class GencodeGFF3Attribute(models.Model):

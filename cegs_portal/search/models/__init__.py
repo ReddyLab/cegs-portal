@@ -12,5 +12,5 @@ from .gff3 import (
     TranscriptAssembly,
 )
 from .reg_effects import DNaseIHypersensitiveSite, RegulatoryEffect
-from .utils import ChromosomeLocation
+from .utils import ChromosomeLocation, QueryToken
 from .variants import Subject, Variant, VCFEntry, VCFFile

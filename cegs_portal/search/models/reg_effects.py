@@ -1,10 +1,11 @@
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
+from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.gff3 import Gene
-from cegs_portal.search.models.utils import ChromosomeLocation
+from cegs_portal.search.models.utils import QueryToken
 
 
 class DNaseIHypersensitiveSite(models.Model):
@@ -25,19 +26,15 @@ class DNaseIHypersensitiveSite(models.Model):
         return f"{self.chromosome_name} {self.location.lower}-{self.location.upper} ({self.cell_line})"
 
     @classmethod
-    def search(self, terms):
-        query = None
-        for term in terms:
-            if isinstance(term, ChromosomeLocation):
-                if query is None:
-                    query = DNaseIHypersensitiveSite.objects.filter(
-                        chromosome_name=term.chromo, location__overlap=term.range
-                    )
+    def search(cls, terms):
+        q = None
+        for term, value in terms:
+            if term == QueryToken.LOCATION:
+                if q is None:
+                    q = Q(chromosome_name=value.chromo, location__overlap=value.range)
                 else:
-                    query = query | DNaseIHypersensitiveSite.objects.filter(
-                        chromosome_name=term.chromo, location__overlap=term.range
-                    )
-        return query or []
+                    q = q | Q(chromosome_name=value.chromo, location__overlap=value.range)
+        return cls.objects.filter(q) if q is not None else []
 
 
 class RegulatoryEffect(models.Model):

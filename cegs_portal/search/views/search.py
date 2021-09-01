@@ -21,7 +21,8 @@ def results(request):
         request,
         "search/results.html",
         {
-            "annotations": search_results["annotations"],
+            "assemblies": search_results["assemblies"],
+            "genes": search_results["genes"],
             "dh_sites": search_results["dh_sites"],
             "form": form,
         },
