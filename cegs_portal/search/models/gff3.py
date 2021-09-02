@@ -9,7 +9,10 @@ from cegs_portal.search.models.validators import validate_gene_ids
 
 class GeneAssembly(models.Model):
     class Meta:
-        indexes = [models.Index(fields=["name"], name="search_geneassembly_name_index")]
+        indexes = [
+            models.Index(fields=["name"], name="search_geneassembly_name_index"),
+            GistIndex(fields=["location"], name="search_geneassembly_loc_index"),
+        ]
 
     chrom_name = models.CharField(max_length=10)
     ids = models.JSONField(null=True, validators=[validate_gene_ids])
