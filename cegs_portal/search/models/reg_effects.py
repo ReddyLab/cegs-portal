@@ -34,7 +34,7 @@ class DNaseIHypersensitiveSite(models.Model):
                     q = Q(chromosome_name=value.chromo, location__overlap=value.range)
                 else:
                     q = q | Q(chromosome_name=value.chromo, location__overlap=value.range)
-        return cls.objects.filter(q) if q is not None else []
+        return cls.objects.filter(q).select_related("closest_gene") if q is not None else []
 
 
 class RegulatoryEffect(models.Model):

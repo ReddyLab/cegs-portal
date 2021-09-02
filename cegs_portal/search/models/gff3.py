@@ -28,6 +28,9 @@ class GeneAssembly(models.Model):
     # Creates a "one-to-many" relationship pair with Gene, which has a ManyToMany field for GeneAssemblys
     gene = models.ForeignKey("Gene", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
+
     @classmethod
     def search(cls, terms):
         q = None
@@ -74,6 +77,9 @@ class Gene(models.Model):
     ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
     gene_type = models.CharField(max_length=50)
 
+    def __str__(self):
+        return f"{self.ensembl_id}: {self.gene_type}"
+
     @classmethod
     def search(cls, terms):
         q = None
@@ -83,7 +89,7 @@ class Gene(models.Model):
                     q = Q(ensembl_id=value)
                 else:
                     q = q | Q(ensembl_id=value)
-        return cls.objects.filter(q) if q is not None else []
+        return cls.objects.filter(q).prefetch_related("assemblies") if q is not None else []
 
 
 class Transcript(models.Model):

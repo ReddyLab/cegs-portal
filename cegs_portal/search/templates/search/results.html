@@ -3,36 +3,19 @@
 
 {% block title %}DHS Search{% endblock %}
 {% block content %}
-    <h2>Results</h2>
     <div>
-        {% for assembly in assemblies %}
-            <div>{{ assembly }}</div>
-            <div>{{ assembly }}, {{ assembly.gene }}</div>
-        {% endfor %}
+        <span class="text-2xl font-bold">Results</span>
+        <form action="{% url 'search:results' %}" method="get" class="search">
+            {{ form }}
+            <input type="submit" value="Search Again" class="search-button">
+        </form>
     </div>
-    <div>
-        {% for gene in genes %}
-            <div>{{ gene }}</div>
-        {% endfor %}
+    <div class="my-4">
+        <div class="text-xl font-bold">Genes</div>
+        {% include "search/partials/_genes.html" with genes=genes %}
     </div>
-    <div>
-        {% for site in dh_sites %}
-            <div>{{ site }}</div>
-        {% endfor %}
+    <div class="my-4">
+        <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
+        {% include "search/partials/_dhss.html" with dhss=dh_sites %}
     </div>
-    <!-- <table id="results">
-        <thead>
-            <tr><th>Name</th><th>Line</th><th>Start Loc.</th><th>End Loc.</th><th>Score</th></tr>
-        </thead>
-        <tbody>
-        {% for dhs in results %}
-            <tr><td class="name">{{ dhs.name }}</td><td>{{ dhs.line }}</td><td><span>{{ dhs.chrom }}:{{ dhs.start }}</span></td><td>{{ dhs.chrom }}:{{ dhs.end }}</span></td><td>{{ dhs.direction }}: {{ dhs.amount }}</td></tr>
-        {% endfor %}
-        </tbody>
-    </table> -->
-    <div>Search Again</div>
-    <form action="{% url 'search:results' %}" method="get" class="search">
-        {{ form }}
-        <input type="submit" value="Search" class="search-button">
-    </form>
 {% endblock %}}

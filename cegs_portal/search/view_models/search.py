@@ -31,9 +31,19 @@ class Search:
     def search(cls, query_string):
         parse_result = parse_query(query_string)
         assemblies = GeneAssembly.search(parse_result)
-        sites = DNaseIHypersensitiveSite.search(parse_result)
+
+        gene_dict = {}
+        for assembly in assemblies:
+            gene_assemblies = gene_dict.get(assembly.gene, [])
+            gene_assemblies.append(assembly)
+            gene_dict[assembly.gene] = gene_assemblies
+
         genes = Gene.search(parse_result)
-        return {"assemblies": assemblies, "genes": genes, "dh_sites": sites}
+        for gene in genes:
+            gene_dict[gene] = list(gene.assemblies.all())
+
+        sites = DNaseIHypersensitiveSite.search(parse_result)
+        return {"genes": gene_dict, "dh_sites": sites}
 
     def facets(self):
         pass

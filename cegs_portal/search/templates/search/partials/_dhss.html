@@ -1,0 +1,14 @@
+{% spaceless %}
+    <table id="dhs" class="data-table"><tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+        {% for dhs in dhss %}
+        <tr>
+            <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+            <td>{{ dhs.cell_line }}</td>
+            <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
+            <td>{{ dhs.strand }}</td>
+            <td><a href="{% url 'search:genes' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }} ({{ dhs.closest_gene_name }})</a></td>
+            <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endspaceless %}
