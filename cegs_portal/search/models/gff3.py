@@ -25,6 +25,9 @@ class GeneAssembly(models.Model):
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
 
+    # Creates a "one-to-many" relationship pair with Gene, which has a ManyToMany field for GeneAssemblys
+    gene = models.ForeignKey("Gene", on_delete=models.CASCADE)
+
     @classmethod
     def search(cls, terms):
         q = None
@@ -34,8 +37,7 @@ class GeneAssembly(models.Model):
                     q = Q(chrom_name=value.chromo, location__overlap=value.range)
                 else:
                     q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
-        print(q)
-        return cls.objects.filter(q) if q is not None else []
+        return cls.objects.filter(q).select_related("gene") if q is not None else []
 
 
 class TranscriptAssembly(models.Model):
@@ -67,7 +69,8 @@ class Gene(models.Model):
     class Meta:
         indexes = [models.Index(fields=["ensembl_id"], name="search_gene_ensembl_id_index")]
 
-    assemblies = models.ManyToManyField(GeneAssembly, related_name="gene")
+    # GeneAssemblys have an associated foreign key to create a one-to-many relationship
+    assemblies = models.ManyToManyField(GeneAssembly, related_name="gene_set")
     ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
     gene_type = models.CharField(max_length=50)
 
