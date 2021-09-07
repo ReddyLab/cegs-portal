@@ -15,26 +15,8 @@ def json(model, _json_format=None):
 
 @json.register(DNaseIHypersensitiveSite)
 def _(dhs_object, json_format=None):
-    if json_format == "genoverse":
-        return {
-            "id": str(dhs_object.id),
-            "cell_line": dhs_object.cell_line,
-            "chr": dhs_object.chromosome_name.removeprefix("chr"),
-            "start": dhs_object.location.lower,
-            "end": dhs_object.location.upper,
-            "strand": dhs_object.strand,
-            "closest_gene": json(dhs_object.closest_gene, json_format),
-            "closest_gene_id": dhs_object.closest_gene_id,
-            "closest_gene_name": dhs_object.closest_gene_name,
-            "ref_genome": dhs_object.ref_genome,
-            "ref_genome_patch": dhs_object.ref_genome_patch,
-            "regulatory_effects": [json(effect) for effect in dhs_object.regulatory_effects.all()],
-        }
-
-    return {
-        "id": dhs_object.id,
+    result = {
         "cell_line": dhs_object.cell_line,
-        "chr": dhs_object.chromosome_name,
         "start": dhs_object.location.lower,
         "end": dhs_object.location.upper,
         "strand": dhs_object.strand,
@@ -43,8 +25,16 @@ def _(dhs_object, json_format=None):
         "closest_gene_name": dhs_object.closest_gene_name,
         "ref_genome": dhs_object.ref_genome,
         "ref_genome_patch": dhs_object.ref_genome_patch,
-        "regulatory_effects": [json(effect) for effect in dhs_object.regulatory_effects.all()],
     }
+
+    if json_format == "genoverse":
+        result["id"] = str(dhs_object.id)
+        result["chr"] = dhs_object.chromosome_name.removeprefix("chr")
+    else:
+        result["id"] = dhs_object.id
+        result["chr"] = dhs_object.chromosome_name
+
+    return result
 
 
 @json.register(RegulatoryEffect)
@@ -77,5 +67,4 @@ def _(gene_obj, json_format=None):
     return {
         "ensembl_id": gene_obj.ensembl_id,
         "type": gene_obj.gene_type,
-        "locations": [json(assembly) for assembly in gene_obj.assemblies.all()],
     }
