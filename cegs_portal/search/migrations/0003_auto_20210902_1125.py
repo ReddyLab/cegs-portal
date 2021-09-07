@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='geneassembly',
             name='gene',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='search.gene'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='search.gene'),
         ),
         migrations.AlterField(
             model_name='gene',
