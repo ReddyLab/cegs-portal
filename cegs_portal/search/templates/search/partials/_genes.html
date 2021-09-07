@@ -1,16 +1,20 @@
-{% for gene, assemblies in genes.items %}
     <div>
-        <div><a href="{% url 'search:genes' 'ensembl' gene.ensembl_id %}">{{ gene.ensembl_id }}</a> {{ gene.gene_type }}</div>
-        <table class="data-table">
-            <tr><th>Assembly</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-            {% for assembly in assemblies %}
-                <tr>
-                    <td>{{ assembly.name }}</td>
-                    <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
-                    <td>{{ assembly.strand }}</td>
-                    <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
-                </tr>
+        <table class="data-table2">
+            <tr class="th-bg-light-gray"><th>ENSEMBL ID</th><th>Type</th><th>Name</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+            {% for gene, assemblies in genes.items %}
+                {% cycle 'bg-gray-200' 'th-bg-light-gray' as rowcolor silent %}
+                {% for assembly in assemblies %}
+                    <tr class="{{ rowcolor }}">
+                        {% if forloop.first %}
+                        <th rowspan="{{ assemblies|length }}" scope="rowgroup"><a href="{% url 'search:genes' 'ensembl' gene.ensembl_id %}">{{ gene.ensembl_id }}</a></th>
+                        <th rowspan="{{ assemblies|length }}" scope="rowgroup">{{ gene.gene_type }}</th>
+                        {% endif %}
+                        <td>{{ assembly.name }}</td>
+                        <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
+                        <td>{{ assembly.strand }}</td>
+                        <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
+                    </tr>
+                {% endfor %}
             {% endfor %}
         </table>
     </div>
-{% endfor %}

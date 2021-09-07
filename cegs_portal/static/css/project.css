@@ -664,7 +664,11 @@ a:visited {
   color: rgba(124, 58, 237, var(--tw-text-opacity));
 }
 
-table.data-table {
+.th-bg-light-gray {
+  background-color: rgb(249, 250, 251);
+}
+
+table[class^="data-table"] {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   border-width: 1px;
@@ -678,14 +682,14 @@ table.data-table tr:nth-child(odd) {
   background-color: rgb(249, 250, 251);
 }
 
-table.data-table tr > th {
+table[class^="data-table"] tr > th {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 1rem;
 }
 
-table.data-table tr > td {
+table[class^="data-table"] tr > td {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   padding-left: 1rem;
@@ -766,6 +770,11 @@ form.search > input.search-button {
 .bg-blue-50 {
   --tw-bg-opacity: 1;
   background-color: rgba(239, 246, 255, var(--tw-bg-opacity));
+}
+
+.bg-gray-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgba(229, 231, 235, var(--tw-bg-opacity));
 }
 
 .p-8 {

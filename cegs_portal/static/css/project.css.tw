@@ -28,7 +28,11 @@
     @apply text-purple-600;
   }
 
-  table.data-table {
+  .th-bg-light-gray {
+    background-color: rgb(249, 250, 251);
+  }
+
+  table[class^="data-table"] {
     @apply bg-gray-200 border border-gray-900 my-2;
   }
 
@@ -36,11 +40,11 @@
     background-color: rgb(249, 250, 251);
   }
 
-  table.data-table tr > th {
+  table[class^="data-table"] tr > th {
     @apply py-2 px-4;
   }
 
-  table.data-table tr > td {
+  table[class^="data-table"] tr > td {
     @apply py-2 px-4;
   }
 
