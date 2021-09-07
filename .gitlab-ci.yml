@@ -17,7 +17,7 @@ variables:
   CLUSTER_SERVER: https://ocpconsole.duhs.duke.edu:8443
   CLUSTER_NAMESPACE: cegsptl
   CLUSTER_BASE_ROUTE: ocp.dhe.duke.edu
-  CHART_URL: https://cegsptl.ocp.dhe.duke.edu
+  CHART_URL: https://museum.ocp.dhe.duke.edu
   THE_DOCKERFILE: ./compose/production/django/Dockerfile
 
 include:
