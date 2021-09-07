@@ -41,19 +41,20 @@
   }
 
   table[class^="data-table"] tr > th {
-    @apply py-2 px-4;
+    @apply py-2 px-4 text-left;
   }
 
   table[class^="data-table"] tr > td {
-    @apply py-2 px-4;
+    @apply py-2 px-4 text-left;
   }
 
   form.search {
     @apply m-2;
+    display: flex;
   }
 
   form.search > label {
-    @apply mr-2;
+    @apply mr-2 text-2xl font-bold align-baseline self-end;
   }
 
   #id_query {
