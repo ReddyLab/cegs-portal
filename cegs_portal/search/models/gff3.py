@@ -55,6 +55,9 @@ class TranscriptAssembly(models.Model):
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
 
+    # Creates a "one-to-many" relationship pair with Transcript, which has a ManyToMany field for TranscriptAssemblys
+    transcript = models.ForeignKey("Transcript", on_delete=models.CASCADE)
+
 
 class ExonAssembly(models.Model):
     chrom_name = models.CharField(max_length=10)
@@ -66,6 +69,9 @@ class ExonAssembly(models.Model):
     strand = models.CharField(max_length=1, null=True)
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
+
+    # Creates a "one-to-many" relationship pair with Exon, which has a ManyToMany field for ExonAssemblys
+    exon = models.ForeignKey("Exon", on_delete=models.CASCADE)
 
 
 class Gene(models.Model):
@@ -93,15 +99,21 @@ class Gene(models.Model):
 
 
 class Transcript(models.Model):
-    assemblies = models.ManyToManyField(TranscriptAssembly, related_name="transcript")
+    class Meta:
+        indexes = [models.Index(fields=["ensembl_id"], name="search_tx_ensembl_id_index")]
+
+    assemblies = models.ManyToManyField(TranscriptAssembly, related_name="transcript_set")
     ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
     gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
     transcript_type = models.CharField(max_length=50)
 
 
 class Exon(models.Model):
-    assemblies = models.ManyToManyField(ExonAssembly, related_name="exon")
-    ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
+    class Meta:
+        indexes = [models.Index(fields=["ensembl_id"], name="search_exon_ensembl_id_index")]
+
+    assemblies = models.ManyToManyField(ExonAssembly, related_name="exon_set")
+    ensembl_id = models.CharField(max_length=50, unique=False, default="No ID")
     gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
     number = models.IntegerField()
     transcript = models.ForeignKey(Transcript, on_delete=models.CASCADE)
@@ -115,8 +127,17 @@ class GencodeGFF3Region(models.Model):
         return f"{self.chrom_name} {self.base_range.lower} {self.base_range.upper}"
 
 
+# Note that the following annotation_types might have multiple entries for a single ID attribute:
+# stop_codon, three_prime_UTR, start_codon, and five_prime_UTR.
 class GencodeGFF3Annotation(models.Model):
+    class Meta:
+        indexes = [GistIndex(fields=["location"], name="search_gcanno_location_index")]
+
     chrom_name = models.CharField(max_length=10)
+    location = IntegerRangeField()
+    strand = models.CharField(max_length=1)
+    score = models.FloatField(null=True)
+    phase = models.IntegerField(null=True)
     annotation_type = models.CharField(max_length=100)
     id_attr = models.CharField(max_length=50)
     ref_genome = models.CharField(max_length=20)
@@ -125,9 +146,8 @@ class GencodeGFF3Annotation(models.Model):
     gene_type = models.CharField(max_length=50)
     level = models.IntegerField()
     region = models.ForeignKey(GencodeGFF3Region, on_delete=models.SET_NULL, null=True)
-    parent_annotation = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="parent"
-    )
+    attributes = models.JSONField(null=True)
+
     gene = models.ForeignKey(
         Gene,
         on_delete=models.SET_NULL,
@@ -150,51 +170,7 @@ class GencodeGFF3Annotation(models.Model):
         related_name="annotation",
     )
 
-    def save(self, *args, **kwargs):
-        if self.parent_annotation is not None and self.parent_annotation_id is None:
-            self.parent_annotation_id = self.parent_annotation.id
-        super(GencodeGFF3Annotation, self).save(*args, **kwargs)
-
     def __str__(self):
         first_field = f"{self.id_attr}: " if self.id_attr is not None else ""
         patch = f"p{self.ref_genome_patch}" if self.ref_genome_patch is not None else ""
-        return f"{self.gene_name}: {first_field}{self.ref_genome}{patch}: ({self.annotation_type})"
-
-
-class GencodeGFF3Entry(models.Model):
-    class Meta:
-        indexes = [GistIndex(fields=["location"], name="search_gcgentry_location_index")]
-
-    seqid = models.CharField(max_length=500)
-    # These values will be returned as 0-index, half-closed. This should be converted to
-    # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
-    location = IntegerRangeField()
-    strand = models.CharField(max_length=1)
-    score = models.FloatField(null=True)
-    phase = models.IntegerField(null=True)
-    annotation = models.ForeignKey(GencodeGFF3Annotation, on_delete=models.CASCADE, related_name="entries")
-
-    def __str__(self):
-        return f"{self.annotation.id_attr}: {self.location.lower} - {self.location.upper}:{self.strand}"
-
-
-class GencodeGFF3Attribute(models.Model):
-    name = models.CharField(max_length=50)
-    value = models.CharField(max_length=500)
-    entry = models.ForeignKey(
-        GencodeGFF3Entry,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="attributes",
-    )
-    annotation = models.ForeignKey(
-        GencodeGFF3Annotation,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="attributes",
-    )
-
-    def __str__(self):
-        return f"{self.name}={self.value}"
+        return f"{self.gene_name}: {first_field} {self.chrom_name}:{self.location.lower} - {self.location.upper} {self.strand} {self.ref_genome}{patch}: ({self.annotation_type})"  # noqa: E501

@@ -3,8 +3,6 @@ from .gff3 import (
     Exon,
     ExonAssembly,
     GencodeGFF3Annotation,
-    GencodeGFF3Attribute,
-    GencodeGFF3Entry,
     GencodeGFF3Region,
     Gene,
     GeneAssembly,

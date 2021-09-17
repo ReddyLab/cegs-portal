@@ -14,5 +14,6 @@ shell:
 	python manage.py shell
 
 loaddata:
-	# python manage.py shell -c 'import load_gff3_data; load_gff3_data.run()'
-	python manage.py shell -c 'import load_wgceres_data; load_wgceres_data.run()'
+	scripts/load_gencode_gff3_data.sh ../cegs_portal_data/other/gencode.v38.annotation.gff3 GRCh38 13
+	scripts/load_gencode_gff3_data.sh ../cegs_portal_data/other/gencode.v19.annotation.gff3 GRCh37
+	# python manage.py shell -c 'import load_wgceres_data; load_wgceres_data.run()'
