@@ -38,11 +38,11 @@
   }
 
   table[class^="data-table"] {
-    @apply bg-gray-200 border border-gray-900 my-2;
+    @apply bg-blue-100 border-2 border-blue-200 rounded-md my-2;
   }
 
   table.data-table tr:nth-child(odd) {
-    background-color: rgb(249, 250, 251);
+    @apply bg-blue-50;
   }
 
   table[class^="data-table"] tr > th {
