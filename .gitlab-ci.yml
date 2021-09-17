@@ -55,7 +55,7 @@ updatechart:
     - TAG=${TAG:-dev}
     - REGISTRY_ENDPOINT="https://gitlab.dhe.duke.edu"
     - CONTENT_TYPE="application/json"
-    - SHA=$(curl -H "Private-Token:$SELF_API_TOKEN" -H "accept:$CONTENT_TYPE" "$REGISTRY_ENDPOINT/api/v4/projects/4707/registry/repositories/1732/tags/$TAG" | jq ".digest")
+    - SHA=$(curl -sf -H "Private-Token:$SELF_API_TOKEN" -H "accept:$CONTENT_TYPE" "$REGISTRY_ENDPOINT/api/v4/projects/4707/registry/repositories/1732/tags/$TAG" | jq ".digest")
     - curl -sf -X PUT -H "Private-Token:$CHART_API_TOKEN" "$REGISTRY_ENDPOINT/api/v4/projects/4782/variables/DEV_IMAGE_SHA" -F "value=$SHA"
     - curl -sf -X POST -H "Private-Token:$CHART_API_TOKEN" -F token=$DEPLOY_TRIGGER_TOKEN -F ref=master $REGISTRY_ENDPOINT/api/v4/projects/4782/trigger/pipeline
   tags:
