@@ -16,6 +16,11 @@
 }
 
 @layer components {
+  .bg-color {
+    /* background-color: rgba(255, 251, 235, 1); */
+    background-color: white;
+  }
+
   a {
     @apply underline text-blue-600;
   }
@@ -49,12 +54,11 @@
   }
 
   form.search {
-    @apply m-2;
     display: flex;
   }
 
   form.search > label {
-    @apply mr-2 text-2xl font-bold align-baseline self-end;
+    @apply mr-2 text-2xl align-baseline self-end;
   }
 
   #id_query {
