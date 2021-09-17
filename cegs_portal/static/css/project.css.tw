@@ -17,8 +17,11 @@
 
 @layer components {
   .bg-color {
-    /* background-color: rgba(255, 251, 235, 1); */
     background-color: white;
+  }
+
+  .border-color {
+    border-color: rgba(1, 33, 105, 1);
   }
 
   a {
@@ -38,10 +41,11 @@
   }
 
   table[class^="data-table"] {
-    @apply bg-blue-100 border-2 border-blue-200 rounded-md my-2;
+    @apply bg-blue-100 border-2 rounded-md my-2;
+    border-color: rgba(1, 33, 105, 1);
   }
 
-  table.data-table tr:nth-child(odd) {
+  table[class^="data-table"] tr:nth-child(odd) {
     @apply bg-blue-50;
   }
 

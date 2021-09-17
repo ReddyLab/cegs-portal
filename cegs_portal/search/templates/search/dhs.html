@@ -71,7 +71,7 @@
         chr       : "{{ loc.chr }}".replace("chr", ""),
         start     : {{ loc.start }},
         end       : {{ loc.end }},
-        plugins   : [ 'controlPanel', [ 'karyotype', { showAssembly: true }], 'trackControls', 'resizer', 'focusRegion', 'fullscreen', 'tooltips', 'fileDrop' ],
+        plugins   : [[ 'karyotype', { showAssembly: true }]],
         useHash   : true,
         hideEmptyTracks: false,
         tracks    : [
