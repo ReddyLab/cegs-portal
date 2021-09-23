@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% load static i18n %}
 {% block title %}DNase I Hypersensitive Sites{% endblock %}
-
+{% block css %}
+{{ block.super }}
+<link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
+{% endblock %}
 {% block javascript %}
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
@@ -25,7 +28,7 @@
         window.addEventListener("hashchange", _.throttle(function() {
             let hash = window.location.hash;
             [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
-            fetch(`http://127.0.0.1:8000/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json`)
+            fetch(`/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json`)
                 .then(response => {
                     return response.json()
                 })
@@ -79,7 +82,7 @@
             Genoverse.Track.Scalebar,
             Genoverse.Track.extend({
             name            : 'DNaseI Hypersensitive Sites',
-            url             : '//127.0.0.1:8000/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
+            url             : '/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
             resizable       : 'auto',
             model           : Genoverse.Track.Model.extend({ dataRequestLimit : 5000000 }),
             setFeatureColor : function (f) { f.color = '#F00'; }
