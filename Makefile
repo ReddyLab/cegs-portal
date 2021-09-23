@@ -16,4 +16,4 @@ shell:
 loaddata:
 	scripts/load_gencode_gff3_data.sh ../cegs_portal_data/other/gencode.v38.annotation.gff3 GRCh38 13
 	scripts/load_gencode_gff3_data.sh ../cegs_portal_data/other/gencode.v19.annotation.gff3 GRCh37
-	# python manage.py shell -c 'import load_wgceres_data; load_wgceres_data.run()'
+	scripts/load_wgceres_data.sh ../cegs_portal_data/wgCERES/experiment.json
