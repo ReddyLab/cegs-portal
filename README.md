@@ -13,8 +13,7 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ## Set up Devlopment Environment
 
-This is a Django 3.2 project that requires at least Python 3.8. Additionally you'll need at least Node.js 14.17 for auto-reloading and CSS compilation. The easiest
-way to set up a database is using docker compose, so that's another thing to install, sorry.
+First, clone this repository. This is a Django 3.2 project that requires at least Python 3.8. Additionally you'll need at least Node.js 14.17 for auto-reloading and CSS compilation. The easiest way to set up a database is using docker compose so that's another thing to install, sorry.
 
 Once you have all those installed you need to install dependencies.
 
@@ -25,12 +24,22 @@ Then you can start the database:
 
     $ docker compose up -d
 
+Now you must run the database migrations:
+
+    $ make migrate
+
 And start the server:
 
     $ npm run dev
 
 This will launch django and begin the tailwind CSS compiler. When you edit a file either server will restart. If you edit the project.css.tw file it will
 get recompiled (and the server will restart).
+
+## Loading sample data
+
+Currently there are scripts to load up the gencode gff3 files, downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz. There's an additional script for loading some wgCERES data (the data is not currently publicly available but will probably become so in the future).
+
+To load the gencode data download the files and edit the "loaddata" section of the Makefile to point at their location on your system. Comment out the `load_wgceres_data.sh` line. Then run `make loaddata`. Loading both gencode data sets will take quite a while -- close to an entire day.
 
 ## Basic Commands
 
