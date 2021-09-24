@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
-from cegs_portal.search.models.gff3 import Gene
+from cegs_portal.search.models.gff3 import Gene, GeneAssembly
 from cegs_portal.search.models.utils import QueryToken
 
 
@@ -15,6 +15,7 @@ class DNaseIHypersensitiveSite(models.Model):
     cell_line = models.CharField(max_length=50)
     chromosome_name = models.CharField(max_length=10)
     closest_gene = models.ForeignKey(Gene, null=True, on_delete=models.SET_NULL)
+    closest_gene_assembly = models.ForeignKey(GeneAssembly, null=True, on_delete=models.SET_NULL)
     closest_gene_distance = models.IntegerField()
     closest_gene_name = models.CharField(max_length=50)
     location = IntegerRangeField()

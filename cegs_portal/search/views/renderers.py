@@ -21,6 +21,7 @@ def _(dhs_object, json_format=None):
         "end": dhs_object.location.upper,
         "strand": dhs_object.strand,
         "closest_gene": json(dhs_object.closest_gene, json_format),
+        "closest_gene_assembly": json(dhs_object.closest_gene_assembly, json_format),
         "closest_gene_id": dhs_object.closest_gene_id,
         "closest_gene_name": dhs_object.closest_gene_name,
         "ref_genome": dhs_object.ref_genome,
@@ -50,9 +51,8 @@ def _(reg_effect, json_format=None):
 
 @json.register(GeneAssembly)
 def _(gene_assembly, json_format=None):
-    return {
+    result = {
         "name": gene_assembly.name,
-        "chr": gene_assembly.chrom_name,
         "start": gene_assembly.location.lower,
         "end": gene_assembly.location.upper - 1,
         "strand": gene_assembly.strand,
@@ -60,6 +60,15 @@ def _(gene_assembly, json_format=None):
         "ref_genome": gene_assembly.ref_genome,
         "ref_genome_patch": gene_assembly.ref_genome_patch,
     }
+
+    if json_format == "genoverse":
+        result["id"] = str(gene_assembly.id)
+        result["chr"] = gene_assembly.chrom_name.removeprefix("chr")
+    else:
+        result["id"] = gene_assembly.id
+        result["chr"] = gene_assembly.chrom_name
+
+    return result
 
 
 @json.register(Gene)
