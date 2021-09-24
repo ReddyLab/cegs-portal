@@ -10,6 +10,7 @@
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -54,7 +55,7 @@
                                     e("span", `${dhs.start}-${dhs.end}`)
                                 ]),
                                 e("td", dhs.strand || "None"),
-                                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene.ensembl_id} (${dhs.closest_gene_name})`)),
+                                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene_name} (${dhs.closest_gene.ensembl_id})`)),
                                 e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
                             ])
                         )
@@ -80,14 +81,7 @@
         tracks    : [
             Genoverse.Track.Scaleline.extend({ strand: false }),
             Genoverse.Track.Scalebar,
-            Genoverse.Track.extend({
-            name            : 'DNaseI Hypersensitive Sites',
-            url             : '/search/dhsloc/__CHR__/__START__/__END__?search_type=overlap&accept=application/json&format=genoverse',
-            resizable       : 'auto',
-            model           : Genoverse.Track.Model.extend({ dataRequestLimit : 5000000 }),
-            setFeatureColor : function (f) { f.color = '#F00'; }
-            }),
-            Genoverse.Track.Gene,
+            Genoverse.Track.DHS,
         ]
         });
     </script>

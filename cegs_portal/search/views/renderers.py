@@ -19,7 +19,6 @@ def _(dhs_object, json_format=None):
         "cell_line": dhs_object.cell_line,
         "start": dhs_object.location.lower,
         "end": dhs_object.location.upper,
-        "strand": dhs_object.strand,
         "closest_gene": json(dhs_object.closest_gene, json_format),
         "closest_gene_assembly": json(dhs_object.closest_gene_assembly, json_format),
         "closest_gene_id": dhs_object.closest_gene_id,
