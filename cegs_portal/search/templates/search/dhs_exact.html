@@ -25,13 +25,13 @@
         <div class="text-xl font-bold">Regulatory Effects</div>
         {% spaceless %}
         <table class="data-table">
-            <tr><th>Direction</th><th>Score</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
+            <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
             {% for effect in dhs.regulatory_effects.all %}
                 {% for target in effect.targets.all %}
                 <tr>
                     <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
                     <td>{{ effect.direction }}</td>
-                    <td>{{ effect.score }}</td>
+                    <td>{{ effect.effect_size }}</td>
                     <td>{{ effect.significance }}</td>
                     <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
                     <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>
@@ -40,7 +40,7 @@
                 <tr>
                     <!-- <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td> -->
                     <td>{{ effect.direction }}</td>
-                    <td>{{ effect.score }}</td>
+                    <td>{{ effect.effect_size }}</td>
                     <td>{{ effect.significance }}</td>
                     <td>Unknown</td>
                     <td><a href="{% url 'search:experiment' effect.experiment.id %}">{{ effect.experiment.name }}</a></td>

@@ -41,8 +41,8 @@ def _(dhs_object, json_format=None):
 def _(reg_effect, json_format=None):
     return {
         "id": reg_effect.id,
-        "direction": reg_effect.direction,
-        "score": reg_effect.score,
+        "direction": reg_effect.direction.value,
+        "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
         "targets": [target.ensemble_id for target in reg_effect.targets.all()],
     }

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
@@ -38,27 +40,32 @@ class DNaseIHypersensitiveSite(models.Model):
         return cls.objects.filter(q).select_related("closest_gene") if q is not None else []
 
 
-class RegulatoryEffect(models.Model):
+class EffectDirectionType(Enum):
     DEPLETED = "depleted"
     ENRICHED = "enriched"
     NON_SIGNIFICANT = "non_sig"
     BOTH = "both"
+
+
+class RegulatoryEffect(models.Model):
     DIRECTION_CHOICES = [
-        (DEPLETED, "depleted"),
-        (ENRICHED, "enriched"),
-        (BOTH, "both"),
-        (NON_SIGNIFICANT, "non_sig"),
+        (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
+        (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
+        (EffectDirectionType.BOTH, "both"),
+        (EffectDirectionType.NON_SIGNIFICANT, "non_sig"),  # significance >= 0.01 or value = 0
     ]
     direction = models.CharField(
         max_length=8,
         choices=DIRECTION_CHOICES,
-        default=NON_SIGNIFICANT,
+        default=EffectDirectionType.NON_SIGNIFICANT,
     )
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    score = models.FloatField(null=True)
-    significance = models.FloatField(null=True)  # p value, normalized to -log10
+    effect_size = models.FloatField(null=True)  # log2 fold changes
+    significance = models.FloatField(null=True)  # an adjusted p value
+    raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
     sources = models.ManyToManyField(DNaseIHypersensitiveSite, related_name="regulatory_effects")
     targets = models.ManyToManyField(Gene, related_name="regulatory_effects")
+    target_assemblies = models.ManyToManyField(GeneAssembly, related_name="regulatory_effects")
 
     def __str__(self):
-        return f"{self.direction}: {self.sources.count()} source(s) -> {self.score} on {self.targets.count()} target(s)"
+        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501

@@ -1,16 +1,20 @@
 import json
+from enum import Enum
+
+
+class ExperimentDataType(Enum):
+    WGCERES_DATA = "wgceres"
+    SCCERES_DATA = "scceres"
 
 
 class ExperimentData:
-    WGCERES_DATA = "wgceres"
-
-    def __init__(self, ref_genome, ref_genome_patch, cell_line, filename, datatype):
+    def __init__(self, ref_genome, ref_genome_patch, cell_line, filename, datatype, significance_measure):
         self.ref_genome = ref_genome
         self.ref_genome_patch = ref_genome_patch
         self.cell_line = cell_line
         self.filename = filename
-        if datatype.lower() == self.WGCERES_DATA:
-            self.datatype = self.WGCERES_DATA
+        self.significance_measure = significance_measure
+        self.datatype = ExperimentDataType(datatype.lower())
 
 
 class ExperimentFile:
@@ -25,6 +29,7 @@ class ExperimentFile:
                     cell_line=data["cell_line"],
                     filename=data["file"],
                     datatype=data["type"],
+                    significance_measure=data["significance measure"],
                 )
             )
 

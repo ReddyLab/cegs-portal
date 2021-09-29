@@ -1,4 +1,4 @@
-from .experiment import Experiment
+from .experiment import Experiment, ExperimentDataFile
 from .gff3 import (
     Exon,
     ExonAssembly,
@@ -9,6 +9,6 @@ from .gff3 import (
     Transcript,
     TranscriptAssembly,
 )
-from .reg_effects import DNaseIHypersensitiveSite, RegulatoryEffect
+from .reg_effects import DNaseIHypersensitiveSite, EffectDirectionType, RegulatoryEffect
 from .utils import ChromosomeLocation, QueryToken
 from .variants import Subject, Variant, VCFEntry, VCFFile

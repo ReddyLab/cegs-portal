@@ -8,11 +8,13 @@ from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     DNaseIHypersensitiveSite,
+    EffectDirectionType,
     Experiment,
+    ExperimentDataFile,
     GeneAssembly,
     RegulatoryEffect,
 )
-from utils import ExperimentData, ExperimentFile, timer
+from utils import ExperimentDataType, ExperimentFile, timer
 
 
 #
@@ -94,12 +96,17 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         )
         sites.append(dhs)
 
-        score = line["wgCERES_score_top3_wg"].strip()
-        if score == "":
-            score = None
+        effect_size = line["wgCERES_score_top3_wg"].strip()
+        if effect_size == "":
+            effect_size = None
 
         effect = RegulatoryEffect(
-            direction=line["direction_wg"], experiment=experiment, score=score, significance=line["pValue"]
+            direction=EffectDirectionType(line["direction_wg"]).value,
+            experiment=experiment,
+            effect_size=effect_size,
+            # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
+            raw_p_value=pow(10, -float(line["pValue"])),
+            significance=float(line["pValue"]),
         )
         effects.append(effect)
     bulk_save(sites, effects)
@@ -130,8 +137,19 @@ def run(experiment_filename):
 
     experiment = Experiment(name=experiment_file.name)
     experiment.save()
+    for data in experiment_file.data:
+        data_file = ExperimentDataFile(
+            cell_line=data.cell_line,
+            experiment=experiment,
+            filename=data.filename,
+            ref_genome=data.ref_genome,
+            ref_genome_patch=data.ref_genome_patch,
+            significance_measure=data.significance_measure,
+        )
+        data_file.save()
+        experiment.data_files.add(data_file)
 
     for data in experiment_file.data:
-        if data.datatype == ExperimentData.WGCERES_DATA:
+        if data.datatype == ExperimentDataType.WGCERES_DATA:
             with open(os.path.join(base_path, data.filename), "r", newline="") as ceres_file:
                 load_reg_effects(ceres_file, experiment, data.cell_line, data.ref_genome, data.ref_genome_patch)
