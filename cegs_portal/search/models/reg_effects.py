@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
+from cegs_portal.search.models.file import File
 from cegs_portal.search.models.gff3 import Gene, GeneAssembly
 from cegs_portal.search.models.utils import QueryToken
 
@@ -14,7 +15,7 @@ class DNaseIHypersensitiveSite(models.Model):
     class Meta:
         indexes = [GistIndex(fields=["location"], name="search_dhs_location_index")]
 
-    cell_line = models.CharField(max_length=50)
+    cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
     closest_gene = models.ForeignKey(Gene, null=True, on_delete=models.SET_NULL)
     closest_gene_assembly = models.ForeignKey(GeneAssembly, null=True, on_delete=models.SET_NULL)
@@ -23,7 +24,8 @@ class DNaseIHypersensitiveSite(models.Model):
     location = IntegerRangeField()
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10, null=True)
-    strand = models.CharField(max_length=1, null=True, default=None)
+    screen_accession_id = models.CharField(max_length=20, null=True)
+    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.chromosome_name} {self.location.lower}-{self.location.upper} ({self.cell_line})"

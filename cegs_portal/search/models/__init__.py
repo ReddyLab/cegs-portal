@@ -1,4 +1,5 @@
 from .experiment import Experiment, ExperimentDataFile
+from .file import File
 from .gff3 import (
     Exon,
     ExonAssembly,

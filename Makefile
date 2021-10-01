@@ -18,3 +18,4 @@ loaddata:
 	scripts/load_gencode_gff3_data.sh ../cegs_portal_data/other/gencode.v19.annotation.gff3 GRCh37
 	scripts/load_klann_2021_wgceres_data.sh ../cegs_portal_data/wgCERES/experiment.json
 	scripts/load_klann_2021_scceres_data.sh ../cegs_portal_data/scCERES/K562/experiment.json
+	scripts/load_screen_ccres.sh ../cegs_portal_data/screen/file.json GRCh37
