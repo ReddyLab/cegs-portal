@@ -1,10 +1,10 @@
 from .experiment import Experiment, ExperimentDataFile
 from .file import File
-from .gff3 import (
+from .gene_annotation import (
     Exon,
     ExonAssembly,
-    GencodeGFF3Annotation,
-    GencodeGFF3Region,
+    GencodeAnnotation,
+    GencodeRegion,
     Gene,
     GeneAssembly,
     Transcript,

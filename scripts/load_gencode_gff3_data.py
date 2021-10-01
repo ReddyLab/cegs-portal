@@ -7,8 +7,8 @@ from psycopg2.extras import NumericRange
 from cegs_portal.search.models import (
     Exon,
     ExonAssembly,
-    GencodeGFF3Annotation,
-    GencodeGFF3Region,
+    GencodeAnnotation,
+    GencodeRegion,
     Gene,
     GeneAssembly,
     Transcript,
@@ -37,7 +37,7 @@ ANNOTATION_BUFFER_SIZE = 50_000
 # get their foreign keys updated. The for loops do that necessary updating.
 @timer("Saving annotations", level=1, unit="s")
 def bulk_annotation_save(genome_annotations):
-    GencodeGFF3Annotation.objects.bulk_create(genome_annotations, batch_size=500)
+    GencodeAnnotation.objects.bulk_create(genome_annotations, batch_size=500)
 
 
 @timer("Loading annotations")
@@ -55,7 +55,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
             # Adjust start/end to use 0-based indexing
             start = int(start) - 1
             end = int(end)
-            region = GencodeGFF3Region(chrom_name=chrom_name, base_range=NumericRange(start, end))
+            region = GencodeRegion(chrom_name=chrom_name, base_range=NumericRange(start, end))
             region.save()
             continue
 
@@ -81,7 +81,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
             annotations = []
         # Create a new annotation
 
-        annotation = GencodeGFF3Annotation(
+        annotation = GencodeAnnotation(
             chrom_name=seqid,
             location=NumericRange(int(start), int(end), "[]"),
             strand=strand,
@@ -109,12 +109,12 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
 
 @timer("Creating Genes")
 def create_genes():
-    gene_annotations = GencodeGFF3Annotation.objects.filter(annotation_type="gene", gene_id=None)
+    gene_annotations = GencodeAnnotation.objects.filter(annotation_type="gene", gene_id=None)
 
     print("Creating Genes")
     for annotation in gene_annotations:
 
-        # UPDATE public.search_gencodegff3annotation as a
+        # UPDATE public.search_gencodeannotation as a
         # SET gene_id = g.id
         # FROM public.search_gene AS g
         # WHERE starts_with(reverse(a.id_attr), 'Y_RAP_') and g.ensembl_id = split_part(a.id_attr, '.', 1);
@@ -172,7 +172,7 @@ def create_genes():
 @timer("Creating Transcripts")
 def create_transcripts():
     print("Creating Transcripts")
-    tx_annotations = GencodeGFF3Annotation.objects.filter(annotation_type="transcript", transcript_id=None)
+    tx_annotations = GencodeAnnotation.objects.filter(annotation_type="transcript", transcript_id=None)
 
     gene_id = None
     for annotation in tx_annotations:
@@ -232,7 +232,7 @@ def create_transcripts():
 @timer("Creating Exons")
 def create_exons():
     print("Creating Exons")
-    exon_annotations = GencodeGFF3Annotation.objects.filter(annotation_type="exon").filter(exon=None)
+    exon_annotations = GencodeAnnotation.objects.filter(annotation_type="exon").filter(exon=None)
 
     gene_id = None
     transcript_id = None
@@ -284,8 +284,8 @@ def create_exons():
 
 
 def unload_genome_annotations():
-    GencodeGFF3Region.objects.all().delete()
-    GencodeGFF3Annotation.objects.all().delete()
+    GencodeRegion.objects.all().delete()
+    GencodeAnnotation.objects.all().delete()
     Gene.objects.all().delete()
     GeneAssembly.objects.all().delete()
     Transcript.objects.all().delete()

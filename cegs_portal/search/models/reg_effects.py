@@ -7,7 +7,7 @@ from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.file import File
-from cegs_portal.search.models.gff3 import Gene, GeneAssembly
+from cegs_portal.search.models.gene_annotation import Gene, GeneAssembly
 from cegs_portal.search.models.utils import QueryToken
 
 

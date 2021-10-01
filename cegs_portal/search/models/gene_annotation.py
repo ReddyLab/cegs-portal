@@ -119,7 +119,7 @@ class Exon(models.Model):
     transcript = models.ForeignKey(Transcript, on_delete=models.CASCADE)
 
 
-class GencodeGFF3Region(models.Model):
+class GencodeRegion(models.Model):
     chrom_name = models.CharField(max_length=10)
     base_range = IntegerRangeField()  # 0-indexed, half-closed
 
@@ -129,7 +129,7 @@ class GencodeGFF3Region(models.Model):
 
 # Note that the following annotation_types might have multiple entries for a single ID attribute:
 # stop_codon, three_prime_UTR, start_codon, and five_prime_UTR.
-class GencodeGFF3Annotation(models.Model):
+class GencodeAnnotation(models.Model):
     class Meta:
         indexes = [GistIndex(fields=["location"], name="search_gcanno_location_index")]
 
@@ -145,7 +145,7 @@ class GencodeGFF3Annotation(models.Model):
     gene_name = models.CharField(max_length=50)
     gene_type = models.CharField(max_length=50)
     level = models.IntegerField()
-    region = models.ForeignKey(GencodeGFF3Region, on_delete=models.SET_NULL, null=True)
+    region = models.ForeignKey(GencodeRegion, on_delete=models.SET_NULL, null=True)
     attributes = models.JSONField(null=True)
 
     gene = models.ForeignKey(
