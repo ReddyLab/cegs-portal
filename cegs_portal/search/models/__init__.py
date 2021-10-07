@@ -3,6 +3,8 @@ from .file import File
 from .gene_annotation import (
     Exon,
     ExonAssembly,
+    Feature,
+    FeatureAssembly,
     GencodeAnnotation,
     GencodeRegion,
     Gene,

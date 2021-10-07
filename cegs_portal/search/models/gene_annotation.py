@@ -7,6 +7,70 @@ from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
+class FeatureAssembly(models.Model):
+    class Meta:
+        indexes = [
+            models.Index(fields=["name"], name="sfa_name_index"),
+            models.Index(fields=["chrom_name"], name="sfa_chrom_name_index"),
+            GistIndex(fields=["location"], name="sfa_loc_index"),
+        ]
+
+    chrom_name = models.CharField(max_length=10)
+    ids = models.JSONField(null=True, validators=[validate_gene_ids])
+
+    # These values will be returned as 0-index, half-closed. This should be converted to
+    # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
+    location = IntegerRangeField()
+    name = models.CharField(max_length=50)
+    strand = models.CharField(max_length=1, null=True)
+    ref_genome = models.CharField(max_length=20)
+    ref_genome_patch = models.CharField(max_length=10)
+    feature = models.ForeignKey("Feature", on_delete=models.CASCADE, related_name="assemblies")
+
+    def __str__(self):
+        return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
+
+    @classmethod
+    def search(cls, terms):
+        q = None
+        for term, value in terms:
+            if term == QueryToken.LOCATION:
+                if q is None:
+                    q = Q(chrom_name=value.chromo, location__overlap=value.range)
+                else:
+                    q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
+        return cls.objects.filter(q).select_related("feature") if q is not None else []
+
+
+class Feature(models.Model):
+    class Meta:
+        indexes = [
+            models.Index(fields=["ensembl_id"], name="sf_ensembl_id_index"),
+            models.Index(fields=["feature_type"], name="sf_feature_type_index"),
+        ]
+
+    ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
+    feature_type = models.CharField(max_length=50)  # gene, tanscript, etc.
+    # gene_type or transcript_type from gencodeannotation.attributes
+    feature_subtype = models.CharField(max_length=50, null=True)
+    misc = models.JSONField(null=True)  # exon number, for instance
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children")
+
+    def __str__(self):
+        return f"{self.ensembl_id}: {self.feature_type}"
+
+    @classmethod
+    def search(cls, terms):
+        q = None
+        for term, value in terms:
+            if term == QueryToken.ENSEMBL_ID:
+                if q is None:
+                    q = Q(ensembl_id=value)
+                else:
+                    q = q | Q(ensembl_id=value)
+        return cls.objects.filter(q).prefetch_related("assemblies") if q is not None else []
+
+
 class GeneAssembly(models.Model):
     class Meta:
         indexes = [
@@ -131,7 +195,7 @@ class GencodeRegion(models.Model):
 # stop_codon, three_prime_UTR, start_codon, and five_prime_UTR.
 class GencodeAnnotation(models.Model):
     class Meta:
-        indexes = [GistIndex(fields=["location"], name="search_gcanno_location_index")]
+        indexes = [models.Index(fields=["annotation_type"], name="search_gen_anno_type_index")]
 
     chrom_name = models.CharField(max_length=10)
     location = IntegerRangeField()
@@ -147,6 +211,14 @@ class GencodeAnnotation(models.Model):
     level = models.IntegerField()
     region = models.ForeignKey(GencodeRegion, on_delete=models.SET_NULL, null=True)
     attributes = models.JSONField(null=True)
+
+    feature = models.ForeignKey(
+        Feature,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="annotation",
+    )
 
     gene = models.ForeignKey(
         Gene,

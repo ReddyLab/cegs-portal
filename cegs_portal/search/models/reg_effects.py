@@ -28,7 +28,9 @@ class DNaseIHypersensitiveSite(models.Model):
     source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f"{self.chromosome_name} {self.location.lower}-{self.location.upper} ({self.cell_line})"
+        return (
+            f"{self.chromosome_name}: {self.location.lower}-{self.location.upper} ({self.cell_line or 'No Cell Line'})"
+        )
 
     @classmethod
     def search(cls, terms):

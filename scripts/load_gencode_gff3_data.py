@@ -5,14 +5,10 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
-    Exon,
-    ExonAssembly,
+    Feature,
+    FeatureAssembly,
     GencodeAnnotation,
     GencodeRegion,
-    Gene,
-    GeneAssembly,
-    Transcript,
-    TranscriptAssembly,
 )
 from utils import timer
 
@@ -108,10 +104,11 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
 
 
 @timer("Creating Genes")
-def create_genes():
-    gene_annotations = GencodeAnnotation.objects.filter(annotation_type="gene", gene_id=None)
+def create_genes(ref_genome, ref_genome_patch):
+    gene_annotations = GencodeAnnotation.objects.filter(
+        annotation_type="gene", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
+    )
 
-    print("Creating Genes")
     for annotation in gene_annotations:
 
         # UPDATE public.search_gencodeannotation as a
@@ -123,12 +120,12 @@ def create_genes():
             # These genes are from the Pseudoautosomal region of the Y chromosome and
             # have already been defined as part of the X chromosome.
             try:
-                gene = Gene.objects.get(ensembl_id=gene_id.split(".")[0])
+                gene = Feature.objects.get(ensembl_id=gene_id.split(".")[0])
             except ObjectDoesNotExist:
                 continue
             else:
                 with transaction.atomic():
-                    annotation.gene = gene
+                    annotation.feature = gene
                     annotation.save()
                     continue
 
@@ -145,7 +142,7 @@ def create_genes():
             ids["havana"] = value
 
         with transaction.atomic():
-            assembly = GeneAssembly(
+            assembly = FeatureAssembly(
                 chrom_name=annotation.chrom_name,
                 ids=ids,
                 location=annotation.location,
@@ -156,23 +153,25 @@ def create_genes():
             )
 
             try:
-                gene = Gene.objects.get(ensembl_id=ensembl_id)
+                gene = Feature.objects.get(ensembl_id=ensembl_id)
             except ObjectDoesNotExist:
-                gene = Gene(gene_type=annotation.gene_type, ensembl_id=ensembl_id)
+                gene = Feature(feature_type="gene", feature_subtype=annotation.gene_type, ensembl_id=ensembl_id)
                 gene.save()
 
                 # The gene already exists, so just update it with a new assembly location
                 # and add it to the annotation
+            annotation.feature = gene
+            annotation.save()
 
-            assembly.gene = gene
+            assembly.feature = gene
             assembly.save()
-            gene.assemblies.add(assembly)
 
 
 @timer("Creating Transcripts")
-def create_transcripts():
-    print("Creating Transcripts")
-    tx_annotations = GencodeAnnotation.objects.filter(annotation_type="transcript", transcript_id=None)
+def create_transcripts(ref_genome, ref_genome_patch):
+    tx_annotations = GencodeAnnotation.objects.filter(
+        annotation_type="transcript", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
+    )
 
     gene_id = None
     for annotation in tx_annotations:
@@ -181,12 +180,12 @@ def create_transcripts():
             # These transcripts are from the Pseudoautosomal region of the Y chromosome and
             # have already been defined as part of the X chromosome.
             try:
-                transcript = Transcript.objects.get(ensembl_id=transcript_id.split(".")[0])
+                transcript = Feature.objects.get(ensembl_id=transcript_id.split(".")[0])
             except ObjectDoesNotExist:
                 continue
             else:
                 with transaction.atomic():
-                    annotation.transcript = transcript
+                    annotation.feature = transcript
                     annotation.save()
                     continue
 
@@ -200,7 +199,7 @@ def create_transcripts():
             ids["havana"] = value
 
         with transaction.atomic():
-            assembly = TranscriptAssembly(
+            assembly = FeatureAssembly(
                 chrom_name=annotation.chrom_name,
                 ids=ids,
                 location=annotation.location,
@@ -211,44 +210,43 @@ def create_transcripts():
             )
 
             try:
-                transcript = Transcript.objects.get(ensembl_id=ensembl_id)
+                transcript = Feature.objects.get(ensembl_id=ensembl_id)
             except ObjectDoesNotExist:
                 temp_gene_id = annotation.attributes["gene_id"].split(".")[0]
                 if gene_id != temp_gene_id:
                     gene_id = temp_gene_id
-                gene = Gene.objects.get(ensembl_id=gene_id)
-                transcript = Transcript(
+                gene = Feature.objects.get(ensembl_id=gene_id)
+                transcript = Feature(
+                    feature_type="transcript",
                     ensembl_id=ensembl_id,
-                    gene=gene,
-                    transcript_type=annotation.attributes["transcript_type"],
+                    parent=gene,
+                    feature_subtype=annotation.attributes["transcript_type"],
                 )
                 transcript.save()
 
-            assembly.transcript = transcript
+            annotation.feature = transcript
+            annotation.save()
+
+            assembly.feature = transcript
             assembly.save()
-            transcript.assemblies.add(assembly)
 
 
 @timer("Creating Exons")
-def create_exons():
-    print("Creating Exons")
-    exon_annotations = GencodeAnnotation.objects.filter(annotation_type="exon").filter(exon=None)
+def create_exons(ref_genome, ref_genome_patch):
+    exon_annotations = GencodeAnnotation.objects.filter(
+        annotation_type="exon", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
+    )
 
-    gene_id = None
     transcript_id = None
     for annotation in exon_annotations:
         exon_id = annotation.id_attr
-        if exon_id.count("_PAR_Y") > 0:
-            # These exons are from the Pseudoautosomal region of the Y chromosome and
-            # have already been defined as part of the X chromosome.
-            continue
 
         ids = {}
         if value := annotation.attributes.get("exon_id", False):
             ids["ensembl"] = value
 
         with transaction.atomic():
-            assembly = ExonAssembly(
+            assembly = FeatureAssembly(
                 chrom_name=annotation.chrom_name,
                 ids=ids,
                 location=annotation.location,
@@ -258,40 +256,33 @@ def create_exons():
             )
 
             try:
-                exon = Exon.objects.get(ensembl_id=exon_id)
+                exon = Feature.objects.get(ensembl_id=exon_id)
             except ObjectDoesNotExist:
-                temp_gene_id = annotation.attributes["gene_id"].split(".")[0]
-                if gene_id != temp_gene_id:
-                    gene_id = temp_gene_id
-                gene = Gene.objects.get(ensembl_id=gene_id)
-
                 temp_transcript_id = annotation.attributes["transcript_id"].split(".")[0]
                 if transcript_id != temp_transcript_id:
                     transcript_id = temp_transcript_id
-                transcript = Transcript.objects.get(ensembl_id=transcript_id)
+                transcript = Feature.objects.get(ensembl_id=transcript_id)
 
-                exon = Exon(
-                    gene=gene,
+                exon = Feature(
+                    feature_type="exon",
                     ensembl_id=ids["ensembl"],
-                    number=annotation.attributes["exon_number"],
-                    transcript=transcript,
+                    number={"number": int(annotation.attributes["exon_number"])},
+                    parent=transcript,
                 )
                 exon.save()
 
-            assembly.exon = exon
+            annotation.feature = exon
+            annotation.save()
+
+            assembly.feature = exon
             assembly.save()
-            exon.assemblies.add(assembly)
 
 
 def unload_genome_annotations():
     GencodeRegion.objects.all().delete()
     GencodeAnnotation.objects.all().delete()
-    Gene.objects.all().delete()
-    GeneAssembly.objects.all().delete()
-    Transcript.objects.all().delete()
-    TranscriptAssembly.objects.all().delete()
-    Exon.objects.all().delete()
-    ExonAssembly.objects.all().delete()
+    Feature.objects.all().delete()
+    FeatureAssembly.objects.all().delete()
 
 
 def check_filename(annotation_filename: str):
@@ -319,6 +310,6 @@ def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str):
     with open(annotation_filename, "r") as annotation_file:
         load_genome_annotations(annotation_file, ref_genome, ref_genome_patch)
 
-    create_genes()
-    create_transcripts()
-    create_exons()
+    create_genes(ref_genome, ref_genome_patch)
+    create_transcripts(ref_genome, ref_genome_patch)
+    create_exons(ref_genome, ref_genome_patch)
