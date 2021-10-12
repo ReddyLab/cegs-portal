@@ -3,8 +3,8 @@ import re
 from cegs_portal.search.models import (
     ChromosomeLocation,
     DNaseIHypersensitiveSite,
-    Gene,
-    GeneAssembly,
+    Feature,
+    FeatureAssembly,
 )
 from cegs_portal.search.models.utils import QueryToken
 
@@ -30,7 +30,7 @@ class Search:
     @classmethod
     def search(cls, query_string):
         parse_result = parse_query(query_string)
-        assemblies = GeneAssembly.search(parse_result)
+        assemblies = FeatureAssembly.search(parse_result, feature_type="gene")
 
         gene_dict = {}
         for assembly in assemblies:
@@ -38,7 +38,7 @@ class Search:
             gene_assemblies.append(assembly)
             gene_dict[assembly.gene] = gene_assemblies
 
-        genes = Gene.search(parse_result)
+        genes = Feature.search(parse_result, feature_type="gene")
         for gene in genes:
             gene_dict[gene] = list(gene.assemblies.all())
 

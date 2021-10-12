@@ -2,7 +2,7 @@ from enum import Enum
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import Gene, GeneAssembly
+from cegs_portal.search.models import Feature, FeatureAssembly
 from cegs_portal.search.view_models.errors import ViewModelError
 
 
@@ -61,7 +61,7 @@ class GeneSearch:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         field_lookup = join_fields(field, lookup)
-        genes = Gene.objects.filter(**{field_lookup: gene_id})
+        genes = Feature.objects.filter(**{"feature_type": "gene", field_lookup: gene_id})
 
         if distinct:
             genes = genes.distinct()
@@ -76,7 +76,7 @@ class GeneSearch:
 
     @classmethod
     def _std_loc_search(cls, chromo, start, end, assembly, search_type):
-        query = {"assemblies__chrom_name": chromo}
+        query = {"feature_type": "gene", "assemblies__chrom_name": chromo}
         field = "assemblies__location"
         if search_type == LocSearchType.EXACT.value or search_type is None:
             lookup = ""
@@ -90,13 +90,13 @@ class GeneSearch:
 
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[]")
-        genes = Gene.objects.filter(**query).distinct()
+        genes = Feature.objects.filter(**query).distinct()
         return genes
 
     @classmethod
     def _closest_loc_search(cls, chromo, start, end, assembly):
-        query_lt = {"chrom_name": chromo}
-        query_gt = {"chrom_name": chromo}
+        query_lt = {"feature__feature_type": "gene", "chrom_name": chromo}
+        query_gt = {"feature__feature_type": "gene", "chrom_name": chromo}
 
         if assembly is not None:
             query_lt["ref_genome"] = assembly
@@ -107,8 +107,8 @@ class GeneSearch:
         gt_field_lookup = join_fields(field, "gt")
         query_lt[lt_field_lookup] = NumericRange(int(start), int(end), "[]")
         query_gt[gt_field_lookup] = NumericRange(int(start), int(end), "[]")
-        lower_gene = GeneAssembly.objects.filter(**query_lt).order_by("-location").first()
-        higher_gene = GeneAssembly.objects.filter(**query_gt).order_by("location").first()
+        lower_gene = FeatureAssembly.objects.filter(**query_lt).order_by("-location").select_related("feature").first()
+        higher_gene = FeatureAssembly.objects.filter(**query_gt).order_by("location").select_related("feature").first()
 
         if lower_gene is None and higher_gene is None:
             return []

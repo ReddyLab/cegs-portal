@@ -7,7 +7,7 @@ from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.file import File
-from cegs_portal.search.models.gene_annotation import Gene, GeneAssembly
+from cegs_portal.search.models.gene_annotation import Feature, FeatureAssembly
 from cegs_portal.search.models.utils import QueryToken
 
 
@@ -17,8 +17,8 @@ class DNaseIHypersensitiveSite(models.Model):
 
     cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
-    closest_gene = models.ForeignKey(Gene, null=True, on_delete=models.SET_NULL)
-    closest_gene_assembly = models.ForeignKey(GeneAssembly, null=True, on_delete=models.SET_NULL)
+    closest_gene = models.ForeignKey(Feature, null=True, on_delete=models.SET_NULL)
+    closest_gene_assembly = models.ForeignKey(FeatureAssembly, null=True, on_delete=models.SET_NULL)
     closest_gene_distance = models.IntegerField()
     closest_gene_name = models.CharField(max_length=50)
     location = IntegerRangeField()
@@ -68,8 +68,8 @@ class RegulatoryEffect(models.Model):
     significance = models.FloatField(null=True)  # an adjusted p value
     raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
     sources = models.ManyToManyField(DNaseIHypersensitiveSite, related_name="regulatory_effects")
-    targets = models.ManyToManyField(Gene, related_name="regulatory_effects")
-    target_assemblies = models.ManyToManyField(GeneAssembly, related_name="regulatory_effects")
+    targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
+    target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
 
     def __str__(self):
         return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501

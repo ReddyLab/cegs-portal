@@ -2,8 +2,8 @@ from functools import singledispatch
 
 from cegs_portal.search.models import (
     DNaseIHypersensitiveSite,
-    Gene,
-    GeneAssembly,
+    Feature,
+    FeatureAssembly,
     RegulatoryEffect,
 )
 
@@ -48,31 +48,33 @@ def _(reg_effect, json_format=None):
     }
 
 
-@json.register(GeneAssembly)
-def _(gene_assembly, json_format=None):
+@json.register(FeatureAssembly)
+def _(feature_assembly, json_format=None):
     result = {
-        "name": gene_assembly.name,
-        "start": gene_assembly.location.lower,
-        "end": gene_assembly.location.upper - 1,
-        "strand": gene_assembly.strand,
-        "ids": gene_assembly.ids,
-        "ref_genome": gene_assembly.ref_genome,
-        "ref_genome_patch": gene_assembly.ref_genome_patch,
+        "start": feature_assembly.location.lower,
+        "end": feature_assembly.location.upper - 1,
+        "strand": feature_assembly.strand,
+        "ids": feature_assembly.ids,
+        "ref_genome": feature_assembly.ref_genome,
+        "ref_genome_patch": feature_assembly.ref_genome_patch,
+        "feature": json(feature_assembly.feature),
     }
 
     if json_format == "genoverse":
-        result["id"] = str(gene_assembly.id)
-        result["chr"] = gene_assembly.chrom_name.removeprefix("chr")
+        result["id"] = str(feature_assembly.id)
+        result["chr"] = feature_assembly.chrom_name.removeprefix("chr")
     else:
-        result["id"] = gene_assembly.id
-        result["chr"] = gene_assembly.chrom_name
+        result["id"] = feature_assembly.id
+        result["chr"] = feature_assembly.chrom_name
 
     return result
 
 
-@json.register(Gene)
-def _(gene_obj, json_format=None):
+@json.register(Feature)
+def _(feature_obj, json_format=None):
     return {
-        "ensembl_id": gene_obj.ensembl_id,
-        "type": gene_obj.gene_type,
+        "feature_type": feature_obj.feature_type,
+        "ensembl_id": feature_obj.ensembl_id,
+        "parent": feature_obj.parent.ensembl_id,
+        "misc": feature_obj.misc,
     }

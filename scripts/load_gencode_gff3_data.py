@@ -239,11 +239,11 @@ def create_exons(ref_genome, ref_genome_patch):
 
     transcript_id = None
     for annotation in exon_annotations:
-        exon_id = annotation.id_attr
-
         ids = {}
+        exon_id = annotation.id_attr
         if value := annotation.attributes.get("exon_id", False):
             ids["ensembl"] = value
+            exon_id = value
 
         with transaction.atomic():
             assembly = FeatureAssembly(
@@ -265,8 +265,8 @@ def create_exons(ref_genome, ref_genome_patch):
 
                 exon = Feature(
                     feature_type="exon",
-                    ensembl_id=ids["ensembl"],
-                    number={"number": int(annotation.attributes["exon_number"])},
+                    ensembl_id=exon_id,
+                    misc={"number": int(annotation.attributes["exon_number"]), "gencode_id": annotation.id_attr},
                     parent=transcript,
                 )
                 exon.save()

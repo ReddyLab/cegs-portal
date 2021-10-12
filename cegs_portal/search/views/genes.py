@@ -30,7 +30,11 @@ def gene(request, id_type, gene_id):
 
     if id_type == IdType.ENSEMBL.value:
         gene_obj = search_results.prefetch_related(
-            "transcript_set", "dnaseihypersensitivesite_set", "assemblies"
+            "children",
+            "children__assemblies",
+            "dnaseihypersensitivesite_set",
+            "dnaseihypersensitivesite_set__regulatory_effects",
+            "assemblies",
         ).first()
         return render(
             request,
@@ -38,7 +42,7 @@ def gene(request, id_type, gene_id):
             {
                 "gene": gene_obj,
                 "assemblies": gene_obj.assemblies,
-                "transcripts": gene_obj.transcript_set,
+                "transcripts": gene_obj.children,
                 "dhss": gene_obj.dnaseihypersensitivesite_set,
             },
         )

@@ -31,15 +31,12 @@ class FeatureAssembly(models.Model):
         return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
 
     @classmethod
-    def search(cls, terms):
-        q = None
+    def search(cls, terms, feature_type="gene"):
+        q = Q(feature__feature_type=feature_type)
         for term, value in terms:
             if term == QueryToken.LOCATION:
-                if q is None:
-                    q = Q(chrom_name=value.chromo, location__overlap=value.range)
-                else:
-                    q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
-        return cls.objects.filter(q).select_related("feature") if q is not None else []
+                q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
+        return cls.objects.filter(q).select_related("feature")
 
 
 class Feature(models.Model):
@@ -60,127 +57,12 @@ class Feature(models.Model):
         return f"{self.ensembl_id}: {self.feature_type}"
 
     @classmethod
-    def search(cls, terms):
-        q = None
+    def search(cls, terms, feature_type="gene"):
+        q = Q(feature_type=feature_type)
         for term, value in terms:
             if term == QueryToken.ENSEMBL_ID:
-                if q is None:
-                    q = Q(ensembl_id=value)
-                else:
-                    q = q | Q(ensembl_id=value)
-        return cls.objects.filter(q).prefetch_related("assemblies") if q is not None else []
-
-
-class GeneAssembly(models.Model):
-    class Meta:
-        indexes = [
-            models.Index(fields=["name"], name="search_geneassembly_name_index"),
-            GistIndex(fields=["location"], name="search_geneassembly_loc_index"),
-        ]
-
-    chrom_name = models.CharField(max_length=10)
-    ids = models.JSONField(null=True, validators=[validate_gene_ids])
-
-    # These values will be returned as 0-index, half-closed. This should be converted to
-    # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
-    location = IntegerRangeField()
-    name = models.CharField(max_length=50)
-    strand = models.CharField(max_length=1, null=True)
-    ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
-
-    # Creates a "one-to-many" relationship pair with Gene, which has a ManyToMany field for GeneAssemblys
-    gene = models.ForeignKey("Gene", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
-
-    @classmethod
-    def search(cls, terms):
-        q = None
-        for term, value in terms:
-            if term == QueryToken.LOCATION:
-                if q is None:
-                    q = Q(chrom_name=value.chromo, location__overlap=value.range)
-                else:
-                    q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
-        return cls.objects.filter(q).select_related("gene") if q is not None else []
-
-
-class TranscriptAssembly(models.Model):
-    chrom_name = models.CharField(max_length=10)
-    ids = models.JSONField(null=True, validators=[validate_gene_ids])
-
-    # These values will be returned as 0-index, half-closed. This should be converted to
-    # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
-    location = IntegerRangeField()
-    name = models.CharField(max_length=80)
-    strand = models.CharField(max_length=1, null=True)
-    ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
-
-    # Creates a "one-to-many" relationship pair with Transcript, which has a ManyToMany field for TranscriptAssemblys
-    transcript = models.ForeignKey("Transcript", on_delete=models.CASCADE)
-
-
-class ExonAssembly(models.Model):
-    chrom_name = models.CharField(max_length=10)
-    ids = models.JSONField(null=True, validators=[validate_gene_ids])
-
-    # These values will be returned as 0-index, half-closed. This should be converted to
-    # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
-    location = IntegerRangeField()
-    strand = models.CharField(max_length=1, null=True)
-    ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
-
-    # Creates a "one-to-many" relationship pair with Exon, which has a ManyToMany field for ExonAssemblys
-    exon = models.ForeignKey("Exon", on_delete=models.CASCADE)
-
-
-class Gene(models.Model):
-    class Meta:
-        indexes = [models.Index(fields=["ensembl_id"], name="search_gene_ensembl_id_index")]
-
-    # GeneAssemblys have an associated foreign key to create a one-to-many relationship
-    assemblies = models.ManyToManyField(GeneAssembly, related_name="gene_set")
-    ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
-    gene_type = models.CharField(max_length=50)
-
-    def __str__(self):
-        return f"{self.ensembl_id}: {self.gene_type}"
-
-    @classmethod
-    def search(cls, terms):
-        q = None
-        for term, value in terms:
-            if term == QueryToken.ENSEMBL_ID:
-                if q is None:
-                    q = Q(ensembl_id=value)
-                else:
-                    q = q | Q(ensembl_id=value)
-        return cls.objects.filter(q).prefetch_related("assemblies") if q is not None else []
-
-
-class Transcript(models.Model):
-    class Meta:
-        indexes = [models.Index(fields=["ensembl_id"], name="search_tx_ensembl_id_index")]
-
-    assemblies = models.ManyToManyField(TranscriptAssembly, related_name="transcript_set")
-    ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
-    gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    transcript_type = models.CharField(max_length=50)
-
-
-class Exon(models.Model):
-    class Meta:
-        indexes = [models.Index(fields=["ensembl_id"], name="search_exon_ensembl_id_index")]
-
-    assemblies = models.ManyToManyField(ExonAssembly, related_name="exon_set")
-    ensembl_id = models.CharField(max_length=50, unique=False, default="No ID")
-    gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
-    number = models.IntegerField()
-    transcript = models.ForeignKey(Transcript, on_delete=models.CASCADE)
+                q = q | Q(ensembl_id=value)
+        return cls.objects.filter(q).prefetch_related("assemblies")
 
 
 class GencodeRegion(models.Model):
@@ -214,28 +96,6 @@ class GencodeAnnotation(models.Model):
 
     feature = models.ForeignKey(
         Feature,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="annotation",
-    )
-
-    gene = models.ForeignKey(
-        Gene,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="annotation",
-    )
-    transcript = models.ForeignKey(
-        Transcript,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="annotation",
-    )
-    exon = models.ForeignKey(
-        Exon,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
