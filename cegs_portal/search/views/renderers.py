@@ -14,7 +14,7 @@ def json(model, _json_format=None):
 
 
 @json.register(DNaseIHypersensitiveSite)
-def _(dhs_object, json_format=None):
+def _dnaseihypersensitivesite(dhs_object, json_format=None):
     result = {
         "cell_line": dhs_object.cell_line,
         "start": dhs_object.location.lower,
@@ -38,7 +38,7 @@ def _(dhs_object, json_format=None):
 
 
 @json.register(RegulatoryEffect)
-def _(reg_effect, json_format=None):
+def _regulatory_effect(reg_effect, json_format=None):
     return {
         "id": reg_effect.id,
         "direction": reg_effect.direction.value,
@@ -49,7 +49,7 @@ def _(reg_effect, json_format=None):
 
 
 @json.register(FeatureAssembly)
-def _(feature_assembly, json_format=None):
+def _feature_assembly(feature_assembly, json_format=None):
     result = {
         "start": feature_assembly.location.lower,
         "end": feature_assembly.location.upper - 1,
@@ -71,7 +71,7 @@ def _(feature_assembly, json_format=None):
 
 
 @json.register(Feature)
-def _(feature_obj, json_format=None):
+def _feature(feature_obj, json_format=None):
     return {
         "feature_type": feature_obj.feature_type,
         "ensembl_id": feature_obj.ensembl_id,

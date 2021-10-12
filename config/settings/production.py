@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from .base import *  # noqa
 from .base import env
 
@@ -91,7 +93,7 @@ INSTALLED_APPS += ["anymail"]  # noqa F405
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 # https://anymail.readthedocs.io/en/stable/esps
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-ANYMAIL = {}
+ANYMAIL: Dict[str, Any] = {}
 
 
 # LOGGING

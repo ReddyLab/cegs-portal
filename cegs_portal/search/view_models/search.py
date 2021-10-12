@@ -1,4 +1,5 @@
 import re
+from typing import Dict
 
 from cegs_portal.search.models import (
     ChromosomeLocation,
@@ -32,11 +33,11 @@ class Search:
         parse_result = parse_query(query_string)
         assemblies = FeatureAssembly.search(parse_result, feature_type="gene")
 
-        gene_dict = {}
+        gene_dict: Dict[Feature, list[FeatureAssembly]] = {}
         for assembly in assemblies:
             gene_assemblies = gene_dict.get(assembly.gene, [])
             gene_assemblies.append(assembly)
-            gene_dict[assembly.gene] = gene_assemblies
+            gene_dict[assembly.feature] = gene_assemblies
 
         genes = Feature.search(parse_result, feature_type="gene")
         for gene in genes:

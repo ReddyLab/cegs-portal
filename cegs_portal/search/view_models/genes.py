@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from psycopg2.extras import NumericRange
 
@@ -94,7 +95,7 @@ class GeneSearch:
         return genes
 
     @classmethod
-    def _closest_loc_search(cls, chromo, start, end, assembly):
+    def _closest_loc_search(cls, chromo, start, end, assembly) -> Optional[Feature]:
         query_lt = {"feature__feature_type": "gene", "chrom_name": chromo}
         query_gt = {"feature__feature_type": "gene", "chrom_name": chromo}
 
@@ -111,17 +112,19 @@ class GeneSearch:
         higher_gene = FeatureAssembly.objects.filter(**query_gt).order_by("location").select_related("feature").first()
 
         if lower_gene is None and higher_gene is None:
-            return []
+            return None
 
         if lower_gene is None:
-            return higher_gene.gene.all()
+            assert higher_gene is not None
+            return higher_gene.feature
 
         if higher_gene is None:
-            return lower_gene.gene.all()
+            assert lower_gene is not None
+            return lower_gene.feature
 
         lower_dist = start - lower_gene.location.lower
         higher_dist = higher_gene.location.lower - start
         if lower_dist > higher_dist:
-            return higher_gene.gene.all()
+            return higher_gene.feature
 
-        return lower_gene.gene.all()
+        return lower_gene.feature

@@ -35,7 +35,6 @@ def handle_uploaded_file(file):
             continue
 
         dhs = DNaseIHypersensitiveSite(
-            name=name,
             chromosome_name=chrom,
             location=NumericRange(int(start), int(end)),
             cell_line=cell_line,
@@ -46,5 +45,5 @@ def handle_uploaded_file(file):
         if effect_size == "":
             effect_size = None
 
-        re = RegulatoryEffect(direction=EffectDirectionType(direction), effect_size=effect_size, affects=dhs)
+        re = RegulatoryEffect(direction=EffectDirectionType(direction).value, effect_size=effect_size, sources=[dhs])
         re.save()
