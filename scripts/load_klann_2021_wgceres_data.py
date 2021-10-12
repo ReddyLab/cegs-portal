@@ -1,5 +1,4 @@
 import csv
-import os.path
 
 from django.db import transaction
 from django.db.models import IntegerField
@@ -10,11 +9,10 @@ from cegs_portal.search.models import (
     DNaseIHypersensitiveSite,
     EffectDirectionType,
     Experiment,
-    ExperimentDataFile,
-    GeneAssembly,
+    FeatureAssembly,
     RegulatoryEffect,
 )
-from utils import ExperimentDataType, ExperimentFile, timer
+from utils import ExperimentMetadata, timer
 
 
 #
@@ -30,7 +28,7 @@ from utils import ExperimentDataType, ExperimentFile, timer
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites, effects):
+def bulk_save(sites: list[DNaseIHypersensitiveSite], effects: list[RegulatoryEffect]):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
         DNaseIHypersensitiveSite.objects.bulk_create(sites, batch_size=1000)
@@ -46,14 +44,11 @@ def bulk_save(sites, effects):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch):
-    reader = csv.DictReader(ceres_file, delimiter="\t", quoting=csv.QUOTE_NONE)
-    sites = []
-    effects = []
+def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, delimiter=","):
+    reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    sites: list[DNaseIHypersensitiveSite] = []
+    effects: list[RegulatoryEffect] = []
     for line in reader:
-        strand = line["strand"]
-        if strand == ".":
-            strand = None
         chrom_name = line["chrom"]
 
         dhs_start = int(line["chromStart"])
@@ -62,26 +57,48 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         closest_pos_assembly = (
-            GeneAssembly.objects.annotate(dist=Abs(Lower("location", output_field=IntegerField()) - dhs_midpoint))
-            .filter(chrom_name=chrom_name, strand="+", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch)
+            FeatureAssembly.objects.annotate(dist=Abs(Lower("location", output_field=IntegerField()) - dhs_midpoint))
+            .filter(
+                chrom_name=chrom_name,
+                strand="+",
+                ref_genome=ref_genome,
+                ref_genome_patch=ref_genome_patch,
+                feature__feature_type="gene",
+            )
             .order_by("dist")
             .first()
         )
 
         closest_neg_assembly = (
-            GeneAssembly.objects.annotate(dist=Abs(Upper("location", output_field=IntegerField()) - dhs_midpoint))
-            .filter(chrom_name=chrom_name, strand="-", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch)
+            FeatureAssembly.objects.annotate(dist=Abs(Upper("location", output_field=IntegerField()) - dhs_midpoint))
+            .filter(
+                chrom_name=chrom_name,
+                strand="-",
+                ref_genome=ref_genome,
+                ref_genome_patch=ref_genome_patch,
+                feature__feature_type="gene",
+            )
             .order_by("dist")
             .first()
         )
 
-        if closest_pos_assembly.dist <= closest_neg_assembly.dist:
+        if closest_pos_assembly is None:
+            closest_assembly = closest_neg_assembly
+        elif closest_neg_assembly is None:
+            closest_assembly = closest_pos_assembly
+        elif closest_pos_assembly.dist <= closest_neg_assembly.dist:
             closest_assembly = closest_pos_assembly
         else:
             closest_assembly = closest_neg_assembly
-        distance = closest_assembly.dist
-        closest_gene = closest_assembly.gene
-        gene_name = closest_assembly.name
+
+        if closest_assembly is not None:
+            distance = closest_assembly.dist
+            closest_gene = closest_assembly.gene
+            gene_name = closest_assembly.name
+        else:
+            distance = -1
+            closest_gene = None
+            gene_name = "No Gene"
 
         dhs = DNaseIHypersensitiveSite(
             cell_line=cell_line,
@@ -92,13 +109,14 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
-            strand=strand,
         )
         sites.append(dhs)
 
-        effect_size = line["wgCERES_score_top3_wg"].strip()
-        if effect_size == "":
+        effect_size_field = line["wgCERES_score_top3_wg"].strip()
+        if effect_size_field == "":
             effect_size = None
+        else:
+            effect_size = float(effect_size_field)
 
         effect = RegulatoryEffect(
             direction=EffectDirectionType(line["direction_wg"]).value,
@@ -112,10 +130,10 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
     bulk_save(sites, effects)
 
 
-def unload_reg_effects():
-    Experiment.objects.all().delete()
-    DNaseIHypersensitiveSite.objects.all().delete()
-    RegulatoryEffect.objects.all().delete()
+def unload_reg_effects(experiment_metadata):
+    experiment = Experiment.objects.get(name=experiment_metadata.name)
+    RegulatoryEffect.objects.filter(experiment=experiment).delete()
+    experiment_metadata.db_del()
 
 
 def check_filename(experiment_filename: str):
@@ -124,32 +142,17 @@ def check_filename(experiment_filename: str):
 
 
 def run(experiment_filename):
-    check_filename(experiment_filename)
+    with open(experiment_filename) as experiment_file:
+        experiment_metadata = ExperimentMetadata.json_load(experiment_file)
+    check_filename(experiment_metadata.name)
+    experiment = experiment_metadata.db_save()
 
     # Only run unload_reg_effects if you want to delete all the gencode data in the db.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects()
+    # unload_reg_effects(experiment_metadata)
 
-    with open(experiment_filename) as experiment_file:
-        base_path = os.path.dirname(experiment_file.name)
-        experiment_file = ExperimentFile.json_load(experiment_file)
-
-    experiment = Experiment(name=experiment_file.name)
-    experiment.save()
-    for data in experiment_file.data:
-        data_file = ExperimentDataFile(
-            cell_line=data.cell_line,
-            experiment=experiment,
-            filename=data.filename,
-            ref_genome=data.ref_genome,
-            ref_genome_patch=data.ref_genome_patch,
-            significance_measure=data.significance_measure,
+    for ceres_file, file_info, delimiter in experiment_metadata.metadata():
+        load_reg_effects(
+            ceres_file, experiment, file_info.cell_line, file_info.ref_genome, file_info.ref_genome_patch, delimiter
         )
-        data_file.save()
-        experiment.data_files.add(data_file)
-
-    for data in experiment_file.data:
-        if data.datatype == ExperimentDataType.WGCERES_DATA:
-            with open(os.path.join(base_path, data.filename), "r", newline="") as ceres_file:
-                load_reg_effects(ceres_file, experiment, data.cell_line, data.ref_genome, data.ref_genome_patch)

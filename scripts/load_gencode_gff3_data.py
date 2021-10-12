@@ -32,14 +32,14 @@ ANNOTATION_BUFFER_SIZE = 50_000
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
 @timer("Saving annotations", level=1, unit="s")
-def bulk_annotation_save(genome_annotations):
+def bulk_annotation_save(genome_annotations: list[GencodeAnnotation]):
     GencodeAnnotation.objects.bulk_create(genome_annotations, batch_size=500)
 
 
 @timer("Loading annotations")
 def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
     line_count = 0
-    annotations = []
+    annotations: list[GencodeAnnotation] = []
     region = None
     for line in genome_annotations:
         line_count += 1
@@ -59,7 +59,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
             continue
 
         fields = line.split("\t")
-        seqid, _source, annotation_type, start, end, score, strand, phase, attrs = map(unquote, fields)
+        seqid, _source, annotation_type, start, end, score_str, strand, phase_str, attrs = map(unquote, fields)
         attr_list = attrs.split(";")
         attr_dict = {}
         for attr in attr_list:
@@ -67,8 +67,8 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
             attr_dict[attr_name.strip()] = value.strip()
 
         # The assumption is that all items with the same ID are on continguous lines
-        phase = int(phase) if phase is not None and phase != "." else None
-        score = float(score) if score is not None and score != "." else None
+        phase = int(phase_str) if phase_str is not None and phase_str != "." else None
+        score = float(score_str) if score_str is not None and score_str != "." else None
 
         # If there is a new annotation
         # Write the buffer to the database

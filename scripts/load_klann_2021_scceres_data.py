@@ -1,5 +1,4 @@
 import csv
-import os.path
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -9,11 +8,10 @@ from cegs_portal.search.models import (
     DNaseIHypersensitiveSite,
     EffectDirectionType,
     Experiment,
-    ExperimentDataFile,
-    GeneAssembly,
+    FeatureAssembly,
     RegulatoryEffect,
 )
-from utils import ExperimentDataType, ExperimentFile, timer
+from utils import ExperimentMetadata, timer
 
 
 #
@@ -29,7 +27,12 @@ from utils import ExperimentDataType, ExperimentFile, timer
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites, new_sites, effects, target_assemblies):
+def bulk_save(
+    sites: list[DNaseIHypersensitiveSite],
+    new_sites: list[DNaseIHypersensitiveSite],
+    effects: list[RegulatoryEffect],
+    target_assemblies: list[FeatureAssembly],
+):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
         DNaseIHypersensitiveSite.objects.bulk_create(new_sites, batch_size=1000)
@@ -43,22 +46,19 @@ def bulk_save(sites, new_sites, effects, target_assemblies):
             effect.sources.add(site)
         for assembly, effect in zip(target_assemblies, effects):
             effect.target_assemblies.add(assembly)
-            effect.targets.add(assembly.gene)
+            effect.targets.add(assembly.feature)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
 def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites = []
-    new_sites = []
-    effects = []
-    target_assembiles = []
+    sites: list[DNaseIHypersensitiveSite] = []
+    new_sites: list[DNaseIHypersensitiveSite] = []
+    effects: list[RegulatoryEffect] = []
+    target_assembiles: list[FeatureAssembly] = []
     new_dhs_set = set()
     for line in reader:
-        strand = line["strand"]
-        if strand == ".":
-            strand = None
         chrom_name = line["dhs_chrom"]
 
         dhs_start = int(line["dhs_start"])
@@ -82,7 +82,6 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
                 location=dhs_location,
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
-                strand=strand,
             )
             dhs.save()
         sites.append(dhs)
@@ -98,16 +97,12 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         else:
             direction = EffectDirectionType.NON_SIGNIFICANT
 
-        target_assembly = (
-            GeneAssembly.objects.filter(
-                ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                name=line["gene_symbol"],
-                location=NumericRange(int(line["start"]), int(line["end"]), "[]"),
-            )
-            .select_related("gene")
-            .first()
-        )
+        target_assembly = FeatureAssembly.objects.filter(
+            ref_genome=ref_genome,
+            ref_genome_patch=ref_genome_patch,
+            name=line["gene_symbol"],
+            location=NumericRange(int(line["start"]), int(line["end"]), "[]"),
+        ).first()
         if target_assembly is None:
             print(f"Gene Name: {line['gene_symbol']}")
             assert target_assembly is not None
@@ -124,10 +119,10 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
     bulk_save(sites, new_sites, effects, target_assembiles)
 
 
-def unload_reg_effects(experiment_name):
-    experiment = Experiment.objects.get(name=experiment_name)
+def unload_reg_effects(experiment_metadata):
+    experiment = Experiment.objects.get(name=experiment_metadata.name)
     RegulatoryEffect.objects.filter(experiment=experiment).delete()
-    experiment.delete()
+    experiment_metadata.db_del()
 
 
 def check_filename(experiment_filename: str):
@@ -135,46 +130,18 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def get_delimiter(filename):
-    _, ext = os.path.splitext(filename)
-    if ext == "csv":
-        return ","
-    elif ext == "tsv":
-        return "\t"
-    else:
-        return ","
-
-
 def run(experiment_filename):
-    check_filename(experiment_filename)
-
     with open(experiment_filename) as experiment_file:
-        base_path = os.path.dirname(experiment_file.name)
-        experiment_file = ExperimentFile.json_load(experiment_file)
-
-    experiment = Experiment(name=experiment_file.name)
-    experiment.save()
-    for data in experiment_file.data:
-        data_file = ExperimentDataFile(
-            cell_line=data.cell_line,
-            experiment=experiment,
-            filename=data.filename,
-            ref_genome=data.ref_genome,
-            ref_genome_patch=data.ref_genome_patch,
-            significance_measure=data.significance_measure,
-        )
-        data_file.save()
-        experiment.data_files.add(data_file)
+        experiment_metadata = ExperimentMetadata.json_load(experiment_file)
+    check_filename(experiment_metadata.name)
+    experiment = experiment_metadata.db_save()
 
     # Only run unload_reg_effects if you want to delete all the gencode data in the db.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_file.name)
+    # unload_reg_effects(experiment_metadata)
 
-    for data in experiment_file.data:
-        if data.datatype == ExperimentDataType.SCCERES_DATA:
-            with open(os.path.join(base_path, data.filename), "r", newline="") as ceres_file:
-                delimiter = get_delimiter(data.filename)
-                load_reg_effects(
-                    ceres_file, experiment, data.cell_line, data.ref_genome, data.ref_genome_patch, delimiter
-                )
+    for ceres_file, file_info, delimiter in experiment_metadata.metadata():
+        load_reg_effects(
+            ceres_file, experiment, file_info.cell_line, file_info.ref_genome, file_info.ref_genome_patch, delimiter
+        )

@@ -1,14 +1,19 @@
 import json
 import os.path
+from typing import Dict
 
 from cegs_portal.search.models import File
 
 
 class FileMetadata:
-    def __init__(self, file_metadata):
+    data_filename: str
+    description: str
+    url: str
+
+    def __init__(self, file_metadata: Dict[str, str], filename):
         self.data_filename = file_metadata["file"]
         self.description = file_metadata["description"]
-        self.filename = None
+        self.filename = filename
         self.url = file_metadata["url"]
 
     def db_save(self):
@@ -28,6 +33,5 @@ class FileMetadata:
     @classmethod
     def json_load(cls, file):
         file_metatadata = json.load(file)
-        metadata = FileMetadata(file_metatadata)
-        metadata.filename = file.name
+        metadata = FileMetadata(file_metatadata, file.name)
         return metadata

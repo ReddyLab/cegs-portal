@@ -2,7 +2,7 @@ import functools
 import time
 
 
-def timer(desc="", level=0, unit="m"):
+def timer(desc: str = "", level: int = 0, unit: str = "m"):
     if level == 0:
         prefix = "======"
         suffix = "\n"
