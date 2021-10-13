@@ -1,28 +1,16 @@
 import csv
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import IntegerField
+from django.db.models import F, IntegerField
 from django.db.models.functions import Abs, Lower, Upper
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNaseIHypersensitiveSite, GeneAssembly
+from cegs_portal.search.models import DNaseIHypersensitiveSite, FeatureAssembly
 from utils import FileMetadata, get_delimiter, timer
 
+LOAD_BATCH_SIZE = 10_000
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
+
 def bulk_save(sites):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
@@ -33,66 +21,66 @@ def bulk_save(sites):
 @timer("Load cCREs")
 def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_sites = []
-    new_dhs_set = set()
+    new_sites: list[DNaseIHypersensitiveSite] = []
     for i, line in enumerate(reader):
-        if i % 100_000 == 0:
+        if i % LOAD_BATCH_SIZE == 0 and i != 0:
             print(f"line {i + 1}")
-        chrom_name, dhs_start, dhs_end, name = line
-        dhs_start = int(dhs_start)
-        dhs_end = int(dhs_end)
-        dhs_midpoint = (dhs_start + dhs_end) // 2
+            bulk_save(new_sites)
+            new_sites = []
+        chrom_name, dhs_start_str, dhs_end_str, accession_id = line
+        dhs_start = int(dhs_start_str)
+        dhs_end = int(dhs_end_str)
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
+        dhs_midpoint = (dhs_start + dhs_end) // 2
+
         closest_pos_assembly = (
-            GeneAssembly.objects.annotate(dist=Abs(Lower("location", output_field=IntegerField()) - dhs_midpoint))
-            .filter(chrom_name=chrom_name, strand="+", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch)
+            FeatureAssembly.objects.annotate(dist=Abs(Lower(F("location"), output_field=IntegerField()) - dhs_midpoint))
+            .filter(chrom_name=chrom_name, strand="+", ref_genome=ref_genome, feature__feature_type="gene")
             .order_by("dist")
             .first()
         )
 
         closest_neg_assembly = (
-            GeneAssembly.objects.annotate(dist=Abs(Upper("location", output_field=IntegerField()) - dhs_midpoint))
-            .filter(chrom_name=chrom_name, strand="-", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch)
+            FeatureAssembly.objects.annotate(dist=Abs(Upper(F("location"), output_field=IntegerField()) - dhs_midpoint))
+            .filter(chrom_name=chrom_name, strand="-", ref_genome=ref_genome, feature__feature_type="gene")
             .order_by("dist")
             .first()
         )
 
-        if closest_pos_assembly.dist <= closest_neg_assembly.dist:
+        if closest_pos_assembly is None:
+            closest_assembly = closest_neg_assembly
+        elif closest_neg_assembly is None:
+            closest_assembly = closest_pos_assembly
+        elif closest_pos_assembly.dist <= closest_neg_assembly.dist:
             closest_assembly = closest_pos_assembly
         else:
             closest_assembly = closest_neg_assembly
-        distance = closest_assembly.dist
-        closest_gene = closest_assembly.gene
-        gene_name = closest_assembly.name
 
-        try:
-            dhs = DNaseIHypersensitiveSite.objects.get(chromosome_name=chrom_name, location=dhs_location)
-        except ObjectDoesNotExist:
-            dhs = DNaseIHypersensitiveSite(
-                cell_line=cell_line,
-                chromosome_name=chrom_name,
-                closest_gene=closest_gene,
-                closest_gene_assembly=closest_assembly,
-                closest_gene_distance=distance,
-                closest_gene_name=gene_name,
-                location=dhs_location,
-                ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                screen_accession_id=name,
-                source=source_file,
-            )
-            new_sites.append(dhs)
+        if closest_assembly is not None:
+            distance = closest_assembly.dist
+            closest_gene = closest_assembly.feature
+            gene_name = closest_assembly.name
         else:
-            dhs_loc = f"{chrom_name}: {dhs_start}-{dhs_end}"
-            if dhs_loc not in new_dhs_set:
-                new_dhs_set.add(dhs_loc)
-                print(dhs_loc)
+            distance = -1
+            closest_gene = None
+            gene_name = "No Gene"
 
-            dhs.screen_accession_id = name
-            dhs.source = source_file
-            dhs.save()
-    print(f"Old DHS Count: {len(dhs_loc)}")
+        dhs = DNaseIHypersensitiveSite(
+            cell_line=cell_line,
+            chromosome_name=chrom_name,
+            closest_gene=closest_gene,
+            closest_gene_assembly=closest_assembly,
+            closest_gene_distance=distance,
+            closest_gene_name=gene_name,
+            location=dhs_location,
+            ref_genome=ref_genome,
+            ref_genome_patch=ref_genome_patch,
+            screen_accession_id=accession_id,
+            source=source_file,
+        )
+        new_sites.append(dhs)
+
     bulk_save(new_sites)
 
 
@@ -107,11 +95,6 @@ def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
 
     check_filename(file_metadata.filename)
     source_file = file_metadata.db_save()
-
-    # Only run unload_reg_effects if you want to delete all the gencode data in the db.
-    # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_ccres(ccre_data)
 
     with open(file_metadata.full_data_filepath) as ccres_file:
         load_ccres(
