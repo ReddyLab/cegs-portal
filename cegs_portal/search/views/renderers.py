@@ -1,7 +1,7 @@
 from functools import singledispatch
 
 from cegs_portal.search.models import (
-    DNaseIHypersensitiveSite,
+    DNARegion,
     Feature,
     FeatureAssembly,
     RegulatoryEffect,
@@ -13,8 +13,8 @@ def json(model, _json_format=None):
     return model
 
 
-@json.register(DNaseIHypersensitiveSite)
-def _dnaseihypersensitivesite(dhs_object, json_format=None):
+@json.register(DNARegion)
+def _dnaregion(dhs_object, json_format=None):
     result = {
         "cell_line": dhs_object.cell_line,
         "start": dhs_object.location.lower,

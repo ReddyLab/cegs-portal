@@ -5,7 +5,7 @@ from django.db.models import F, IntegerField
 from django.db.models.functions import Abs, Lower, Upper
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNaseIHypersensitiveSite, FeatureAssembly
+from cegs_portal.search.models import DNARegion, FeatureAssembly
 from utils import FileMetadata, get_delimiter, timer
 
 LOAD_BATCH_SIZE = 10_000
@@ -14,14 +14,14 @@ LOAD_BATCH_SIZE = 10_000
 def bulk_save(sites):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNaseIHypersensitiveSite.objects.bulk_create(sites, batch_size=1000)
+        DNARegion.objects.bulk_create(sites, batch_size=1000)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load cCREs")
 def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_sites: list[DNaseIHypersensitiveSite] = []
+    new_sites: list[DNARegion] = []
     for i, line in enumerate(reader):
         if i % LOAD_BATCH_SIZE == 0 and i != 0:
             print(f"line {i + 1}")
@@ -66,7 +66,7 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
             closest_gene = None
             gene_name = "No Gene"
 
-        dhs = DNaseIHypersensitiveSite(
+        dhs = DNARegion(
             cell_line=cell_line,
             chromosome_name=chrom_name,
             closest_gene=closest_gene,
@@ -76,7 +76,8 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
-            screen_accession_id=accession_id,
+            misc={"screen_accession_id": accession_id},
+            region_type="ccre",
             source=source_file,
         )
         new_sites.append(dhs)

@@ -3,11 +3,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import (
-    DNaseIHypersensitiveSite,
-    EffectDirectionType,
-    RegulatoryEffect,
-)
+from cegs_portal.search.models import DNARegion, EffectDirectionType, RegulatoryEffect
 from cegs_portal.uploads.forms import UploadFileForm
 
 
@@ -34,7 +30,7 @@ def handle_uploaded_file(file):
         if cell_line == "cell_line":
             continue
 
-        dhs = DNaseIHypersensitiveSite(
+        dhs = DNARegion(
             chromosome_name=chrom,
             location=NumericRange(int(start), int(end)),
             cell_line=cell_line,

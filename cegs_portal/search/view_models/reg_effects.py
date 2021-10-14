@@ -2,7 +2,7 @@ from enum import Enum
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNaseIHypersensitiveSite
+from cegs_portal.search.models import DNARegion
 from cegs_portal.search.view_models.errors import ViewModelError
 
 
@@ -14,7 +14,7 @@ class LocSearchType(Enum):
 class DHSSearch:
     @classmethod
     def id_search(cls, dhs_id):
-        dhs = DNaseIHypersensitiveSite.objects.get(id=dhs_id)
+        dhs = DNARegion.objects.get(id=dhs_id)
         return dhs
 
     @classmethod
@@ -32,9 +32,5 @@ class DHSSearch:
             query["ref_genome"] = assembly
 
         query[field] = NumericRange(int(start), int(end), "[]")
-        genes = (
-            DNaseIHypersensitiveSite.objects.filter(**query)
-            .select_related("closest_gene", "closest_gene_assembly")
-            .distinct()
-        )
+        genes = DNARegion.objects.filter(**query).select_related("closest_gene", "closest_gene_assembly").distinct()
         return genes

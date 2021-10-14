@@ -12,9 +12,9 @@ from cegs_portal.search.models.searchable import Searchable
 from cegs_portal.search.models.utils import QueryToken
 
 
-class DNaseIHypersensitiveSite(Searchable):
+class DNARegion(Searchable):
     class Meta:
-        indexes = [GistIndex(fields=["location"], name="search_dhs_location_index")]
+        indexes = [GistIndex(fields=["location"], name="search_region_location_index")]
 
     cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
@@ -23,9 +23,10 @@ class DNaseIHypersensitiveSite(Searchable):
     closest_gene_distance = models.IntegerField()
     closest_gene_name = models.CharField(max_length=50)
     location = IntegerRangeField()
+    misc = models.JSONField(null=True)  # screen_accession_id, for instance
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10, null=True)
-    screen_accession_id = models.CharField(max_length=20, null=True)
+    region_type = models.CharField(max_length=50, default="")
     source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -68,7 +69,7 @@ class RegulatoryEffect(Searchable):
     effect_size = models.FloatField(null=True)  # log2 fold changes
     significance = models.FloatField(null=True)  # an adjusted p value
     raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
-    sources = models.ManyToManyField(DNaseIHypersensitiveSite, related_name="regulatory_effects")
+    sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
     targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
     target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
 

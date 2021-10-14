@@ -3,7 +3,7 @@ from typing import Dict
 
 from cegs_portal.search.models import (
     ChromosomeLocation,
-    DNaseIHypersensitiveSite,
+    DNARegion,
     Feature,
     FeatureAssembly,
 )
@@ -43,7 +43,7 @@ class Search:
         for gene in genes:
             gene_dict[gene] = list(gene.assemblies.all())
 
-        sites = DNaseIHypersensitiveSite.search(parse_result)
+        sites = DNARegion.search(parse_result)
         return {"genes": gene_dict, "dh_sites": sites}
 
     def facets(self):

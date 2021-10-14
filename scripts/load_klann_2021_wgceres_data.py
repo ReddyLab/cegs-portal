@@ -6,7 +6,7 @@ from django.db.models.functions import Abs, Lower, Upper
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
-    DNaseIHypersensitiveSite,
+    DNARegion,
     EffectDirectionType,
     Experiment,
     FeatureAssembly,
@@ -28,10 +28,10 @@ from utils import ExperimentMetadata, timer
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites: list[DNaseIHypersensitiveSite], effects: list[RegulatoryEffect]):
+def bulk_save(sites: list[DNARegion], effects: list[RegulatoryEffect]):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNaseIHypersensitiveSite.objects.bulk_create(sites, batch_size=1000)
+        DNARegion.objects.bulk_create(sites, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -46,7 +46,7 @@ def bulk_save(sites: list[DNaseIHypersensitiveSite], effects: list[RegulatoryEff
 @timer("Load Reg Effects")
 def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites: list[DNaseIHypersensitiveSite] = []
+    sites: list[DNARegion] = []
     effects: list[RegulatoryEffect] = []
     for line in reader:
         chrom_name = line["chrom"]
@@ -100,7 +100,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
             closest_gene = None
             gene_name = "No Gene"
 
-        dhs = DNaseIHypersensitiveSite(
+        dhs = DNARegion(
             cell_line=cell_line,
             chromosome_name=chrom_name,
             closest_gene=closest_gene,
@@ -109,6 +109,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
+            region_type="dhs",
         )
         sites.append(dhs)
 

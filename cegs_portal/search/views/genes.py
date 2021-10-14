@@ -32,8 +32,8 @@ def gene(request, id_type, gene_id):
         gene_obj = search_results.prefetch_related(
             "children",
             "children__assemblies",
-            "dnaseihypersensitivesite_set",
-            "dnaseihypersensitivesite_set__regulatory_effects",
+            "dnaregion_set",
+            "dnaregion_set__regulatory_effects",
             "assemblies",
         ).first()
         return render(
@@ -43,7 +43,7 @@ def gene(request, id_type, gene_id):
                 "gene": gene_obj,
                 "assemblies": gene_obj.assemblies,
                 "transcripts": gene_obj.children,
-                "dhss": gene_obj.dnaseihypersensitivesite_set,
+                "dhss": gene_obj.dnaregion_set,
             },
         )
 

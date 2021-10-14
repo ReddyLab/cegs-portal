@@ -5,7 +5,7 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
-    DNaseIHypersensitiveSite,
+    DNARegion,
     EffectDirectionType,
     Experiment,
     FeatureAssembly,
@@ -28,14 +28,14 @@ from utils import ExperimentMetadata, timer
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
-    sites: list[DNaseIHypersensitiveSite],
-    new_sites: list[DNaseIHypersensitiveSite],
+    sites: list[DNARegion],
+    new_sites: list[DNARegion],
     effects: list[RegulatoryEffect],
     target_assemblies: list[FeatureAssembly],
 ):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNaseIHypersensitiveSite.objects.bulk_create(new_sites, batch_size=1000)
+        DNARegion.objects.bulk_create(new_sites, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -53,8 +53,8 @@ def bulk_save(
 @timer("Load Reg Effects")
 def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites: list[DNaseIHypersensitiveSite] = []
-    new_sites: list[DNaseIHypersensitiveSite] = []
+    sites: list[DNARegion] = []
+    new_sites: list[DNARegion] = []
     effects: list[RegulatoryEffect] = []
     target_assembiles: list[FeatureAssembly] = []
     new_dhs_set = set()
@@ -66,13 +66,13 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         try:
-            dhs = DNaseIHypersensitiveSite.objects.get(chromosome_name=chrom_name, location=dhs_location)
+            dhs = DNARegion.objects.get(chromosome_name=chrom_name, location=dhs_location)
         except ObjectDoesNotExist:
             dhs_loc = f"{chrom_name}: {dhs_start}-{dhs_end}"
             if dhs_loc not in new_dhs_set:
                 new_dhs_set.add(dhs_loc)
                 print(dhs_loc)
-            dhs = DNaseIHypersensitiveSite(
+            dhs = DNARegion(
                 cell_line=cell_line,
                 chromosome_name=chrom_name,
                 closest_gene=None,
