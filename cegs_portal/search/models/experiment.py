@@ -6,6 +6,7 @@ from cegs_portal.search.models.file import File
 class Experiment(models.Model):
     name = models.CharField(max_length=512)
     other_files = models.ManyToManyField(File, related_name="experiments")
+    archived = models.BooleanField(default=False)
 
 
 class ExperimentDataFile(models.Model):

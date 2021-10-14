@@ -3,11 +3,12 @@ from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 from django.db.models import Q
 
+from cegs_portal.search.models.searchable import Searchable
 from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
-class FeatureAssembly(models.Model):
+class FeatureAssembly(Searchable):
     class Meta:
         indexes = [
             models.Index(fields=["name"], name="sfa_name_index"),
@@ -39,7 +40,7 @@ class FeatureAssembly(models.Model):
         return cls.objects.filter(q).select_related("feature")
 
 
-class Feature(models.Model):
+class Feature(Searchable):
     class Meta:
         indexes = [
             models.Index(fields=["ensembl_id"], name="sf_ensembl_id_index"),

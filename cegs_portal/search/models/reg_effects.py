@@ -8,10 +8,11 @@ from django.db.models import Q
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.gene_annotation import Feature, FeatureAssembly
+from cegs_portal.search.models.searchable import Searchable
 from cegs_portal.search.models.utils import QueryToken
 
 
-class DNaseIHypersensitiveSite(models.Model):
+class DNaseIHypersensitiveSite(Searchable):
     class Meta:
         indexes = [GistIndex(fields=["location"], name="search_dhs_location_index")]
 
@@ -51,7 +52,7 @@ class EffectDirectionType(Enum):
     BOTH = "both"
 
 
-class RegulatoryEffect(models.Model):
+class RegulatoryEffect(Searchable):
     DIRECTION_CHOICES = [
         (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
         (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
