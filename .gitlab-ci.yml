@@ -29,6 +29,15 @@ pytest:
   tags:
     - shell-executor
   before_script:
+    - docker ps -a
+    # - docker stop 496441e913aa
+    # - docker rm 496441e913aa
+    # - docker stop 5ad5df8a15bb
+    # - docker rm 5ad5df8a15bb
+    # - docker ps -a
+    - docker volume ls
+    # - docker volume rm cegs-portal_local_postgres_data_backups
+    # - docker volume rm cegs-portal_local_postgres_data
     - docker-compose -f local.yml build
     # Ensure celerybeat does not crash due to non-existent tables
     - docker-compose -f local.yml up -d
