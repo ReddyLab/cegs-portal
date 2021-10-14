@@ -15,5 +15,11 @@
     "scripts": {
         "dev": "node scripts/dev.js",
         "build": ""
+    },
+    "prettier": {
+        "printWidth": 120,
+        "tabWidth": 4,
+        "semi": true,
+        "bracketSpacing": false
     }
 }
