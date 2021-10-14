@@ -1,14 +1,17 @@
 from django.db import models
 
+from cegs_portal.search.models.file import File
+
 
 class Experiment(models.Model):
     name = models.CharField(max_length=512)
-    data_files = models.ManyToManyField("ExperimentDataFile", related_name="experiment_set")
+    other_files = models.ManyToManyField(File, related_name="experiments")
 
 
 class ExperimentDataFile(models.Model):
     cell_line = models.CharField(max_length=100)
-    experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE)
+    description = models.CharField(max_length=4096, null=True)
+    experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="data_files")
     filename = models.CharField(max_length=512)
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
