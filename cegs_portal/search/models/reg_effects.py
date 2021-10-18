@@ -28,6 +28,7 @@ class DNARegion(Searchable):
     ref_genome_patch = models.CharField(max_length=10, null=True)
     region_type = models.CharField(max_length=50, default="")
     source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
+    strand = models.CharField(max_length=1, null=True)
 
     def __str__(self):
         return (

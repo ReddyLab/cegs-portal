@@ -26,9 +26,9 @@ class ExperimentDatafileMetadata:
         self.ref_genome = file_metadata["ref_genome"]
         self.ref_genome_patch = file_metadata["ref_genome_patch"]
         self.cell_line = file_metadata["cell_line"]
-        self.filename = file_metadata["filename"]
+        self.filename = file_metadata["file"]
         self.significance_measure = file_metadata["significance_measure"]
-        self.datatype = ExperimentDataType(file_metadata["datatype"].lower())
+        self.datatype = ExperimentDataType(file_metadata["type"].lower())
 
     def db_save(self, experiment: Experiment):
         data_file = ExperimentDataFile(
@@ -72,6 +72,7 @@ class ExperimentMetadata:
     def db_del(self):
         experiment = Experiment.objects.get(name=self.name)
         experiment.data_files.all().delete()
+        experiment.other_files.all().delete()
         experiment.delete()
 
     def metadata(self):
