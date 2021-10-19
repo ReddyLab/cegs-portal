@@ -27,6 +27,7 @@ class FeatureAssembly(Searchable):
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
     feature = models.ForeignKey("Feature", on_delete=models.CASCADE, related_name="assemblies")
+    feature_type = models.CharField(max_length=50)  # gene, tanscript, etc.
 
     def __str__(self):
         return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
