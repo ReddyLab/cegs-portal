@@ -13,6 +13,7 @@ class FeatureAssembly(Searchable):
         indexes = [
             models.Index(fields=["name"], name="sfa_name_index"),
             models.Index(fields=["chrom_name"], name="sfa_chrom_name_index"),
+            models.Index(fields=["feature_type"], name="sfa_feature_type_index"),
             GistIndex(fields=["location"], name="sfa_loc_index"),
         ]
 
