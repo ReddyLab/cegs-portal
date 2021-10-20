@@ -51,6 +51,7 @@ def _regulatory_effect(reg_effect, json_format=None):
 @json.register(FeatureAssembly)
 def _feature_assembly(feature_assembly, json_format=None):
     result = {
+        "name": feature_assembly.name,
         "start": feature_assembly.location.lower,
         "end": feature_assembly.location.upper - 1,
         "strand": feature_assembly.strand,

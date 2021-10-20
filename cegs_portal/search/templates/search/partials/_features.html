@@ -1,13 +1,13 @@
     <div>
         <table class="data-table2">
             <tr class="th-bg-light-gray"><th>ENSEMBL ID</th><th>Type</th><th>Name</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-            {% for gene, assemblies in genes.items %}
+            {% for feature in features %}
                 {% cycle 'bg-gray-200' 'th-bg-light-gray' as rowcolor silent %}
-                {% for assembly in assemblies %}
+                {% for assembly in feature.assemblies.all %}
                     <tr class="{{ rowcolor }}">
                         {% if forloop.first %}
-                        <th rowspan="{{ assemblies|length }}" scope="rowgroup"><a href="{% url 'search:genes' 'ensembl' gene.ensembl_id %}">{{ gene.ensembl_id }}</a></th>
-                        <th rowspan="{{ assemblies|length }}" scope="rowgroup">{{ gene.gene_type }}</th>
+                        <th rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></th>
+                        <th rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup">{{ feature.feature_subtype }}</th>
                         {% endif %}
                         <td>{{ assembly.name }}</td>
                         <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>

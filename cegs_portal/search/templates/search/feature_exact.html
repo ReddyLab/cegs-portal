@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}Gene{% endblock %}
+{% block title %}{{ feature_name }}{% endblock %}
 {% block content %}
     <div class="mb-8">
         <div>
-            <span class="text-2xl">Gene </span><span class="text-2xl font-bold">{{ gene.ensembl_id }}</span>
-            {% if transcripts.all|length > 0 %}<span><a href="#transcripts">Transcripts</a></span>{% endif %}
-            {% if dhss.all|length > 0 %}<span><a href="#dhss">DHSs</a></span>{% endif %}
+            <span class="text-2xl">{{ feature_name }} </span><span class="text-2xl font-bold">{{ feature.ensembl_id }}</span>
+            {% if feature.children.all|length > 0 %}<span><a href="#children">{{ children_name }}</a></span>{% endif %}
+            {% if feature.dnaregion_set.all|length > 0 %}<span><a href="#dhss">DHSs</a></span>{% endif %}
         </div>
-        <div>Type: {{ gene.gene_type }}</div>
+        <div>{{ feature_name }} Type: {{ feature.feature_subtype }}</div>
         <table class="data-table">
-            <tr><th>Gene Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-        {% for assembly in assemblies.all %}
+            <tr><th>{{ feature_name }} Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+        {% for assembly in feature.assemblies.all %}
             <tr>
                 <td>{{ assembly.name }}</td>
                 <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
@@ -23,16 +23,16 @@
         </table>
     </div>
 
-    {% if transcripts.all|length > 0 %}
+    {% if feature.children.all|length > 0 %}
     <div class="mb-8">
-        <a name="transcripts"></a>
-        <div class="text-xl font-bold">Transcripts</div>
-        {% for transcript in transcripts.all %}
+        <a name="children"></a>
+        <div class="text-xl font-bold">{{ children_name }}</div>
+        {% for child in feature.children.all %}
 
-            <div>{{ transcript.ensembl_id }}</div>
+            <div>{{ child.ensembl_id }}</div>
             <table class="data-table">
-                <tr><th>Transcript Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-            {% for assembly in transcript.assemblies.all %}
+                <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+            {% for assembly in child.assemblies.all %}
                 <tr>
                     <td>{{ assembly.name }}</td>
                     <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
@@ -45,13 +45,13 @@
     </div>
     {% endif %}
 
-    {% if dhss.all|length > 0 %}
+    {% if feature.dnaregion_set.all|length > 0 %}
     <div>
         <a name="dhss"></a>
         <div class="text-xl font-bold">Nearby DNase I Hypersensitive Sites</div>
         <table class="data-table">
             <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th></tr>
-            {% for dhs in dhss.all %}
+            {% for dhs in feature.dnaregion_set.all %}
                 <tr>
                     <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
                     <td>{{ dhs.cell_line }}</td>

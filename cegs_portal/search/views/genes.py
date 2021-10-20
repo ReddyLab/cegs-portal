@@ -38,16 +38,25 @@ def gene(request, id_type, gene_id):
         ).first()
         return render(
             request,
-            "search/gene_exact.html",
+            "search/feature_exact.html",
             {
-                "gene": gene_obj,
+                "feature": gene_obj,
+                "feature_name": "Gene",
                 "assemblies": gene_obj.assemblies,
-                "transcripts": gene_obj.children,
+                "children": gene_obj.children,
+                "children_name": "Transcripts",
                 "dhss": gene_obj.dnaregion_set,
             },
         )
 
-    return render(request, "search/genes.html", {"genes": search_results})
+    return render(
+        request,
+        "search/features.html",
+        {
+            "features": search_results,
+            "feature_name": "Genes",
+        },
+    )
 
 
 # @method_decorator(csrf_exempt, name='dispatch') # only needed for POST, in dev.
