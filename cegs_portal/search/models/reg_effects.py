@@ -9,7 +9,6 @@ from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.gene_annotation import Feature, FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
-from cegs_portal.search.models.utils import QueryToken
 
 
 class DNARegion(Searchable):
@@ -36,15 +35,16 @@ class DNARegion(Searchable):
         )
 
     @classmethod
-    def search(cls, terms):
-        q = None
-        for term, value in terms:
-            if term == QueryToken.LOCATION:
-                if q is None:
-                    q = Q(chromosome_name=value.chromo, location__overlap=value.range)
-                else:
-                    q = q | Q(chromosome_name=value.chromo, location__overlap=value.range)
-        return cls.objects.filter(q).select_related("closest_gene") if q is not None else []
+    def search(cls, location):
+        q = Q(chromosome_name=location.chromo, location__overlap=location.range)
+        q &= Q(regulatory_effects__count__gt=0)
+
+        return (
+            cls.objects.annotate(models.Count("regulatory_effects"))
+            .prefetch_related("regulatory_effects")
+            .filter(q)
+            .select_related("closest_gene", "closest_gene_assembly")
+        )
 
 
 class EffectDirectionType(Enum):

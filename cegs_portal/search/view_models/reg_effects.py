@@ -32,5 +32,9 @@ class DHSSearch:
             query["ref_genome"] = assembly
 
         query[field] = NumericRange(int(start), int(end), "[]")
-        genes = DNARegion.objects.filter(**query).select_related("closest_gene", "closest_gene_assembly").distinct()
+        genes = (
+            DNARegion.objects.filter(**query)
+            .select_related("closest_gene", "closest_gene_assembly", "closest_gene__parent")
+            .distinct()
+        )
         return genes

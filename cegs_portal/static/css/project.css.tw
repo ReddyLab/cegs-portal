@@ -45,7 +45,7 @@
     border-color: rgba(1, 33, 105, 1);
   }
 
-  table[class^="data-table"] tr:nth-child(odd) {
+  table.data-table tr:nth-child(odd) {
     @apply bg-blue-50;
   }
 

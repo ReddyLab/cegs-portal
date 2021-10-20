@@ -15,14 +15,10 @@ def results(request):
     except SearchResultsException as e:
         return HttpResponseServerError(e)
 
-    form = SearchForm()
+    search_results["form"] = SearchForm()
 
     return render(
         request,
         "search/results.html",
-        {
-            "genes": search_results["genes"],
-            "dh_sites": search_results["dh_sites"],
-            "form": form,
-        },
+        search_results,
     )

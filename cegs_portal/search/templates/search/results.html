@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}DHS Search{% endblock %}
+{% block title %}Search Results{% endblock %}
+{% block css %}
+{{ block.super }}
+<link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
+{% endblock %}
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
+<script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
+{% endblock %}
 {% block content %}
     <div class="flex">
         <div class="text-2xl m-2 font-bold self-end align-baseline">Results</div>
@@ -11,12 +22,62 @@
             <input type="submit" value="Search Again" class="search-button self-end">
         </form>
     </div>
+    <div class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}:{{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
+    {% if loc_search.features|length > 0 %}
+    <div id="genoverse"></div>
     <div class="my-4">
-        <div class="text-xl font-bold">Genes</div>
-        {% include "search/partials/_genes.html" with genes=genes %}
+        <div class="text-xl">Genes</div>
+        <div>
+            <table class="data-table2">
+                <tr class="th-bg-light-gray"><th>ENSEMBL ID</th><th>Type</th><th>Name</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Target</th></tr>
+                {% for feature, assemblies in loc_search.features.items %}
+                    {% cycle 'bg-gray-200' 'th-bg-light-gray' as rowcolor silent %}
+                    {% for assembly in assemblies %}
+                        <tr class="{{ rowcolor }}">
+                            {% if forloop.first %}
+                            <th rowspan="{{ assemblies.all|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></th>
+                            <th rowspan="{{ assemblies.all|length }}" scope="rowgroup">{{ feature.feature_subtype }}</th>
+                            {% endif %}
+                            <td>{{ assembly.name }}</td>
+                            <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
+                            <td>{{ assembly.strand }}</td>
+                            <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
+                            <td>{% if assembly.regulatory_effects|length > 0 %}Yes{% else %}No{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
     </div>
+    {% endif %}
+    {% if dhss.all|length > 0 %}
     <div class="my-4">
         <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
-        {% include "search/partials/_dhss.html" with dhss=dh_sites %}
+        {% include "search/partials/_dnaregion.html" with regions=dhss %}
     </div>
+    {% endif %}
+{% endblock %}
+{% block inline_javascript %}
+    {% if loc_search.features|length > 0 %}
+    <script>
+        new Genoverse({
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        genome    : '{{ loc_search.assembly }}', // see js/genomes/
+        assembly  : '{{ loc_search.assembly }}',
+        chr       : "{{ loc_search.location.chromo }}".replace("chr", ""),
+        start     : {{ loc_search.location.range.lower }},
+        end       : {{ loc_search.location.range.upper }},
+        plugins   : [[ 'karyotype', { showAssembly: true }]],
+        useHash   : true,
+        hideEmptyTracks: false,
+        tracks    : [
+            Genoverse.Track.Scaleline.extend({ strand: false }),
+            Genoverse.Track.Scalebar,
+            Genoverse.Track.DHS,
+        ]
+        });
+    </script>
+    {% endif %}
 {% endblock %}

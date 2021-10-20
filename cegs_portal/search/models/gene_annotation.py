@@ -1,10 +1,13 @@
+from typing import Optional
+
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 from django.db.models import Q
+from django.db.models.query import QuerySet
 
 from cegs_portal.search.models.searchable import Searchable
-from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.models.utils import ChromosomeLocation, QueryToken
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
@@ -34,11 +37,15 @@ class FeatureAssembly(Searchable):
         return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
 
     @classmethod
-    def search(cls, terms, feature_type="gene"):
-        q = Q(feature__feature_type=feature_type)
-        for term, value in terms:
-            if term == QueryToken.LOCATION:
-                q = q | Q(chrom_name=value.chromo, location__overlap=value.range)
+    def search(cls, location: ChromosomeLocation, assembly: Optional[str], feature_types: Optional[list[str]] = None):
+        q: Optional[QuerySet] = Q(chrom_name=location.chromo, location__overlap=location.range)
+
+        if assembly is not None:
+            q &= Q(ref_genome__iexact=assembly)
+
+        if feature_types is not None:
+            q &= Q(feature_type__in=feature_types)
+
         return cls.objects.filter(q).select_related("feature")
 
 
@@ -60,12 +67,16 @@ class Feature(Searchable):
         return f"{self.ensembl_id}: {self.feature_type}"
 
     @classmethod
-    def search(cls, terms, feature_type="gene"):
-        q = Q(feature_type=feature_type)
+    def search(cls, terms):
+        q = None
         for term, value in terms:
             if term == QueryToken.ENSEMBL_ID:
-                q = q | Q(ensembl_id=value)
-        return cls.objects.filter(q).prefetch_related("assemblies")
+                if q is None:
+                    q = Q(ensembl_id=value)
+                else:
+                    q = q | Q(ensembl_id=value)
+
+        return cls.objects.filter(q).prefetch_related("assemblies") if q is not None else []
 
 
 class GencodeRegion(models.Model):
