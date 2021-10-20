@@ -76,6 +76,6 @@ def _feature(feature_obj, json_format=None):
     return {
         "feature_type": feature_obj.feature_type,
         "ensembl_id": feature_obj.ensembl_id,
-        "parent": feature_obj.parent.ensembl_id,
+        # "parent": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
         "misc": feature_obj.misc,
     }

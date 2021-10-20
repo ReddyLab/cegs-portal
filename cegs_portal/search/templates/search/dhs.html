@@ -19,7 +19,7 @@
         <div>
             <div class="p-2" id="genoverse"></div>
             <div class="text-xl font-bold">Sites</div>
-            {% include "search/partials/_dhss.html" with dhss=dhss %}
+            {% include "search/partials/_dnaregion.html" with regions=dhss %}
         </div>
     </div>
 {% endblock %}
@@ -34,7 +34,7 @@
                     return response.json()
                 })
                 .then(data => {
-                    newTable = e("table", {id: "dhs",  class: "data-table"}, [
+                    newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
                         e("tr", [
                             e("th", "ID"),
                             e("th", "Cell Line"),
@@ -48,7 +48,7 @@
                         newTable.append(
                             e("tr", [
                                 e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
-                                e("td", dhs.cell_line),
+                                e("td", dhs.cell_line || "None"),
                                 e("td", [
                                     e("span", dhs.chr),
                                     ": ",
@@ -60,7 +60,7 @@
                             ])
                         )
                     }
-                    let dhsTable = document.getElementById("dhs");
+                    let dhsTable = document.getElementById("dnaregion");
                     dhsTable.replaceWith(newTable)
                 });
 
@@ -72,6 +72,7 @@
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
         genome    : 'GRCh37', // see js/genomes/
+        assembly  : 'GRCh37',
         chr       : "{{ loc.chr }}".replace("chr", ""),
         start     : {{ loc.start }},
         end       : {{ loc.end }},

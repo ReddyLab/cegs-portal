@@ -41,11 +41,12 @@ def dhs_loc(request, chromo, start, end):
     assembly = request.GET.get("assembly", None)
     is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
     response_format = request.GET.get("format", None)
+    region_types = request.GET.getlist("region_type", ["dhs"])
 
     if not chromo.startswith("chr"):
         chromo = f"chr{chromo}"
 
-    dhs_list = DHSSearch.loc_search(chromo, start, end, assembly, search_type)
+    dhs_list = DHSSearch.loc_search(chromo, start, end, assembly, search_type, region_types=region_types)
 
     if is_json:
         return dhs_loc_json(dhs_list, response_format)
