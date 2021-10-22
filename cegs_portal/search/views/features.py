@@ -67,9 +67,10 @@ def feature_loc(request, chromo, start, end):
         assembly
             * free-text, but should match a genome assembly that exists in the DB
     """
-    search_type = request.GET.get("search_type", "exact")
+    search_type = request.GET.get("search_type", "overlap")
     assembly = request.GET.get("assembly", None)
-    feature_types = request.GET.get("features", ["gene"])
+    response_format = request.GET.get("format", None)
+    feature_types = request.GET.getlist("feature", ["gene"])
 
     if chromo.isnumeric():
         chromo = f"chr{chromo}"
@@ -81,11 +82,6 @@ def feature_loc(request, chromo, start, end):
     }
 
     if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-        return JsonResponse(
-            {
-                "assemblies": [json(result) for result in results["assemblies"]],
-            },
-            safe=False,
-        )
+        return JsonResponse([json(result, response_format) for result in results["assemblies"]], safe=False)
 
     return render(request, "search/features.html", results)

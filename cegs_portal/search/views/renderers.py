@@ -51,6 +51,7 @@ def _regulatory_effect(reg_effect, json_format=None):
 @json.register(FeatureAssembly)
 def _feature_assembly(feature_assembly, json_format=None):
     result = {
+        "id": feature_assembly.feature.ensembl_id,
         "name": feature_assembly.name,
         "start": feature_assembly.location.lower,
         "end": feature_assembly.location.upper - 1,
@@ -58,14 +59,12 @@ def _feature_assembly(feature_assembly, json_format=None):
         "ids": feature_assembly.ids,
         "ref_genome": feature_assembly.ref_genome,
         "ref_genome_patch": feature_assembly.ref_genome_patch,
-        "feature": json(feature_assembly.feature),
+        "feature": json(feature_assembly.feature, json_format),
     }
 
     if json_format == "genoverse":
-        result["id"] = str(feature_assembly.id)
         result["chr"] = feature_assembly.chrom_name.removeprefix("chr")
     else:
-        result["id"] = feature_assembly.id
         result["chr"] = feature_assembly.chrom_name
 
     return result
@@ -74,8 +73,9 @@ def _feature_assembly(feature_assembly, json_format=None):
 @json.register(Feature)
 def _feature(feature_obj, json_format=None):
     return {
-        "feature_type": feature_obj.feature_type,
-        "ensembl_id": feature_obj.ensembl_id,
-        # "parent": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
+        "id": feature_obj.ensembl_id,
+        "type": feature_obj.feature_type,
+        "subtype": feature_obj.feature_subtype,
+        "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
         "misc": feature_obj.misc,
     }

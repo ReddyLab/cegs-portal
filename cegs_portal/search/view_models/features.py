@@ -87,5 +87,5 @@ class FeatureSearch:
 
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[]")
-        assemblies = FeatureAssembly.objects.filter(**query).select_related("feature").distinct()
+        assemblies = FeatureAssembly.objects.filter(**query).select_related("feature", "feature__parent").distinct()
         return assemblies

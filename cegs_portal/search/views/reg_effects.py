@@ -37,7 +37,7 @@ def dhs_loc(request, chromo, start, end):
         assembly
             * free-text, but should match a genome assembly that exists in the DB
     """
-    search_type = request.GET.get("search_type", "exact")
+    search_type = request.GET.get("search_type", "overlap")
     assembly = request.GET.get("assembly", None)
     is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
     response_format = request.GET.get("format", None)

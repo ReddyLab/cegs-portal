@@ -47,7 +47,11 @@ class DHSSearch:
         genes = (
             DNARegion.objects.filter(**query)
             .select_related(
-                "closest_gene", "closest_gene_assembly", "closest_gene_assembly__feature", "closest_gene__parent"
+                "closest_gene",
+                "closest_gene__parent",
+                "closest_gene_assembly",
+                "closest_gene_assembly__feature",
+                "closest_gene_assembly__feature__parent",
             )
             .distinct()
         )
