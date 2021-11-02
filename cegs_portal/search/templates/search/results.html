@@ -69,7 +69,7 @@
         chr       : "{{ loc_search.location.chromo }}".replace("chr", ""),
         start     : {{ loc_search.location.range.lower }},
         end       : {{ loc_search.location.range.upper }},
-        plugins   : [[ 'karyotype', { showAssembly: true }]],
+        plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
         useHash   : true,
         hideEmptyTracks: false,
         tracks    : [

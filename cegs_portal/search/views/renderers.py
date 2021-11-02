@@ -14,7 +14,7 @@ def json(model, _json_format=None):
 
 
 @json.register(DNARegion)
-def _dnaregion(dhs_object, json_format=None):
+def _dnaregion(dhs_object: DNARegion, json_format=None):
     result = {
         "cell_line": dhs_object.cell_line,
         "start": dhs_object.location.lower,
@@ -25,6 +25,7 @@ def _dnaregion(dhs_object, json_format=None):
         "closest_gene_name": dhs_object.closest_gene_name,
         "ref_genome": dhs_object.ref_genome,
         "ref_genome_patch": dhs_object.ref_genome_patch,
+        "effects": [json(effect, json_format) for effect in dhs_object.regulatory_effects.all()],
     }
 
     if json_format == "genoverse":
@@ -41,10 +42,10 @@ def _dnaregion(dhs_object, json_format=None):
 def _regulatory_effect(reg_effect, json_format=None):
     return {
         "id": reg_effect.id,
-        "direction": reg_effect.direction.value,
+        "direction": reg_effect.direction,
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
-        "targets": [target.ensemble_id for target in reg_effect.targets.all()],
+        "targets": [target.ensembl_id for target in reg_effect.targets.all()],
     }
 
 

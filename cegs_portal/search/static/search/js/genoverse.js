@@ -25,13 +25,25 @@ Genoverse.Track.Model.DHS.Portal = Genoverse.Track.Model.DHS.extend({
 Genoverse.Track.View.DHS.Portal = Genoverse.Track.View.DHS.extend({
     bump: true,
     dhsColor: "#e69600",
-    geneColor: "#009e73",
-    geneLabelColor: "#000",
+    withEffectColor: "#000",
+    withEffectAndTargetColor: "#009e73",
+    borderColor: "#f0e442",
     setFeatureColor: function (feature) {
-        if (feature.type === "dhs") {
-            feature.color = this.dhsColor;
-            feature.legendColor = this.dhsColor;
-            feature.legend = "DNase I Hypersensitive Site";
+        if (feature.type != "dhs") { return; }
+
+        feature.color = this.dhsColor;
+        feature.legend = "DHS w/o Reg Effect";
+
+        if (feature.effects.length > 0) {
+            feature.color = this.withEffectColor;
+            feature.legend = "DHS w/ Untargeted Reg Effect";
+        }
+
+        for (effect of feature.effects) {
+            if (effect.targets.length > 0) {
+                feature.color = this.withEffectAndTargetColor;
+                feature.legend = "DHS w/ Targeted Reg Effect";
+            }
         }
     },
 });
@@ -203,7 +215,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.DHS,
     view: Genoverse.Track.View.DHS,
-    legend: false,
+    legend: true,
     populateMenu: function (feature) {
         if (feature.type === "dhs") {
             var url = `/search/dhs/${feature.id}`;
@@ -211,8 +223,16 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
                 title: `<a target="_blank" href="${url}">DHS:${feature.id}</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
                 Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
-                "Closest Gene": `<a target="_blank" href="${url}">${feature.closest_gene_assembly.name} (${feature.closest_gene.ensembl_id})</a>`,
+                "Closest Gene": `<a target="_blank" href="/search/gene/ensembl/${feature.closest_gene.id}">${feature.closest_gene_assembly.name} (${feature.closest_gene.id})</a>`,
             };
+
+            var i = 1;
+            for (effect of feature.effects) {
+                for (target of effect.targets) {
+                    menu[`Target ${i}`] = `<a target="_blank" href="/search/gene/ensembl/${target}">${target} (${effect.effect_size})</a>`
+                    i++;
+                }
+            }
 
             return menu;
         }

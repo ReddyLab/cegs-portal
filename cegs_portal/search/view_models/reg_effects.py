@@ -1,9 +1,11 @@
 from enum import Enum
 from typing import Optional
 
+from django.db.models import Prefetch
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import DNARegion
+from cegs_portal.search.models.reg_effects import RegulatoryEffect
 from cegs_portal.search.view_models.errors import ViewModelError
 
 
@@ -44,6 +46,9 @@ class DHSSearch:
             query["region_type__in"] = region_types
 
         query[field] = NumericRange(int(start), int(end), "[]")
+        non_sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
+            "targets", "target_assemblies"
+        )
         genes = (
             DNARegion.objects.filter(**query)
             .select_related(
@@ -52,6 +57,9 @@ class DHSSearch:
                 "closest_gene_assembly",
                 "closest_gene_assembly__feature",
                 "closest_gene_assembly__feature__parent",
+            )
+            .prefetch_related(
+                Prefetch("regulatory_effects", queryset=non_sig_effects),
             )
             .distinct()
         )

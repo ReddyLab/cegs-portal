@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from cegs_portal.search.models import (
     ChromosomeLocation,
@@ -16,7 +17,7 @@ HUGO_RE = re.compile(r"HGNC:[0-9a-z]+", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"hg19|hg38|grch37|grch38", re.IGNORECASE)
 
 
-def parse_query(query):
+def parse_query(query: str) -> tuple[list[QueryToken], Optional[ChromosomeLocation], Optional[str]]:
     terms: list[tuple[QueryToken, str]] = []
     assembly = None
     location = None
@@ -45,7 +46,7 @@ class Search:
         query_terms, location, assembly_name = parse_query(query_string)
         feature_assembly_dict: dict[Feature, list[FeatureAssembly]] = {}
         targeting_effects_dict: dict[Feature, list[RegulatoryEffect]] = {}
-
+        sites = None
         if location is not None:
             feature_assemblies = FeatureAssembly.search(location, assembly_name, feature_types=["gene"])
             feature_assemblies.prefetch_related("regulatory_effects")
@@ -58,10 +59,10 @@ class Search:
                 reg_effects = targeting_effects_dict.get(assembly.feature, [])
                 reg_effects.extend(assembly.regulatory_effects.all())
                 targeting_effects_dict[assembly.feature] = reg_effects
+            sites = DNARegion.search(location)
 
         features = Feature.search(query_terms)
 
-        sites = DNARegion.search(location)
         return {
             "loc_search": {
                 "location": location,
