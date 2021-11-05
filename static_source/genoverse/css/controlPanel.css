@@ -69,9 +69,7 @@
 }
 
 .gv-control-panel-plugin .gv-panel-right {
-  background-image: -webkit-linear-gradient(left, #5F8CB0, #4A7496);
-  background-image: -moz-linear-gradient(left center, #5F8CB0, #4A7496);
-  border-radius: 0 5px 5px 0;
+  background-color: rgba(1, 33, 105, 1);
   border-left: 0;
 }
 
@@ -86,16 +84,12 @@
 }
 
 .gv-control-panel-plugin .gv-panel-left {
-  background-image: -webkit-linear-gradient(right, #5F8CB0, #4A7496);
-  background-image: -moz-linear-gradient(right center, #5F8CB0, #4A7496);
-  border-radius: 5px 0 0 5px;
+  background-color: rgba(1, 33, 105, 1);
   border-right: 0;
 }
 
 .gv-control-panel-plugin .gv-panel-left .gv-label-container {
-  border: 0;
   box-shadow: none;
-  background: none;
 }
 
 .gv-control-panel-plugin td.gv-canvas-container {
