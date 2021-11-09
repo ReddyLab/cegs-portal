@@ -11,7 +11,7 @@ from cegs_portal.search.view_models import Search
 def results(request):
     search_query = unquote_plus(request.GET["query"])
     try:
-        search_results = Search.search(search_query)
+        search_results = Search.search(unquote_plus(search_query))
     except SearchResultsException as e:
         return HttpResponseServerError(e)
 
