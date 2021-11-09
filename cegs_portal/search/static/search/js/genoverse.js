@@ -1,3 +1,17 @@
+CEGSGenoverse = Genoverse.extend({
+    // debug: true,
+    _sharedState: {},
+    getSharedState: function(key) {
+        return this._sharedState[key];
+    },
+    updateSharedState: function (key, value) {
+        this._sharedState[key] = value;
+        for (callback of this.sharedStateCallbacks) {
+            callback(this._sharedState, key);
+        }
+    },
+    sharedStateCallbacks: [],
+});
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({});
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
