@@ -264,6 +264,70 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     },
 });
 
+Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
+    id: "dhs-effects",
+    name: "DHSs w/ Effects",
+    labels: true,
+    legend: false,
+    model: Genoverse.Track.Model.DHS.Portal.extend({
+        init: function (reset) {
+            this.base(reset);
+
+            this.browser.sharedStateCallbacks.push((state, key) => {
+                if (key !== "dhs-data") {
+                    return;
+                }
+                data = state[key];
+                this.setData(data);
+            });
+        },
+        setData: function (data) {
+            this.data = data;
+            data = data.filter(dhs => dhs.effects.length > 0);
+            this.browser.updateSharedState("dhs-effect-data", data);
+            var dataDeferred = this.browser.getSharedState("dhs-effect-data-deferred")
+            if (dataDeferred) {
+                dataDeferred.resolve(data);
+            }
+        },
+        getData: function (chr, start, end, done) {
+            var deferred = $.Deferred();
+            var dataDeferred = $.Deferred();
+
+            if (typeof this.data !== "undefined") {
+                this.receiveData(
+                    typeof this.data.sort === "function"
+                        ? this.data.sort(function (a, b) {
+                              return a.start - b.start;
+                          })
+                        : this.data,
+                    chr,
+                    start,
+                    end
+                );
+                return deferred.resolveWith(this);
+            }
+
+            this.browser.updateSharedState("dhs-effect-data-deferred", dataDeferred);
+
+            $.when(dataDeferred).done(data => {
+                this.receiveData(data, chr, start, end);
+                deferred.resolveWith(this);
+            });
+            return deferred;
+        },
+        parseData: function (data, _chr) {
+            for (var i = 0; i < data.length; i++) {
+                var feature = data[i];
+                feature.type = "dhs";
+                feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
+                this.insertFeature(feature);
+            }
+        },
+    }),
+    1: {},
+});
+
 Genoverse.Track.Gene = Genoverse.Track.extend({
     id: "genes",
     name: "Genes",
