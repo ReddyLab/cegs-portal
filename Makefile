@@ -5,7 +5,7 @@ test:
 	python -Wa manage.py test
 
 runprod:
-	gunicorn dhs.asgi:application -k uvicorn.workers.UvicornWorker
+	gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker
 
 migrate:
 	python manage.py migrate
