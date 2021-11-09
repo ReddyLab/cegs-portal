@@ -28,6 +28,9 @@ def _dnaregion(dhs_object: DNARegion, json_format=None):
         "effects": [json(effect, json_format) for effect in dhs_object.regulatory_effects.all()],
     }
 
+    if hasattr(dhs_object, "label"):
+        result["label"] = dhs_object.label
+
     if json_format == "genoverse":
         result["id"] = str(dhs_object.id)
         result["chr"] = dhs_object.chromosome_name.removeprefix("chr")
@@ -45,7 +48,8 @@ def _regulatory_effect(reg_effect, json_format=None):
         "direction": reg_effect.direction,
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
-        "targets": [target.ensembl_id for target in reg_effect.targets.all()],
+        "targets": [json(target, json_format) for target in reg_effect.targets.all()],
+        "target_assemblies": [json(assembly, json_format) for assembly in reg_effect.target_assemblies.all()],
     }
 
 

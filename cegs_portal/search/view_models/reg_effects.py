@@ -1,4 +1,5 @@
 from enum import Enum
+from itertools import combinations_with_replacement
 from typing import Optional
 
 from django.db.models import Prefetch
@@ -7,6 +8,16 @@ from psycopg2.extras import NumericRange
 from cegs_portal.search.models import DNARegion
 from cegs_portal.search.models.reg_effects import RegulatoryEffect
 from cegs_portal.search.view_models.errors import ViewModelError
+
+LABEL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def label_gen():
+    i = 1
+    while True:
+        for combo in combinations_with_replacement(LABEL_LETTERS, i):
+            yield "".join(combo)
+        i += 1
 
 
 class LocSearchType(Enum):
@@ -28,6 +39,7 @@ class DHSSearch:
         end: str,
         assembly: str,
         search_type: str,
+        region_properties: str,
         region_types: Optional[list[str]] = None,
     ):
         query = {"chromosome_name": chromo}
@@ -45,11 +57,15 @@ class DHSSearch:
         if region_types is not None:
             query["region_type__in"] = region_types
 
-        query[field] = NumericRange(int(start), int(end), "[]")
-        non_sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
-            "targets", "target_assemblies"
+        query[field] = NumericRange(int(start), int(end), "[)")
+        sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
+            "targets",
+            "targets__parent",
+            "target_assemblies",
+            "target_assemblies__feature",
+            "target_assemblies__feature__parent",
         )
-        genes = (
+        dna_regions = (
             DNARegion.objects.filter(**query)
             .select_related(
                 "closest_gene",
@@ -59,8 +75,17 @@ class DHSSearch:
                 "closest_gene_assembly__feature__parent",
             )
             .prefetch_related(
-                Prefetch("regulatory_effects", queryset=non_sig_effects),
+                Prefetch("regulatory_effects", queryset=sig_effects),
             )
             .distinct()
         )
-        return genes
+
+        if region_properties is not None:
+            if "reg_effect" in region_properties:
+                dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
+            if "effect_label" in region_properties:
+                for region, label in zip(dna_regions, label_gen()):
+                    if len(region.regulatory_effects.all()) > 0:
+                        setattr(region, "label", label)
+
+        return dna_regions

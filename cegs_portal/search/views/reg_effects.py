@@ -39,6 +39,7 @@ def dhs_loc(request, chromo, start, end):
     """
     search_type = request.GET.get("search_type", "overlap")
     assembly = request.GET.get("assembly", None)
+    region_properties = request.GET.getlist("property", None)
     is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
     response_format = request.GET.get("format", None)
     region_types = request.GET.getlist("region_type", ["dhs"])
@@ -46,7 +47,9 @@ def dhs_loc(request, chromo, start, end):
     if not chromo.startswith("chr"):
         chromo = f"chr{chromo}"
 
-    dhs_list = DHSSearch.loc_search(chromo, start, end, assembly, search_type, region_types=region_types)
+    dhs_list = DHSSearch.loc_search(
+        chromo, start, end, assembly, search_type, region_properties, region_types=region_types
+    )
 
     if is_json:
         return dhs_loc_json(dhs_list, response_format)
