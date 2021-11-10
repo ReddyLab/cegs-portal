@@ -19,3 +19,9 @@ class ChromosomeLocation:
             self.range = NumericRange(int(start), int(start), bounds="[]")
         else:
             self.range = NumericRange(int(start), int(end))
+
+    def __str__(self) -> str:
+        return f"{self.chromo}: {self.range.lower}-{self.range.upper}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
