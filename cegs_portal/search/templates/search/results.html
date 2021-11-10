@@ -22,7 +22,7 @@
             <input type="submit" value="Search Again" class="search-button self-end">
         </form>
     </div>
-    <div class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}:{{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
+    <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}:{{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
     {% if loc_search.features|length > 0 %}
     <div id="genoverse"></div>
     <div class="my-4">
@@ -60,6 +60,16 @@
 {% block inline_javascript %}
     {% if loc_search.features|length > 0 %}
     <script>
+        // Update the chromosome location at the top of the page
+        const updateLocation = function(state, key) {
+            if (key !== "location") { return; }
+
+            let location = state[key];
+
+            const locHeaderNode = document.getElementById("loc-header");
+
+            locHeaderNode.firstChild.data = `chr${location.chr}: ${location.start}-${location.end}`;
+        }
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)

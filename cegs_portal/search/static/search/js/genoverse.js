@@ -11,7 +11,12 @@ CEGSGenoverse = Genoverse.extend({
         }
     },
     sharedStateCallbacks: [],
+    updateURL: function () {
+        this.base();
+        this.updateSharedState("location", {chr: this.chr, start: this.start, end: this.end});
+    },
 });
+
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({});
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
