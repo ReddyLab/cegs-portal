@@ -27,17 +27,17 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
 });
 
 Genoverse.Track.Model.DHS.Portal = Genoverse.Track.Model.DHS.extend({
-    url: "/search/dhsloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre",
+    url: "/search/dhsloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
     dataRequestLimit: 5000000,
     parseData: function (data, chr) {
-        gene_names = new Set();
-
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
             feature.type = "dhs";
             feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
             this.insertFeature(feature);
         }
+
+        this.browser.updateSharedState("dhs-data", data);
     },
 });
 
@@ -48,7 +48,9 @@ Genoverse.Track.View.DHS.Portal = Genoverse.Track.View.DHS.extend({
     withEffectAndTargetColor: "#009e73",
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
-        if (feature.type != "dhs") { return; }
+        if (feature.type != "dhs") {
+            return;
+        }
 
         feature.color = this.dhsColor;
         feature.legend = "DHS w/o Reg Effect";
@@ -232,8 +234,8 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     id: "dhs",
     name: "DHSs",
     resizable: "auto",
-    model: Genoverse.Track.Model.DHS,
-    view: Genoverse.Track.View.DHS,
+    model: Genoverse.Track.Model.DHS.Portal,
+    view: Genoverse.Track.View.DHS.Portal,
     legend: true,
     populateMenu: function (feature) {
         if (feature.type === "dhs") {
@@ -288,11 +290,53 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
         },
         setData: function (data) {
             this.data = data;
-            data = data.filter(dhs => dhs.effects.length > 0);
-            this.browser.updateSharedState("dhs-effect-data", data);
+            let oldDHSs = this.browser.getSharedState("dhs-effect-data");
+            let newDHSs = data.filter(dhs => dhs.effects.length > 0);
+            let allDHSs = oldDHSs ? oldDHSs.concat(newDHSs) : newDHSs;
+
+            // Sort DHSs with effects
+            allDHSs.sort((x, y) => {
+                if (x.chr < y.chr) {
+                    return -1;
+                } else if (x.chr > y.chr) {
+                    return 1;
+                }
+
+                if (x.start < y.start) {
+                    return -1;
+                } else if (x.start > y.start) {
+                    return 1;
+                }
+
+                if (x.end < y.end) {
+                    return -1;
+                } else if (x.end > y.end) {
+                    return 1;
+                }
+
+                return 0;
+            })
+
+            // Remove duplicates
+            allDHSs = allDHSs.reduce((prev, curr) => {
+                if (prev.length == 0) {
+                    prev.push(curr)
+                    return prev;
+                }
+
+                let prevVal = prev[prev.length - 1];
+
+                if (prevVal.chr === curr.chr && prevVal.start === curr.start && prevVal.end === curr.end) {
+                    return prev;
+                }
+
+                prev.push(curr)
+                return prev;
+            }, [])
+            this.browser.updateSharedState("dhs-effect-data", allDHSs);
             var dataDeferred = this.browser.getSharedState("dhs-effect-data-deferred")
             if (dataDeferred) {
-                dataDeferred.resolve(data);
+                dataDeferred.resolve(allDHSs);
             }
         },
         getData: function (chr, start, end, done) {
@@ -337,8 +381,8 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     id: "genes",
     name: "Genes",
     resizable: "auto",
-    model: Genoverse.Track.Model.DHS,
-    view: Genoverse.Track.View.DHS,
+    model: Genoverse.Track.Model.Gene.Portal,
+    view: Genoverse.Track.View.Gene.Portal,
     legend: true,
     populateMenu: function (feature) {
         if (feature.type === "gene") {

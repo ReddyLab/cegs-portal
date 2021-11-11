@@ -1,10 +1,18 @@
 {% extends "base.html" %}
 {% load static i18n %}
-
 {% block title %}Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
+<style>
+g.tick > text {
+    font-size: 2em;
+}
+
+svg > g > text {
+    font-size: 2em;
+}
+</style>
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
@@ -12,6 +20,8 @@
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
 {% endblock %}
 {% block content %}
     <div class="flex">
@@ -24,7 +34,8 @@
     </div>
     <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}:{{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
     {% if loc_search.features|length > 0 %}
-    <div id="genoverse"></div>
+    <div class="p-2" id="genoverse"></div>
+    <div id="plot"></div>
     <div class="my-4">
         <div class="text-xl">Genes</div>
         <div>
@@ -70,6 +81,81 @@
 
             locHeaderNode.firstChild.data = `chr${location.chr}: ${location.start}-${location.end}`;
         }
+
+        // Show the plot
+        function geneDHSPlot(data) {
+            let dhssWithTargets = data.filter(dhs => dhs.effects.length > 0 && dhs.effects.filter(effect => effect.targets.length > 0).length > 0);
+            let dwtSet = new Set(dhssWithTargets);
+            let targets = dhssWithTargets.flatMap(dhs => dhs.effects.flatMap(effect => effect.target_assemblies.map(assembly => {
+                assembly["effect_size"] = effect.effect_size;
+                assembly["label"] = dhs.label;
+                return assembly
+            })))
+
+            let plot = Plot.plot({
+                height: 480,
+                padding: 0,
+                marginLeft: 50,
+                marginTop: 50,
+                color: {
+                    range: ["#f0e442", "#56b4e9"],
+                    interpolate: "hcl"
+                },
+                x: {
+                    axis: "top",
+                    round: false,
+                    label: "DHS"
+                },
+                y: {
+                    round: false,
+                    label: "Gene",
+                    tickPadding: 6,
+                    tickRotate: -90,
+                },
+                marks: [
+                    Plot.cell(
+                        targets,
+                        {
+                            x: "label",
+                            y: "name",
+                            fill: "effect_size",
+                            title: "effect_size",
+                            rx: 8,
+                            ry: 8
+                        }
+                    ),
+                    Plot.text(
+                        targets,
+                        {
+                            x: "label",
+                            y: "name",
+                            text: d => d.effect_size?.toFixed(3),
+                            title: "effect_size",
+                        }
+                    )
+                ]
+            })
+
+            return plot;
+        }
+        function applyPlot(state, key) {
+            if (key !== "dhs-effect-data" && key !== "location") { return; }
+            let dhss = state["dhs-effect-data"];
+            let location = state["location"];
+
+            data = location ? dhss.filter(dhs => location.chr === dhs.chr && dhs.start >= location.start && dhs.end <= location.end) : dhss;
+
+            let genePlot = document.getElementById("plot");
+            if (genePlot) {
+                let plotNode = geneDHSPlot(data)
+                if (genePlot.firstChild) {
+                    genePlot.replaceChild(plotNode, genePlot.firstChild);
+                } else {
+                    genePlot.appendChild(plotNode);
+                }
+            }
+        }
+
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
