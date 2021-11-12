@@ -1,10 +1,22 @@
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
-    _sharedState: {},
+    _sharedState: {
+        "location": null,
+        "dhs-data": null,
+        "dhs-effect-data": null,
+        "dhs-effect-data-deferred": null
+    },
+    _checkSharedStateKey: function(key) {
+        if (!Object.keys(this._sharedState).includes(key)) {
+            throw `Invalid State Key: ${key}`;
+        }
+    },
     getSharedState: function(key) {
+        this._checkSharedStateKey(key);
         return this._sharedState[key];
     },
     updateSharedState: function (key, value) {
+        this._checkSharedStateKey(key);
         this._sharedState[key] = value;
         for (callback of this.sharedStateCallbacks) {
             callback(this._sharedState, key);
