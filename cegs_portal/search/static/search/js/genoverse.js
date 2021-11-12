@@ -23,6 +23,10 @@ CEGSGenoverse = Genoverse.extend({
         }
     },
     sharedStateCallbacks: [],
+    init: function () {
+        this.base();
+        this.updateSharedState("location", {chr: this.chr, start: this.start, end: this.end});
+    },
     updateURL: function () {
         this.base();
         this.updateSharedState("location", {chr: this.chr, start: this.start, end: this.end});

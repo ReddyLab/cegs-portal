@@ -143,6 +143,8 @@ svg > g > text {
             let dhss = state["dhs-effect-data"];
             let location = state["location"];
 
+            if (!dhss || !location) { return; }
+
             data = location ? dhss.filter(dhs => location.chr === dhs.chr && dhs.start >= location.start && dhs.end <= location.end) : dhss;
 
             let genePlot = document.getElementById("plot");
