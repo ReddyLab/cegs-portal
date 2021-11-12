@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import reduce
 from itertools import combinations_with_replacement
 from typing import Optional
 
@@ -12,12 +13,16 @@ from cegs_portal.search.view_models.errors import ViewModelError
 LABEL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
-def label_gen():
-    i = 1
-    while True:
-        for combo in combinations_with_replacement(LABEL_LETTERS, i):
-            yield "".join(combo)
-        i += 1
+def label_gen() -> list[str]:
+    labels = []
+    for i in range(1, 3):
+        labels.extend(["".join(combo) for combo in combinations_with_replacement(LABEL_LETTERS, i)])
+
+    return labels
+
+
+LABELS = label_gen()
+LABELS_LEN = len(LABELS)
 
 
 class LocSearchType(Enum):
@@ -84,8 +89,12 @@ class DHSSearch:
             if "reg_effect" in region_properties:
                 dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
             if "effect_label" in region_properties:
-                for region, label in zip(dna_regions, label_gen()):
-                    if len(region.regulatory_effects.all()) > 0:
-                        setattr(region, "label", label)
+                for region in dna_regions:
+                    reg_effects = region.regulatory_effects.all()
+                    if (
+                        len(reg_effects) > 0
+                        and reduce(lambda acc, effect: acc + len(effect.targets.all()), reg_effects, 0) > 0
+                    ):
+                        setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
 
         return dna_regions
