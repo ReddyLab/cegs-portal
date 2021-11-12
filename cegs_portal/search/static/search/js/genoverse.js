@@ -60,6 +60,7 @@ Genoverse.Track.Model.DHS.Portal = Genoverse.Track.Model.DHS.extend({
 Genoverse.Track.View.DHS.Portal = Genoverse.Track.View.DHS.extend({
     bump: true,
     dhsColor: "#e69600",
+    fontHeight: 14,
     withEffectColor: "#000",
     withEffectAndTargetColor: "#009e73",
     borderColor: "#f0e442",
