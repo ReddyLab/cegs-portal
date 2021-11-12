@@ -95,9 +95,7 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
 
             feature.type = "gene";
             feature.label =
-                feature.strand === "+"
-                    ? `${feature.name} (${feature.id}) >`
-                    : `< ${feature.name} (${feature.id})`;
+                feature.strand === "+" ? `${feature.name} (${feature.id}) >` : `< ${feature.name} (${feature.id})`;
             this.insertFeature(feature);
         }
     },
@@ -266,8 +264,10 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
 
             var i = 1;
             for (effect of feature.effects) {
-                for (target of effect.targets) {
-                    menu[`Target ${i}`] = `<a target="_blank" href="/search/gene/ensembl/${target}">${target} (${effect.effect_size})</a>`
+                for (assembly of effect.target_assemblies) {
+                    menu[
+                        `Target ${i}`
+                    ] = `<a target="_blank" href="/search/gene/ensembl/${assembly.id}">${assembly.name} ${effect.effect_size >= 0 ? '+' : '-'}${effect.effect_size}</a>`;
                     i++;
                 }
             }
@@ -386,7 +386,7 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
             for (var i = 0; i < data.length; i++) {
                 var feature = data[i];
                 feature.type = "dhs";
-                feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
+                feature.closest_gene_ensembl_id = feature.closest_gene.id;
                 this.insertFeature(feature);
             }
         },
@@ -403,9 +403,9 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     legend: true,
     populateMenu: function (feature) {
         if (feature.type === "gene") {
-            var url = `/search/gene/ensembl/${feature.ensembl_id}`;
+            var url = `/search/gene/ensembl/${feature.id}`;
             var menu = {
-                title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
+                title: `<a target="_blank" href="${url}">${feature.name} (${feature.id})</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
                 Strand: feature.strand,
                 Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
