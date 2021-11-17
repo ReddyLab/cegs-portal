@@ -61,12 +61,14 @@ svg > g > text {
         </div>
     </div>
     {% endif %}
-    {% if dhss.all|length > 0 %}
+    {% with all_dhss=dhss.all %}
+    {% if all_dhss|length > 0 %}
     <div class="my-4">
         <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
-        {% include "search/partials/_dnaregion.html" with regions=dhss %}
+        {% include "search/partials/_dnaregion.html" with regions=all_dhss %}
     </div>
     {% endif %}
+    {% endwith %}
 {% endblock %}
 {% block inline_javascript %}
     {% if loc_search.features|length > 0 %}

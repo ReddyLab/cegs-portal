@@ -57,8 +57,10 @@ class Search:
         targeting_effects_dict: dict[Feature, list[RegulatoryEffect]] = {}
         sites = None
         if location is not None:
-            feature_assemblies = FeatureAssembly.search(location, assembly_name, feature_types=["gene"])
-            feature_assemblies.prefetch_related("regulatory_effects")
+            feature_assemblies = FeatureAssembly.search(
+                location, assembly_name, feature_types=["gene"]
+            ).prefetch_related("regulatory_effects")
+
             # Inverts the feature/assembly relationship
             for assembly in feature_assemblies:
                 assemblies = feature_assembly_dict.get(assembly.feature, [])
