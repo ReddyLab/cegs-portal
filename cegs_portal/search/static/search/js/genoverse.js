@@ -1,17 +1,17 @@
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
     _sharedState: {
-        "location": null,
+        location: null,
         "dhs-data": null,
         "dhs-effect-data": null,
-        "dhs-effect-data-deferred": null
+        "dhs-effect-data-deferred": null,
     },
-    _checkSharedStateKey: function(key) {
+    _checkSharedStateKey: function (key) {
         if (!Object.keys(this._sharedState).includes(key)) {
             throw `Invalid State Key: ${key}`;
         }
     },
-    getSharedState: function(key) {
+    getSharedState: function (key) {
         this._checkSharedStateKey(key);
         return this._sharedState[key];
     },
@@ -33,31 +33,15 @@ CEGSGenoverse = Genoverse.extend({
     },
 });
 
-Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({});
+Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
+    url: "/search/dhsloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
+    dataRequestLimit: 5000000,
+});
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     featureHeight: 5,
     labels: true,
     repeatLabels: true,
-    bump: true,
-});
-
-Genoverse.Track.Model.DHS.Portal = Genoverse.Track.Model.DHS.extend({
-    url: "/search/dhsloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
-    dataRequestLimit: 5000000,
-    parseData: function (data, chr) {
-        for (var i = 0; i < data.length; i++) {
-            var feature = data[i];
-            feature.type = "dhs";
-            feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
-            this.insertFeature(feature);
-        }
-
-        this.browser.updateSharedState("dhs-data", data);
-    },
-});
-
-Genoverse.Track.View.DHS.Portal = Genoverse.Track.View.DHS.extend({
     bump: true,
     dhsColor: "#e69600",
     fontHeight: 14,
@@ -82,6 +66,160 @@ Genoverse.Track.View.DHS.Portal = Genoverse.Track.View.DHS.extend({
                 feature.color = this.withEffectAndTargetColor;
                 feature.legend = "DHS w/ Targeted Reg Effect";
             }
+        }
+    },
+});
+
+Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
+    init: function (reset) {
+        this.base(reset);
+
+        this.browser.sharedStateCallbacks.push((state, key) => {
+            if (key !== "dhs-data") {
+                return;
+            }
+            data = state[key];
+            this.setData(data);
+        });
+    },
+    setData: function (data) {
+        console.log("setData");
+        let oldEffectfulDHSs = this.browser.getSharedState("dhs-effect-data");
+        let newEffectfulDHSs = data.filter((dhs) => dhs.effects.length > 0);
+        let allEffectfulDHSs = oldEffectfulDHSs ? oldEffectfulDHSs.concat(newEffectfulDHSs) : newEffectfulDHSs;
+
+        // Sort DHSs with effects
+        allEffectfulDHSs.sort((x, y) => {
+            if (x.chr < y.chr) {
+                return -1;
+            } else if (x.chr > y.chr) {
+                return 1;
+            }
+
+            if (x.start < y.start) {
+                return -1;
+            } else if (x.start > y.start) {
+                return 1;
+            }
+
+            if (x.end < y.end) {
+                return -1;
+            } else if (x.end > y.end) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        // Remove duplicates
+        allEffectfulDHSs = allEffectfulDHSs.reduce((prev, curr) => {
+            if (prev.length == 0) {
+                prev.push(curr);
+                return prev;
+            }
+
+            let prevVal = prev[prev.length - 1];
+
+            if (prevVal.chr === curr.chr && prevVal.start === curr.start && prevVal.end === curr.end) {
+                return prev;
+            }
+
+            prev.push(curr);
+            return prev;
+        }, []);
+        this.browser.updateSharedState("dhs-effect-data", allEffectfulDHSs);
+    },
+    getData: function (chr, start, end, done) {
+            console.log("getData");
+            start = Math.max(1, start);
+            end = Math.min(this.browser.getChromosomeSize(chr), end);
+
+            var deferred = $.Deferred();
+
+            if (typeof this.data !== "undefined") {
+                this.receiveData(
+                    typeof this.data.sort === "function"
+                        ? this.data.sort(function (a, b) {
+                              return a.start - b.start;
+                          })
+                        : this.data,
+                    chr,
+                    start,
+                    end
+                );
+                return deferred.resolveWith(this);
+            }
+
+            var model = this;
+            var bins = [];
+            var length = end - start + 1;
+
+            if (!this.url) {
+                return deferred.resolveWith(this);
+            }
+
+            if (this.dataRequestLimit && length > this.dataRequestLimit) {
+                var i = Math.ceil(length / this.dataRequestLimit);
+
+                while (i--) {
+                    bins.push([start, i ? (start += this.dataRequestLimit - 1) : end]);
+                    start++;
+                }
+            } else {
+                bins.push([start, end]);
+            }
+
+            $.when.apply($, $.map(bins, function (bin) {
+                    var request = $.ajax({
+                        url: model.parseURL(chr, bin[0], bin[1]),
+                        data: model.urlParams,
+                        dataType: model.dataType,
+                        context: model,
+                        xhrFields: model.xhrFields,
+                        success: function (data) {
+                            this.browser.updateSharedState("dhs-data", data);
+                            this.receiveData(data, chr, bin[0], bin[1]);
+                        },
+                        error: function (xhr, statusText) {
+                            this.track.controller.showError(
+                                this.showServerErrors && (xhr.responseJSON || {}).message
+                                    ? xhr.responseJSON.message
+                                    : statusText + " while getting the data, see console for more details",
+                                arguments
+                            );
+                        },
+                        complete: function (xhr) {
+                            console.log("got data from network");
+                            this.dataLoading = $.grep(this.dataLoading, function (t) {
+                                return xhr !== t;
+                            });
+                        },
+                    });
+
+                    request.coords = [chr, bin[0], bin[1]]; // store actual chr, start and end on the request, in case they are needed
+
+                    if (typeof done === "function") {
+                        request.done(done);
+                    }
+
+                    model.dataLoading.push(request);
+
+                    return request;
+                })
+            )
+            .done(function () {
+                deferred.resolveWith(model);
+            });
+
+            return deferred;
+        },
+    parseData: function (data, chr) {
+        console.log("parseData");
+        for (var i = 0; i < data.length; i++) {
+            var feature = data[i];
+            feature.type = "dhs";
+            feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
+            this.insertFeature(feature);
         }
     },
 });
@@ -249,8 +387,8 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     id: "dhs",
     name: "DHSs",
     resizable: "auto",
-    model: Genoverse.Track.Model.DHS.Portal,
-    view: Genoverse.Track.View.DHS.Portal,
+    model: Genoverse.Track.Model.DHS,
+    view: Genoverse.Track.View.DHS,
     legend: true,
     populateMenu: function (feature) {
         if (feature.type === "dhs") {
@@ -265,26 +403,15 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
             var i = 1;
             for (effect of feature.effects) {
                 for (assembly of effect.target_assemblies) {
-                    menu[
-                        `Target ${i}`
-                    ] = `<a target="_blank" href="/search/gene/ensembl/${assembly.id}">${assembly.name} ${effect.effect_size >= 0 ? '+' : '-'}${effect.effect_size}</a>`;
+                    menu[`Target ${i}`] = `<a target="_blank" href="/search/gene/ensembl/${assembly.id}">${
+                        assembly.name
+                    } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
                     i++;
                 }
             }
 
             return menu;
         }
-    },
-    // Different settings for different zoom level
-    2000000: {
-        // This one applies when > 2M base-pairs per screen
-        labels: false,
-    },
-    1: {
-        // > 1 base-pair, but less then 100K
-        labels: true,
-        model: Genoverse.Track.Model.DHS.Portal,
-        view: Genoverse.Track.View.DHS.Portal,
     },
 });
 
@@ -293,105 +420,7 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     name: "DHSs w/ Effects",
     labels: true,
     legend: false,
-    model: Genoverse.Track.Model.DHS.Portal.extend({
-        init: function (reset) {
-            this.base(reset);
-
-            this.browser.sharedStateCallbacks.push((state, key) => {
-                if (key !== "dhs-data") {
-                    return;
-                }
-                data = state[key];
-                this.setData(data);
-            });
-        },
-        setData: function (data) {
-            this.data = data;
-            let oldDHSs = this.browser.getSharedState("dhs-effect-data");
-            let newDHSs = data.filter(dhs => dhs.effects.length > 0);
-            let allDHSs = oldDHSs ? oldDHSs.concat(newDHSs) : newDHSs;
-
-            // Sort DHSs with effects
-            allDHSs.sort((x, y) => {
-                if (x.chr < y.chr) {
-                    return -1;
-                } else if (x.chr > y.chr) {
-                    return 1;
-                }
-
-                if (x.start < y.start) {
-                    return -1;
-                } else if (x.start > y.start) {
-                    return 1;
-                }
-
-                if (x.end < y.end) {
-                    return -1;
-                } else if (x.end > y.end) {
-                    return 1;
-                }
-
-                return 0;
-            })
-
-            // Remove duplicates
-            allDHSs = allDHSs.reduce((prev, curr) => {
-                if (prev.length == 0) {
-                    prev.push(curr)
-                    return prev;
-                }
-
-                let prevVal = prev[prev.length - 1];
-
-                if (prevVal.chr === curr.chr && prevVal.start === curr.start && prevVal.end === curr.end) {
-                    return prev;
-                }
-
-                prev.push(curr)
-                return prev;
-            }, [])
-            this.browser.updateSharedState("dhs-effect-data", allDHSs);
-            var dataDeferred = this.browser.getSharedState("dhs-effect-data-deferred")
-            if (dataDeferred) {
-                dataDeferred.resolve(allDHSs);
-            }
-        },
-        getData: function (chr, start, end, done) {
-            var deferred = $.Deferred();
-            var dataDeferred = $.Deferred();
-
-            if (typeof this.data !== "undefined") {
-                this.receiveData(
-                    typeof this.data.sort === "function"
-                        ? this.data.sort(function (a, b) {
-                              return a.start - b.start;
-                          })
-                        : this.data,
-                    chr,
-                    start,
-                    end
-                );
-                return deferred.resolveWith(this);
-            }
-
-            this.browser.updateSharedState("dhs-effect-data-deferred", dataDeferred);
-
-            $.when(dataDeferred).done(data => {
-                this.receiveData(data, chr, start, end);
-                deferred.resolveWith(this);
-            });
-            return deferred;
-        },
-        parseData: function (data, _chr) {
-            for (var i = 0; i < data.length; i++) {
-                var feature = data[i];
-                feature.type = "dhs";
-                feature.closest_gene_ensembl_id = feature.closest_gene.id;
-                this.insertFeature(feature);
-            }
-        },
-    }),
-    1: {},
+    model: Genoverse.Track.Model.DHS.Effects,
 });
 
 Genoverse.Track.Gene = Genoverse.Track.extend({
@@ -415,9 +444,11 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         }
     },
     // Different settings for different zoom level
-    2000000: {
+    1000000: {
         // This one applies when > 2M base-pairs per screen
         labels: false,
+        model: Genoverse.Track.Model.Gene.Portal,
+        view: Genoverse.Track.View.Gene.Portal,
     },
     100000: {
         // more than 100K but less then 2M
