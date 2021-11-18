@@ -4,9 +4,11 @@ from cegs_portal.search.models.file import File
 
 
 class Experiment(models.Model):
+    archived = models.BooleanField(default=False)
+    description = models.CharField(max_length=4096, null=True)
+    experiment_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=512)
     other_files = models.ManyToManyField(File, related_name="experiments")
-    archived = models.BooleanField(default=False)
 
 
 class ExperimentDataFile(models.Model):

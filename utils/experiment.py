@@ -1,6 +1,5 @@
 import json
 import os.path
-from enum import Enum
 from typing import IO, Any
 
 from cegs_portal.search.models import Experiment, ExperimentDataFile
@@ -9,30 +8,26 @@ from .file import FileMetadata
 from .misc import get_delimiter
 
 
-class ExperimentDataType(Enum):
-    WGCERES_DATA = "wgceres"
-    SCCERES_DATA = "scceres"
-
-
 class ExperimentDatafileMetadata:
-    ref_genome: str
-    ref_genome_patch: str
+    description: str
     cell_line: str
     filename: str
+    ref_genome: str
+    ref_genome_patch: str
     significance_measure: str
-    datatype: ExperimentDataType
 
     def __init__(self, file_metadata: dict[str, str]):
+        self.cell_line = file_metadata["cell_line"]
+        self.description = file_metadata["description"]
+        self.filename = file_metadata["file"]
         self.ref_genome = file_metadata["ref_genome"]
         self.ref_genome_patch = file_metadata["ref_genome_patch"]
-        self.cell_line = file_metadata["cell_line"]
-        self.filename = file_metadata["file"]
         self.significance_measure = file_metadata["significance_measure"]
-        self.datatype = ExperimentDataType(file_metadata["type"].lower())
 
     def db_save(self, experiment: Experiment):
         data_file = ExperimentDataFile(
             cell_line=self.cell_line,
+            description=self.description,
             experiment=experiment,
             filename=self.filename,
             ref_genome=self.ref_genome,
@@ -44,12 +39,16 @@ class ExperimentDatafileMetadata:
 
 
 class ExperimentMetadata:
+    data_file_metadata: list[ExperimentDatafileMetadata]
+    description: str
+    experiment_type: str
     name: str
     filename: str
-    data_file_metadata: list[ExperimentDatafileMetadata]
     other_file_metadata: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
+        self.description = experiment_dict["description"]
+        self.experiment_type = experiment_dict["type"]
         self.name = experiment_dict["name"]
         self.filename = experiment_filename
         self.data_file_metadata = []
@@ -60,7 +59,11 @@ class ExperimentMetadata:
             self.other_file_metadata.append(FileMetadata(file, self.filename))
 
     def db_save(self):
-        experiment = Experiment(name=self.name)
+        experiment = Experiment(
+            name=self.name,
+            description=self.description,
+            experiment_type=self.experiment_type,
+        )
         experiment.save()
         for metadata in self.data_file_metadata:
             metadata.db_save(experiment)
@@ -78,14 +81,10 @@ class ExperimentMetadata:
     def metadata(self):
         base_path = os.path.dirname(self.filename)
         for metadata in self.data_file_metadata:
-            if (
-                metadata.datatype == ExperimentDataType.SCCERES_DATA
-                or metadata.datatype == ExperimentDataType.WGCERES_DATA
-            ):
-                delimiter = get_delimiter(metadata.filename)
-                ceres_file = open(os.path.join(base_path, metadata.filename), "r", newline="")
-                yield ceres_file, metadata, delimiter
-                ceres_file.close()
+            delimiter = get_delimiter(metadata.filename)
+            ceres_file = open(os.path.join(base_path, metadata.filename), "r", newline="")
+            yield ceres_file, metadata, delimiter
+            ceres_file.close()
 
     @classmethod
     def json_load(cls, file: IO):
