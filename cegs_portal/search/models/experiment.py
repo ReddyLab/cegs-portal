@@ -1,9 +1,10 @@
 from django.db import models
 
+from cegs_portal.search.models.facets import FacetedModel
 from cegs_portal.search.models.file import File
 
 
-class Experiment(models.Model):
+class Experiment(FacetedModel):
     archived = models.BooleanField(default=False)
     description = models.CharField(max_length=4096, null=True)
     experiment_type = models.CharField(max_length=100, null=True)

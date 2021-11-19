@@ -6,12 +6,13 @@ from django.db import models
 from django.db.models import Q
 
 from cegs_portal.search.models.experiment import Experiment
+from cegs_portal.search.models.facets import FacetedModel
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.gene_annotation import Feature, FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
 
 
-class DNARegion(Searchable):
+class DNARegion(Searchable, FacetedModel):
     class Meta:
         indexes = [GistIndex(fields=["location"], name="search_region_location_index")]
 
@@ -54,7 +55,7 @@ class EffectDirectionType(Enum):
     BOTH = "both"
 
 
-class RegulatoryEffect(Searchable):
+class RegulatoryEffect(Searchable, FacetedModel):
     DIRECTION_CHOICES = [
         (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
         (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
