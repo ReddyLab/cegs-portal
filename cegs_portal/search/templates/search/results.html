@@ -19,6 +19,7 @@ svg > g > text {
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/state.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
@@ -73,13 +74,18 @@ svg > g > text {
 {% block inline_javascript %}
     {% if loc_search.features|length > 0 %}
     <script>
-        // Update the chromosome location at the top of the page
-        const updateLocation = function(state, key) {
-            if (key !== "location") { return; }
+        let state = new State(["location"]);
 
+        // Update the chromosome location at the top of the page
+        state.addCallback("location", function(state, key) {
             let location = state[key];
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`))
+        });
+
+        const _ul = function(_state, key) {
+            if (key !== "location") { return; }
+            state.updateSharedState(key, _state[key]);
         }
 
         // Show the plot
@@ -167,7 +173,7 @@ svg > g > text {
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
-            sharedStateCallbacks: [updateLocation, applyPlot],
+            sharedStateCallbacks: [_ul, applyPlot],
             width: 1200,
             tracks    : [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
