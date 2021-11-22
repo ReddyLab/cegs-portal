@@ -1,3 +1,7 @@
+function a(p, c) {
+    p.appendChild(c)
+}
+
 function e(name) {
     attributes = {};
     children = [];
@@ -18,19 +22,31 @@ function e(name) {
             if (typeof child === "string") {
                 child = t(child);
             }
-            element.appendChild(child);
+            a(element, child);
         }
     } else {
         if (typeof children === "string") {
             children = t(children);
         }
 
-        element.appendChild(children);
+        a(element, children);
     }
 
     return element;
 }
 
+function g(id) {
+    return document.getElementById(id);
+}
+
 function t(text) {
     return document.createTextNode(text);
+}
+
+function rc(p, c) { // Replace Children
+    while (p.firstChild) {
+        p.removeChild(p.firstChild);
+    }
+
+    a(p, c);
 }

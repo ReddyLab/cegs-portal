@@ -79,9 +79,7 @@ svg > g > text {
 
             let location = state[key];
 
-            const locHeaderNode = document.getElementById("loc-header");
-
-            locHeaderNode.firstChild.data = `chr${location.chr}: ${location.start}-${location.end}`;
+            rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`))
         }
 
         // Show the plot
@@ -149,14 +147,10 @@ svg > g > text {
 
             data = location ? dhss.filter(dhs => location.chr === dhs.chr && dhs.start >= location.start && dhs.end <= location.end) : dhss;
 
-            let genePlot = document.getElementById("plot");
+            let genePlot = g("plot");
             if (genePlot) {
-                let plotNode = geneDHSPlot(data)
-                if (genePlot.firstChild) {
-                    genePlot.replaceChild(plotNode, genePlot.firstChild);
-                } else {
-                    genePlot.appendChild(plotNode);
-                }
+                let plotNode = geneDHSPlot(data);
+                rc(genePlot, plotNode);
             }
         }
 
