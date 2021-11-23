@@ -3,8 +3,7 @@ from django.shortcuts import render
 
 from cegs_portal.search.view_models import FeatureSearch, IdType
 from cegs_portal.search.views.renderers import json
-
-JSON_MIME = "application/json"
+from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 # @method_decorator(csrf_exempt, name='dispatch')

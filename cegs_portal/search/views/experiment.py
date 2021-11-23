@@ -5,8 +5,7 @@ from django.shortcuts import render
 
 from cegs_portal.search.models import Experiment
 from cegs_portal.search.view_models import ExperimentSearch
-
-JSON_MIME = "application/json"
+from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 def experiment(request, exp_id):

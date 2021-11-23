@@ -3,8 +3,7 @@ from django.shortcuts import render
 
 from cegs_portal.search.view_models import DHSSearch
 from cegs_portal.search.views.renderers import json
-
-JSON_MIME = "application/json"
+from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 def dhs(request, dhs_id):
