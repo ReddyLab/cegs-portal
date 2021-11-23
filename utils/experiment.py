@@ -56,7 +56,7 @@ class ExperimentMetadata:
         for data in experiment_dict["data"]:
             self.data_file_metadata.append(ExperimentDatafileMetadata(data))
         for file in experiment_dict["other_files"]:
-            self.other_file_metadata.append(FileMetadata(file, self.filename))
+            self.other_file_metadata.append(FileMetadata(file, self.filename, self.experiment_type))
 
     def db_save(self):
         experiment = Experiment(

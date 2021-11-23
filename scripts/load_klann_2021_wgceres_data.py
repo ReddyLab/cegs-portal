@@ -44,7 +44,7 @@ def bulk_save(sites: list[DNARegion], effects: list[RegulatoryEffect]):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, delimiter=","):
+def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites: list[DNARegion] = []
     effects: list[RegulatoryEffect] = []
@@ -110,6 +110,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
             region_type="dhs",
+            source=region_source,
         )
         sites.append(dhs)
 
@@ -155,5 +156,11 @@ def run(experiment_filename):
 
     for ceres_file, file_info, delimiter in experiment_metadata.metadata():
         load_reg_effects(
-            ceres_file, experiment, file_info.cell_line, file_info.ref_genome, file_info.ref_genome_patch, delimiter
+            ceres_file,
+            experiment,
+            file_info.cell_line,
+            file_info.ref_genome,
+            file_info.ref_genome_patch,
+            experiment.other_files.all()[0],
+            delimiter,
         )
