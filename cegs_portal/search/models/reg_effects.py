@@ -3,7 +3,7 @@ from enum import Enum
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import FacetedModel
@@ -40,11 +40,25 @@ class DNARegion(Searchable, FacetedModel):
         q = Q(chromosome_name=location.chromo, location__overlap=location.range)
         q &= Q(regulatory_effects__count__gt=0)
 
+        sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
+            "targets",
+            "targets__parent",
+            "target_assemblies",
+            "target_assemblies__feature",
+            "target_assemblies__feature__parent",
+        )
+
         return (
             cls.objects.annotate(models.Count("regulatory_effects"))
-            .prefetch_related("regulatory_effects")
+            .prefetch_related(Prefetch("regulatory_effects", queryset=sig_effects), "facet_values")
             .filter(q)
-            .select_related("closest_gene", "closest_gene_assembly")
+            .select_related(
+                "closest_gene",
+                "closest_gene__parent",
+                "closest_gene_assembly",
+                "closest_gene_assembly__feature",
+                "closest_gene_assembly__feature__parent",
+            )
         )
 
 

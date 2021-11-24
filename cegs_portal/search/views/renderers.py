@@ -1,42 +1,76 @@
 from functools import singledispatch
 
+from django.db.models import QuerySet
+
 from cegs_portal.search.models import (
     DNARegion,
+    Facet,
+    FacetValue,
     Feature,
     FeatureAssembly,
     RegulatoryEffect,
 )
+from cegs_portal.search.models.utils import ChromosomeLocation
 
 
 @singledispatch
-def json(model, _json_format=None):
+def json(model, json_format=None):
+    if isinstance(model, QuerySet):
+        return [json(item, json_format) for item in model.all()]
+
+    if isinstance(model, list):
+        return [json(item, json_format) for item in model]
+
+    if isinstance(model, dict):
+        return {key: json(model[key], json_format) for key in model}
+
     return model
 
 
-@json.register(DNARegion)
-def _dnaregion(dhs_object: DNARegion, json_format=None):
-    result = {
-        "cell_line": dhs_object.cell_line,
-        "start": dhs_object.location.lower,
-        "end": dhs_object.location.upper,
-        "closest_gene": json(dhs_object.closest_gene, json_format),
-        "closest_gene_assembly": json(dhs_object.closest_gene_assembly, json_format),
-        "closest_gene_id": dhs_object.closest_gene_id,
-        "closest_gene_name": dhs_object.closest_gene_name,
-        "ref_genome": dhs_object.ref_genome,
-        "ref_genome_patch": dhs_object.ref_genome_patch,
-        "effects": [json(effect, json_format) for effect in dhs_object.regulatory_effects.all()],
+@json.register(ChromosomeLocation)
+def _chromosomelocation(loc: ChromosomeLocation, json_format=None):
+    return {"chromo": loc.chromo, "start": loc.range.lower, "end": loc.range.upper}
+
+
+@json.register(Facet)
+def _facet(fac: Facet, json_format=None):
+    return {
+        "name": fac.name,
+        "description": fac.description,
+        "values": [json(value, json_format) for value in fac.values.all()],
     }
 
-    if hasattr(dhs_object, "label"):
-        result["label"] = dhs_object.label
+
+@json.register(FacetValue)
+def _facetvalue(val: FacetValue, json_format=None):
+    return {"id": val.id, "value": val.value}
+
+
+@json.register(DNARegion)
+def _dnaregion(dnaregion: DNARegion, json_format=None):
+    result = {
+        "cell_line": dnaregion.cell_line,
+        "start": dnaregion.location.lower,
+        "end": dnaregion.location.upper,
+        "closest_gene": json(dnaregion.closest_gene, json_format),
+        "closest_gene_assembly": json(dnaregion.closest_gene_assembly, json_format),
+        "closest_gene_id": dnaregion.closest_gene_id,
+        "closest_gene_name": dnaregion.closest_gene_name,
+        "ref_genome": dnaregion.ref_genome,
+        "ref_genome_patch": dnaregion.ref_genome_patch,
+        "effects": [json(effect, json_format) for effect in dnaregion.regulatory_effects.all()],
+        "facet_values": {value.id: value.value for value in dnaregion.facet_values.all()},
+    }
+
+    if hasattr(dnaregion, "label"):
+        result["label"] = dnaregion.label
 
     if json_format == "genoverse":
-        result["id"] = str(dhs_object.id)
-        result["chr"] = dhs_object.chromosome_name.removeprefix("chr")
+        result["id"] = str(dnaregion.id)
+        result["chr"] = dnaregion.chromosome_name.removeprefix("chr")
     else:
-        result["id"] = dhs_object.id
-        result["chr"] = dhs_object.chromosome_name
+        result["id"] = dnaregion.id
+        result["chr"] = dnaregion.chromosome_name
 
     return result
 
