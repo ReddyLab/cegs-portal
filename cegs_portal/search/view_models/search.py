@@ -1,13 +1,7 @@
 import re
 from typing import Optional
 
-from cegs_portal.search.models import (
-    ChromosomeLocation,
-    DNARegion,
-    Feature,
-    FeatureAssembly,
-)
-from cegs_portal.search.models.reg_effects import RegulatoryEffect
+from cegs_portal.search.models import ChromosomeLocation, DNARegion, Facet
 from cegs_portal.search.models.utils import QueryToken
 
 CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
@@ -51,38 +45,21 @@ def parse_query(query: str) -> tuple[list[QueryToken], Optional[ChromosomeLocati
 
 class Search:
     @classmethod
-    def search(cls, query_string):
-        query_terms, location, assembly_name, gene_names = parse_query(query_string)
-        feature_assembly_dict: dict[Feature, list[FeatureAssembly]] = {}
-        targeting_effects_dict: dict[Feature, list[RegulatoryEffect]] = {}
+    def search(cls, query_string: str, facets: list[int] = []):
+        _query_terms, location, assembly_name, gene_names = parse_query(query_string)
         sites = None
         if location is not None:
-            feature_assemblies = FeatureAssembly.search(
-                location, assembly_name, feature_types=["gene"]
-            ).prefetch_related("regulatory_effects")
+            sites = DNARegion.search(location, facets, region_type=["dhs"])
 
-            # Inverts the feature/assembly relationship
-            for assembly in feature_assemblies:
-                assemblies = feature_assembly_dict.get(assembly.feature, [])
-                assemblies.append(assembly)
-                feature_assembly_dict[assembly.feature] = assemblies
-
-                reg_effects = targeting_effects_dict.get(assembly.feature, [])
-                reg_effects.extend(assembly.regulatory_effects.all())
-                targeting_effects_dict[assembly.feature] = reg_effects
-            sites = DNARegion.search(location)
-
-        features = Feature.search(query_terms)
+        facets = Facet.objects.all().prefetch_related("values")
 
         return {
             "loc_search": {
                 "location": location,
                 "assembly": assembly_name,
-                "features": feature_assembly_dict,
-                "targeting_effects": targeting_effects_dict,
             },
-            "features": features,
             "dhss": sites,
+            "facets": facets,
         }
 
     def facets(self):

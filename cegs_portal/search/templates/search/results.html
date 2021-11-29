@@ -18,75 +18,137 @@ svg > g > text {
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
-<script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/state.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
 {% endblock %}
 {% block content %}
-    <div class="flex">
-        <div class="text-2xl m-2 font-bold self-end align-baseline">Results</div>
-        <div class="flex-grow"></div>
-        <form action="{% url 'search:results' %}" method="get" class="search">
-            {{ form }}
-            <input type="submit" value="Search Again" class="search-button self-end">
-        </form>
-    </div>
-    <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}:{{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
-    {% if loc_search.features|length > 0 %}
-    <div class="p-2" id="genoverse"></div>
-    <div id="plot"></div>
-    <div class="my-4">
-        <div class="text-xl">Genes</div>
-        <div>
-            <table class="data-table2">
-                <tr class="th-bg-light-gray"><th>ENSEMBL ID</th><th>Type</th><th>Name</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Target</th></tr>
-                {% for feature, assemblies in loc_search.features.items %}
-                    {% cycle 'bg-gray-200' 'th-bg-light-gray' as rowcolor silent %}
-                    {% for assembly in assemblies %}
-                        <tr class="{{ rowcolor }}">
-                            {% if forloop.first %}
-                            <th rowspan="{{ assemblies|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></th>
-                            <th rowspan="{{ assemblies|length }}" scope="rowgroup">{{ feature.feature_subtype }}</th>
-                            {% endif %}
-                            <td>{{ assembly.name }}</td>
-                            <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
-                            <td>{{ assembly.strand }}</td>
-                            <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
-                            <td>{% if assembly.regulatory_effects|length > 0 %}Yes{% else %}No{% endif %}</td>
-                        </tr>
-                    {% endfor %}
-                {% endfor %}
-            </table>
+    <div class="flex flex-row">
+        <div id="facets" class="flex-initial content-center w-60">
+            {% for facet in facets.all %}
+                <fieldset id="facetfield">
+                    <legend>{{ facet.name }}</legend>
+                    <div class="flex flex-row flex-wrap gap-1">
+                        {% for value in facet.values.all %}
+                        <div>
+                            <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"></input>
+                            <label for="{{ value.id }}">{{ value.value }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+            {% endfor %}
+        </div>
+        <div id="main-content" class="flex-initial w-4/5">
+            <div class="flex">
+                <div class="text-2xl m-2 font-bold self-end align-baseline">Results</div>
+                <div class="flex-grow"></div>
+                <form action="{% url 'search:results' %}" method="get" class="search">
+                    {{ form }}
+                    <input type="submit" value="Search Again" class="search-button self-end">
+                </form>
+            </div>
+            {% if loc_search.location %}
+            <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}: {{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
+            <div class="p-2" id="genoverse"></div>
+            {% endif %}
+            <div id="plot"></div>
+            {% with all_dhss=dhss.all %}
+            {% if all_dhss|length > 0 %}
+            <div class="my-4">
+                <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
+                {% include "search/partials/_dnaregion.html" with regions=all_dhss %}
+            </div>
+            {% endif %}
+            {% endwith %}
         </div>
     </div>
-    {% endif %}
-    {% with all_dhss=dhss.all %}
-    {% if all_dhss|length > 0 %}
-    <div class="my-4">
-        <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
-        {% include "search/partials/_dnaregion.html" with regions=all_dhss %}
-    </div>
-    {% endif %}
-    {% endwith %}
 {% endblock %}
 {% block inline_javascript %}
-    {% if loc_search.features|length > 0 %}
     <script>
-        let state = new State(["location"]);
+        const STATE_LOCATION = "location";
+        const STATE_QUERY_RESULTS = "query-results";
+        let state = new State([STATE_LOCATION, STATE_QUERY_RESULTS]);
 
         // Update the chromosome location at the top of the page
-        state.addCallback("location", function(state, key) {
+        state.addCallback(STATE_LOCATION, (state, key) => {
             let location = state[key];
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`))
         });
 
+        state.addCallback(STATE_QUERY_RESULTS, (state, key) => {
+
+        })
+
         const _ul = function(_state, key) {
-            if (key !== "location") { return; }
+            if (key !== STATE_LOCATION) { return; }
             state.updateSharedState(key, _state[key]);
         }
+
+        const fieldSet = g("facetfield");
+        const facetCheckboxes = fieldSet.querySelectorAll("input[type=checkbox]");
+        facetCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change",  _.throttle(event => {
+                enabledFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+                                     .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                                     .map(i => `facet=${i.id}`)
+                                     .join('&')
+                searchURL = `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+                window.history.pushState({}, document.title, searchURL);
+                fetch(`${searchURL}&accept=application/json`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Request Failed: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data["dhss"].length == 0) {
+                            emptyDiv = e("div", {id: "dnaregion",  class: "empty-div"}, [
+                                t("No DHSs Found"),
+                            ])
+                            g("dnaregion").replaceWith(emptyDiv);
+                            return;
+                        }
+
+                        newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
+                            e("tr", [
+                                e("th", "ID"),
+                                e("th", "Cell Line"),
+                                e("th", "Location"),
+                                e("th", "Strand"),
+                                e("th", "Closest Gene"),
+                                e("th", "Reference Genome"),
+                            ])
+                        ])
+                        for(dhs of data["dhss"]) {
+                            newTable.append(
+                                e("tr", [
+                                    e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
+                                    e("td", dhs.cell_line || "None"),
+                                    e("td", [
+                                        e("span", dhs.chr),
+                                        ": ",
+                                        e("span", `${dhs.start}-${dhs.end}`)
+                                    ]),
+                                    e("td", dhs.strand || "None"),
+                                    e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.id}`}, `${dhs.closest_gene_name} (${dhs.closest_gene.id})`)),
+                                    e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
+                                ])
+                            )
+                        }
+
+                        g("dnaregion").replaceWith(newTable);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+
+        }, 500, { 'leading': true }))
+    })
 
         // Show the plot
         function geneDHSPlot(data) {
@@ -160,6 +222,7 @@ svg > g > text {
             }
         }
 
+        {% if loc_search.location %}
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
@@ -175,12 +238,12 @@ svg > g > text {
             hideEmptyTracks: false,
             sharedStateCallbacks: [_ul, applyPlot],
             width: 1200,
-            tracks    : [
+            tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
                 Genoverse.Track.Scalebar,
                 Genoverse.Track.DHS.Effects.extend({children: [Genoverse.Track.Gene.extend({ legend: false })]}),
             ]
         });
+        {% endif %}
     </script>
-    {% endif %}
 {% endblock %}

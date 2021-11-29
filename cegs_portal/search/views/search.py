@@ -12,13 +12,18 @@ from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 def results(request):
-    search_query = unquote_plus(request.GET["query"])
+
+    search_query = request.GET["query"]
+    unquoted_search_query = unquote_plus(search_query)
+    facets = [int(facet) for facet in request.GET.getlist("facet", [])]
     is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
 
     try:
-        search_results = Search.search(unquote_plus(search_query))
+        search_results = Search.search(unquoted_search_query, facets)
     except SearchResultsException as e:
         return HttpResponseServerError(e)
+
+    search_results["query"] = search_query
 
     if is_json:
         return JsonResponse(json(search_results), safe=False)

@@ -43,7 +43,8 @@ function t(text) {
     return document.createTextNode(text);
 }
 
-function rc(p, c) { // Replace Children
+// Replace Children
+function rc(p, c) {
     while (p.firstChild) {
         p.removeChild(p.firstChild);
     }

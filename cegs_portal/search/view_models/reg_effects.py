@@ -81,6 +81,7 @@ class DHSSearch:
             )
             .prefetch_related(
                 Prefetch("regulatory_effects", queryset=sig_effects),
+                "facet_values",
             )
             .distinct()
         )

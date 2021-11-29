@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
@@ -10,6 +11,7 @@ from cegs_portal.search.models.facets import FacetedModel
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.gene_annotation import Feature, FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
+from cegs_portal.search.models.utils import ChromosomeLocation
 
 
 class DNARegion(Searchable, FacetedModel):
@@ -36,9 +38,15 @@ class DNARegion(Searchable, FacetedModel):
         )
 
     @classmethod
-    def search(cls, location):
+    def search(cls, location: ChromosomeLocation, facets: list[int], region_type: Optional[list[str]] = None):
         q = Q(chromosome_name=location.chromo, location__overlap=location.range)
         q &= Q(regulatory_effects__count__gt=0)
+
+        if len(facets) > 0:
+            q &= Q(facet_values__in=facets)
+
+        if region_type is not None:
+            q &= Q(region_type__in=region_type)
 
         sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
             "targets",

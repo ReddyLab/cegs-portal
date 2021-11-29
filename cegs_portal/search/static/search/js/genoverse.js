@@ -18,7 +18,7 @@ CEGSGenoverse = Genoverse.extend({
     updateSharedState: function (key, value) {
         this._checkSharedStateKey(key);
         this._sharedState[key] = value;
-        for (callback of this.sharedStateCallbacks) {
+        for (var callback of this.sharedStateCallbacks) {
             callback(this._sharedState, key);
         }
     },
@@ -218,7 +218,9 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
             feature.type = "dhs";
-            feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
+            if (feature.closest_gene) {
+                feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
+            }
             this.insertFeature(feature);
         }
     },
