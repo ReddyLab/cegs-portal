@@ -3,7 +3,6 @@ stages:
   - test
   - build
   - scan
-  - tag
   - updatechart
 
 variables:
@@ -69,19 +68,6 @@ scan-prod:
     THE_IMAGE: $CI_REGISTRY_IMAGE:prod
   only:
     - production
-
-tag-test:
-  extends: .registry_image_tag
-  except:
-    - production
-
-tag-prod:
-  extends: .registry_image_tag
-  variables:
-    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
-  only:
-    - production
-
 
 .updatechart:
   retry: 1
