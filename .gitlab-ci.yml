@@ -46,14 +46,41 @@ pytest:
   script:
     - docker-compose -f local.yml run django pytest
 
-build:
+build-test:
   extends: .kaniko_build
+  except:
+    - production
 
-scan:
+build-prod:
+  extends: .kaniko_build
+  variables:
+    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
+  only:
+    - production
+
+scan-test:
   extends: .docker_scan
+  except:
+    - production
 
-tag:
+scan-prod:
+  extends: .docker_scan
+  variables:
+    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
+  only:
+    - production
+
+tag-test:
   extends: .registry_image_tag
+  except:
+    - production
+
+tag-prod:
+  extends: .registry_image_tag
+  variables:
+    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
+  only:
+    - production
 
 
 .updatechart:
@@ -66,7 +93,7 @@ tag:
     - CONTENT_TYPE="application/json"
     - SHA=$(curl -sf -H "Private-Token:$SELF_API_TOKEN" -H "accept:$CONTENT_TYPE" "$REGISTRY_ENDPOINT/api/v4/projects/4707/registry/repositories/1732/tags/$TAG" | jq ".digest")
     - curl -sf -X PUT -H "Private-Token:$CHART_API_TOKEN" "$REGISTRY_ENDPOINT/api/v4/projects/4782/variables/$IMAGE_SHA" -F "value=$SHA"
-    - curl -sf -X POST -H "Private-Token:$CHART_API_TOKEN" -F token=$DEPLOY_TRIGGER_TOKEN -F ref=master $REGISTRY_ENDPOINT/api/v4/projects/4782/trigger/pipeline
+    - curl -sf -X POST -H "Private-Token:$CHART_API_TOKEN" -F token=$DEPLOY_TRIGGER_TOKEN -F ref=$TRIGGER_BRANCH $REGISTRY_ENDPOINT/api/v4/projects/4782/trigger/pipeline
   tags:
     - kube-executor
 
@@ -74,6 +101,7 @@ updatechart-test:
   extends: .updatechart
   variables:
     IMAGE_SHA: DEV_IMAGE_SHA
+    TRIGGER_BRANCH: master
   except:
     - production
 
@@ -81,6 +109,8 @@ updatechart-prod:
   extends: .updatechart
   variables:
     IMAGE_SHA: PROD_IMAGE_SHA
+    TAG: prod
+    TRIGGER_BRANCH: production
   only:
     - production
 
