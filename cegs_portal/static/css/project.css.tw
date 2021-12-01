@@ -83,13 +83,17 @@
     width: 100%;
   }
 
+  input[type="text"], input[type="password"], input[type="email"] {
+    @apply px-2 border-2;
+    border-color: rgba(1, 33, 105, 1);
+  }
+
   div.search-wrapper input[type="text"] {
-    @apply px-2 border;
     flex: 1 1 auto;
   }
 
-  div.search-wrapper input.search-button {
-    @apply px-2;
+  input[type="submit"] {
+    @apply px-2 rounded-md;
   }
 }
 
