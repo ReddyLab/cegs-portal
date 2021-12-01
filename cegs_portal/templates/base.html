@@ -19,10 +19,10 @@
     {% endblock javascript %}
   </head>
 
-  <body class="bg-color text-gray-900 p-8 font-sans flex flex-row">
-    <!-- <div class="mb-1">
-      <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+  <body class="bg-color text-gray-900 font-sans">
+    <div class="mb-1">
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark p-8">
+        <button class="navbar-toggler navbar-toggler-right w-10" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <a class="navbar-brand" href="{% url 'home' %}">CEGS Portal</a>
@@ -58,19 +58,22 @@
         </div>
       </nav>
 
-    </div> -->
+    </div>
 
-    <div class="flex-grow flex-shrink"></div>
-    <div class="container self-center max-w-max flex flex-col">
-      {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
-      {% endblock content %}
-    </div> <!-- /container -->
-    <div class="flex-grow flex-shrink"></div>
+    <div class="flex flex-row">
+      <div class="flex-grow flex-shrink"></div>
+      <div class="container self-center max-w-max flex flex-col">
+        {% block content %}
+          <p>Use this document as a way to quick start any new project.</p>
+        {% endblock content %}
+      </div> <!-- /container -->
+      <div class="flex-grow flex-shrink"></div>
+    </div>
     {% block modal %}{% endblock modal %}
 
     {% block inline_javascript %}
     {# Script tags with only code, no src (defer by default) #}
     {% endblock inline_javascript %}
+
   </body>
 </html>
