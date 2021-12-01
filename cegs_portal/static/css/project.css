@@ -718,19 +718,19 @@ table[class^="data-table"] tr > td {
 }
 
 @media screen {
-  div.searchwrapper > label {
+  div.search-wrapper label {
     display: none;
   }
 }
 
-div.searchwrapper {
+div.search-wrapper {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
   width: 100%;
 }
 
-div.searchwrapper > input[type="text"] {
+div.search-wrapper input[type="text"] {
   border-width: 1px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -739,9 +739,7 @@ div.searchwrapper > input[type="text"] {
           flex: 1 1 auto;
 }
 
-div.searchwrapper > input.search-button {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
+div.search-wrapper input.search-button {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }

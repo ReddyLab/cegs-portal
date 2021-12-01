@@ -73,23 +73,23 @@
   }
 
   @media screen {
-    div.searchwrapper > label {
+    div.search-wrapper label {
       display: none;
     }
   }
 
-  div.searchwrapper {
+  div.search-wrapper {
     display: flex;
     width: 100%;
   }
 
-  div.searchwrapper > input[type="text"] {
+  div.search-wrapper input[type="text"] {
     @apply px-2 border;
     flex: 1 1 auto;
   }
 
-  div.searchwrapper > input.search-button {
-    @apply py-1 px-2;
+  div.search-wrapper input.search-button {
+    @apply px-2;
   }
 }
 
