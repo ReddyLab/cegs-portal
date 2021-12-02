@@ -34,6 +34,9 @@ def gene(request, id_type, gene_id):
             "dnaregion_set",
             "dnaregion_set__regulatory_effects",
             "assemblies",
+            "regulatory_effects",
+            "regulatory_effects__sources",
+            "regulatory_effects__experiment",
         ).first()
         return render(
             request,
@@ -45,6 +48,7 @@ def gene(request, id_type, gene_id):
                 "children": gene_obj.children,
                 "children_name": "Transcripts",
                 "dhss": gene_obj.dnaregion_set,
+                "reg_effects": gene_obj.regulatory_effects,
             },
         )
 
