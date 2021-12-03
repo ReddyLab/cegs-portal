@@ -13,4 +13,5 @@ urlpatterns = [
     path("dhs/<int:dhs_id>", views.dhs, name="dhs"),
     path("dhsloc/<str:chromo>/<int:start>/<int:end>", views.dhs_loc, name="dhs_loc"),
     path("experiment/<int:exp_id>", views.experiment, name="experiment"),
+    path("regeffect/<int:re_id>", views.reg_effect, name="reg_effect"),
 ]

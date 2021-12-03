@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Regulatory Effect{% endblock %}
+
+{% block content %}
+    <div class="text-2xl font-bold">Regulatory Effect</div>
+
+    {% spaceless %}
+    <table class="data-table">
+        <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
+        {% for target in regulatory_effect.targets.all %}
+        <tr>
+            <td>{{ regulatory_effect.direction }}</td>
+            <td>{{ regulatory_effect.effect_size }}</td>
+            <td>{{ regulatory_effect.significance }}</td>
+            <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
+            <td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td>{{ regulatory_effect.direction }}</td>
+            <td>{{ regulatory_effect.effect_size }}</td>
+            <td>{{ regulatory_effect.significance }}</td>
+            <td>Unknown</td>
+            <td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endspaceless %}
+{% endblock %}
