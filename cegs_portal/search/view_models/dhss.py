@@ -1,5 +1,4 @@
 from enum import Enum
-from functools import reduce
 from itertools import combinations_with_replacement
 from typing import Optional
 
@@ -40,6 +39,7 @@ class DHSSearch:
                 "regulatory_effects",
                 "regulatory_effects__targets",
                 "regulatory_effects__experiment",
+                "regulatory_effects__sources",
             )
             .first()
         )
@@ -101,10 +101,7 @@ class DHSSearch:
             if "effect_label" in region_properties:
                 for region in dna_regions:
                     reg_effects = region.regulatory_effects.all()
-                    if (
-                        len(reg_effects) > 0
-                        and reduce(lambda acc, effect: acc + len(effect.targets.all()), reg_effects, 0) > 0
-                    ):
+                    if len(reg_effects) > 0:
                         setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
 
         return dna_regions
