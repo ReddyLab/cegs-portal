@@ -25,7 +25,7 @@
         <div class="text-xl font-bold">Regulatory Effects</div>
         {% spaceless %}
         <table class="data-table">
-            <tr><th>ID</th><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
+            <tr><th></th><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
             {% for regeffect in dhs.regulatory_effects.all %}
                 {% for target in regeffect.targets.all %}
                 <tr>
@@ -38,7 +38,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">RE:{{ regeffect.id }}</a></td>
+                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                     <td>{{ regeffect.direction }}</td>
                     <td>{{ regeffect.effect_size }}</td>
                     <td>{{ regeffect.significance }}</td>
@@ -56,12 +56,12 @@
         <a name="reg_effects"></a>
         <div class="text-xl font-bold">Regulatory Effects</div>
         <table class="data-table">
-            <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th></tr>
+            <tr><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th><th></th></tr>
             {% for regeffect in reg_effects.all %}
                 {% for dhs in regeffect.sources.all %}
                 <tr>
                     {% if forloop.first %}
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.id %}">RE:{{ regeffect.id }}</a></td>
+                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
@@ -71,7 +71,7 @@
                 </tr>
                 {% empty %}
                     <tr>
-                        <td>RE:{{ regeffect.id }}</td>
+                        <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                         <td>{{ regeffect.effect_size }}</td>
                         <td>{{ regeffect.direction }}</td>
                         <td>{{ regeffect.significance }}</td>
