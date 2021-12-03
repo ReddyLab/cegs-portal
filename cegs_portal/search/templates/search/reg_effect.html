@@ -7,24 +7,28 @@
 
     {% spaceless %}
     <table class="data-table">
-        <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
-        {% for target in regulatory_effect.targets.all %}
+        <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
         <tr>
             <td>{{ regulatory_effect.direction }}</td>
             <td>{{ regulatory_effect.effect_size }}</td>
             <td>{{ regulatory_effect.significance }}</td>
-            <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
+            <td>{{ regulatory_effect.raw_p_value }}</td>
             <td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td>
         </tr>
-        {% empty %}
-        <tr>
-            <td>{{ regulatory_effect.direction }}</td>
-            <td>{{ regulatory_effect.effect_size }}</td>
-            <td>{{ regulatory_effect.significance }}</td>
-            <td>Unknown</td>
-            <td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td>
-        </tr>
-        {% endfor %}
     </table>
+
+    {% if regulatory_effect.targets.all|length > 0 %}
+    <div>
+        <div class="text-xl font-bold">Target Genes</div>
+        {% include "search/partials/_features.html" with features=regulatory_effect.targets.all %}
+    </div>
+    {% endif %}
+
+    {% if regulatory_effect.sources.all|length > 0 %}
+    <div>
+        <div class="text-xl font-bold">Source DHSs</div>
+        {% include "search/partials/_dnaregion.html" with regions=regulatory_effect.sources.all %}
+    </div>
+    {% endif %}
     {% endspaceless %}
 {% endblock %}

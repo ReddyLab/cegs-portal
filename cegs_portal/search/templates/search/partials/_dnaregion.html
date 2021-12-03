@@ -1,8 +1,8 @@
 {% spaceless %}
-    <table id="dnaregion" class="data-table"><tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+    <table id="dnaregion" class="data-table"><tr><th></th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
         {% for region in regions %}
         <tr>
-            <td><a href="{% url 'search:dhs' region.id %}">DHS:{{ region.id }}</a></td>
+            <td><a href="{% url 'search:dhs' region.id %}">More...</a></td>
             <td>{{ region.cell_line }}</td>
             <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
             <td>{{ region.strand }}</td>

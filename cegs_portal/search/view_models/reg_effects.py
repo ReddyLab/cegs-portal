@@ -7,9 +7,10 @@ class RegEffectSearch:
         reg_effect = (
             RegulatoryEffect.objects.filter(id=int(re_id))
             .prefetch_related(
-                "targets",
                 "experiment",
                 "sources",
+                "targets",
+                "targets__assemblies",
             )
             .first()
         )

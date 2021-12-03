@@ -6,8 +6,8 @@
                 {% for assembly in feature.assemblies.all %}
                     <tr class="{{ rowcolor }}">
                         {% if forloop.first %}
-                        <th rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></th>
-                        <th rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup">{{ feature.feature_subtype }}</th>
+                        <td rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></td>
+                        <td rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup">{{ feature.feature_subtype }}</td>
                         {% endif %}
                         <td>{{ assembly.name }}</td>
                         <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
