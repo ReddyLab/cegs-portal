@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 
 from cegs_portal.search.models import (
     DNARegion,
+    Experiment,
     Facet,
     FacetValue,
     Feature,
@@ -118,3 +119,8 @@ def _feature(feature_obj, json_format=None):
         "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
         "misc": feature_obj.misc,
     }
+
+
+@json.register(Experiment)
+def _experiment(experiment_obj, json_format=None):
+    return {"id": experiment_obj.id, "name": experiment_obj.name}
