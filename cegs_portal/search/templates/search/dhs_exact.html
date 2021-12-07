@@ -21,66 +21,61 @@
         {% endspaceless %}
     </div>
 
-    <div class="pt-8">
+    <div class="pt-8 max-w-5xl">
         <div class="text-xl font-bold">Regulatory Effects</div>
         {% spaceless %}
         <table class="data-table">
-            <tr><th></th><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th></tr>
+            <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
             {% for regeffect in dhs.regulatory_effects.all %}
                 {% for target in regeffect.targets.all %}
                 <tr>
-                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                     <td>{{ regeffect.direction }}</td>
                     <td>{{ regeffect.effect_size }}</td>
                     <td>{{ regeffect.significance }}</td>
                     <td><a href="{% url 'search:genes' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
                     <td><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
+                    <td>
+                        {% for coreg in regeffect.co_regulators %}
+                        <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
+                        {% empty %}
+                        None
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for cosrc in regeffect.co_sources %}
+                        <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
+                        {% empty %}
+                        None
+                        {% endfor %}
+                    </td>
+                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                     <td>{{ regeffect.direction }}</td>
                     <td>{{ regeffect.effect_size }}</td>
                     <td>{{ regeffect.significance }}</td>
                     <td>Unknown</td>
                     <td><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
+                    <td>
+                        {% for coreg in regeffect.co_regulators %}
+                        <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
+                        {% empty %}
+                        None
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for cosrc in regeffect.co_sources %}
+                        <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
+                        {% empty %}
+                        None
+                        {% endfor %}
+                    </td>
+                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
                 </tr>
                 {% endfor %}
             {% endfor %}
         </table>
         {% endspaceless %}
     </div>
-
-    {% if reg_effects.all|length > 0 %}
-    <div>
-        <a name="reg_effects"></a>
-        <div class="text-xl font-bold">Regulatory Effects</div>
-        <table class="data-table">
-            <tr><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th><th></th></tr>
-            {% for regeffect in reg_effects.all %}
-                {% for dhs in regeffect.sources.all %}
-                <tr>
-                    {% if forloop.first %}
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
-                    <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
-                    {% endif %}
-                    <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                </tr>
-                {% empty %}
-                    <tr>
-                        <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
-                        <td>{{ regeffect.effect_size }}</td>
-                        <td>{{ regeffect.direction }}</td>
-                        <td>{{ regeffect.significance }}</td>
-                        <td>{{ regeffect.experiment_id }}</td>
-                        <td>-</td>
-                    </tr>
-                {% endfor %}
-            {% endfor %}
-        </table>
-    </div>
-    {% endif %}
 {% endblock %}

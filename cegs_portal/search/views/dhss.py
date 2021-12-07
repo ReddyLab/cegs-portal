@@ -17,6 +17,18 @@ def dhs(request, dhs_id):
     if request.headers.get("accept") == JSON_MIME:
         return JsonResponse(json(search_results), safe=False)
 
+    for reg_effect in search_results.regulatory_effects.all():
+        setattr(
+            reg_effect,
+            "co_regulators",
+            [source for source in reg_effect.sources.all() if source.id != search_results.id],
+        )
+        co_sources = set()
+        for target in reg_effect.targets.all():
+            for tre in target.regulatory_effects.all():
+                co_sources.update([source for source in tre.sources.all() if source.id != search_results.id])
+        setattr(reg_effect, "co_sources", co_sources)
+
     return render(request, "search/dhs_exact.html", {"dhs": search_results})
 
 

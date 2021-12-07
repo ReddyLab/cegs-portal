@@ -38,6 +38,8 @@ class DHSSearch:
                 "closest_gene",
                 "regulatory_effects",
                 "regulatory_effects__targets",
+                "regulatory_effects__targets__regulatory_effects",
+                "regulatory_effects__targets__regulatory_effects__sources",
                 "regulatory_effects__experiment",
                 "regulatory_effects__sources",
             )
