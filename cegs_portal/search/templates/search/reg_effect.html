@@ -7,14 +7,13 @@
 
     {% spaceless %}
     <table class="data-table">
-        <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
-        <tr>
-            <td>{{ regulatory_effect.direction }}</td>
-            <td>{{ regulatory_effect.effect_size }}</td>
-            <td>{{ regulatory_effect.significance }}</td>
-            <td>{{ regulatory_effect.raw_p_value }}</td>
-            <td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td>
-        </tr>
+        <tr><th>Direction</th><td>{{ regulatory_effect.direction }}</td></tr>
+        <tr><th>Effect Size</th><td>{{ regulatory_effect.effect_size }}</td></tr>
+        <tr><th>Significance</th><td>{{ regulatory_effect.significance }}</td></tr>
+        <tr><th>Raw p-value</th><td>{{ regulatory_effect.raw_p_value }}</td></tr>
+        <tr><th>Experiment</th><td><a href="{% url 'search:experiment' regulatory_effect.experiment.id %}">{{ regulatory_effect.experiment.name }}</a></td></tr>
+        <tr><th>Cell Lines</th><td>{{ regulatory_effect.cell_lines|join:", " }}</td></tr>
+        <tr><th>Tissue Types</th><td>{{ regulatory_effect.tissue_types|join:", " }}</td></tr>
     </table>
 
     {% if regulatory_effect.targets.all|length > 0 %}

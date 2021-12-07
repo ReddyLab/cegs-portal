@@ -8,6 +8,9 @@ class RegEffectSearch:
             RegulatoryEffect.objects.filter(id=int(re_id))
             .prefetch_related(
                 "experiment",
+                "experiment__data_files",
+                "experiment__data_files__cell_lines",
+                "experiment__data_files__tissue_types",
                 "sources",
                 "targets",
                 "targets__assemblies",
