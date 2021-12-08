@@ -51,3 +51,33 @@ function rc(p, c) {
 
     a(p, c);
 }
+
+function dhsTable(data) {
+    newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
+        e("tr", [
+            e("th", "Cell Line"),
+            e("th", "Location"),
+            e("th", "Strand"),
+            e("th", "Closest Gene"),
+            e("th", "Reference Genome"),
+            e("th"),
+        ])
+    ])
+    for(dhs of data) {
+        newTable.append(
+            e("tr", [
+                e("td", dhs.cell_line || "None"),
+                e("td", [
+                    e("span", dhs.chr),
+                    ": ",
+                    e("span", `${dhs.start}-${dhs.end}`)
+                ]),
+                e("td", dhs.strand || "None"),
+                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.id}`}, `${dhs.closest_gene_name} (${dhs.closest_gene.id})`)),
+                e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
+                e("td", e("a", {href: `/search/dhs/${dhs.id}`}, "More...")),
+            ])
+        )
+    }
+    return newTable;
+}

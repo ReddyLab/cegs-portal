@@ -2,6 +2,13 @@
 {% load static i18n %}
 
 {% block title %}{{ feature_name }}{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <div class="mb-8">
         <div>
@@ -98,4 +105,54 @@
         </table>
     </div>
     {% endif %}
+
+    <div>
+        <a name="near_dhss"></a>
+        <div class="text-xl font-bold">Nearby DHSs</div>
+        <div class="text-s font-bold">Measured from each end of the gene</div>
+        <form>
+            <label for="dhs-dist">DHS Distance:</label>
+            <input type="text" id="dhs-dist" value="1000"/>
+            <input type="submit" id="dhs-dist-submit" value="Find DHSs" class="search-button self-end"/>
+        </form>
+        <table id="dnaregion" style="display:none;"></table>
+    </div>
 {% endblock content %}
+
+{% block inline_javascript %}
+    <script>
+        let assemblies = [
+            {% for assembly in feature.assemblies.all %}
+            {
+                assembly: "{{ assembly.ref_genome }}",
+                chromo: "{{ assembly.chrom_name }}",
+                start: {{ assembly.location.lower }},
+                end: {{ assembly.location.upper|add:"-1" }},
+            },
+            {% endfor %}
+        ];
+
+        g("dhs-dist-submit").onclick = function() {
+            let dist = Number(g("dhs-dist").value);
+            console.log(dist);
+            let fetches = assemblies.map(a => {
+                let search_start = Math.max(a.start - dist, 0);
+                let search_end = a.end + dist;
+                console.log(`curl "localhost:8000/search/dhsloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json&region_type=dhs"`);
+                return fetch(`/search/dhsloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json&region_type=dhs`)
+                    .then(response => {
+                        return response.json()
+                    });
+            })
+            Promise.all(fetches)
+                .then(data => {
+                    let dhss = [];
+                    for (d of data) {
+                        dhss.push(...d);
+                    }
+                    console.log(dhss);
+                    document.getElementById("dnaregion").replaceWith(dhsTable(dhss))
+                });
+        }
+    </script>
+{% endblock %}

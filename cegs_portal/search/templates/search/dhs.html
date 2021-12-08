@@ -34,39 +34,11 @@
                     return response.json()
                 })
                 .then(data => {
-                    newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
-                        e("tr", [
-                            e("th", "ID"),
-                            e("th", "Cell Line"),
-                            e("th", "Location"),
-                            e("th", "Strand"),
-                            e("th", "Closest Gene"),
-                            e("th", "Reference Genome"),
-                        ])
-                    ])
-                    for(dhs of data) {
-                        newTable.append(
-                            e("tr", [
-                                e("td", e("a", {href: `/search/dhs/${dhs.id}`}, `DHS:${dhs.id}`)),
-                                e("td", dhs.cell_line || "None"),
-                                e("td", [
-                                    e("span", dhs.chr),
-                                    ": ",
-                                    e("span", `${dhs.start}-${dhs.end}`)
-                                ]),
-                                e("td", dhs.strand || "None"),
-                                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.ensembl_id}`}, `${dhs.closest_gene_name} (${dhs.closest_gene.ensembl_id})`)),
-                                e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
-                            ])
-                        )
-                    }
-                    let dhsTable = document.getElementById("dnaregion");
-                    dhsTable.replaceWith(newTable)
+                    document.getElementById("dnaregion").replaceWith(dhsTable(data))
                 });
 
-        }, 500, { 'leading': true }))
-    </script>
-    <script>
+        }, 500, { 'leading': true }));
+
         new Genoverse({
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
