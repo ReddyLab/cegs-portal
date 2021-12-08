@@ -134,11 +134,9 @@
 
         g("dhs-dist-submit").onclick = function() {
             let dist = Number(g("dhs-dist").value);
-            console.log(dist);
             let fetches = assemblies.map(a => {
                 let search_start = Math.max(a.start - dist, 0);
                 let search_end = a.end + dist;
-                console.log(`curl "localhost:8000/search/dhsloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json&region_type=dhs"`);
                 return fetch(`/search/dhsloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json&region_type=dhs`)
                     .then(response => {
                         return response.json()
@@ -150,8 +148,7 @@
                     for (d of data) {
                         dhss.push(...d);
                     }
-                    console.log(dhss);
-                    document.getElementById("dnaregion").replaceWith(dhsTable(dhss))
+                    document.getElementById("dnaregion").replaceWith(dhsTable(dhss, "No nearby DHSs"))
                 });
         }
     </script>

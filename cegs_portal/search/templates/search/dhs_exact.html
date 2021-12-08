@@ -85,6 +85,18 @@
         </table>
         {% endspaceless %}
     </div>
+
+    <div>
+        <a name="near_dhss"></a>
+        <div class="text-xl font-bold">Nearby DHSs</div>
+        <div class="text-s font-bold">Measured from each end of the gene</div>
+        <form>
+            <label for="dhs-dist">DHS Distance:</label>
+            <input type="text" id="dhs-dist" value="1000"/>
+        </form>
+        <button id="dhs-dist-submit" class="search-button self-end">Find DHSs</button>
+        <table id="dnaregion" style="display:none;"></table>
+    </div>
 {% endblock %}
 
 {% block inline_javascript %}
@@ -100,5 +112,17 @@
             }
             rc(effectButton, t(nonSigShowing ? "Hide Non-Signficant Effects" : "Show Non-Signficant Effects"));
         }
+
+        g("dhs-dist-submit").onclick = function() {
+            let dist = Number(g("dhs-dist").value);
+            let search_start = Math.max({{ dhs.location.lower }} - dist, 0);
+            let search_end = {{ dhs.location.upper }} + dist;
+            fetch(`/search/dhsloc/{{ dhs.chromosome_name }}/${search_start}/${search_end}?assembly={{ dhs.ref_genome }}&search_type=overlap&accept=application/json&region_type=dhs`)
+                .then(response => {
+                    return response.json()
+                }).then(data => {
+                    document.getElementById("dnaregion").replaceWith(dhsTable(data.filter(dhs => dhs.id != {{ dhs.id }}), "No nearby DHSs"))
+                });
+            }
     </script>
 {% endblock %}

@@ -52,7 +52,11 @@ function rc(p, c) {
     a(p, c);
 }
 
-function dhsTable(data) {
+function dhsTable(data, emptyString) {
+    if (data.length == 0) {
+        return e("div", {id: "dnaregion"}, t(emptyString));
+    }
+
     newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
         e("tr", [
             e("th", "Cell Line"),

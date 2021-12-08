@@ -34,7 +34,7 @@
                     return response.json()
                 })
                 .then(data => {
-                    document.getElementById("dnaregion").replaceWith(dhsTable(data))
+                    document.getElementById("dnaregion").replaceWith(dhsTable(data, "No DHSs"))
                 });
 
         }, 500, { 'leading': true }));
