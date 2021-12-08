@@ -2,6 +2,12 @@
 {% load static i18n %}
 {% block title %}DNase I Hypersensitive Site{% endblock %}
 
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <div class="text-2xl font-bold">DNase I Hypersensitive Site</div>
     <div class="pt-8">
@@ -23,6 +29,7 @@
 
     <div class="pt-8 max-w-5xl">
         <div class="text-xl font-bold">Regulatory Effects</div>
+        <button id="hide-effect">Hide Non-Signficant Effects</button>
         {% spaceless %}
         <table class="data-table">
             <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
@@ -78,4 +85,20 @@
         </table>
         {% endspaceless %}
     </div>
+{% endblock %}
+
+{% block inline_javascript %}
+    <script>
+        let nonSigShowing = true;
+        let effectButton = g("hide-effect");
+        effectButton.onclick = function() {
+            nonSigShowing = !nonSigShowing;
+            let trs = Array.from(document.getElementsByTagName("tr"));
+            let nonSigRows = trs.filter(tr => Array.from(tr.getElementsByTagName("td")).filter(td => td.innerHTML == "non_sig").length != 0);
+            for (row of nonSigRows) {
+                row.style = `display: ${nonSigShowing ? 'table-row' : 'none'}`
+            }
+            rc(effectButton, t(nonSigShowing ? "Hide Non-Signficant Effects" : "Show Non-Signficant Effects"));
+        }
+    </script>
 {% endblock %}
