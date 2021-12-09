@@ -2,34 +2,33 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 
 from cegs_portal.search.view_models import DHSSearch
+from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
 
 
-def dhs(request, dhs_id):
-    """
-    Headers used:
-        accept
-            * application/json
-    """
-    search_results = DHSSearch.id_search(dhs_id)
+class DHS(TemplateJsonView):
+    template = "search/dhs_exact.html"
 
-    if request.headers.get("accept") == JSON_MIME:
-        return JsonResponse(json(search_results), safe=False)
+    def get_template_prepare_data(self, data):
+        return {"dhs": data}
 
-    for reg_effect in search_results.regulatory_effects.all():
-        setattr(
-            reg_effect,
-            "co_regulators",
-            [source for source in reg_effect.sources.all() if source.id != search_results.id],
-        )
-        co_sources = set()
-        for target in reg_effect.targets.all():
-            for tre in target.regulatory_effects.all():
-                co_sources.update([source for source in tre.sources.all() if source.id != search_results.id])
-        setattr(reg_effect, "co_sources", co_sources)
+    def get_data(self, dhs_id):
+        search_results = DHSSearch.id_search(dhs_id)
 
-    return render(request, "search/dhs_exact.html", {"dhs": search_results})
+        for reg_effect in search_results.regulatory_effects.all():
+            setattr(
+                reg_effect,
+                "co_regulators",
+                [source for source in reg_effect.sources.all() if source.id != search_results.id],
+            )
+            co_sources = set()
+            for target in reg_effect.targets.all():
+                for tre in target.regulatory_effects.all():
+                    co_sources.update([source for source in tre.sources.all() if source.id != search_results.id])
+            setattr(reg_effect, "co_sources", co_sources)
+
+        return search_results
 
 
 def dhs_loc(request, chromo, start, end):

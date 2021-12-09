@@ -1,4 +1,4 @@
-from .dhss import dhs, dhs_loc
+from .dhss import DHS, dhs_loc
 from .experiment import experiment
 from .features import feature, feature_loc
 from .genes import gene, gene_loc
