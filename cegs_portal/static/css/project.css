@@ -774,10 +774,6 @@ input[type="submit"] {
   margin-bottom: 1rem;
 }
 
-.mb-1 {
-  margin-bottom: 0.25rem;
-}
-
 .mr-auto {
   margin-right: auto;
 }
@@ -816,6 +812,10 @@ input[type="submit"] {
   display: none;
 }
 
+.min-h-screen {
+  min-height: 100vh;
+}
+
 .w-10 {
   width: 2.5rem;
 }
@@ -836,6 +836,24 @@ input[type="submit"] {
 
 .max-w-5xl {
   max-width: 64rem;
+}
+
+.flex-none {
+  -webkit-box-flex: 0;
+      -ms-flex: none;
+          flex: none;
+}
+
+.flex-1 {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0%;
+          flex: 1 1 0%;
+}
+
+.flex-auto {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
 }
 
 .flex-initial {
@@ -878,18 +896,22 @@ input[type="submit"] {
       flex-wrap: wrap;
 }
 
+.place-content-start {
+  place-content: start;
+}
+
 .gap-1 {
   gap: 0.25rem;
+}
+
+.self-start {
+  -ms-flex-item-align: start;
+      align-self: flex-start;
 }
 
 .self-end {
   -ms-flex-item-align: end;
       align-self: flex-end;
-}
-
-.self-center {
-  -ms-flex-item-align: center;
-      align-self: center;
 }
 
 .rounded-md {
@@ -914,12 +936,12 @@ input[type="submit"] {
   padding: 2rem;
 }
 
-.p-2 {
-  padding: 0.5rem;
-}
-
 .p-4 {
   padding: 1rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .pt-8 {
@@ -951,6 +973,11 @@ input[type="submit"] {
 .text-gray-900 {
   --tw-text-opacity: 1;
   color: rgba(17, 24, 39, var(--tw-text-opacity));
+}
+
+.text-white {
+  --tw-text-opacity: 1;
+  color: rgba(255, 255, 255, var(--tw-text-opacity));
 }
 
 .filter {
