@@ -1,32 +1,24 @@
-from django.http.response import JsonResponse
-from django.shortcuts import render
-
 from cegs_portal.search.view_models import ExperimentSearch
-from cegs_portal.search.views.renderers import json
-from cegs_portal.search.views.view_utils import JSON_MIME
+from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
-def experiment(request, exp_id):
-    experi = ExperimentSearch.id_search(exp_id)
+class ExperimentView(TemplateJsonView):
+    template = "search/experiment.html"
+    template_data_name = "experiment"
 
-    experi_cell_lines = set()
-    experi_tissue_types = set()
-    experi_assemblies = set()
-    for f in experi.data_files.all():
-        experi_cell_lines.update(f.cell_lines.all())
-        experi_tissue_types.update(f.tissue_types.all())
-        experi_assemblies.add(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
+    def get_data(self, options, exp_id):
+        experi = ExperimentSearch.id_search(exp_id)
 
-    if request.headers.get("accept") == JSON_MIME:
-        return JsonResponse(json(experi), safe=False)
+        experi_cell_lines = set()
+        experi_tissue_types = set()
+        experi_assemblies = set()
+        for f in experi.data_files.all():
+            experi_cell_lines.update(f.cell_lines.all())
+            experi_tissue_types.update(f.tissue_types.all())
+            experi_assemblies.add(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
 
-    return render(
-        request,
-        "search/experiment.html",
-        {
-            "experiment": experi,
-            "cell_lines": experi_cell_lines,
-            "tissue_types": experi_tissue_types,
-            "assemblies": experi_assemblies,
-        },
-    )
+        setattr(experi, "cell_lines", experi_cell_lines)
+        setattr(experi, "tissue_types", experi_tissue_types)
+        setattr(experi, "assemblies", experi_assemblies)
+
+        return experi

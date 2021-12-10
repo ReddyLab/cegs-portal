@@ -8,9 +8,9 @@
     <table class="data-table">
         <tr><th>Description</th><td>{{ experiment.description }}</td></tr>
         <tr><th>Assay</th><td>{{ experiment.experiment_type }}</td></tr>
-        <tr><th>Cell Lines</th><td>{{ cell_lines|join:", " }}</td></tr>
-        <tr><th>Tissue Types</th><td>{{ tissue_types|join:", " }}</td></tr>
-        <tr><th>Assemblies</th><td>{{ assemblies|join:", " }}</td></tr>
+        <tr><th>Cell Lines</th><td>{{ experiment.cell_lines|join:", " }}</td></tr>
+        <tr><th>Tissue Types</th><td>{{ experiment.tissue_types|join:", " }}</td></tr>
+        <tr><th>Assemblies</th><td>{{ experiment.assemblies|join:", " }}</td></tr>
     </table>
 
     {% if experiment.data_files.all|length > 0 %}

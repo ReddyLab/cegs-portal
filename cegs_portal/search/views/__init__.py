@@ -1,5 +1,5 @@
 from .dhss import DHS, DHSLoc
-from .experiment import experiment
+from .experiment import ExperimentView
 from .features import feature, feature_loc
 from .genes import gene, gene_loc
 from .index import index

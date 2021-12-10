@@ -12,7 +12,6 @@ from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 def results(request):
-
     search_query = request.GET["query"]
     unquoted_search_query = unquote_plus(search_query)
     facets = [int(facet) for facet in request.GET.getlist("facet", [])]

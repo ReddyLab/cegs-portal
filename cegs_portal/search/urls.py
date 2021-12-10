@@ -12,6 +12,6 @@ urlpatterns = [
     path("featureloc/<str:chromo>/<int:start>/<int:end>", views.feature_loc, name="feature_loc"),
     path("dhs/<int:dhs_id>", views.DHS.as_view(), name="dhs"),
     path("dhsloc/<str:chromo>/<int:start>/<int:end>", views.DHSLoc.as_view(), name="dhs_loc"),
-    path("experiment/<int:exp_id>", views.experiment, name="experiment"),
+    path("experiment/<int:exp_id>", views.ExperimentView.as_view(), name="experiment"),
     path("regeffect/<int:re_id>", views.RegEffectView.as_view(), name="reg_effect"),
 ]

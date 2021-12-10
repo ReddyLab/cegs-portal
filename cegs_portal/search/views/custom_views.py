@@ -9,6 +9,7 @@ from cegs_portal.search.views.view_utils import JSON_MIME
 class TemplateJsonView(View):
     json_renderer = json
     template = None
+    template_data_name = "data"
 
     def dispatch(self, request, *args, **kwargs):
         # Try to dispatch to the right method; if a method doesn't exist,
@@ -41,7 +42,7 @@ class TemplateJsonView(View):
         return options
 
     def get_template_prepare_data(self, data, _options, *_args, **_kwargs):
-        return {"results": data}
+        return {self.__class__.template_data_name: data}
 
     def get(self, request, options, data_handler, *args, **kwargs):
         return render(
@@ -51,4 +52,4 @@ class TemplateJsonView(View):
         )
 
     def get_json(self, _request, options, data_handler, *args, **kwargs):
-        return JsonResponse(TemplateJsonView.json_renderer(data_handler(options, *args, **kwargs)), safe=False)
+        return JsonResponse(self.__class__.json_renderer(data_handler(options, *args, **kwargs)), safe=False)

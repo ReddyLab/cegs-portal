@@ -15,7 +15,7 @@
             <span class="text-2xl">{{ feature_name }} </span><span class="text-2xl font-bold">{{ feature.ensembl_id }}</span>
             {% if feature.children.all|length > 0 %}<span><a href="#children">{{ children_name }}</a></span>{% endif %}
             {% if feature.dnaregion_set.all|length > 0 %}<span><a href="#dhss">DHSs</a></span>{% endif %}
-            {% if reg_effects.all|length > 0 %}<span><a href="#reg_effects">Regulatory Effects</a></span>{% endif %}
+            {% if feature.reg_effects.all|length > 0 %}<span><a href="#reg_effects">Regulatory Effects</a></span>{% endif %}
         </div>
         <div>{{ feature_name }} Type: {{ feature.feature_subtype }}</div>
         <table class="data-table">
@@ -73,13 +73,13 @@
     </div>
     {% endif %}
 
-    {% if reg_effects.all|length > 0 %}
+    {% if feature.reg_effects.all|length > 0 %}
     <div>
         <a name="reg_effects"></a>
         <div class="text-xl font-bold">Regulatory Effects</div>
         <table class="data-table">
             <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th></tr>
-            {% for regeffect in reg_effects.all %}
+            {% for regeffect in feature.reg_effects.all %}
                 {% for dhs in regeffect.sources.all %}
                 <tr>
                     {% if forloop.first %}

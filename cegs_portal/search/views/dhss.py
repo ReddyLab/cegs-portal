@@ -7,9 +7,7 @@ from cegs_portal.search.views.renderers import json
 
 class DHS(TemplateJsonView):
     template = "search/dhs_exact.html"
-
-    def get_template_prepare_data(self, data, _options, dhs_id):
-        return {"dhs": data}
+    template_data_name = "dhs"
 
     def get_data(self, options, dhs_id):
         search_results = DHSSearch.id_search(dhs_id)
