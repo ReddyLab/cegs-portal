@@ -5,7 +5,7 @@
             <td>{{ region.cell_line }}</td>
             <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
             <td>{{ region.strand }}</td>
-            <td><a href="{% url 'search:genes' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }} ({{ region.closest_gene.ensembl_id }})</a></td>
+            <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }} ({{ region.closest_gene.ensembl_id }})</a></td>
             <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
             <td><a href="{% url 'search:dhs' region.id %}">More...</a></td>
         </tr>
