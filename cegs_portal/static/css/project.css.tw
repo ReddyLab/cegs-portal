@@ -3,10 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-button {
-  @apply px-2 rounded-md bg-gray-300;
-}
-
 .alert-debug {
   color: black;
   background-color: white;
@@ -96,8 +92,8 @@ button {
     flex: 1 1 auto;
   }
 
-  input[type="submit"] {
-    @apply px-2 rounded-md;
+  input[type="submit"], button {
+    @apply px-2 rounded-md bg-gray-300;
   }
 }
 
