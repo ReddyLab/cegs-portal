@@ -1,19 +1,17 @@
 from django.http.response import JsonResponse
-from django.shortcuts import render
 
 from cegs_portal.search.view_models import DHSSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
-from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 class DHS(TemplateJsonView):
     template = "search/dhs_exact.html"
 
-    def get_template_prepare_data(self, data):
+    def get_template_prepare_data(self, data, _options, dhs_id):
         return {"dhs": data}
 
-    def get_data(self, dhs_id):
+    def get_data(self, options, dhs_id):
         search_results = DHSSearch.id_search(dhs_id)
 
         for reg_effect in search_results.regulatory_effects.all():
@@ -31,43 +29,54 @@ class DHS(TemplateJsonView):
         return search_results
 
 
-def dhs_loc(request, chromo, start, end):
-    """
-    Headers used:
-        accept
-            * application/json
-    GET queries used:
-        accept
-            * application/json
-        format
-            * genoverse, only relevant for json
-        search_type
-            * exact
-            * overlap
-        assembly
-            * free-text, but should match a genome assembly that exists in the DB
-    """
-    search_type = request.GET.get("search_type", "overlap")
-    assembly = request.GET.get("assembly", None)
-    region_properties = request.GET.getlist("property", None)
-    is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
-    response_format = request.GET.get("format", None)
-    region_types = request.GET.getlist("region_type", ["dhs"])
+class DHSLoc(TemplateJsonView):
+    template = "search/dhs.html"
 
-    if not chromo.startswith("chr"):
-        chromo = f"chr{chromo}"
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            format
+                * genoverse, only relevant for json
+            search_type
+                * exact
+                * overlap
+            assembly
+                * free-text, but should match a genome assembly that exists in the DB
+        """
+        options = super().request_options(request)
+        options["search_type"] = request.GET.get("search_type", "overlap")
+        options["assembly"] = request.GET.get("assembly", None)
+        options["region_properties"] = request.GET.getlist("property", None)
+        options["response_format"] = request.GET.get("format", None)
+        options["region_types"] = request.GET.getlist("region_type", ["dhs"])
 
-    dhs_list = DHSSearch.loc_search(
-        chromo, start, end, assembly, search_type, region_properties, region_types=region_types
-    )
+        return options
 
-    if is_json:
-        return dhs_loc_json(dhs_list, response_format)
+    def get_template_prepare_data(self, data, _options, chromo, start, end):
+        return {"dhss": data, "loc": {"chr": chromo, "start": start, "end": end}}
 
-    return render(request, "search/dhs.html", {"dhss": dhs_list, "loc": {"chr": chromo, "start": start, "end": end}})
+    def get_data(self, options, chromo, start, end):
+        if not chromo.startswith("chr"):
+            chromo = f"chr{chromo}"
 
+        dhs_list = DHSSearch.loc_search(
+            chromo,
+            start,
+            end,
+            options["assembly"],
+            options["search_type"],
+            options["region_properties"],
+            region_types=options["region_types"],
+        )
 
-def dhs_loc_json(dhs_list, response_format):
-    results = [json(result, response_format) for result in dhs_list]
+        return dhs_list
 
-    return JsonResponse(results, safe=False)
+    def get_json(self, _request, options, data_handler, chromo, start, end):
+        results = [json(result, options["json_format"]) for result in data_handler(options, chromo, start, end)]
+
+        return JsonResponse(results, safe=False)

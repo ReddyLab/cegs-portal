@@ -61,6 +61,7 @@ def _dnaregion(dnaregion: DNARegion, json_format=None):
         "ref_genome_patch": dnaregion.ref_genome_patch,
         "effects": [json(effect, json_format) for effect in dnaregion.regulatory_effects.all()],
         "facet_values": {value.id: value.value for value in dnaregion.facet_values.all()},
+        "type": dnaregion.region_type,
     }
 
     if hasattr(dnaregion, "label"):

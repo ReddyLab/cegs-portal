@@ -9,8 +9,9 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
-<script defer type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/state.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -39,24 +40,23 @@
 
         }, 500, { 'leading': true }));
 
-        new Genoverse({
-        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
-        // If no genome supplied, it must have at least chromosomeSize, e.g.:
-        // chromosomeSize : 249250621, // chromosome 1, human
-        genome    : 'GRCh37', // see js/genomes/
-        assembly  : 'GRCh37',
-        chr       : "{{ loc.chr }}".replace("chr", ""),
-        start     : {{ loc.start }},
-        end       : {{ loc.end }},
-        plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
-        useHash   : true,
-        hideEmptyTracks: false,
-        tracks    : [
-            Genoverse.Track.Scaleline.extend({ strand: false }),
-            Genoverse.Track.Scalebar,
-            Genoverse.Track.DHS,
-            Genoverse.Track.Gene,
-        ]
+        new CEGSGenoverse({
+            container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
+            // If no genome supplied, it must have at least chromosomeSize, e.g.:
+            // chromosomeSize : 249250621, // chromosome 1, human
+            genome    : 'GRCh37', // see js/genomes/
+            assembly  : 'GRCh37',
+            chr       : "{{ loc.chr }}".replace("chr", ""),
+            start     : {{ loc.start }},
+            end       : {{ loc.end }},
+            plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
+            useHash   : true,
+            hideEmptyTracks: false,
+            tracks    : [
+                Genoverse.Track.Scaleline.extend({ strand: false }),
+                Genoverse.Track.Scalebar,
+                Genoverse.Track.DHS.Effects.extend({children: [Genoverse.Track.Gene.extend({ legend: false })]}),
+            ]
         });
     </script>
 {% endblock %}
