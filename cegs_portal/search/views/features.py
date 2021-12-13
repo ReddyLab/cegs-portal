@@ -7,7 +7,38 @@ from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
 
 
-# @method_decorator(csrf_exempt, name='dispatch')
+class FeatureEnsembl(TemplateJsonView):
+    template = "search/feature_exact.html"
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            search_type
+                * exact
+                * like
+                * start
+                * in
+        """
+        options = super().request_options(request)
+        options["search_type"] = request.GET.get("search_type", "exact")
+        options["feature_types"] = request.GET.get("features", ["gene"])
+        return options
+
+    def get_template_prepare_data(self, data, options, feature_id):
+        return {"feature": data, "feature_name": "Gene"}
+
+    def get_data(self, options, feature_id):
+        features = FeatureSearch.id_search(
+            IdType.ENSEMBL.value, feature_id, options["feature_types"], options["search_type"]
+        )
+        return features.first()
+
+
 def feature(request, id_type, feature_id):
     """
     Headers used:
@@ -25,15 +56,6 @@ def feature(request, id_type, feature_id):
     search_type = request.GET.get("search_type", "exact")
     feature_types = request.GET.get("features", ["gene"])
     features = FeatureSearch.id_search(id_type, feature_id, feature_types, search_type)
-
-    if id_type == IdType.ENSEMBL.value:
-        return render(
-            request,
-            "search/feature_exact.html",
-            {
-                "feature": features.first(),
-            },
-        )
 
     results = {
         "features": features,
