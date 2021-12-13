@@ -1,10 +1,8 @@
 from django.http.response import JsonResponse
-from django.shortcuts import render
 
 from cegs_portal.search.view_models import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
-from cegs_portal.search.views.view_utils import JSON_MIME
 
 
 class FeatureEnsembl(TemplateJsonView):
@@ -39,37 +37,38 @@ class FeatureEnsembl(TemplateJsonView):
         return features.first()
 
 
-def feature(request, id_type, feature_id):
-    """
-    Headers used:
-        accept
-            * application/json
-    GET queries used:
-        accept
-            * application/json
-        search_type
-            * exact
-            * like
-            * start
-            * in
-    """
-    search_type = request.GET.get("search_type", "exact")
-    feature_types = request.GET.get("features", ["gene"])
-    features = FeatureSearch.id_search(id_type, feature_id, feature_types, search_type)
+class Feature(TemplateJsonView):
+    template = "search/features.html"
 
-    results = {
-        "features": features,
-    }
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            search_type
+                * exact
+                * like
+                * start
+                * in
+        """
+        options = super().request_options(request)
+        options["search_type"] = request.GET.get("search_type", "exact")
+        options["feature_types"] = request.GET.get("features", ["gene"])
+        return options
 
-    if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-        return JsonResponse(
-            {
-                "assemblies": [json(result) for result in results["assemblies"]],
-            },
-            safe=False,
-        )
+    def get_template_prepare_data(self, data, options, id_type, feature_id):
+        return {"features": data, "feature_name": "Genes"}
 
-    return render(request, "search/features.html", results)
+    def get_data(self, options, id_type, feature_id):
+        features = FeatureSearch.id_search(id_type, feature_id, options["feature_types"], options["search_type"])
+        return {f: list(f.assemblies.all()) for f in features.all()}
+
+    def get_json(self, _request, options, data_handler, id_type, feature_id):
+        results = [json(result) for result in data_handler(options, id_type, feature_id)]
+        return JsonResponse(results, safe=False)
 
 
 class FeatureLoc(TemplateJsonView):
