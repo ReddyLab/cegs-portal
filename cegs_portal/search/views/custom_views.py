@@ -9,7 +9,7 @@ from cegs_portal.search.views.view_utils import JSON_MIME
 class TemplateJsonView(View):
     json_renderer = json
     template = None
-    template_data_name = "data"
+    template_data_name = None
 
     def dispatch(self, request, *args, **kwargs):
         # Try to dispatch to the right method; if a method doesn't exist,
@@ -27,7 +27,8 @@ class TemplateJsonView(View):
             handler = getattr(self, handler_name, self.http_method_not_allowed)
         else:
             handler = self.http_method_not_allowed
-        return handler(request, options, data_handler, *args, **kwargs)
+
+        return handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
 
     def request_options(self, request):
         options = {
@@ -41,15 +42,15 @@ class TemplateJsonView(View):
 
         return options
 
-    def get_template_prepare_data(self, data, _options, *_args, **_kwargs):
-        return {self.__class__.template_data_name: data}
+    def get(self, request, options, data, *args, **kwargs):
+        if self.__class__.template_data_name is not None:
+            data = {self.__class__.template_data_name: data}
 
-    def get(self, request, options, data_handler, *args, **kwargs):
         return render(
             request,
             self.template,
-            self.get_template_prepare_data(data_handler(options, *args, **kwargs), options, *args, **kwargs),
+            data,
         )
 
-    def get_json(self, _request, options, data_handler, *args, **kwargs):
-        return JsonResponse(self.__class__.json_renderer(data_handler(options, *args, **kwargs)), safe=False)
+    def get_json(self, _request, options, data, *args, **kwargs):
+        return JsonResponse(self.__class__.json_renderer(data), safe=False)

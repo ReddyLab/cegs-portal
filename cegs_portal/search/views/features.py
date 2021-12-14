@@ -1,5 +1,3 @@
-from django.http.response import JsonResponse
-
 from cegs_portal.search.view_models import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
@@ -27,8 +25,8 @@ class FeatureEnsembl(TemplateJsonView):
         options["feature_types"] = request.GET.get("features", ["gene"])
         return options
 
-    def get_template_prepare_data(self, data, options, feature_id):
-        return {"feature": data, "feature_name": "Gene"}
+    def get(self, request, options, data, feature_id):
+        return super().get(request, options, {"feature": data, "feature_name": "Gene"})
 
     def get_data(self, options, feature_id):
         features = FeatureSearch.id_search(
@@ -59,16 +57,15 @@ class Feature(TemplateJsonView):
         options["feature_types"] = request.GET.get("features", ["gene"])
         return options
 
-    def get_template_prepare_data(self, data, options, id_type, feature_id):
-        return {"features": data, "feature_name": "Genes"}
+    def get(self, request, options, data, id_type, feature_id):
+        return super().get(request, options, {"features": data, "feature_name": "Genes"})
 
     def get_data(self, options, id_type, feature_id):
         features = FeatureSearch.id_search(id_type, feature_id, options["feature_types"], options["search_type"])
         return {f: list(f.assemblies.all()) for f in features.all()}
 
-    def get_json(self, _request, options, data_handler, id_type, feature_id):
-        results = [json(result) for result in data_handler(options, id_type, feature_id)]
-        return JsonResponse(results, safe=False)
+    def get_json(self, _request, options, data, id_type, feature_id):
+        return super().get_json(_request, options, [json(result, options["json_format"]) for result in data])
 
 
 class FeatureLoc(TemplateJsonView):
@@ -97,9 +94,15 @@ class FeatureLoc(TemplateJsonView):
 
         return options
 
-    def get_json(self, _request, options, data_handler, chromo, start, end):
-        results = [json(result, options["json_format"]) for result in data_handler(options, chromo, start, end)]
-        return JsonResponse(results, safe=False)
+    def get_json(self, _request, options, data, chromo, start, end):
+        feature_dict = [
+            {
+                "feature": json(f, options["json_format"]),
+                "assemblies": [json(a, options["json_format"]) for a in assemblies],
+            }
+            for f, assemblies in data.items()
+        ]
+        return super().get_json(_request, options, feature_dict)
 
     def get_template_prepare_data(self, data, options, chromo, start, end):
         return {"features": data, "feature_name": "Genes"}

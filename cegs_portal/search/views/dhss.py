@@ -1,5 +1,3 @@
-from django.http.response import JsonResponse
-
 from cegs_portal.search.view_models import DHSSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
@@ -55,8 +53,9 @@ class DHSLoc(TemplateJsonView):
 
         return options
 
-    def get_template_prepare_data(self, data, _options, chromo, start, end):
-        return {"dhss": data, "loc": {"chr": chromo, "start": start, "end": end}}
+    def get(self, request, options, data, chromo, start, end):
+        template_data = {"dhss": data, "loc": {"chr": chromo, "start": start, "end": end}}
+        return super().get(request, options, template_data)
 
     def get_data(self, options, chromo, start, end):
         if not chromo.startswith("chr"):
@@ -74,7 +73,5 @@ class DHSLoc(TemplateJsonView):
 
         return dhs_list
 
-    def get_json(self, _request, options, data_handler, chromo, start, end):
-        results = [json(result, options["json_format"]) for result in data_handler(options, chromo, start, end)]
-
-        return JsonResponse(results, safe=False)
+    def get_json(self, _request, options, data, chromo, start, end):
+        return super().get_json(_request, options, [json(result, options["json_format"]) for result in data])
