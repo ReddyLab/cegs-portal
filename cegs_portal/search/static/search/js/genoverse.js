@@ -83,7 +83,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         });
     },
     setData: function (data) {
-        console.log("setData");
         let oldEffectfulDHSs = this.browser.getSharedState("dhs-effect-data");
         let newEffectfulDHSs = data.filter((dhs) => dhs.effects.length > 0);
         let allEffectfulDHSs = oldEffectfulDHSs ? oldEffectfulDHSs.concat(newEffectfulDHSs) : newEffectfulDHSs;
@@ -130,7 +129,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         this.browser.updateSharedState("dhs-effect-data", allEffectfulDHSs);
     },
     getData: function (chr, start, end, done) {
-            console.log("getData");
             start = Math.max(1, start);
             end = Math.min(this.browser.getChromosomeSize(chr), end);
 
@@ -189,7 +187,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                             );
                         },
                         complete: function (xhr) {
-                            console.log("got data from network");
                             this.dataLoading = $.grep(this.dataLoading, function (t) {
                                 return xhr !== t;
                             });
@@ -214,7 +211,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             return deferred;
         },
     parseData: function (data, chr) {
-        console.log("parseData");
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
             feature.type = "dhs";
@@ -304,34 +300,38 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
         data.filter(function (d) {
             return d.feature.type === "transcript";
-        }).forEach(function (feature, i) {
-            if (!featuresById[feature.id]) {
-                model.geneIds[feature.feature.parent_id] =
-                    model.geneIds[feature.feature.parent_id] || ++model.seenGenes;
+        }).forEach(function (transcript, i) {
+            for (assembly of transcript.assemblies) {
+                if (!featuresById[assembly.id]) {
+                    model.geneIds[transcript.feature.parent_id] =
+                        model.geneIds[transcript.feature.parent_id] || ++model.seenGenes;
 
-                feature.chr = feature.chr || chr;
-                feature.label =
-                    parseInt(feature.strand, 10) === 1
-                        ? (feature.name || feature.id) + " >"
-                        : "< " + (feature.name || feature.id);
-                feature.sort =
-                    model.geneIds[feature.feature.parent_id] * 1e10 +
-                    (feature.feature.subtype === "protein_coding" ? 0 : 1e9) +
-                    feature.start +
-                    i;
-                feature.exons = {};
-                feature.subFeatures = [];
+                        assembly.chr = assembly.chr || chr;
+                        assembly.label =
+                        parseInt(assembly.strand, 10) === 1
+                            ? (assembly.name || assembly.id) + " >"
+                            : "< " + (assembly.name || assembly.id);
+                            assembly.sort =
+                        model.geneIds[transcript.feature.parent_id] * 1e10 +
+                        (transcript.feature.subtype === "protein_coding" ? 0 : 1e9) +
+                        assembly.start +
+                        i;
+                        assembly.exons = {};
+                        assembly.subFeatures = [];
 
-                model.insertFeature(feature);
+                    model.insertFeature(assembly);
+                }
+
+                ids.push(assembly.id);
             }
-
-            ids.push(feature.id);
         });
 
         data.filter(function (d) {
             return d.feature.type === "exon" && featuresById[d.feature.parent_id];
         }).forEach(function (exon) {
-            featuresById[exon.feature.parent_id].subFeatures.push(exon);
+            for (assembly of exon.assemblies) {
+                featuresById[exon.feature.parent_id].subFeatures.push(assembly);
+            }
         });
 
         ids.forEach(function (id) {
