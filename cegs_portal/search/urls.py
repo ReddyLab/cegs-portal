@@ -5,7 +5,7 @@ from . import views
 app_name = "search"
 urlpatterns = [
     path("", views.index, name="index"),
-    path("results/", views.results, name="results"),
+    path("results/", views.SearchView.as_view(), name="results"),
     path("feature/ensembl/<str:feature_id>", views.FeatureEnsembl.as_view(), name="feature_ensembl"),
     path("feature/<str:id_type>/<str:feature_id>", views.Feature.as_view(), name="features"),
     path("featureloc/<str:chromo>/<int:start>/<int:end>", views.FeatureLoc.as_view(), name="feature_loc"),

@@ -1,36 +1,33 @@
 from urllib.parse import unquote_plus
 
 from django.http import HttpResponseServerError
-from django.http.response import JsonResponse
-from django.shortcuts import render
 
 from cegs_portal.search.errors import SearchResultsException
 from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.view_models import Search
-from cegs_portal.search.views.renderers import json
-from cegs_portal.search.views.view_utils import JSON_MIME
+from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
-def results(request):
-    search_query = request.GET["query"]
-    unquoted_search_query = unquote_plus(search_query)
-    facets = [int(facet) for facet in request.GET.getlist("facet", [])]
-    is_json = request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME
+class SearchView(TemplateJsonView):
+    template = "search/search_results.html"
 
-    try:
-        search_results = Search.search(unquoted_search_query, facets)
-    except SearchResultsException as e:
-        return HttpResponseServerError(e)
+    def request_options(self, request):
+        options = super().request_options(request)
+        options["search_query"] = request.GET["query"]
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        return options
 
-    search_results["query"] = search_query
+    def get(self, request, options, data):
+        data["form"] = SearchForm()
+        return super().get(request, options, data)
 
-    if is_json:
-        return JsonResponse(json(search_results), safe=False)
+    def get_data(self, options):
+        unquoted_search_query = unquote_plus(options["search_query"])
 
-    search_results["form"] = SearchForm()
+        try:
+            search_results = Search.search(unquoted_search_query, options["facets"])
+        except SearchResultsException as e:
+            return HttpResponseServerError(e)
 
-    return render(
-        request,
-        "search/results.html",
-        search_results,
-    )
+        search_results["query"] = options["search_query"]
+        return search_results
