@@ -1,4 +1,4 @@
-from cegs_portal.search.view_models import ExperimentSearch
+from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
 

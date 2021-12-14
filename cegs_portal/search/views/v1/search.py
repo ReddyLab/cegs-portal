@@ -4,7 +4,7 @@ from django.http import HttpResponseServerError
 
 from cegs_portal.search.errors import SearchResultsException
 from cegs_portal.search.forms import SearchForm
-from cegs_portal.search.view_models import Search
+from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
 

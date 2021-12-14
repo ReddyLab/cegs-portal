@@ -1,4 +1,4 @@
-from cegs_portal.search.view_models import DHSSearch
+from cegs_portal.search.view_models.v1 import DHSSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
 
