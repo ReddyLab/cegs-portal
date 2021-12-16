@@ -1,4 +1,8 @@
-from django.urls import path
+from typing import Union, cast
+
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import URLPattern, URLResolver, path
 
 from . import views
 
@@ -21,4 +25,7 @@ urlpatterns = [
     path("v1/dhsloc/<str:chromo>/<int:start>/<int:end>", views.v1.DHSLoc.as_view(), name="dhs_loc"),
     path("v1/experiment/<int:exp_id>", views.v1.ExperimentView.as_view(), name="experiment"),
     path("v1/regeffect/<int:re_id>", views.v1.RegEffectView.as_view(), name="reg_effect"),
-]
+] + cast(
+    list[Union[URLPattern, URLResolver]],
+    static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1")),
+)
