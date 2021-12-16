@@ -608,8 +608,16 @@ input[type="submit"], button {
   margin-bottom: 1rem;
 }
 
+.mb-10 {
+  margin-bottom: 2.5rem;
+}
+
 .mr-auto {
   margin-right: auto;
+}
+
+.mt-24 {
+  margin-top: 6rem;
 }
 
 .mb-8 {
