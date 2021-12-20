@@ -1,11 +1,9 @@
 module.exports = {
   mode: 'jit',
-  content: {
-    enabled: true,
-    content: [
+  content: [
     './cegs_portal/**/*.html',
     './cegs_portal/**/*.js',
-  ]},
+  ],
   theme: {
     extend: {},
   },
