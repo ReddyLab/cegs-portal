@@ -34,6 +34,7 @@ def parse_query(query: str) -> tuple[list[QueryToken], Optional[ChromosomeLocati
         terms.append(QueryToken.ENSEMBL_ID.associate(result.group(1)))
     query = re.sub(ENSEMBL_RE, " ", query)
 
+    assembly = "GRCh38"  # Default
     for result in re.finditer(ASSEMBLY_RE, query):
         token = result.group(1).lower()
 
@@ -54,9 +55,9 @@ def parse_query(query: str) -> tuple[list[QueryToken], Optional[ChromosomeLocati
 class Search:
     @classmethod
     def _dnaregion_search(
-        cls, location: ChromosomeLocation, facets: list[int], region_type: Optional[list[str]] = None
+        cls, location: ChromosomeLocation, assembly: str, facets: list[int], region_type: Optional[list[str]] = None
     ):
-        q = Q(chromosome_name=location.chromo, location__overlap=location.range)
+        q = Q(chromosome_name=location.chromo, location__overlap=location.range, ref_genome=assembly)
         q &= Q(regulatory_effects__count__gt=0)
 
         if len(facets) > 0:
@@ -91,7 +92,7 @@ class Search:
         _query_terms, location, assembly_name, gene_names = parse_query(query_string)
         sites = None
         if location is not None:
-            sites = cls._dnaregion_search(location, facets, region_type=["dhs"])
+            sites = cls._dnaregion_search(location, assembly_name, facets, region_type=["dhs"])
 
         facets = Facet.objects.all().prefetch_related("values")
 
