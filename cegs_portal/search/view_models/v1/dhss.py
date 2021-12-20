@@ -32,20 +32,16 @@ class LocSearchType(Enum):
 class DHSSearch:
     @classmethod
     def id_search(cls, dhs_id: str):
-        dhs = (
-            DNARegion.objects.filter(id=int(dhs_id), region_type="dhs")
-            .prefetch_related(
-                "closest_gene",
-                "regulatory_effects",
-                "regulatory_effects__targets",
-                "regulatory_effects__targets__regulatory_effects",
-                "regulatory_effects__targets__regulatory_effects__sources",
-                "regulatory_effects__experiment",
-                "regulatory_effects__sources",
-            )
-            .first()
+        dhs = DNARegion.objects.filter(id=int(dhs_id), region_type="dhs").prefetch_related("closest_gene").first()
+
+        dhs_reg_effects = RegulatoryEffect.objects.filter(sources__in=[dhs.id]).prefetch_related(
+            "targets",
+            "targets__regulatory_effects",
+            "targets__regulatory_effects__sources",
+            "experiment",
+            "sources",
         )
-        return dhs
+        return dhs, dhs_reg_effects
 
     @classmethod
     def loc_search(

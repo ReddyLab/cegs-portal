@@ -33,57 +33,74 @@
         {% spaceless %}
         <table class="data-table">
             <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
-            {% for regeffect in dhs.regulatory_effects.all %}
-                {% for target in regeffect.targets.all %}
+            {% for reg_effect in reg_effects %}
+                {% for target in reg_effect.targets.all %}
                 <tr>
-                    <td>{{ regeffect.direction }}</td>
-                    <td>{{ regeffect.effect_size }}</td>
-                    <td>{{ regeffect.significance }}</td>
+                    <td>{{ reg_effect.direction }}</td>
+                    <td>{{ reg_effect.effect_size }}</td>
+                    <td>{{ reg_effect.significance }}</td>
                     <td><a href="{% url 'search:features' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
-                    <td><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
+                    <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
-                        {% for coreg in regeffect.co_regulators %}
+                        {% for coreg in reg_effect.co_regulators %}
                         <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
                     <td>
-                        {% for cosrc in regeffect.co_sources %}
+                        {% for cosrc in reg_effect.co_sources %}
                         <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
-                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
+                    <td><a href="{% url 'search:reg_effect' reg_effect.id %}">More...</a></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td>{{ regeffect.direction }}</td>
-                    <td>{{ regeffect.effect_size }}</td>
-                    <td>{{ regeffect.significance }}</td>
+                    <td>{{ reg_effect.direction }}</td>
+                    <td>{{ reg_effect.effect_size }}</td>
+                    <td>{{ reg_effect.significance }}</td>
                     <td>Unknown</td>
-                    <td><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
+                    <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
-                        {% for coreg in regeffect.co_regulators %}
+                        {% for coreg in reg_effect.co_regulators %}
                         <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
                     <td>
-                        {% for cosrc in regeffect.co_sources %}
+                        {% for cosrc in reg_effect.co_sources %}
                         <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
-                    <td><a href="{% url 'search:reg_effect' regeffect.id %}">More...</a></td>
+                    <td><a href="{% url 'search:reg_effect' reg_effect.id %}">More...</a></td>
                 </tr>
                 {% endfor %}
             {% endfor %}
         </table>
         {% endspaceless %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if reg_effects.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ reg_effects.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ reg_effects.number }} of {{ reg_effects.paginator.num_pages }}
+                </span>
+
+                {% if reg_effects.has_next %}
+                    <a href="?page={{ reg_effects.next_page_number }}">next</a>
+                    <a href="?page={{ reg_effects.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     </div>
 
     <div>
