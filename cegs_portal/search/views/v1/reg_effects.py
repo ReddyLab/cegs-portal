@@ -3,7 +3,7 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class RegEffectView(TemplateJsonView):
-    template = "search/reg_effect.html"
+    template = "search/v1/reg_effect.html"
     template_data_name = "regulatory_effect"
 
     def get_data(self, _options, re_id):

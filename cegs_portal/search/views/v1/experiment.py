@@ -3,7 +3,7 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class ExperimentView(TemplateJsonView):
-    template = "search/experiment.html"
+    template = "search/v1/experiment.html"
     template_data_name = "experiment"
 
     def get_data(self, options, exp_id):

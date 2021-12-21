@@ -20,7 +20,7 @@
                 <td>{{ dhs.cell_line }}</td>
                 <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
                 <td>{{ dhs.strand }}</td>
-                <td><a href="{% url 'search:features' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene.ensembl_id }}</a></td>
+                <td><a href="{% url 'search:features' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene_name }}</a></td>
                 <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
             </tr>
         </table>

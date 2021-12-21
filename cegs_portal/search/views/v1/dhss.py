@@ -6,7 +6,7 @@ from cegs_portal.search.views.renderers import json
 
 
 class DHS(TemplateJsonView):
-    template = "search/dhs_exact.html"
+    template = "search/v1/dhs_exact.html"
 
     def request_options(self, request):
         """
@@ -57,7 +57,7 @@ class DHS(TemplateJsonView):
 
 
 class DHSLoc(TemplateJsonView):
-    template = "search/dhs.html"
+    template = "search/v1/dhs.html"
 
     def request_options(self, request):
         """

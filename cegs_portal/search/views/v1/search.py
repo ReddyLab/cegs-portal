@@ -9,7 +9,7 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class SearchView(TemplateJsonView):
-    template = "search/search_results.html"
+    template = "search/v1/search_results.html"
 
     def request_options(self, request):
         options = super().request_options(request)

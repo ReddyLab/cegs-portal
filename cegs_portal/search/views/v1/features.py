@@ -4,7 +4,7 @@ from cegs_portal.search.views.renderers import json
 
 
 class FeatureEnsembl(TemplateJsonView):
-    template = "search/feature_exact.html"
+    template = "search/v1/feature_exact.html"
 
     def request_options(self, request):
         """
@@ -36,7 +36,7 @@ class FeatureEnsembl(TemplateJsonView):
 
 
 class Feature(TemplateJsonView):
-    template = "search/features.html"
+    template = "search/v1/features.html"
 
     def request_options(self, request):
         """
@@ -69,7 +69,7 @@ class Feature(TemplateJsonView):
 
 
 class FeatureLoc(TemplateJsonView):
-    template = "search/features.html"
+    template = "search/v1/features.html"
 
     def request_options(self, request):
         """
