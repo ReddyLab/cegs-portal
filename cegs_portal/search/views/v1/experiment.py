@@ -1,3 +1,5 @@
+from django.http import Http404
+
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
@@ -8,6 +10,9 @@ class ExperimentView(TemplateJsonView):
 
     def get_data(self, options, exp_id):
         experi = ExperimentSearch.id_search(exp_id)
+
+        if experi is None:
+            raise Http404(f"No experiment with id {exp_id} found.")
 
         experi_cell_lines = set()
         experi_tissue_types = set()

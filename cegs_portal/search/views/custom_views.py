@@ -1,9 +1,14 @@
+import logging
+
+from django.http import Http404, HttpResponseNotFound
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
 from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
+
+logger = logging.getLogger("django.request")
 
 
 class TemplateJsonView(View):
@@ -28,7 +33,12 @@ class TemplateJsonView(View):
         else:
             handler = self.http_method_not_allowed
 
-        return handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
+        try:
+            response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
+        except Http404 as err:
+            response = self.http_page_not_found(request, err)
+
+        return response
 
     def request_options(self, request):
         options = {
@@ -54,3 +64,9 @@ class TemplateJsonView(View):
 
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data), safe=False)
+
+    def http_page_not_found(self, request, err, *args, **kwargs):
+        logger.warning(
+            "Response Not Found (%s): %s", request.method, request.path, extra={"status_code": 404, "request": request}
+        )
+        return HttpResponseNotFound(str(err), *args, **kwargs)
