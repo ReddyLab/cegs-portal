@@ -1,10 +1,12 @@
 from django.http import Http404
 
+from cegs_portal.search.json_templates.v1.experiment import experiment
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class ExperimentView(TemplateJsonView):
+    json_renderer = experiment
     template = "search/v1/experiment.html"
     template_data_name = "experiment"
 
