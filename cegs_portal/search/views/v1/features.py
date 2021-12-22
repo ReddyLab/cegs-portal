@@ -1,9 +1,11 @@
+from cegs_portal.search.json_templates.v1.feature_exact import feature_exact
 from cegs_portal.search.view_models.v1 import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.renderers import json
 
 
 class FeatureEnsembl(TemplateJsonView):
+    json_renderer = feature_exact
     template = "search/v1/feature_exact.html"
 
     def request_options(self, request):
