@@ -1,4 +1,4 @@
-def experiment(experiment_obj):
+def experiment(experiment_obj, json_format=None):
     return {
         "id": experiment_obj.id,
         "name": experiment_obj.name,

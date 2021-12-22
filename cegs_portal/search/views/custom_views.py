@@ -63,7 +63,7 @@ class TemplateJsonView(View):
         )
 
     def get_json(self, _request, options, data, *args, **kwargs):
-        return JsonResponse(self.__class__.json_renderer(data), safe=False)
+        return JsonResponse(self.__class__.json_renderer(data, options.get("json_format", None)), safe=False)
 
     def http_page_not_found(self, request, err, *args, **kwargs):
         logger.warning(
