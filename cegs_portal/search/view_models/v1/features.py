@@ -64,7 +64,13 @@ class FeatureSearch:
         features = Feature.objects.filter(
             **{field_lookup: feature_id, "feature_type__in": feature_types}
         ).prefetch_related(
-            "assemblies", "children", "children__assemblies", "dnaregion_set", "dnaregion_set__regulatory_effects"
+            "assemblies",
+            "children",
+            "children__assemblies",
+            "dnaregion_set",
+            "dnaregion_set__regulatory_effects",
+            "regulatory_effects",
+            "regulatory_effects__sources",
         )
         if distinct:
             features = features.distinct()

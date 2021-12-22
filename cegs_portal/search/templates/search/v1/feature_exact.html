@@ -73,13 +73,13 @@
     </div>
     {% endif %}
 
-    {% if feature.reg_effects.all|length > 0 %}
+    {% if feature.regulatory_effects.all|length > 0 %}
     <div>
         <a name="reg_effects"></a>
         <div class="text-xl font-bold">Regulatory Effects</div>
         <table class="data-table">
             <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th></tr>
-            {% for regeffect in feature.reg_effects.all %}
+            {% for regeffect in feature.regulatory_effects.all %}
                 {% for dhs in regeffect.sources.all %}
                 <tr>
                     {% if forloop.first %}
