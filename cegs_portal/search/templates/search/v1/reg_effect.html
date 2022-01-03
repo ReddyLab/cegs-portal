@@ -19,14 +19,14 @@
     {% if regulatory_effect.targets.all|length > 0 %}
     <div>
         <div class="text-xl font-bold">Target Genes</div>
-        {% include "search/partials/_features.html" with features=regulatory_effect.targets.all %}
+        {% include "search/v1/partials/_features.html" with features=regulatory_effect.targets.all %}
     </div>
     {% endif %}
 
     {% if regulatory_effect.sources.all|length > 0 %}
     <div>
         <div class="text-xl font-bold">Source DHSs</div>
-        {% include "search/partials/_dnaregion.html" with regions=regulatory_effect.sources.all %}
+        {% include "search/v1/partials/_dnaregion.html" with regions=regulatory_effect.sources.all %}
     </div>
     {% endif %}
     {% endspaceless %}
