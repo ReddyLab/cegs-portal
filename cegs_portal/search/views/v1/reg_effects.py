@@ -1,8 +1,10 @@
+from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.view_models.v1 import RegEffectSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class RegEffectView(TemplateJsonView):
+    json_renderer = regulatory_effect
     template = "search/v1/reg_effect.html"
     template_data_name = "regulatory_effect"
 
