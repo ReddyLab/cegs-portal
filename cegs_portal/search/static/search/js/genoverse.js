@@ -223,15 +223,23 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
 });
 
 Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature=gene",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=gene",
     dataRequestLimit: 5000000,
     parseData: function (data, chr) {
         for (var i = 0; i < data.length; i++) {
-            var feature = data[i];
+            var feature = data[i].feature;
+            var assembly = data[i].assemblies[0];
 
-            feature.type = "gene";
             feature.label =
-                feature.strand === "+" ? `${feature.name} (${feature.id}) >` : `< ${feature.name} (${feature.id})`;
+                feature.strand === "+" ? `${assembly.name} (${feature.ensembl_id}) >` : `< ${assembly.name} (${feature.ensembl_id})`;
+            feature.name = assembly.name;
+            feature.chr = assembly.chr;
+            feature.start = assembly.start;
+            feature.end = assembly.end;
+            feature.strand = assembly.strand;
+            feature.ref_genome = assembly.ref_genome;
+            feature.ref_genome_patch = assembly.ref_genome_patch;
+
             this.insertFeature(feature);
         }
     },
@@ -256,22 +264,22 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 
         feature.color = "#000000";
 
-        if (processedTranscript[feature.feature.subtype.toLowerCase()]) {
+        if (processedTranscript[feature.subtype.toLowerCase()]) {
             feature.color = "#0000FF";
             feature.legend = "Processed transcript";
-        } else if (feature.feature.subtype === "protein_coding") {
+        } else if (feature.subtype === "protein_coding") {
             feature.color = "#A00000";
             feature.legend = "Protein coding";
-        } else if (feature.feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("pseudogene") > -1) {
             feature.color = "#666666";
             feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.feature.subtype) || feature.feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
             feature.color = "#8B668B";
             feature.legend = "RNA gene";
-        } else if (/^tr_.+_gene$/i.test(feature.feature.subtype)) {
+        } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
             feature.legend = "TR gene";
-        } else if (/^ig_.+_gene$/i.test(feature.feature.subtype)) {
+        } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
             feature.legend = "IG gene";
         }
@@ -281,7 +289,7 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 });
 
 Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature=transcript&feature=exon",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=transcript&feature_type=exon",
     dataRequestLimit: 5000000, // As per e! REST API restrictions
 
     setDefaults: function () {
@@ -302,18 +310,23 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
             return d.feature.type === "transcript";
         }).forEach(function (transcript, i) {
             for (assembly of transcript.assemblies) {
+                assembly.id = transcript.feature.id;
+                assembly.parent_id = transcript.feature.parent_id;
+                assembly.type = transcript.feature.type;
+                assembly.subtype = transcript.feature.subtype;
+                assembly.ensembl_id = transcript.feature.ensembl_id;
                 if (!featuresById[assembly.id]) {
-                    model.geneIds[transcript.feature.parent_id] =
-                        model.geneIds[transcript.feature.parent_id] || ++model.seenGenes;
+                    model.geneIds[assembly.parent_id] =
+                        model.geneIds[assembly.parent_id] || ++model.seenGenes;
 
                         assembly.chr = assembly.chr || chr;
                         assembly.label =
                         parseInt(assembly.strand, 10) === 1
-                            ? (assembly.name || assembly.id) + " >"
-                            : "< " + (assembly.name || assembly.id);
+                            ? (assembly.name || assembly.ensembl_id) + " >"
+                            : "< " + (assembly.name || assembly.ensembl_id);
                             assembly.sort =
-                        model.geneIds[transcript.feature.parent_id] * 1e10 +
-                        (transcript.feature.subtype === "protein_coding" ? 0 : 1e9) +
+                        model.geneIds[assembly.parent_id] * 1e10 +
+                        (assembly.subtype === "protein_coding" ? 0 : 1e9) +
                         assembly.start +
                         i;
                         assembly.exons = {};
@@ -361,25 +374,27 @@ Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend(
 
         feature.color = "#000000";
 
-        if (processedTranscript[feature.feature.subtype.toLowerCase()]) {
+        if (processedTranscript[feature.subtype.toLowerCase()]) {
             feature.color = "#0000FF";
             feature.legend = "Processed transcript";
-        } else if (feature.feature.subtype === "protein_coding") {
+        } else if (feature.subtype === "protein_coding") {
             feature.color = "#A00000";
             feature.legend = "Protein coding";
-        } else if (feature.feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("pseudogene") > -1) {
             feature.color = "#666666";
             feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.feature.subtype) || feature.feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
             feature.color = "#8B668B";
             feature.legend = "RNA gene";
-        } else if (/^tr_.+_gene$/i.test(feature.feature.subtype)) {
+        } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
             feature.legend = "TR gene";
-        } else if (/^ig_.+_gene$/i.test(feature.feature.subtype)) {
+        } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
             feature.legend = "IG gene";
         }
+
+        console.log(feature.legend);
 
         feature.labelColor = feature.labelColor || feature.color;
     },
@@ -431,12 +446,14 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
-    legend: true,
+    legend: Genoverse.Track.Legend.extend({
+        name: "Results Legend"
+    }),
     populateMenu: function (feature) {
-        if (feature.type === "gene") {
-            var url = `/search/gene/ensembl/${feature.id}`;
+        if (["gene", "exon", "transcript"].includes(feature.type)) {
+            var url = `/search/feature/ensembl/${feature.ensembl_id}`;
             var menu = {
-                title: `<a target="_blank" href="${url}">${feature.name} (${feature.id})</a>`,
+                title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
                 Strand: feature.strand,
                 Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,

@@ -575,7 +575,7 @@ div.search-wrapper input[type="text"] {
           flex: 1 1 auto;
 }
 
-input[type="submit"], button {
+input[type="submit"], input[type="button"], button {
   border-radius: 0.375rem;
   --tw-bg-opacity: 1;
   background-color: rgb(209 213 219 / var(--tw-bg-opacity));

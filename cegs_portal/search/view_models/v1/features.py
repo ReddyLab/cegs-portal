@@ -35,7 +35,7 @@ def join_fields(*field_names):
 
 class FeatureSearch:
     @classmethod
-    def id_search(cls, id_type, feature_id, feature_types, search_type="exact", distinct=True):
+    def id_search(cls, id_type, feature_id, search_type="exact", distinct=True):
         if id_type == IdType.ENSEMBL.value:
             field = "ensembl_id"
         elif id_type == IdType.HAVANA.value:
@@ -61,9 +61,7 @@ class FeatureSearch:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         field_lookup = join_fields(field, lookup)
-        features = Feature.objects.filter(
-            **{field_lookup: feature_id, "feature_type__in": feature_types}
-        ).prefetch_related(
+        features = Feature.objects.filter(**{field_lookup: feature_id}).prefetch_related(
             "assemblies",
             "children",
             "children__assemblies",
