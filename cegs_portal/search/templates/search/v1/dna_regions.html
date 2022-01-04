@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
-{% block title %}DNase I Hypersensitive Sites{% endblock %}
+{% block title %}{{ region_type_name }}{% endblock %}
 {% block css %}
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
@@ -15,12 +15,12 @@
 {% endblock %}
 
 {% block content %}
-    <div class="text-2xl font-bold">DNase I Hypersensitive Sites</div>
+    <div class="text-2xl font-bold">{{ region_type_name }}</div>
     <div>
         <div>
             <div class="p-2" id="genoverse"></div>
             <div class="text-xl font-bold">Sites</div>
-            {% include "search/v1/partials/_dnaregion.html" with regions=dhss %}
+            {% include "search/v1/partials/_dnaregion.html" with regions=regions %}
         </div>
     </div>
 {% endblock %}
@@ -30,12 +30,13 @@
         window.addEventListener("hashchange", _.throttle(function() {
             let hash = window.location.hash;
             [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
-            fetch(`/search/dhsloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs&region_type=ccre`)
+
+            fetch(`/search/regionloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&{{ region_type_query_slug }}`)
                 .then(response => {
                     return response.json()
                 })
                 .then(data => {
-                    document.getElementById("dnaregion").replaceWith(dhsTable(data, "No DHSs"))
+                    document.getElementById("dnaregion").replaceWith(regionTable(data, "No {{ region_type_name }}"))
                 });
 
         }, 500, { 'leading': true }));

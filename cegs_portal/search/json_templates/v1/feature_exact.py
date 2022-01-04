@@ -7,7 +7,7 @@ def feature_exact(feature_obj, json_format=None):
         "misc": feature_obj.misc,
         "assemblies": [assembly(a, json_format) for a in feature_obj.assemblies.all()],
         "children": [children(c, json_format) for c in feature_obj.children.all()],
-        "dhss": [dhs(d, json_format) for d in feature_obj.dnaregion_set.all()],
+        "closest_regions": [region(d, json_format) for d in feature_obj.dnaregion_set.all()],
         "regulatory_effects": [reg_effect(r, json_format) for r in feature_obj.regulatory_effects.all()],
     }
 
@@ -43,22 +43,22 @@ def children(child_obj, json_format=None):
     }
 
 
-def dhs(dhs_obj, json_format=None):
+def region(region_obj, json_format=None):
     result = {
-        "cell_line": dhs_obj.cell_line,
-        "start": dhs_obj.location.lower,
-        "end": dhs_obj.location.upper,
-        "strand": dhs_obj.strand,
-        "assembly": f"{dhs_obj.ref_genome}.{dhs_obj.ref_genome_patch or '0'}",
-        "reg_effect_count": dhs_obj.regulatory_effects.count(),
+        "cell_line": region_obj.cell_line,
+        "start": region_obj.location.lower,
+        "end": region_obj.location.upper,
+        "strand": region_obj.strand,
+        "assembly": f"{region_obj.ref_genome}.{region_obj.ref_genome_patch or '0'}",
+        "reg_effect_count": region_obj.regulatory_effects.count(),
     }
 
     if json_format == "genoverse":
-        result["id"] = str(dhs_obj.id)
-        result["chr"] = dhs_obj.chrom_name.removeprefix("chr")
+        result["id"] = str(region_obj.id)
+        result["chr"] = region_obj.chrom_name.removeprefix("chr")
     else:
-        result["id"] = dhs_obj.id
-        result["chr"] = dhs_obj.chrom_name
+        result["id"] = region_obj.id
+        result["chr"] = region_obj.chrom_name
 
     return result
 

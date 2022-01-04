@@ -29,19 +29,19 @@ class LocSearchType(Enum):
     OVERLAP = "overlap"
 
 
-class DHSSearch:
+class DNARegionSearch:
     @classmethod
-    def id_search(cls, dhs_id: str):
-        dhs = DNARegion.objects.filter(id=int(dhs_id), region_type="dhs").prefetch_related("closest_gene").first()
+    def id_search(cls, region_id: str):
+        region = DNARegion.objects.filter(id=int(region_id)).prefetch_related("closest_gene").first()
 
-        dhs_reg_effects = RegulatoryEffect.objects.filter(sources__in=[dhs.id]).prefetch_related(
+        region_reg_effects = RegulatoryEffect.objects.filter(sources__in=[region.id]).prefetch_related(
             "targets",
             "targets__regulatory_effects",
             "targets__regulatory_effects__sources",
             "experiment",
             "sources",
         )
-        return dhs, dhs_reg_effects
+        return region, region_reg_effects
 
     @classmethod
     def loc_search(
@@ -66,7 +66,7 @@ class DHSSearch:
         if assembly is not None:
             query["ref_genome"] = assembly
 
-        if region_types is not None:
+        if len(region_types) > 0:
             query["region_type__in"] = region_types
 
         query[field] = NumericRange(int(start), int(end), "[)")
@@ -93,13 +93,12 @@ class DHSSearch:
             .distinct()
         )
 
-        if region_properties is not None:
-            if "reg_effect" in region_properties:
-                dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
-            if "effect_label" in region_properties:
-                for region in dna_regions:
-                    reg_effects = region.regulatory_effects.all()
-                    if len(reg_effects) > 0:
-                        setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
+        if "reg_effect" in region_properties:
+            dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
+        if "effect_label" in region_properties:
+            for region in dna_regions:
+                reg_effects = region.regulatory_effects.all()
+                if len(reg_effects) > 0:
+                    setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
 
         return dna_regions

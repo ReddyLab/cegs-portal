@@ -52,13 +52,14 @@ function rc(p, c) {
     a(p, c);
 }
 
-function dhsTable(data, emptyString) {
+function regionTable(data, emptyString) {
     if (data.length == 0) {
         return e("div", {id: "dnaregion"}, t(emptyString));
     }
 
     newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
         e("tr", [
+            e("th", "Region Type"),
             e("th", "Cell Line"),
             e("th", "Location"),
             e("th", "Strand"),
@@ -67,19 +68,20 @@ function dhsTable(data, emptyString) {
             e("th"),
         ])
     ])
-    for(dhs of data) {
+    for(region of data) {
         newTable.append(
             e("tr", [
-                e("td", dhs.cell_line || "None"),
+                e("td", region.type),
+                e("td", region.cell_line || "None"),
                 e("td", [
-                    e("span", dhs.chr),
+                    e("span", region.chr),
                     ": ",
-                    e("span", `${dhs.start}-${dhs.end}`)
+                    e("span", `${region.start}-${region.end}`)
                 ]),
-                e("td", dhs.strand || "None"),
-                e("td", e("a", {href: `/search/gene/ensembl/${dhs.closest_gene.id}`}, `${dhs.closest_gene_name} (${dhs.closest_gene.id})`)),
-                e("td", `${dhs.ref_genome}.${dhs.ref_genome_patch || 0}`),
-                e("td", e("a", {href: `/search/dhs/${dhs.id}`}, "More...")),
+                e("td", region.strand || "None"),
+                e("td", e("a", {href: `/search/feature/ensembl/${region.closest_gene.id}`}, `${region.closest_gene_name} (${region.closest_gene.id})`)),
+                e("td", `${region.ref_genome}.${region.ref_genome_patch || 0}`),
+                e("td", e("a", {href: `/search/region/${region.id}`}, "More...")),
             ])
         )
     }

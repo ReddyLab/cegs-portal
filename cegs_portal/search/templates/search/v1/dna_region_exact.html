@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
-{% block title %}DNase I Hypersensitive Site{% endblock %}
+{% block title %}{{ region_type_name }}{% endblock %}
 
 {% block javascript %}
 {{ block.super }}
@@ -9,24 +9,25 @@
 {% endblock %}
 
 {% block content %}
-    <div class="text-2xl font-bold">DNase I Hypersensitive Site</div>
+    <div class="text-2xl font-bold">{{ region_type_name }}</div>
     <div class="pt-8">
         <div class="text-xl font-bold">Site Information</div>
         {% spaceless %}
         <table class="data-table">
-                <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
+                <tr><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th><th></th></tr>
             <tr>
-                <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                <td>{{ dhs.cell_line }}</td>
-                <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper }}</span></td>
-                <td>{{ dhs.strand }}</td>
-                <td><a href="{% url 'search:features' 'ensembl' dhs.closest_gene.ensembl_id %}">{{ dhs.closest_gene_name }}</a></td>
-                <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
+                <td>{{ region.cell_line }}</td>
+                <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
+                <td>{{ region.strand }}</td>
+                <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }}</a></td>
+                <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
+                <td><a href="{% url 'search:region' region.id %}">More...</a></td>
             </tr>
         </table>
         {% endspaceless %}
     </div>
 
+    {% if reg_effects|length > 0 %}
     <div class="pt-8 max-w-5xl">
         <div class="text-xl font-bold">Regulatory Effects</div>
         <button id="hide-effect">Hide Non-Signficant Effects</button>
@@ -43,14 +44,14 @@
                     <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
                         {% for coreg in reg_effect.co_regulators %}
-                        <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
+                        <a href="{% url 'search:region' coreg.id %}">DHS:{{ coreg.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
                     <td>
                         {% for cosrc in reg_effect.co_sources %}
-                        <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
+                        <a href="{% url 'search:region' cosrc.id %}">DHS:{{ cosrc.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
@@ -66,14 +67,14 @@
                     <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
                         {% for coreg in reg_effect.co_regulators %}
-                        <a href="{% url 'search:dhs' coreg.id %}">DHS:{{ coreg.id }} </a>
+                        <a href="{% url 'search:region' coreg.id %}">DHS:{{ coreg.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
                     </td>
                     <td>
                         {% for cosrc in reg_effect.co_sources %}
-                        <a href="{% url 'search:dhs' cosrc.id %}">DHS:{{ cosrc.id }} </a>
+                        <a href="{% url 'search:region' cosrc.id %}">DHS:{{ cosrc.id }} </a>
                         {% empty %}
                         None
                         {% endfor %}
@@ -102,22 +103,23 @@
             </span>
         </div>
     </div>
-
+    {% endif %}
     <div>
-        <a name="near_dhss"></a>
-        <div class="text-xl font-bold">Nearby DHSs</div>
+        <a name="near_regions"></a>
+        <div class="text-xl font-bold">Nearby {{ region_type_name_plural }}</div>
         <div class="text-s font-bold">Measured from each end of the gene</div>
         <form>
-            <label for="dhs-dist">DHS Distance:</label>
-            <input type="text" id="dhs-dist" value="1000"/>
+            <label for="region-dist">{{ region_type_name }} Distance:</label>
+            <input type="text" id="region-dist" value="1000"/>
         </form>
-        <button id="dhs-dist-submit" class="search-button self-end">Find DHSs</button>
+        <button id="region-dist-submit" class="search-button self-end">Find {{ region_type_name_plural }}</button>
         <table id="dnaregion" style="display:none;"></table>
     </div>
 {% endblock %}
 
 {% block inline_javascript %}
     <script>
+        {% if reg_effects|length > 0 %}
         let nonSigShowing = true;
         let effectButton = g("hide-effect");
         effectButton.onclick = function() {
@@ -129,16 +131,17 @@
             }
             rc(effectButton, t(nonSigShowing ? "Hide Non-Signficant Effects" : "Show Non-Signficant Effects"));
         }
+        {% endif %}
 
-        g("dhs-dist-submit").onclick = function() {
-            let dist = Number(g("dhs-dist").value);
-            let search_start = Math.max({{ dhs.location.lower }} - dist, 0);
-            let search_end = {{ dhs.location.upper }} + dist;
-            fetch(`/search/dhsloc/{{ dhs.chromosome_name }}/${search_start}/${search_end}?assembly={{ dhs.ref_genome }}&search_type=overlap&accept=application/json&region_type=dhs`)
+        g("region-dist-submit").onclick = function() {
+            let dist = Number(g("region-dist").value);
+            let search_start = Math.max({{ region.location.lower }} - dist, 0);
+            let search_end = {{ region.location.upper }} + dist;
+            fetch(`/search/regionloc/{{ region.chromosome_name }}/${search_start}/${search_end}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`)
                 .then(response => {
                     return response.json()
                 }).then(data => {
-                    document.getElementById("dnaregion").replaceWith(dhsTable(data.filter(dhs => dhs.id != {{ dhs.id }}), "No nearby DHSs"))
+                    document.getElementById("dnaregion").replaceWith(regionTable(data.filter(region => region.id != {{ region.id }}), "No nearby {{ region_type_name_plural }}"))
                 });
             }
     </script>

@@ -1,4 +1,4 @@
-from .dhss import DHSSearch
+from .dna_regions import DNARegionSearch
 from .experiment import ExperimentSearch
 from .features import FeatureSearch, IdType
 from .reg_effects import RegEffectSearch

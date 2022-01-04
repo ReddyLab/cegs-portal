@@ -14,7 +14,7 @@
         <div>
             <span class="text-2xl">{{ feature_name }} </span><span class="text-2xl font-bold">{{ feature.ensembl_id }}</span>
             {% if feature.children.all|length > 0 %}<span><a href="#children">{{ children_name }}</a></span>{% endif %}
-            {% if feature.dnaregion_set.all|length > 0 %}<span><a href="#dhss">DHSs</a></span>{% endif %}
+            {% if feature.dnaregion_set.all|length > 0 %}<span><a href="#regions">Nearby Regions</a></span>{% endif %}
             {% if feature.reg_effects.all|length > 0 %}<span><a href="#reg_effects">Regulatory Effects</a></span>{% endif %}
         </div>
         <div>{{ feature_name }} Type: {{ feature.feature_subtype }}</div>
@@ -54,18 +54,19 @@
 
     {% if feature.dnaregion_set.all|length > 0 %}
     <div>
-        <a name="dhss"></a>
-        <div class="text-xl font-bold">Nearby DNase I Hypersensitive Sites</div>
+        <a name="regions"></a>
+        <div class="text-xl font-bold">Nearby DNA Regions</div>
         <table class="data-table">
-            <tr><th>ID</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th></tr>
-            {% for dhs in feature.dnaregion_set.all %}
+            <tr><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th><th></th></tr>
+            {% for region in feature.dnaregion_set.all %}
                 <tr>
-                    <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
-                    <td>{{ dhs.cell_line }}</td>
-                    <td><span>{{ dhs.chromosome_name }}</span>: <span>{{ dhs.location.lower }}-{{ dhs.location.upper|add:"-1" }}</span></td>
-                    <td>{{ dhs.strand }}</td>
-                    <td>{{ dhs.ref_genome }}.{{ dhs.ref_genome_patch|default:"0" }}</td>
-                    <td>{{ dhs.regulatory_effects.count }}</td>
+                    <td>{{ region.region_type }}</td>
+                    <td>{{ region.cell_line }}</td>
+                    <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper|add:"-1" }}</span></td>
+                    <td>{{ region.strand }}</td>
+                    <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ region.regulatory_effects.count }}</td>
+                    <td><a href="{% url 'search:region' region.id %}">More... </a></td>
                 </tr>
             {% endfor %}
         </table>
@@ -79,7 +80,7 @@
         <table class="data-table">
             <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th></tr>
             {% for regeffect in feature.regulatory_effects.all %}
-                {% for dhs in regeffect.sources.all %}
+                {% for region in regeffect.sources.all %}
                 <tr>
                     {% if forloop.first %}
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
@@ -88,7 +89,7 @@
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
                     <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
                     {% endif %}
-                    <td><a href="{% url 'search:dhs' dhs.id %}">DHS:{{ dhs.id }}</a></td>
+                    <td><a href="{% url 'search:region' region.id %}">DNA Region:{{ region.id }}</a></td>
                 </tr>
                 {% empty %}
                     <tr>
@@ -106,13 +107,13 @@
     {% endif %}
 
     <div>
-        <a name="near_dhss"></a>
-        <div class="text-xl font-bold">Nearby DHSs</div>
+        <a name="near_regions"></a>
+        <div class="text-xl font-bold">More Nearby DNA Regions</div>
         <div class="text-s font-bold">Measured from each end of the gene</div>
         <form>
-            <label for="dhs-dist">DHS Distance:</label>
-            <input type="text" id="dhs-dist" value="1000"/>
-            <input type="button" id="dhs-dist-submit" value="Find DHSs" class="search-button self-end"/>
+            <label for="region-dist">Feature Distance:</label>
+            <input type="text" id="region-dist" value="1000"/>
+            <input type="button" id="region-dist-submit" value="Find Regions" class="search-button self-end"/>
         </form>
         <table id="dnaregion" style="display:none;"></table>
     </div>
@@ -131,23 +132,23 @@
             {% endfor %}
         ];
 
-        g("dhs-dist-submit").onclick = function() {
-            let dist = Number(g("dhs-dist").value);
+        g("region-dist-submit").onclick = function() {
+            let dist = Number(g("region-dist").value);
             let fetches = assemblies.map(a => {
                 let search_start = Math.max(a.start - dist, 0);
                 let search_end = a.end + dist;
-                return fetch(`/search/dhsloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json&region_type=dhs`)
+                return fetch(`/search/regionloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
                     .then(response => {
                         return response.json()
                     });
             })
             Promise.all(fetches)
                 .then(data => {
-                    let dhss = [];
+                    let regions = [];
                     for (d of data) {
-                        dhss.push(...d);
+                        regions.push(...d);
                     }
-                    document.getElementById("dnaregion").replaceWith(dhsTable(dhss, "No nearby DHSs"))
+                    document.getElementById("dnaregion").replaceWith(regionTable(regions, "No nearby DNA Regions"))
                 });
         }
     </script>
