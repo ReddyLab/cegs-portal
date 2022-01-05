@@ -131,7 +131,7 @@ paths:
                 $ref: '#/components/schemas/RegulatoryEffect'
       operationId: get-regeffect-id
       description: Look up a regulatory effect by database ID
-  '/dhsloc/{chromo}/{start}/{end}':
+  '/regionloc/{chromo}/{start}/{end}':
     parameters:
       - schema:
           type: string
@@ -160,7 +160,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DNARegion'
-      operationId: get-dhsloc-chromo-start-end
+      operationId: get-regionloc-chromo-start-end
       description: Look up all DHSs in a range
   '/feature/{id_type}/{feature_type}':
     parameters:

@@ -34,7 +34,7 @@ CEGSGenoverse = Genoverse.extend({
 });
 
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/dhsloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
+    url: "/search/regionloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
     dataRequestLimit: 5000000,
 });
 
@@ -394,8 +394,6 @@ Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend(
             feature.legend = "IG gene";
         }
 
-        console.log(feature.legend);
-
         feature.labelColor = feature.labelColor || feature.color;
     },
 });
@@ -414,13 +412,13 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
                 title: `<a target="_blank" href="${url}">DHS:${feature.id}</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
                 Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
-                "Closest Gene": `<a target="_blank" href="/search/gene/ensembl/${feature.closest_gene.id}">${feature.closest_gene_assembly.name} (${feature.closest_gene.id})</a>`,
+                "Closest Gene": `<a target="_blank" href="/search/feature/db/${feature.closest_gene_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
             };
 
             var i = 1;
             for (effect of feature.effects) {
                 for (assembly of effect.target_assemblies) {
-                    menu[`Target ${i}`] = `<a target="_blank" href="/search/gene/ensembl/${assembly.id}">${
+                    menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${assembly.id}">${
                         assembly.name
                     } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
                     i++;

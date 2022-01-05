@@ -206,7 +206,7 @@
         "description": "Look up a regulatory effect by database ID"
       }
     },
-    "/dhsloc/{chromo}/{start}/{end}": {
+    "/regionloc/{chromo}/{start}/{end}": {
       "parameters": [
         {
           "schema": {
@@ -251,7 +251,7 @@
             }
           }
         },
-        "operationId": "get-dhsloc-chromo-start-end",
+        "operationId": "get-regionloc-chromo-start-end",
         "description": "Look up all DHSs in a range"
       }
     },

@@ -1,3 +1,4 @@
+from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.models import DNARegion
 
 
@@ -11,11 +12,12 @@ def dnaregion(region: DNARegion, json_format=None):
         "start": region.location.lower,
         "end": region.location.upper,
         "closest_gene_id": region.closest_gene.id,
+        "closest_gene_ensembl_id": region.closest_gene.ensembl_id,
         "closest_gene_assembly_id": region.closest_gene_assembly.id,
         "closest_gene_name": region.closest_gene_name,
         "ref_genome": region.ref_genome,
         "ref_genome_patch": region.ref_genome_patch,
-        "effect_ids": [effect.id for effect in region.regulatory_effects.all()],
+        "effects": [regulatory_effect(effect) for effect in region.regulatory_effects.all()],
         "facets": [value.value for value in region.facet_values.all()],
         "type": region.region_type,
     }

@@ -62,7 +62,7 @@ class Feature(TemplateJsonView):
         return super().get(request, options, {"features": data, "feature_name": "Genome Features"})
 
     def get_data(self, options, id_type, feature_id):
-        features = FeatureSearch.id_search(id_type, feature_id, options["feature_types"], options["search_type"])
+        features = FeatureSearch.id_search(id_type, feature_id, options["search_type"])
         return {f: list(f.assemblies.all()) for f in features.all()}
 
     def get_json(self, _request, options, data, id_type, feature_id):
