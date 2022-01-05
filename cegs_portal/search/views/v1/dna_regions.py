@@ -1,10 +1,9 @@
 from django.core.paginator import Paginator
-from django.http.response import JsonResponse
 
+from cegs_portal.search.json_templates.v1.dna_region import dnaregions
 from cegs_portal.search.json_templates.v1.dna_region_exact import dnaregion
 from cegs_portal.search.view_models.v1 import DNARegionSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
-from cegs_portal.search.views.renderers import json
 
 DEFAULT_REGION_NAME = "DNA Region"
 DEFAULT_REGION_NAME_PLURAL = "DNA Regions"
@@ -68,6 +67,7 @@ class DNARegion(TemplateJsonView):
 
 
 class DNARegionLoc(TemplateJsonView):
+    json_renderer = dnaregions
     template = "search/v1/dna_regions.html"
 
     def request_options(self, request):
@@ -125,6 +125,3 @@ class DNARegionLoc(TemplateJsonView):
         )
 
         return region_list
-
-    def get_json(self, _request, options, data, chromo, start, end):
-        return JsonResponse([json(result, options["json_format"]) for result in data.all()], safe=False)
