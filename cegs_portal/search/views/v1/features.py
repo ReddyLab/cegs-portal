@@ -2,7 +2,6 @@ from cegs_portal.search.json_templates.v1.feature_exact import feature_exact
 from cegs_portal.search.json_templates.v1.features import features
 from cegs_portal.search.view_models.v1 import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
-from cegs_portal.search.views.renderers import json
 
 
 class FeatureEnsembl(TemplateJsonView):
@@ -64,9 +63,6 @@ class Feature(TemplateJsonView):
     def get_data(self, options, id_type, feature_id):
         features = FeatureSearch.id_search(id_type, feature_id, options["search_type"])
         return {f: list(f.assemblies.all()) for f in features.all()}
-
-    def get_json(self, _request, options, data, id_type, feature_id):
-        return super().get_json(_request, options, [json(result, options["json_format"]) for result in data])
 
 
 class FeatureLoc(TemplateJsonView):
