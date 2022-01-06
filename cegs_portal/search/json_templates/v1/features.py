@@ -1,4 +1,7 @@
-def features(feature_obj, json_format=None):
+from cegs_portal.search.models import Feature, FeatureAssembly
+
+
+def features(feature_obj: dict[Feature, FeatureAssembly], json_format: bool = None):
     feature_dict = [
         {
             "feature": feature(f, json_format),
@@ -10,7 +13,7 @@ def features(feature_obj, json_format=None):
     return feature_dict
 
 
-def feature(feature_obj, json_format=None):
+def feature(feature_obj: Feature, json_format: bool = None):
     result = {
         "ensembl_id": feature_obj.ensembl_id,
         "type": feature_obj.feature_type,
@@ -26,7 +29,7 @@ def feature(feature_obj, json_format=None):
     return result
 
 
-def assembly(feature_assembly, json_format=None):
+def assembly(feature_assembly: FeatureAssembly, json_format: bool = None):
     result = {
         "name": feature_assembly.name,
         "start": feature_assembly.location.lower,

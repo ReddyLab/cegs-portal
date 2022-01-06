@@ -1,4 +1,7 @@
-def experiment(experiment_obj, json_format=None):
+from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+
+
+def experiment(experiment_obj: Experiment, json_format: bool = None):
     return {
         "id": experiment_obj.id,
         "name": experiment_obj.name,
@@ -12,7 +15,7 @@ def experiment(experiment_obj, json_format=None):
     }
 
 
-def data_file(data_file_obj):
+def data_file(data_file_obj: ExperimentDataFile):
     return {
         "filename": data_file_obj.filename,
         "description": data_file_obj.description,
@@ -22,7 +25,7 @@ def data_file(data_file_obj):
     }
 
 
-def other_file(file_obj):
+def other_file(file_obj: File):
     return {
         "filename": file_obj.filename,
         "description": file_obj.description,

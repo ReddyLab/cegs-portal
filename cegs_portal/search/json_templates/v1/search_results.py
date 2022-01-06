@@ -1,8 +1,9 @@
+from typing import Any
+
 from cegs_portal.search.json_templates.v1.dna_region import dnaregions
 
 
-def search_results(results, json_format=None):
-    print(results)
+def search_results(results: dict[str:Any], json_format: bool = None):
     return {
         "location": {
             "assembly": results["loc_search"]["assembly"],
