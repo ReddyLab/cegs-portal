@@ -1,7 +1,6 @@
 from django.core.paginator import Paginator
 
-from cegs_portal.search.json_templates.v1.dna_region import dnaregions
-from cegs_portal.search.json_templates.v1.dna_region_exact import dnaregion
+from cegs_portal.search.json_templates.v1.dna_region import dnaregion, dnaregions
 from cegs_portal.search.view_models.v1 import DNARegionSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 

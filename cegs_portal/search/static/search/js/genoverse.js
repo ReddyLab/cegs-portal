@@ -49,10 +49,6 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     withEffectAndTargetColor: "#009e73",
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
-        if (feature.type != "dhs") {
-            return;
-        }
-
         feature.color = this.dhsColor;
         feature.legend = "DHS w/o Reg Effect";
 
@@ -213,7 +209,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     parseData: function (data, chr) {
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
-            feature.type = "dhs";
             if (feature.closest_gene) {
                 feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
             }
@@ -406,33 +401,32 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     view: Genoverse.Track.View.DHS,
     legend: true,
     populateMenu: function (feature) {
-        if (feature.type === "dhs") {
-            var url = `/search/dhs/${feature.id}`;
-            var menu = {
-                title: `<a target="_blank" href="${url}">DHS:${feature.id}</a>`,
-                Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-                Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
-                "Closest Gene": `<a target="_blank" href="/search/feature/db/${feature.closest_gene_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
-            };
+        var url = `/search/region/${feature.id}`;
+        var type = feature.type.toUpperCase();
+        var menu = {
+            title: `<a target="_blank" href="${url}">${type}: ${feature.id}</a>`,
+            Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
+            Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
+            "Closest Gene": `<a target="_blank" href="/search/feature/db/${feature.closest_gene_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+        };
 
-            var i = 1;
-            for (effect of feature.effects) {
-                for (assembly of effect.target_assemblies) {
-                    menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${assembly.id}">${
-                        assembly.name
-                    } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
-                    i++;
-                }
+        var i = 1;
+        for (effect of feature.effects) {
+            for (assembly of effect.target_assemblies) {
+                menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${assembly.id}">${
+                    assembly.name
+                } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
+                i++;
             }
-
-            return menu;
         }
+
+        return menu;
     },
 });
 
 Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
-    name: "DHSs w/ Effects",
+    name: "DHSs",
     labels: true,
     legend: false,
     model: Genoverse.Track.Model.DHS.Effects,

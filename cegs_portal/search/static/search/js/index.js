@@ -79,7 +79,7 @@ function regionTable(data, emptyString) {
                     e("span", `${region.start}-${region.end}`)
                 ]),
                 e("td", region.strand || "None"),
-                e("td", e("a", {href: `/search/feature/ensembl/${region.closest_gene.id}`}, `${region.closest_gene_name} (${region.closest_gene.id})`)),
+                e("td", e("a", {href: `/search/feature/ensembl/${region.closest_gene_id}`}, `${region.closest_gene_name} (${region.closest_gene_id})`)),
                 e("td", `${region.ref_genome}.${region.ref_genome_patch || 0}`),
                 e("td", e("a", {href: `/search/region/${region.id}`}, "More...")),
             ])

@@ -7,7 +7,7 @@
             <td>{{ region.strand }}</td>
             <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }} ({{ region.closest_gene.ensembl_id }})</a></td>
             <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
-            <td><a href="{% url 'search:dhs' region.id %}">More...</a></td>
+            <td><a href="{% url 'search:region' region.id %}">More...</a></td>
         </tr>
         {% endfor %}
     </table>

@@ -109,7 +109,7 @@ svg > g > text {
                         return response.json();
                     })
                     .then(data => {
-                        g("dnaregion").replaceWith(regionTable(data["dhss"], "No DHSs Found"));
+                        g("dnaregion").replaceWith(regionTable(data["regions"], "No DHSs Found"));
                     })
                     .catch((error) => {
                         console.error(error);
