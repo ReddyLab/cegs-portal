@@ -93,8 +93,7 @@ class Search:
         sites = None
         if location is not None:
             sites = cls._dnaregion_search(location, assembly_name, facets, region_type=["dhs"])
-
-        facets = Facet.objects.all().prefetch_related("values")
+        facet_results = Facet.objects.all().prefetch_related("values")
 
         return {
             "loc_search": {
@@ -102,8 +101,5 @@ class Search:
                 "assembly": assembly_name,
             },
             "dhss": sites,
-            "facets": facets,
+            "facets": facet_results,
         }
-
-    def facets(self):
-        pass
