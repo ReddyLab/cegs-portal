@@ -1,5 +1,5 @@
 from .dna_region import DNARegion
-from .experiment import Experiment, ExperimentDataFile
+from .experiment import CellLine, Experiment, ExperimentDataFile, TissueType
 from .facets import Facet, FacetedModel, FacetValue
 from .features import Feature, FeatureAssembly
 from .file import File
