@@ -1,10 +1,12 @@
 from typing import Iterable
 
 import pytest
+from django.db.models import Manager
 
 from cegs_portal.search.models import (
     Experiment,
     ExperimentDataFile,
+    Facet,
     Feature,
     FeatureAssembly,
     File,
@@ -17,6 +19,10 @@ from cegs_portal.search.models.tests.experiment_factory import (
     ExperimentDataFileFactory,
     ExperimentFactory,
     TissueTypeFactory,
+)
+from cegs_portal.search.models.tests.facet_factory import (
+    FacetFactory,
+    FacetValueFactory,
 )
 from cegs_portal.search.models.tests.features_factory import (
     FeatureAssemblyFactory,
@@ -77,3 +83,14 @@ def reg_effect() -> RegulatoryEffect:
         ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
     )
     return effect
+
+
+@pytest.fixture
+def facets() -> Manager[Facet]:
+    f1 = FacetFactory()
+    f2 = FacetFactory()
+    _ = FacetValueFactory(facet=f1)
+    _ = FacetValueFactory(facet=f1)
+    _ = FacetValueFactory(facet=f2)
+    _ = FacetValueFactory(facet=f2)
+    return Facet.objects

@@ -4,13 +4,15 @@ from django.http import HttpResponseServerError
 
 from cegs_portal.search.errors import SearchResultsException
 from cegs_portal.search.forms import SearchForm
-from cegs_portal.search.json_templates.v1.search_results import search_results
+from cegs_portal.search.json_templates.v1.search_results import (
+    search_results as sr_json,
+)
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class SearchView(TemplateJsonView):
-    json_renderer = search_results
+    json_renderer = sr_json
     template = "search/v1/search_results.html"
 
     def request_options(self, request):
