@@ -1,7 +1,5 @@
 from typing import Iterable
 
-from django.core.paginator import Page
-
 from cegs_portal.search.models import (
     DNARegion,
     Feature,
@@ -14,7 +12,7 @@ def dnaregions(regions: list[DNARegion], json_format: str = None):
     return [_dnaregion(region, region.regulatory_effects.all(), json_format) for region in regions]
 
 
-def dnaregion(region: tuple[DNARegion, Page], json_format: str = None):
+def dnaregion(region: tuple[DNARegion, Iterable], json_format: str = None):
     return _dnaregion(region[0], region[1], json_format)
 
 
@@ -56,7 +54,7 @@ def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None):
         "raw_p_value": reg_effect.raw_p_value,
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
         "targets": [feature_exact(target, json_format) for target in reg_effect.targets.all()],
-        "target_assemblies": [assembly(target, json_format) for target in reg_effect.targets.all()],
+        "target_assemblies": [assembly(target, json_format) for target in reg_effect.target_assemblies.all()],
     }
 
 

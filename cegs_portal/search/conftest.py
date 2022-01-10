@@ -1,13 +1,29 @@
+from typing import Iterable
+
 import pytest
 
-from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+from cegs_portal.search.models import (
+    Experiment,
+    ExperimentDataFile,
+    Feature,
+    FeatureAssembly,
+    File,
+    RegulatoryEffect,
+)
+from cegs_portal.search.models.dna_region import DNARegion
+from cegs_portal.search.models.tests.dna_region_factory import DNARegionFactory
 from cegs_portal.search.models.tests.experiment_factory import (
     CellLineFactory,
     ExperimentDataFileFactory,
     ExperimentFactory,
     TissueTypeFactory,
 )
+from cegs_portal.search.models.tests.features_factory import (
+    FeatureAssemblyFactory,
+    FeatureFactory,
+)
 from cegs_portal.search.models.tests.file_factory import FileFactory
+from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 
 
 @pytest.fixture
@@ -31,3 +47,29 @@ def other_file() -> File:
 @pytest.fixture(name="other_file")
 def of() -> File:
     return other_file()
+
+
+@pytest.fixture
+def regions() -> list[DNARegion]:
+    return [DNARegionFactory(), DNARegionFactory(), DNARegionFactory()]
+
+
+@pytest.fixture
+def region_tuple() -> tuple[DNARegion, Iterable]:
+    return (DNARegionFactory(), [])
+
+
+@pytest.fixture
+def feature() -> Feature:
+    parent = FeatureFactory(parent=None)
+    return FeatureFactory(parent=parent)
+
+
+@pytest.fixture
+def assembly() -> FeatureAssembly:
+    return FeatureAssemblyFactory()
+
+
+@pytest.fixture
+def reg_effect() -> RegulatoryEffect:
+    return RegEffectFactory()
