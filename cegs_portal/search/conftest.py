@@ -72,4 +72,8 @@ def assembly() -> FeatureAssembly:
 
 @pytest.fixture
 def reg_effect() -> RegulatoryEffect:
-    return RegEffectFactory()
+    effect = RegEffectFactory()
+    effect.experiment.data_files.add(
+        ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
+    )
+    return effect
