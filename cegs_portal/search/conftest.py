@@ -56,6 +56,11 @@ def of() -> File:
 
 
 @pytest.fixture
+def region() -> DNARegion:
+    return DNARegionFactory()
+
+
+@pytest.fixture
 def regions() -> list[DNARegion]:
     return [DNARegionFactory(), DNARegionFactory(), DNARegionFactory()]
 
@@ -79,17 +84,20 @@ def features() -> dict[Feature, list[FeatureAssembly]]:
 @pytest.fixture
 def feature() -> Feature:
     parent = FeatureFactory(parent=None)
-    return FeatureFactory(parent=parent)
+    f1 = FeatureFactory(parent=parent)
+    _ = [FeatureAssemblyFactory(feature=f1), FeatureAssemblyFactory(feature=f1)]
+    return f1
 
 
 @pytest.fixture
 def assembly() -> FeatureAssembly:
-    return FeatureAssemblyFactory()
+    f1 = FeatureFactory(parent=None)
+    return FeatureAssemblyFactory(feature=f1)
 
 
 @pytest.fixture
 def reg_effect() -> RegulatoryEffect:
-    effect = RegEffectFactory()
+    effect = RegEffectFactory(sources=(DNARegionFactory(), DNARegionFactory()))
     effect.experiment.data_files.add(
         ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
     )
