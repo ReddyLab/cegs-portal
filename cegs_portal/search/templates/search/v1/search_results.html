@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% load waffle_tags %}
 {% block title %}Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
@@ -57,7 +58,9 @@ svg > g > text {
             <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}: {{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
             <div class="p-2" id="genoverse"></div>
             {% endif %}
+            {% switch "effect_plot" %}
             <div id="plot"></div>
+            {% endswitch %}
             {% with all_dhss=dhss.all %}
             {% if all_dhss|length > 0 %}
             <div class="my-4">
@@ -115,9 +118,10 @@ svg > g > text {
                         console.error(error);
                     });
 
-        }, 500, { 'leading': true }))
-    })
+            }, 500, { 'leading': true }))
+        })
 
+        {% switch "effect_plot" %}
         // Show the plot
         function geneDHSPlot(data) {
             let dhssWithTargets = data.filter(dhs => dhs.effects.length > 0 && dhs.effects.filter(effect => effect.targets.length > 0).length > 0);
@@ -193,6 +197,7 @@ svg > g > text {
                 rc(genePlot, plotNode);
             }
         }
+        {% endswitch %}
 
         {% if loc_search.location %}
         // Show the browser
@@ -208,7 +213,7 @@ svg > g > text {
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
-            sharedStateCallbacks: [_ul, applyPlot],
+            sharedStateCallbacks: [_ul{% switch "effect_plot" %}, applyPlot{% endswitch %}],
             width: 1200,
             tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
