@@ -1,7 +1,7 @@
 from cegs_portal.search.models import Feature, FeatureAssembly
 
 
-def features(feature_obj: dict[Feature, FeatureAssembly], json_format: bool = None):
+def features(feature_obj: dict[Feature, list[FeatureAssembly]], json_format: bool = None):
     feature_dict = [
         {
             "feature": feature(f, json_format),
