@@ -1,16 +1,10 @@
-from .experiment import Experiment
-from .gff3 import (
-    Exon,
-    ExonAssembly,
-    GencodeGFF3Annotation,
-    GencodeGFF3Attribute,
-    GencodeGFF3Entry,
-    GencodeGFF3Region,
-    Gene,
-    GeneAssembly,
-    Transcript,
-    TranscriptAssembly,
-)
-from .reg_effects import DNaseIHypersensitiveSite, RegulatoryEffect
-from .utils import ChromosomeLocation
+from .dna_region import DNARegion
+from .experiment import CellLine, Experiment, ExperimentDataFile, TissueType
+from .facets import Facet, FacetedModel, FacetValue
+from .features import Feature, FeatureAssembly
+from .file import File
+from .gene_annotation import GencodeAnnotation, GencodeRegion
+from .reg_effects import EffectDirectionType, RegulatoryEffect
+from .searchable import Searchable
+from .utils import ChromosomeLocation, QueryToken
 from .variants import Subject, Variant, VCFEntry, VCFFile

@@ -1,0 +1,14 @@
+{% spaceless %}
+    <table id="dnaregion" class="data-table"><tr><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th><th></th></tr>
+        {% for region in regions %}
+        <tr>
+            <td>{{ region.cell_line }}</td>
+            <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
+            <td>{{ region.strand }}</td>
+            <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }} ({{ region.closest_gene.ensembl_id }})</a></td>
+            <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
+            <td><a href="{% url 'search:region' region.id %}">More...</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endspaceless %}

@@ -1,0 +1,325 @@
+openapi: 3.1.0
+info:
+  title: CCGR Portal v1
+  version: '1.0'
+  contact:
+    name: Thomas Cowart
+    email: thomas.cowart@duke.edu
+  description: 'APIs for searching the CCGR Portal Additionally, individual Genes, DHSs, Regulatory Effects, and Experiments can be retrieved.'
+  summary: APIs for genetic information from CCGR portal
+servers:
+  - url: 'http://localhost:3000/search/v1'
+paths:
+  /results:
+    get:
+      summary: Search
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get-results
+      description: Generic search endpoint
+  '/feature/ensembl/{feature_id}':
+    parameters:
+      - schema:
+          type: string
+        name: feature_id
+        in: path
+        required: true
+    get:
+      summary: Gene by Ensembl ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feature'
+      operationId: get-feature-ensembl-feature_id
+      description: 'Look up features (genes, transcripts, exons) by ensembl ID.'
+  '/featureloc/{chromo}/{start}/{end}':
+    parameters:
+      - schema:
+          type: string
+        name: chromo
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: start
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: end
+        in: path
+        required: true
+    get:
+      summary: Features in a range
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feature'
+      operationId: get-featureloc-chromo-start-end
+      description: 'Find all features (genes, transcripts, exons) within a range'
+  '/dhs/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: DHS by Id
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DNARegion'
+      operationId: get-dhs-id
+      description: Look up a DHS by database ID
+  '/experiment/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Experiment by ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+      operationId: get-experiment-id
+      description: Look up an experiment by database ID
+  '/regeffect/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Regulatory Effect by ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryEffect'
+      operationId: get-regeffect-id
+      description: Look up a regulatory effect by database ID
+  '/regionloc/{chromo}/{start}/{end}':
+    parameters:
+      - schema:
+          type: string
+        name: chromo
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: start
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: end
+        in: path
+        required: true
+    get:
+      summary: DHSs in a range
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DNARegion'
+      operationId: get-regionloc-chromo-start-end
+      description: Look up all DHSs in a range
+  '/feature/{id_type}/{feature_type}':
+    parameters:
+      - schema:
+          type: string
+        name: id_type
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: feature_type
+        in: path
+        required: true
+    get:
+      summary: Gene(s) by type
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feature'
+      operationId: get-feature-id_type-feature_type
+      description: 'Look up features (genes, transcripts, exons) by id'
+components:
+  schemas:
+    ChromosomeLocation:
+      title: ChromosomeLocation
+      type: object
+      properties:
+        chromo:
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+    DNARegion:
+      title: DNARegion
+      type: object
+      properties:
+        cell_line:
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+        closest_gene:
+          $ref: '#/components/schemas/Feature'
+        closest_gene_assembly:
+          $ref: '#/components/schemas/FeatureAssembly'
+        closest_gene_id:
+          type: integer
+        closest_gene_name:
+          type: string
+        ref_genome:
+          type: string
+        ref_genome_patch:
+          type: string
+        effects:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatoryEffect'
+        facet_values:
+          type: object
+          description: the keys are numeric IDs (numbers) and the values are the facet values (strings)
+        type:
+          type: string
+        id:
+          type:
+            - string
+            - number
+        chr:
+          type: string
+    Experiment:
+      title: Experiment
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Facet:
+      title: Facet
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetValue'
+    FacetValue:
+      title: FacetValue
+      type: object
+      properties:
+        id:
+          type: number
+        value:
+          type: string
+    Feature:
+      title: Feature
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        subtype:
+          type: string
+        misc:
+          type: object
+        parent:
+          type: string
+    FeatureAssembly:
+      title: FeatureAssembly
+      type: object
+      properties:
+        id:
+          type: string
+        chr:
+          type: string
+        name:
+          type: string
+        start:
+          type: string
+        end:
+          type: string
+        strand:
+          type: string
+        ids:
+          type: object
+        ref_genome:
+          type: string
+        ref_genome_patch:
+          type: string
+        feature:
+          $ref: '#/components/schemas/Feature'
+    RegulatoryEffect:
+      title: RegulatoryEffect
+      type: object
+      properties:
+        id:
+          type: number
+        direction:
+          type: string
+        effect_size:
+          type: number
+        significance:
+          type: number
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+        target_assemblies:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureAssembly'

@@ -1,14 +1,31 @@
-from django.urls import path
+from typing import Union, cast
+
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import URLPattern, URLResolver, path
 
 from . import views
 
 app_name = "search"
 urlpatterns = [
     path("", views.index, name="index"),
-    path("results/", views.results, name="results"),
-    path("gene/<str:id_type>/<str:id>", views.gene, name="genes"),
-    path("geneloc/<str:chr>/<int:start>/<int:end>", views.gene_loc, name="gene_loc"),
-    path("dhs/<int:id>", views.dhs, name="dhs"),
-    path("dhsloc/<str:chr>/<int:start>/<int:end>", views.dhs_loc, name="dhs_loc"),
-    path("experiment/<int:id>", views.experiment, name="experiment"),
-]
+    path("results/", views.v1.SearchView.as_view(), name="results"),
+    path("feature/ensembl/<str:feature_id>", views.v1.FeatureEnsembl.as_view(), name="feature_ensembl"),
+    path("feature/<str:id_type>/<str:feature_id>", views.v1.Feature.as_view(), name="features"),
+    path("featureloc/<str:chromo>/<int:start>/<int:end>", views.v1.FeatureLoc.as_view(), name="feature_loc"),
+    path("region/<int:region_id>", views.v1.DNARegion.as_view(), name="region"),
+    path("regionloc/<str:chromo>/<int:start>/<int:end>", views.v1.DNARegionLoc.as_view(), name="region_loc"),
+    path("experiment/<int:exp_id>", views.v1.ExperimentView.as_view(), name="experiment"),
+    path("regeffect/<int:re_id>", views.v1.RegEffectView.as_view(), name="reg_effect"),
+    path("v1/results/", views.v1.SearchView.as_view()),
+    path("v1/feature/ensembl/<str:feature_id>", views.v1.FeatureEnsembl.as_view()),
+    path("v1/feature/<str:id_type>/<str:feature_id>", views.v1.Feature.as_view()),
+    path("v1/featureloc/<str:chromo>/<int:start>/<int:end>", views.v1.FeatureLoc.as_view()),
+    path("v1/region/<int:region_id>", views.v1.DNARegion.as_view()),
+    path("v1/regionloc/<str:chromo>/<int:start>/<int:end>", views.v1.DNARegionLoc.as_view()),
+    path("v1/experiment/<int:exp_id>", views.v1.ExperimentView.as_view()),
+    path("v1/regeffect/<int:re_id>", views.v1.RegEffectView.as_view()),
+] + cast(
+    list[Union[URLPattern, URLResolver]],
+    static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1")),
+)

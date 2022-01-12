@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DNaseIHypersensitiveSite, RegulatoryEffect
+from cegs_portal.search.models import DNARegion, RegulatoryEffect
 
-admin.site.register(DNaseIHypersensitiveSite)
+admin.site.register(DNARegion)
 admin.site.register(RegulatoryEffect)

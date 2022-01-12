@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>DHS Search</title>
-        {% load static %}
-        <link rel="stylesheet" href="{% static 'search/base.css' %}">
-    </head>
-    <body>
-        <div id="content">
-            <h2>Searching for DNase I Hypersensitive Sites</h2>
-            <form action="{% url 'search:results' %}" method="get">
-                {{ form }}
-                <input type="submit" value="Search">
-            </form>
-            <div><a href="{% url 'uploads:upload' %}">Upload Data</a></div>
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="bg-blue-50 border-2 border-color rounded-md p-4">
+    <div class="text-2xl font-bold mb-2">Search for Genes and Regulatory Elements</div>
+    <form action="{% url 'search:results' %}" method="get" class="search">
+        <div class="searchwrapper">
+            {{ form }}
+            <input type="submit" value="Go" class="search-button">
         </div>
-    </body>
-</html>
+    </form>
+    <div class="text-m">Enter Ensembl IDs and chromosome ranges</div>
+</div>
+{% endblock %}

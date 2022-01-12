@@ -2,6 +2,6 @@
 # ------------------------------------------------------------------------------
 POSTGRES_HOST=127.0.0.1
 POSTGRES_PORT=5432
-POSTGRES_DB=postgres
+POSTGRES_DB=cegs_portal
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=test_password

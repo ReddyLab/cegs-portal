@@ -1,5 +1,2 @@
-from .experiment import experiment
-from .genes import gene, gene_loc
+from . import v1
 from .index import index
-from .reg_effects import dhs, dhs_loc
-from .search import results
