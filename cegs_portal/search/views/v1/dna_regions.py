@@ -29,7 +29,7 @@ class DNARegion(TemplateJsonView):
                 * in
         """
         options = super().request_options(request)
-        options["page"] = int(request.GET.get("page", 1))
+        options["re_page"] = int(request.GET.get("re_page", 1))
         return options
 
     def get(self, request, options, data, region_id):
@@ -48,7 +48,7 @@ class DNARegion(TemplateJsonView):
     def get_data(self, options, region_id):
         region, reg_effects = DNARegionSearch.id_search(region_id)
         reg_effect_paginator = Paginator(reg_effects, 20)
-        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["re_page"])
 
         for reg_effect in reg_effect_page:
             setattr(
@@ -88,6 +88,7 @@ class DNARegionLoc(TemplateJsonView):
         options = super().request_options(request)
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["assembly"] = request.GET.get("assembly", None)
+        options["page"] = int(request.GET.get("page", 1))
         options["region_properties"] = request.GET.getlist("property")
         options["response_format"] = request.GET.get("format", None)
         options["region_types"] = request.GET.getlist("region_type")
@@ -123,4 +124,7 @@ class DNARegionLoc(TemplateJsonView):
             region_types=options["region_types"],
         )
 
-        return region_list
+        region_list_paginator = Paginator(region_list, 20)
+        region_list_page = region_list_paginator.get_page(options["page"])
+
+        return region_list_page

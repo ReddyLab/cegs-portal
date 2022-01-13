@@ -21,6 +21,23 @@
             <div class="p-2" id="genoverse"></div>
             <div class="text-xl font-bold">Sites</div>
             {% include "search/v1/partials/_dnaregion.html" with regions=regions %}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if regions.has_previous %}
+                        <a href="?page=1">&laquo; first</a>
+                        <a href="?page={{ regions.previous_page_number }}">previous</a>
+                    {% endif %}
+
+                    <span class="current">
+                        Page {{ regions.number }} of {{ regions.paginator.num_pages }}
+                    </span>
+
+                    {% if regions.has_next %}
+                        <a href="?page={{ regions.next_page_number }}">next</a>
+                        <a href="?page={{ regions.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </div>
 {% endblock %}
