@@ -71,14 +71,27 @@ def region_tuple() -> tuple[DNARegion, Iterable]:
 
 
 @pytest.fixture
+def feature_assemblies() -> Iterable[FeatureAssembly]:
+    f1 = FeatureFactory(parent=None)
+    f2 = FeatureFactory(parent=None)
+    f3 = FeatureFactory(parent=None)
+    fa1a = FeatureAssemblyFactory(feature=f1)
+    fa1b = FeatureAssemblyFactory(feature=f1)
+    fa2a = FeatureAssemblyFactory(feature=f2)
+    fa3a = FeatureAssemblyFactory(feature=f3)
+    fa3b = FeatureAssemblyFactory(feature=f3)
+    return [fa1a, fa1b, fa2a, fa3a, fa3b]
+
+
+@pytest.fixture
 def features() -> dict[Feature, list[FeatureAssembly]]:
     f1 = FeatureFactory(parent=None)
     f2 = FeatureFactory(parent=None)
     f3 = FeatureFactory(parent=None)
-    fa1 = [FeatureAssemblyFactory(feature=f1), FeatureAssemblyFactory(feature=f1)]
-    fa2 = [FeatureAssemblyFactory(feature=f2)]
-    fa3 = [FeatureAssemblyFactory(feature=f3), FeatureAssemblyFactory(feature=f3)]
-    return {f1: fa1, f2: fa2, f3: fa3}
+    _ = [FeatureAssemblyFactory(feature=f1), FeatureAssemblyFactory(feature=f1)]
+    _ = [FeatureAssemblyFactory(feature=f2)]
+    _ = [FeatureAssemblyFactory(feature=f3), FeatureAssemblyFactory(feature=f3)]
+    return [f1, f2, f3]
 
 
 @pytest.fixture

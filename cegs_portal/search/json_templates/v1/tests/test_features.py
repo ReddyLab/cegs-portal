@@ -1,20 +1,51 @@
+from typing import Iterable
+
 import pytest
 
 from cegs_portal.search.json_templates.v1.features import assembly as a_json
 from cegs_portal.search.json_templates.v1.features import feature as f_json
+from cegs_portal.search.json_templates.v1.features import feature_assemblies as fa_json
 from cegs_portal.search.json_templates.v1.features import features as fs_json
 from cegs_portal.search.models import Feature, FeatureAssembly
 
 pytestmark = pytest.mark.django_db
 
 
-def test_features(features: dict[Feature, list[FeatureAssembly]]):
+def test_feature_assemblies(feature_assemblies: Iterable[FeatureAssembly]):
+    feature_dict = {}
+    for a in feature_assemblies:
+        a_list = feature_dict.get(a.feature, [])
+        a_list.append(a)
+        feature_dict[a.feature] = a_list
+
     result = [
         {
             "feature": f_json(f),
-            "assemblies": [a_json(a) for a in assemblies],
+            "assemblies": [a_json(a) for a in a_list],
         }
-        for f, assemblies in features.items()
+        for f, a_list in feature_dict.items()
+    ]
+
+    assert fa_json(feature_assemblies) == result
+
+    result = [
+        {
+            "feature": f_json(f, json_format="genoverse"),
+            "assemblies": [a_json(a, json_format="genoverse") for a in a_list],
+        }
+        for f, a_list in feature_dict.items()
+    ]
+
+    assert fa_json(feature_assemblies, json_format="genoverse") == result
+
+
+def test_features(features: Iterable[Feature]):
+    result = [
+        {
+            "feature": f_json(f),
+            "assemblies": [a_json(a) for a in f.assemblies.all()],
+        }
+        for f in features
     ]
 
     assert fs_json(features) == result
@@ -22,9 +53,9 @@ def test_features(features: dict[Feature, list[FeatureAssembly]]):
     result = [
         {
             "feature": f_json(f, json_format="genoverse"),
-            "assemblies": [a_json(a, json_format="genoverse") for a in assemblies],
+            "assemblies": [a_json(a, json_format="genoverse") for a in f.assemblies.all()],
         }
-        for f, assemblies in features.items()
+        for f in features
     ]
 
     assert fs_json(features, json_format="genoverse") == result

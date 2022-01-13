@@ -1,13 +1,33 @@
+from typing import Iterable
+
 from cegs_portal.search.models import Feature, FeatureAssembly
 
 
-def features(feature_obj: dict[Feature, list[FeatureAssembly]], json_format: bool = None):
+def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: bool = None):
+    feature_dict = {}
+    for a in assembly_obj:
+        a_list = feature_dict.get(a.feature, [])
+        a_list.append(a)
+        feature_dict[a.feature] = a_list
+
+    feature_dicts = [
+        {
+            "feature": feature(f, json_format),
+            "assemblies": [assembly(a, json_format) for a in a_list],
+        }
+        for f, a_list in feature_dict.items()
+    ]
+
+    return feature_dicts
+
+
+def features(feature_obj: Iterable[Feature], json_format: bool = None):
     feature_dict = [
         {
             "feature": feature(f, json_format),
-            "assemblies": [assembly(a, json_format) for a in assemblies],
+            "assemblies": [assembly(a, json_format) for a in f.assemblies.all()],
         }
-        for f, assemblies in feature_obj.items()
+        for f in feature_obj
     ]
 
     return feature_dict
