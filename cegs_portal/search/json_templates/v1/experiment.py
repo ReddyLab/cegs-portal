@@ -1,4 +1,19 @@
+from typing import Iterable
+
 from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+
+
+def experiments(experiments_obj: Iterable[Experiment]):
+    return [
+        {
+            "id": e.id,
+            "name": e.name,
+            "description": e.description,
+            "cell_lines": e.cell_lines,
+            "tissue_types": e.tissue_types,
+        }
+        for e in experiments_obj
+    ]
 
 
 def experiment(experiment_obj: Experiment, json_format: bool = None):

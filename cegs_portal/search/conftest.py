@@ -37,6 +37,14 @@ def experiment() -> Experiment:
     return ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
 
 
+@pytest.fixture
+def experiments() -> Iterable[Experiment]:
+    e1 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e2 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e3 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    return [e1, e2, e3]
+
+
 def data_file() -> ExperimentDataFile:
     return ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
 

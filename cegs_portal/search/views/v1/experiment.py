@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment
@@ -29,3 +30,28 @@ class ExperimentView(TemplateJsonView):
         setattr(experi, "assemblies", experi_assemblies)
 
         return experi
+
+
+class ExperimentListView(TemplateJsonView):
+    json_renderer = experiment
+    template = "search/v1/experiment_list.html"
+    template_data_name = "experiments"
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+        """
+        options = super().request_options(request)
+        options["page"] = int(request.GET.get("page", 1))
+        return options
+
+    def get_data(self, options):
+        experiments = ExperimentSearch.all()
+        experiments_paginator = Paginator(experiments, 20)
+        experiments_page = experiments_paginator.get_page(options["page"])
+        return experiments_page
