@@ -21,7 +21,7 @@
             <div class="p-2" id="genoverse"></div>
             <div class="text-xl font-bold">Sites</div>
             {% include "search/v1/partials/_dnaregion.html" with regions=regions %}
-            <div class="pagination">
+            <div id="region_pagination" class="pagination">
                 <span class="step-links">
                     {% if regions.has_previous %}
                         <a href="?page=1">&laquo; first</a>
@@ -53,7 +53,8 @@
                     return response.json()
                 })
                 .then(data => {
-                    document.getElementById("dnaregion").replaceWith(regionTable(data, "No {{ region_type_name }}"))
+                    document.getElementById("dnaregion").replaceWith(regionTable(data["regions"], "No {{ region_type_name }}"));
+                    document.getElementById("region_pagination").replaceWith(newPagination(data));
                 });
 
         }, 500, { 'leading': true }));

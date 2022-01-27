@@ -125,6 +125,4 @@ class DNARegionLoc(TemplateJsonView):
         )
 
         region_list_paginator = Paginator(region_list, 20)
-        region_list_page = region_list_paginator.get_page(options["page"])
-
-        return region_list_page
+        return region_list_paginator.get_page(options["page"])

@@ -52,8 +52,8 @@ function rc(p, c) {
     a(p, c);
 }
 
-function regionTable(data, emptyString) {
-    if (data.length == 0) {
+function regionTable(regions, emptyString) {
+    if (regions.length == 0) {
         return e("div", {id: "dnaregion"}, t(emptyString));
     }
 
@@ -68,7 +68,7 @@ function regionTable(data, emptyString) {
             e("th"),
         ])
     ])
-    for(region of data) {
+    for(region of regions) {
         newTable.append(
             e("tr", [
                 e("td", region.type),
@@ -86,4 +86,29 @@ function regionTable(data, emptyString) {
         )
     }
     return newTable;
+}
+
+function newPagination(page_data) {
+    let stepLinks = [];
+    if(page_data["has_prev_page"]) {
+        stepLinks.push(e("a", {href: "?page=1"}, t("« first")))
+        stepLinks.push(t(" "))
+        stepLinks.push(e("a", {href: `?page=${page_data["page"] - 1}`}, t("previous")))
+        stepLinks.push(t(" "))
+    }
+
+    stepLinks.push(e("span", {class:"current"}, t(`Page ${page_data["page"]} of ${page_data["num_pages"]}`)))
+
+    if(page_data["has_next_page"]) {
+        stepLinks.push(t(" "))
+        stepLinks.push(e("a", {href: `?page=${page_data["page"] + 1}`}, t("next")))
+        stepLinks.push(t(" "))
+        stepLinks.push(e("a", {href: `?page=${page_data["num_pages"]}`}, t("last »")))
+    }
+
+    return e("div", {class:"pagination", "id":"region_pagination"}, [
+            e("span", {class: "step-links"}, stepLinks)
+        ]
+    )
+
 }

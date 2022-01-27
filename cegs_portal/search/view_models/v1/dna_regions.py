@@ -95,6 +95,7 @@ class DNARegionSearch:
 
         if "reg_effect" in region_properties:
             dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
+
         if "effect_label" in region_properties:
             for region in dna_regions:
                 reg_effects = region.regulatory_effects.all()
