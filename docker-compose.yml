@@ -7,6 +7,8 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: test_password
+      POSTGRES_DATABASE: cegs_portal
 volumes:
   pg_data:

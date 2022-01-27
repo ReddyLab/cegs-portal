@@ -13,16 +13,30 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ## Set up Devlopment Environment
 
-First, clone this repository. This is a Django 3.2 project that requires at least Python 3.8. Additionally you'll need at least Node.js 14.17 for auto-reloading and CSS compilation. The easiest way to set up a database is using docker compose so that's another thing to install, sorry.
+First, clone this repository. This is a Django 4.0 project that requires Python >= 3.9. Additionally you'll need at least Node.js 14.17 for CSS auto-reloading and compilation. The easiest way to set up the database is using Docker compose.
 
-Once you have all those installed you need to install dependencies.
+These instructions are for unix/linux systems. Windows users should use WSL to run the portal.
 
+### Pre-reqs
+* python >= 3.9
+* docker
+* Node.js >= 14.17
+
+Once you have the repository cloned and the pre-reqs installed you need to install the dependencies.
+
+    $ cd [portal directory]
+    $ # set up "virtual environment" using method of your choice (optional)
     $ pip install -r requirements/local.txt
     $ npm install
 
 Then you can start the database:
 
     $ docker compose up -d
+
+You'll need to set a few environment variables:
+
+    $ export DATABASE_URL=postgres://postgres:test_password@127.0.0.1:5432/cegs_portal
+    $ export USE_DOCKER=no
 
 Now you must run the database migrations:
 
@@ -32,8 +46,7 @@ And start the server:
 
     $ npm run dev
 
-This will launch django and begin the tailwind CSS compiler. When you edit a file either server will restart. If you edit the project.css.tw file it will
-get recompiled (and the server will restart).
+This will launch django and the tailwind CSS compiler. When you edit a file the django server will restart. If you edit the project.css.tw file it will get recompiled.
 
 ## Loading sample data
 
