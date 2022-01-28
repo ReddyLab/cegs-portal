@@ -30,6 +30,7 @@ from cegs_portal.search.models.tests.features_factory import (
 )
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
+from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 
 @pytest.fixture
@@ -69,8 +70,27 @@ def region() -> DNARegion:
 
 
 @pytest.fixture
-def regions() -> list[DNARegion]:
-    return [DNARegionFactory(), DNARegionFactory(), DNARegionFactory()]
+def regions() -> Pageable[DNARegion]:
+    paginator = MockPaginator(
+        [
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+            DNARegionFactory(),
+        ],
+        3,
+    )
+    return paginator.page(2)
 
 
 @pytest.fixture

@@ -13,6 +13,7 @@ from cegs_portal.search.models import (
     FeatureAssembly,
     RegulatoryEffect,
 )
+from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
 
@@ -78,11 +79,20 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
     return result
 
 
-def test_dna_regions(regions: list[DNARegion]):
-    assert drs_json(regions) == [_dnaregion(region, region.regulatory_effects.all()) for region in regions]
-    assert drs_json(regions, json_format="genoverse") == [
+def test_dna_regions(regions: Pageable[DNARegion]):
+    result = {
+        "regions": [_dnaregion(region, region.regulatory_effects.all()) for region in regions.object_list],
+        "page": regions.number,
+        "has_next_page": regions.has_next(),
+        "has_prev_page": regions.has_previous(),
+        "num_pages": regions.paginator.num_pages,
+    }
+    assert drs_json(regions) == result
+
+    result["regions"] = [
         _dnaregion(region, region.regulatory_effects.all(), json_format="genoverse") for region in regions
     ]
+    assert drs_json(regions, json_format="genoverse") == result
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffect):

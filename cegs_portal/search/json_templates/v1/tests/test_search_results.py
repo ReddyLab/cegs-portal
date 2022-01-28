@@ -7,11 +7,12 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.models import DNARegion, Facet
 from cegs_portal.search.models.utils import ChromosomeLocation
+from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
 
 
-def test_search_results(regions: list[DNARegion], facets: Manager[Facet]):
+def test_search_results(regions: Pageable[DNARegion], facets: Manager[Facet]):
     search_results = {
         "loc_search": {
             "location": ChromosomeLocation("chr1", 10_000, 15_000),
