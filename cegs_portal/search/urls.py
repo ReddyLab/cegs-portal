@@ -1,8 +1,6 @@
-from typing import Union, cast
-
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import URLPattern, URLResolver, path
+from django.urls import path
 
 from . import views
 
@@ -27,7 +25,4 @@ urlpatterns = [
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
     path("v1/experiment/<int:exp_id>", views.v1.ExperimentView.as_view()),
     path("v1/regeffect/<int:re_id>", views.v1.RegEffectView.as_view()),
-] + cast(
-    list[Union[URLPattern, URLResolver]],
-    static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1")),
-)
+] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))
