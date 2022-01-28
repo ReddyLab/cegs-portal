@@ -2,6 +2,7 @@ import pytest
 from django.db.models import Manager
 
 from cegs_portal.search.json_templates.v1.dna_region import dnaregions
+from cegs_portal.search.json_templates.v1.search_results import SearchResults
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
@@ -13,9 +14,9 @@ pytestmark = pytest.mark.django_db
 
 
 def test_search_results(regions: Pageable[DNARegion], facets: Manager[Facet]):
-    search_results = {
+    search_results: SearchResults = {
         "loc_search": {
-            "location": ChromosomeLocation("chr1", 10_000, 15_000),
+            "location": ChromosomeLocation("chr1", "10000", "15000"),
             "assembly": "GRCh37",
         },
         "dhss": regions,
