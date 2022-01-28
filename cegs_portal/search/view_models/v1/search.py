@@ -20,7 +20,7 @@ ASSEMBLY_RE = re.compile(r"\b(hg19|hg38|grch37|grch38)\b", re.IGNORECASE)
 GENE_NAME_RE = re.compile(r"\b([A-Z0-9][A-Z0-9\.\-]+)\b", re.IGNORECASE)
 
 
-def parse_query(query: str) -> tuple[list[QueryToken], Optional[ChromosomeLocation], Optional[str], list[str]]:
+def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], str, list[str]]:
     terms: list[tuple[QueryToken, str]] = []
     assembly = None
     location = None
