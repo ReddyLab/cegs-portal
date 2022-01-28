@@ -1,6 +1,6 @@
 from enum import Enum
 from itertools import combinations_with_replacement
-from typing import Optional
+from typing import Any, Optional
 
 from django.db.models import Prefetch
 from psycopg2.extras import NumericRange
@@ -34,6 +34,9 @@ class DNARegionSearch:
     def id_search(cls, region_id: str):
         region = DNARegion.objects.filter(id=int(region_id)).prefetch_related("closest_gene").first()
 
+        if region is None:
+            return None, None
+
         region_reg_effects = RegulatoryEffect.objects.filter(sources__in=[region.id]).prefetch_related(
             "targets",
             "targets__regulatory_effects",
@@ -54,7 +57,8 @@ class DNARegionSearch:
         region_properties: str,
         region_types: Optional[list[str]] = None,
     ):
-        query = {"chromosome_name": chromo}
+        query: dict[str, Any] = {"chromosome_name": chromo}
+
         field = "location"
         if search_type == LocSearchType.OVERLAP.value:
             field += "__overlap"
@@ -66,7 +70,7 @@ class DNARegionSearch:
         if assembly is not None:
             query["ref_genome"] = assembly
 
-        if len(region_types) > 0:
+        if region_types is not None and len(region_types) > 0:
             query["region_type__in"] = region_types
 
         query[field] = NumericRange(int(start), int(end), "[)")
@@ -94,12 +98,14 @@ class DNARegionSearch:
         )
 
         if "reg_effect" in region_properties:
-            dna_regions = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
+            dna_region_list = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
+        else:
+            dna_region_list = list(dna_regions)
 
         if "effect_label" in region_properties:
-            for region in dna_regions:
+            for region in dna_region_list:
                 reg_effects = region.regulatory_effects.all()
                 if len(reg_effects) > 0:
                     setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
 
-        return dna_regions
+        return dna_region_list

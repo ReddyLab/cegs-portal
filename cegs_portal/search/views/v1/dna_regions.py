@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.dna_region import dnaregion, dnaregions
 from cegs_portal.search.view_models.v1 import DNARegionSearch
@@ -34,6 +35,10 @@ class DNARegion(TemplateJsonView):
 
     def get(self, request, options, data, region_id):
         region, reg_effects = data
+
+        if region is None:
+            raise Http404(f"Region with id {region_id} not found.")
+
         rtn = REGION_NAMES.get(region.region_type, DEFAULT_REGION_NAME)
         rtns = REGION_NAMES_PLURAL.get(region.region_type, DEFAULT_REGION_NAME_PLURAL)
 
@@ -47,6 +52,10 @@ class DNARegion(TemplateJsonView):
 
     def get_data(self, options, region_id):
         region, reg_effects = DNARegionSearch.id_search(region_id)
+
+        if region is None:
+            return region, reg_effects
+
         reg_effect_paginator = Paginator(reg_effects, 20)
         reg_effect_page = reg_effect_paginator.get_page(options["re_page"])
 
