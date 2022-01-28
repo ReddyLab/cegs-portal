@@ -1,4 +1,5 @@
 import logging
+from typing import Callable, Optional
 
 from django.http import Http404, HttpResponseNotFound
 from django.http.response import JsonResponse
@@ -12,9 +13,9 @@ logger = logging.getLogger("django.request")
 
 
 class TemplateJsonView(View):
-    json_renderer = json
-    template = None
-    template_data_name = None
+    json_renderer: Callable = json
+    template: Optional[str] = None
+    template_data_name: Optional[str] = None
 
     def dispatch(self, request, *args, **kwargs):
         # Try to dispatch to the right method; if a method doesn't exist,
