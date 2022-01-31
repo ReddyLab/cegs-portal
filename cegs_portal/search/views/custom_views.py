@@ -1,7 +1,7 @@
 import logging
 from typing import Callable, Optional
 
-from django.http import Http404, HttpResponseNotFound
+from django.http import Http404, HttpResponseNotFound, HttpResponseServerError
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -57,17 +57,29 @@ class TemplateJsonView(View):
         if self.__class__.template_data_name is not None:
             data = {self.__class__.template_data_name: data}
 
-        return render(
-            request,
-            self.template,
-            data,
-        )
+        if self.template is not None:
+            return render(
+                request,
+                self.template,
+                data,
+            )
+
+        return self.http_internal_error(request, "No template found")
 
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options.get("json_format", None)), safe=False)
 
     def http_page_not_found(self, request, err, *args, **kwargs):
         logger.warning(
-            "Response Not Found (%s): %s", request.method, request.path, extra={"status_code": 404, "request": request}
+            "404 Response Not Found (%s): %s",
+            request.method,
+            request.path,
+            extra={"status_code": 404, "request": request},
         )
         return HttpResponseNotFound(str(err), *args, **kwargs)
+
+    def http_internal_error(self, request, err, *args, **kwargs):
+        logger.warning(
+            "500 Internal Error (%s): %s", request.method, request.path, extra={"status_code": 500, "request": request}
+        )
+        return HttpResponseServerError(str(err), *args, **kwargs)
