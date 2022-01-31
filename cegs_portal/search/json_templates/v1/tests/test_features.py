@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_feature_assemblies(feature_assemblies: Iterable[FeatureAssembly]):
-    feature_dict = {}
+    feature_dict: dict[Feature, list[FeatureAssembly]] = {}
     for a in feature_assemblies:
         a_list = feature_dict.get(a.feature, [])
         a_list.append(a)

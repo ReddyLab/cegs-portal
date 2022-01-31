@@ -1,16 +1,50 @@
-from typing import Iterable
+from typing import Iterable, Optional, TypedDict, Union, cast
 
 from cegs_portal.search.models import Feature, FeatureAssembly
 
+FeatureJson = TypedDict(
+    "FeatureJson",
+    {
+        "id": Union[int, str],
+        "ensembl_id": str,
+        "type": str,
+        "subtype": str,
+        "parent_id": Optional[str],
+    },
+)
 
-def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: str = None):
-    feature_dict = {}
+AssemblyJson = TypedDict(
+    "AssemblyJson",
+    {
+        "id": Union[int, str],
+        "chr": str,
+        "name": str,
+        "start": int,
+        "end": int,
+        "strand": str,
+        "ids": list[str],
+        "ref_genome": str,
+        "ref_genome_patch": str,
+    },
+)
+
+FeatureAssemblyJson = TypedDict(
+    "FeatureAssemblyJson",
+    {
+        "feature": FeatureJson,
+        "assemblies": list[AssemblyJson],
+    },
+)
+
+
+def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: str = None) -> list[FeatureAssemblyJson]:
+    feature_dict: dict[Feature, list[FeatureAssembly]] = {}
     for a in assembly_obj:
         a_list = feature_dict.get(a.feature, [])
         a_list.append(a)
         feature_dict[a.feature] = a_list
 
-    feature_dicts = [
+    feature_dicts: list[FeatureAssemblyJson] = [
         {
             "feature": feature(f, json_format),
             "assemblies": [assembly(a, json_format) for a in a_list],
@@ -21,8 +55,8 @@ def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: str
     return feature_dicts
 
 
-def features(feature_obj: Iterable[Feature], json_format: str = None):
-    feature_dict = [
+def features(feature_obj: Iterable[Feature], json_format: str = None) -> list[FeatureAssemblyJson]:
+    feature_dict: list[FeatureAssemblyJson] = [
         {
             "feature": feature(f, json_format),
             "assemblies": [assembly(a, json_format) for a in f.assemblies.all()],
@@ -33,7 +67,7 @@ def features(feature_obj: Iterable[Feature], json_format: str = None):
     return feature_dict
 
 
-def feature(feature_obj: Feature, json_format: str = None):
+def feature(feature_obj: Feature, json_format: str = None) -> FeatureJson:
     result = {
         "ensembl_id": feature_obj.ensembl_id,
         "type": feature_obj.feature_type,
@@ -46,10 +80,10 @@ def feature(feature_obj: Feature, json_format: str = None):
     else:
         result["id"] = feature_obj.id
 
-    return result
+    return cast(FeatureJson, result)
 
 
-def assembly(feature_assembly: FeatureAssembly, json_format: str = None):
+def assembly(feature_assembly: FeatureAssembly, json_format: str = None) -> AssemblyJson:
     result = {
         "name": feature_assembly.name,
         "start": feature_assembly.location.lower,
@@ -67,4 +101,4 @@ def assembly(feature_assembly: FeatureAssembly, json_format: str = None):
         result["id"] = feature_assembly.id
         result["chr"] = feature_assembly.chrom_name
 
-    return result
+    return cast(AssemblyJson, result)
