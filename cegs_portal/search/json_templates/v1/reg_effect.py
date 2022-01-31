@@ -1,7 +1,7 @@
 from cegs_portal.search.models import RegulatoryEffect
 
 
-def regulatory_effect(reg_effect: RegulatoryEffect, json_format: bool = None):
+def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None):
     return {
         "id": reg_effect.id,
         "direction": reg_effect.direction,

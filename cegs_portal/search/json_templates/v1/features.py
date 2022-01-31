@@ -3,7 +3,7 @@ from typing import Iterable
 from cegs_portal.search.models import Feature, FeatureAssembly
 
 
-def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: bool = None):
+def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: str = None):
     feature_dict = {}
     for a in assembly_obj:
         a_list = feature_dict.get(a.feature, [])
@@ -21,7 +21,7 @@ def feature_assemblies(assembly_obj: Iterable[FeatureAssembly], json_format: boo
     return feature_dicts
 
 
-def features(feature_obj: Iterable[Feature], json_format: bool = None):
+def features(feature_obj: Iterable[Feature], json_format: str = None):
     feature_dict = [
         {
             "feature": feature(f, json_format),
@@ -33,7 +33,7 @@ def features(feature_obj: Iterable[Feature], json_format: bool = None):
     return feature_dict
 
 
-def feature(feature_obj: Feature, json_format: bool = None):
+def feature(feature_obj: Feature, json_format: str = None):
     result = {
         "ensembl_id": feature_obj.ensembl_id,
         "type": feature_obj.feature_type,
@@ -49,7 +49,7 @@ def feature(feature_obj: Feature, json_format: bool = None):
     return result
 
 
-def assembly(feature_assembly: FeatureAssembly, json_format: bool = None):
+def assembly(feature_assembly: FeatureAssembly, json_format: str = None):
     result = {
         "name": feature_assembly.name,
         "start": feature_assembly.location.lower,

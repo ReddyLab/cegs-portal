@@ -16,7 +16,7 @@ def experiments(experiments_obj: Iterable[Experiment]):
     ]
 
 
-def experiment(experiment_obj: Experiment, json_format: bool = None):
+def experiment(experiment_obj: Experiment, json_format: str = None):
     return {
         "id": experiment_obj.id,
         "name": experiment_obj.name,

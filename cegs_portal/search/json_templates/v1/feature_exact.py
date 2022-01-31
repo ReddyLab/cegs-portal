@@ -6,7 +6,7 @@ from cegs_portal.search.models import (
 )
 
 
-def feature_exact(feature_obj: Feature, json_format: bool = None):
+def feature_exact(feature_obj: Feature, json_format: str = None):
     result = {
         "ensembl_id": feature_obj.ensembl_id,
         "type": feature_obj.feature_type,
@@ -27,7 +27,7 @@ def feature_exact(feature_obj: Feature, json_format: bool = None):
     return result
 
 
-def assembly(assembly_obj: FeatureAssembly, json_format: bool = None):
+def assembly(assembly_obj: FeatureAssembly, json_format: str = None):
     result = {
         "name": assembly_obj.name,
         "start": assembly_obj.location.lower,
@@ -44,14 +44,14 @@ def assembly(assembly_obj: FeatureAssembly, json_format: bool = None):
     return result
 
 
-def children(child_obj: Feature, json_format: bool = None):
+def children(child_obj: Feature, json_format: str = None):
     return {
         "ensembl_id": child_obj.ensembl_id,
         "assemblies": [assembly(a, json_format) for a in child_obj.assemblies.all()],
     }
 
 
-def region(region_obj: DNARegion, json_format: bool = None):
+def region(region_obj: DNARegion, json_format: str = None):
     result = {
         "cell_line": region_obj.cell_line,
         "start": region_obj.location.lower,
@@ -71,7 +71,7 @@ def region(region_obj: DNARegion, json_format: bool = None):
     return result
 
 
-def reg_effect(re_obj: RegulatoryEffect, json_format=None):
+def reg_effect(re_obj: RegulatoryEffect, json_format: str = None):
     result = {
         "id": re_obj.id,
         "effect_size": re_obj.effect_size,
