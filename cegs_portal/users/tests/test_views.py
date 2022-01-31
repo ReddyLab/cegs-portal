@@ -11,11 +11,7 @@ from django.urls import reverse
 from cegs_portal.users.forms import UserChangeForm
 from cegs_portal.users.models import User
 from cegs_portal.users.tests.factories import UserFactory
-from cegs_portal.users.views import (
-    UserRedirectView,
-    UserUpdateView,
-    user_detail_view,
-)
+from cegs_portal.users.views import UserRedirectView, UserUpdateView, user_detail_view
 
 pytestmark = pytest.mark.django_db
 
@@ -98,4 +94,4 @@ class TestUserDetailView:
         login_url = reverse(settings.LOGIN_URL)
 
         assert response.status_code == 302
-        assert response.url == f"{login_url}?next=/fake-url/"
+        assert response.url == f"{login_url}?next=/fake-url/"  # type: ignore[attr-defined]
