@@ -1,7 +1,24 @@
+from typing import Optional, TypedDict
+
 from cegs_portal.search.models import RegulatoryEffect
 
+RegulatoryEffectJson = TypedDict(
+    "RegulatoryEffectJson",
+    {
+        "id": int,
+        "direction": str,
+        "effect_size": Optional[float],
+        "significance": Optional[float],
+        "raw_p_value": Optional[float],
+        "cell_lines": list[str],
+        "tissue_types": list[str],
+        "source_ids": list[str],
+        "target_ids": list[str],
+    },
+)
 
-def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None):
+
+def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None) -> RegulatoryEffectJson:
     return {
         "id": reg_effect.id,
         "direction": reg_effect.direction,
