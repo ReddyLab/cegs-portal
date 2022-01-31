@@ -49,7 +49,7 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
 
     if hasattr(region, "label"):
-        result["label"] = region.label  # type: ignore
+        result["label"] = region.label  # type: ignore[attr-defined]
 
     if json_format == "genoverse":
         result["id"] = str(region.id)

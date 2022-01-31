@@ -65,7 +65,7 @@ def _dnaregion(dnaregion: DNARegion, json_format=None):
     }
 
     if hasattr(dnaregion, "label"):
-        result["label"] = dnaregion.label  # type: ignore
+        result["label"] = dnaregion.label  # type: ignore[attr-defined]
 
     if json_format == "genoverse":
         result["id"] = str(dnaregion.id)

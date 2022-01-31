@@ -7,14 +7,15 @@ from cegs_portal.search.json_templates.v1.experiment import experiment as exp_js
 from cegs_portal.search.json_templates.v1.experiment import experiments as exps_json
 from cegs_portal.search.json_templates.v1.experiment import other_file as of_json
 from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+from cegs_portal.search.models.experiment import CellLine, TissueType
 
 pytestmark = pytest.mark.django_db
 
 
 def test_experiments_json(experiments: Iterable[Experiment]):
     for experiment in experiments:
-        experi_cell_lines = []
-        experi_tissue_types = []
+        experi_cell_lines: list[CellLine] = []
+        experi_tissue_types: list[TissueType] = []
         for f in experiment.data_files.all():
             experi_cell_lines.extend(f.cell_lines.all())
             experi_tissue_types.extend(f.tissue_types.all())
@@ -27,8 +28,8 @@ def test_experiments_json(experiments: Iterable[Experiment]):
             "id": e.id,
             "name": e.name,
             "description": e.description,
-            "cell_lines": e.cell_lines,
-            "tissue_types": e.tissue_types,
+            "cell_lines": e.cell_lines,  # type: ignore[attr-defined]
+            "tissue_types": e.tissue_types,  # type: ignore[attr-defined]
         }
         for e in experiments
     ]
@@ -37,9 +38,9 @@ def test_experiments_json(experiments: Iterable[Experiment]):
 
 
 def test_experiment_json(experiment: Experiment):
-    experi_cell_lines = []
-    experi_tissue_types = []
-    experi_assemblies = []
+    experi_cell_lines: list[CellLine] = []
+    experi_tissue_types: list[TissueType] = []
+    experi_assemblies: list[str] = []
     for f in experiment.data_files.all():
         experi_cell_lines.extend(f.cell_lines.all())
         experi_tissue_types.extend(f.tissue_types.all())
