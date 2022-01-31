@@ -112,7 +112,7 @@ def feature_assemblies() -> Iterable[FeatureAssembly]:
 
 
 @pytest.fixture
-def features() -> dict[Feature, list[FeatureAssembly]]:
+def features() -> list[Feature]:
     f1 = FeatureFactory(parent=None)
     f2 = FeatureFactory(parent=None)
     f3 = FeatureFactory(parent=None)
