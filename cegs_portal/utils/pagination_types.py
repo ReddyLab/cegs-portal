@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from collections.abc import Iterable, Iterator
 from math import ceil
 from typing import Protocol, TypeVar
 
@@ -32,7 +33,7 @@ class Paginateable(Protocol[T]):
         raise NotImplementedError
 
 
-class Pageable(Protocol[T]):
+class Pageable(Protocol[T], Iterable[T]):
     object_list: list[T]
     number: int
     paginator: Paginateable[T]
@@ -70,7 +71,7 @@ class Pageable(Protocol[T]):
         raise NotImplementedError
 
 
-class MockPaginator(Paginateable):
+class MockPaginator(Paginateable[T]):
     def __init__(self, object_list, per_page):
         self.object_list = object_list
         self.per_page = per_page
@@ -103,7 +104,7 @@ class MockPaginator(Paginateable):
         return range(1, self.num_pages + 1)
 
 
-class MockPage(Pageable):
+class MockPage(Pageable[T]):
     def __init__(self, object_list, paginator, number):
         self.object_list = object_list
         self.paginator = paginator
@@ -142,3 +143,7 @@ class MockPage(Pageable):
         if self.number == self.paginator.num_pages:
             return self.paginator.count
         return self.number * self.paginator.per_page
+
+    def __iter__(self) -> Iterator[T]:
+        for o in self.object_list:
+            yield o

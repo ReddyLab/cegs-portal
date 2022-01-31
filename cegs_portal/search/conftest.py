@@ -71,7 +71,7 @@ def region() -> DNARegion:
 
 @pytest.fixture
 def regions() -> Pageable[DNARegion]:
-    paginator = MockPaginator(
+    paginator: MockPaginator[DNARegion] = MockPaginator(
         [
             DNARegionFactory(),
             DNARegionFactory(),
