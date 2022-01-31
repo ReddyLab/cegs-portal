@@ -16,7 +16,7 @@ from cegs_portal.search.models.utils import ChromosomeLocation
 
 @singledispatch
 def json(model, json_format=None):
-    if isinstance(model, QuerySet):
+    if isinstance(model, QuerySet):  # type: ignore[misc]
         return [json(item, json_format) for item in model.all()]
 
     if isinstance(model, list):
