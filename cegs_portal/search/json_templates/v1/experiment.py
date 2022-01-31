@@ -9,8 +9,8 @@ def experiments(experiments_obj: Iterable[Experiment]):
             "id": e.id,
             "name": e.name,
             "description": e.description,
-            "cell_lines": e.cell_lines,
-            "tissue_types": e.tissue_types,
+            "cell_lines": e.cell_lines,  # type: ignore[attr-defined]
+            "tissue_types": e.tissue_types,  # type: ignore[attr-defined]
         }
         for e in experiments_obj
     ]
@@ -22,8 +22,8 @@ def experiment(experiment_obj: Experiment, json_format: str = None):
         "name": experiment_obj.name,
         "description": experiment_obj.description,
         "assay": experiment_obj.experiment_type,
-        "cell_lines": [str(line) for line in experiment_obj.cell_lines],
-        "tissue_types": [str(tt) for tt in experiment_obj.tissue_types],
+        "cell_lines": [str(line) for line in experiment_obj.cell_lines],  # type: ignore[attr-defined]
+        "tissue_types": [str(tt) for tt in experiment_obj.tissue_types],  # type: ignore[attr-defined]
         "assemblies": list(experiment_obj.assemblies),
         "data_files": [data_file(f) for f in experiment_obj.data_files.all()],
         "other_files": [other_file(f) for f in experiment_obj.other_files.all()],
