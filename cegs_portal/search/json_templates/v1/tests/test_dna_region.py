@@ -27,9 +27,9 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
-        "closest_gene_id": region.closest_gene.id,
-        "closest_gene_ensembl_id": region.closest_gene.ensembl_id,
-        "closest_gene_assembly_id": region.closest_gene_assembly.id,
+        "closest_gene_id": None,
+        "closest_gene_ensembl_id": None,
+        "closest_gene_assembly_id": None,
         "closest_gene_name": region.closest_gene_name,
         "ref_genome": region.ref_genome,
         "ref_genome_patch": region.ref_genome_patch,
@@ -38,8 +38,15 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
         "type": region.region_type,
     }
 
+    if region.closest_gene is not None:
+        result["closest_gene_id"] = region.closest_gene.id
+        result["closest_gene_ensembl_id"] = region.closest_gene.ensembl_id
+
+    if region.closest_gene_assembly is not None:
+        result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
+
     if hasattr(region, "label"):
-        result["label"] = region.label
+        result["label"] = region.label  # type: ignore[attr-defined]
 
     assert dr_json(region_tuple) == result
 
@@ -55,9 +62,9 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
-        "closest_gene_id": region.closest_gene.id,
-        "closest_gene_ensembl_id": region.closest_gene.ensembl_id,
-        "closest_gene_assembly_id": region.closest_gene_assembly.id,
+        "closest_gene_id": None,
+        "closest_gene_ensembl_id": None,
+        "closest_gene_assembly_id": None,
         "closest_gene_name": region.closest_gene_name,
         "ref_genome": region.ref_genome,
         "ref_genome_patch": region.ref_genome_patch,
@@ -66,8 +73,15 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "type": region.region_type,
     }
 
+    if region.closest_gene is not None:
+        result["closest_gene_id"] = region.closest_gene.id
+        result["closest_gene_ensembl_id"] = region.closest_gene.ensembl_id
+
+    if region.closest_gene_assembly is not None:
+        result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
+
     if hasattr(region, "label"):
-        result["label"] = region.label
+        result["label"] = region.label  # type: ignore[attr-defined]
 
     if json_format == "genoverse":
         result["id"] = str(region.id)
