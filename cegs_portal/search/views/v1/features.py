@@ -1,9 +1,13 @@
+from typing import cast
+
 from django.core.paginator import Paginator
 
 from cegs_portal.search.json_templates.v1.feature_exact import feature_exact
 from cegs_portal.search.json_templates.v1.features import feature_assemblies, features
+from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.view_models.v1 import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.utils.pagination_types import Pageable
 
 
 class FeatureEnsembl(TemplateJsonView):
@@ -102,7 +106,9 @@ class FeatureLoc(TemplateJsonView):
         return options
 
     def get(self, request, options, data, chromo, start, end):
-        feature_dict = {}
+        data = cast(Pageable[FeatureAssembly], data)
+
+        feature_dict: dict[Feature, list[FeatureAssembly]] = {}
         for assembly in data:
             a_list = feature_dict.get(assembly.feature, [])
             a_list.append(assembly)
@@ -116,7 +122,7 @@ class FeatureLoc(TemplateJsonView):
             end,
         )
 
-    def get_data(self, options, chromo, start, end):
+    def get_data(self, options, chromo, start, end) -> Pageable[FeatureAssembly]:
         if chromo.isnumeric():
             chromo = f"chr{chromo}"
 
@@ -126,4 +132,4 @@ class FeatureLoc(TemplateJsonView):
         assemblies_paginator = Paginator(assemblies, 20)
         assembly_page = assemblies_paginator.get_page(options["page"])
 
-        return assembly_page
+        return cast(Pageable[FeatureAssembly], assembly_page)
