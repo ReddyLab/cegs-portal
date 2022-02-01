@@ -15,12 +15,12 @@ include:
 flake8:
   stage: lint
   tags:
-    - docker-executor
-  image: python:3.9-alpine
+    - kube-executor
+  image: python:3.9.10-bullseye
   before_script:
-    - pip install -q flake8
+    - pip install -q flake8 --no-warn-script-location
   script:
-    - flake8
+    - PATH=$PATH:/tmp/.local/bin flake8
 
 pytest:
   stage: test
