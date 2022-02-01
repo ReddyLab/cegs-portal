@@ -1,12 +1,10 @@
 stages:
   - lint
-  - test
   - build
+  - test
   - scan
   - updatechart
 
-variables:
-  THE_DOCKERFILE: ./compose/production/django/Dockerfile
 
 include:
   - project: 'utility/project-templates/ci-templates'
@@ -22,40 +20,53 @@ flake8:
   script:
     - PATH=$PATH:/tmp/.local/bin flake8
 
-pytest:
-  stage: test
-  image: docker/compose:latest
-  tags:
-    - simple-shell-executor
-  before_script:
-    - docker ps -a
-    # - docker stop 496441e913aa
-    # - docker rm 496441e913aa
-    # - docker stop 5ad5df8a15bb
-    # - docker rm 5ad5df8a15bb
-    # - docker ps -a
-    - docker volume ls
-    # - docker volume rm cegs-portal_local_postgres_data_backups
-    # - docker volume rm cegs-portal_local_postgres_data
-    - docker-compose -f local.yml build
-    # Ensure celerybeat does not crash due to non-existent tables
-    - docker-compose -f local.yml up -d
-    - docker-compose -f local.yml run --rm django python manage.py migrate
-    - docker-compose -f local.yml run django python manage.py collectstatic
-  script:
-    - docker-compose -f local.yml run django pytest
-
 build-test:
   extends: .kaniko_build
+  variables:
+    THE_DOCKERFILE: $TEST_DOCKERFILE
   except:
     - production
 
 build-prod:
   extends: .kaniko_build
   variables:
+    THE_DOCKERFILE: $PROD_DOCKERFILE
     THE_IMAGE: $CI_REGISTRY_IMAGE:prod
   only:
     - production
+
+pytest:
+  stage: test
+  tags:
+    - kube-executor
+  image: ${CI_REGISTRY_IMAGE}:dev
+  variables:
+    GIT_STRATEGY: none
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: cegs_portal
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: test_password
+    DATABASE_USER: ${POSTGRES_USER}
+    DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    DATABASE_HOST: ${POSTGRES_HOST}
+    DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+    USE_DOCKER: "no"
+    DJANGO_SETTINGS_MODULE: "config.settings.test"
+  services:
+    - name: "image-mirror-prod-registry.cloud.duke.edu/bitnami/postgresql:13-debian-10"
+      alias: postgres
+  before_script:
+    - cd /app
+    - python manage.py migrate
+    - python manage.py collectstatic
+  script:
+    - pytest
+  except:
+    - production
+  retry:
+    max: 2
+    when: runner_system_failure
 
 scan-test:
   extends: .docker_scan
