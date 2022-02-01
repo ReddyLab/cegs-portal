@@ -26,7 +26,7 @@ pytest:
   stage: test
   image: docker/compose:latest
   tags:
-    - shell-executor
+    - simple-shell-executor
   before_script:
     - docker ps -a
     # - docker stop 496441e913aa
