@@ -114,11 +114,49 @@
         </form>
         <button id="region-dist-submit" class="search-button self-end">Find {{ region_type_name_plural }}</button>
         <table id="dnaregion" style="display:none;"></table>
+        <div id="nearby_region_pagination" display="none"></div>
     </div>
 {% endblock %}
 
 {% block inline_javascript %}
     <script>
+        let data_pages = function(data_url_function, data_table, data_filter, no_data, data_table_id, pagination_id, id_prefix) {
+            let data_page = 1;
+
+            let get_pages = function() {
+                fetch(`${data_url_function()}&page=${data_page}`)
+                    .then(response => {
+                        return response.json()
+                    }).then(data => {
+                        if(data.num_pages == 0) {
+                            document.getElementById(data_table_id).replaceWith(data_table([], no_data));
+                            return;
+                        }
+
+                        let filtered_data = data["regions"].filter(data_filter);
+                        document.getElementById(data_table_id).replaceWith(data_table(filtered_data))
+                        document.getElementById(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
+
+                        let page_link = function(link_id, page) {
+                            if (link = document.getElementById(link_id)) {
+                                link.onclick = function(e) {
+                                    e.preventDefault();
+                                    data_page = page;
+                                    get_pages();
+                                }
+                            }
+                        }
+
+                        page_link(`${id_prefix}_first_link`, 1);
+                        page_link(`${id_prefix}_prev_link`, data_page - 1);
+                        page_link(`${id_prefix}_next_link`, data_page + 1);
+                        page_link(`${id_prefix}_last_link`, data["num_pages"]);
+                    });
+            }
+
+            return get_pages;
+        }
+
         {% if reg_effects|length > 0 %}
         let nonSigShowing = true;
         let effectButton = g("hide-effect");
@@ -133,16 +171,21 @@
         }
         {% endif %}
 
-        g("region-dist-submit").onclick = function() {
+        let region_url = function() {
             let dist = Number(g("region-dist").value);
             let search_start = Math.max({{ region.location.lower }} - dist, 0);
             let search_end = {{ region.location.upper }} + dist;
-            fetch(`/search/regionloc/{{ region.chromosome_name }}/${search_start}/${search_end}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`)
-                .then(response => {
-                    return response.json()
-                }).then(data => {
-                    document.getElementById("dnaregion").replaceWith(regionTable(data.filter(region => region.id != {{ region.id }}), "No nearby {{ region_type_name_plural }}"))
-                });
-            }
+            return `/search/regionloc/{{ region.chromosome_name }}/${search_start}/${search_end}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
+        }
+
+        g("region-dist-submit").onclick = data_pages(
+            region_url,
+            regionTable,
+            region => region.id != {{ region.id }},
+            "No nearby {{ region_type_name_plural }}",
+            "dnaregion",
+            "nearby_region_pagination",
+            "nearby_region"
+        );
     </script>
 {% endblock %}

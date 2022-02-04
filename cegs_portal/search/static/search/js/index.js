@@ -88,12 +88,15 @@ function regionTable(regions, emptyString) {
     return newTable;
 }
 
-function newPagination(page_data) {
+function newPagination(pagination_id, page_data, id_prefix="") {
+    if (id_prefix != "") {
+        id_prefix = `${id_prefix}_`
+    }
     let stepLinks = [];
     if(page_data["has_prev_page"]) {
-        stepLinks.push(e("a", {href: "?page=1"}, t("« first")))
+        stepLinks.push(e("a", {href: "?page=1", id: `${id_prefix}first_link`}, t("« first")))
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?page=${page_data["page"] - 1}`}, t("previous")))
+        stepLinks.push(e("a", {href: `?page=${page_data["page"] - 1}`, id: `${id_prefix}prev_link`}, t("previous")))
         stepLinks.push(t(" "))
     }
 
@@ -101,12 +104,12 @@ function newPagination(page_data) {
 
     if(page_data["has_next_page"]) {
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?page=${page_data["page"] + 1}`}, t("next")))
+        stepLinks.push(e("a", {href: `?page=${page_data["page"] + 1}`, id: `${id_prefix}next_link`}, t("next")))
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?page=${page_data["num_pages"]}`}, t("last »")))
+        stepLinks.push(e("a", {href: `?page=${page_data["num_pages"]}`, id: `${id_prefix}last_link`}, t("last »")))
     }
 
-    return e("div", {class:"pagination", "id":"region_pagination"}, [
+    return e("div", {class:"pagination", "id":pagination_id}, [
             e("span", {class: "step-links"}, stepLinks)
         ]
     )
