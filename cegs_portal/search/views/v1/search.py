@@ -1,7 +1,5 @@
 from urllib.parse import unquote_plus
 
-from django.http import HttpResponseServerError
-
 from cegs_portal.search.errors import SearchResultsException
 from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.json_templates.v1.search_results import (
@@ -9,6 +7,7 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.utils.http_exceptions import Http500
 
 
 class SearchView(TemplateJsonView):
@@ -31,7 +30,7 @@ class SearchView(TemplateJsonView):
         try:
             search_results = Search.search(unquoted_search_query, options["facets"])
         except SearchResultsException as e:
-            return HttpResponseServerError(e)
+            raise Http500(e)
 
         search_results["query"] = options["search_query"]
         return search_results

@@ -8,6 +8,7 @@ from django.views.generic import View
 
 from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
+from cegs_portal.utils.http_exceptions import Http500
 
 logger = logging.getLogger("django.request")
 
@@ -38,6 +39,8 @@ class TemplateJsonView(View):
             response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
         except Http404 as err:
             response = self.http_page_not_found(request, err)
+        except Http500 as err:
+            response = self.http_internal_error(request, err)
 
         return response
 
