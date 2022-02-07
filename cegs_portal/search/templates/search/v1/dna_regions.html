@@ -54,7 +54,7 @@
                 })
                 .then(data => {
                     document.getElementById("dnaregion").replaceWith(regionTable(data["regions"], "No {{ region_type_name }}"));
-                    document.getElementById("region_pagination").replaceWith(newPagination(data));
+                    document.getElementById("region_pagination").replaceWith(newPagination("region_pagination", data));
                 });
 
         }, 500, { 'leading': true }));
