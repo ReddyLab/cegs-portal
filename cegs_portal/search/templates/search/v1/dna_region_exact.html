@@ -129,16 +129,16 @@
                         return response.json()
                     }).then(data => {
                         if(data.num_pages == 0) {
-                            document.getElementById(data_table_id).replaceWith(data_table([], no_data));
+                            g(data_table_id).replaceWith(data_table([], no_data));
                             return;
                         }
 
                         let filtered_data = data["regions"].filter(data_filter);
-                        document.getElementById(data_table_id).replaceWith(data_table(filtered_data))
-                        document.getElementById(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
+                        g(data_table_id).replaceWith(data_table(filtered_data))
+                        g(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
 
                         let page_link = function(link_id, page) {
-                            if (link = document.getElementById(link_id)) {
+                            if (link = g(link_id)) {
                                 link.onclick = function(e) {
                                     e.preventDefault();
                                     data_page = page;
