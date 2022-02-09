@@ -1,5 +1,7 @@
 from urllib.parse import unquote_plus
 
+from django.core.paginator import Paginator
+
 from cegs_portal.search.errors import SearchResultsException
 from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.json_templates.v1.search_results import (
@@ -18,6 +20,7 @@ class SearchView(TemplateJsonView):
         options = super().request_options(request)
         options["search_query"] = request.GET["query"]
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        options["dhs_page"] = int(request.GET.get("dhs_page", 1))
         return options
 
     def get(self, request, options, data):
@@ -33,4 +36,8 @@ class SearchView(TemplateJsonView):
             raise Http500(e)
 
         search_results["query"] = options["search_query"]
+
+        dhs_paginator = Paginator(search_results["dhss"], 20)
+        search_results["dhss"] = dhs_paginator.get_page(options["dhs_page"])
+
         return search_results

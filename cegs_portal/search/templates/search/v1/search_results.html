@@ -61,14 +61,32 @@ svg > g > text {
             {% switch "effect_plot" %}
             <div id="plot"></div>
             {% endswitch %}
-            {% with all_dhss=dhss.all %}
-            {% if all_dhss|length > 0 %}
+            {% if dhss|length > 0 %}
             <div class="my-4">
                 <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
-                {% include "search/v1/partials/_dnaregion.html" with regions=all_dhss %}
+                {% include "search/v1/partials/_dnaregion.html" with regions=dhss.object_list %}
             </div>
+            <div id="dhs_pagination" class="pagination">
+                <span class="step-links">
+                    {% if dhss.has_previous %}
+                        <a id="dhs_first_link" href="?dhs_page=1">&laquo; first</a>
+                        <a id="dhs_prev_link" href="?dhs_page={{ dhss.previous_page_number }}">previous</a>
+                    {% endif %}
+
+                    <span class="current">
+                        Page {{ dhss.number }} of {{ dhss.paginator.num_pages }}
+                    </span>
+
+                    {% if dhss.has_next %}
+                        <a id="dhs_next_link" href="?dhs_page={{ dhss.next_page_number }}">next</a>
+                        <a id="dhs_last_link" href="?dhs_page={{ dhss.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% else %}
+                <div id="dnaregion">No DHSs Found</div>
+                <div id="dhs_pagination" display="none"></div>
             {% endif %}
-            {% endwith %}
         </div>
     </div>
 {% endblock %}
@@ -76,50 +94,92 @@ svg > g > text {
     <script>
         const STATE_LOCATION = "location";
         const STATE_QUERY_RESULTS = "query-results";
-        let state = new State([STATE_LOCATION, STATE_QUERY_RESULTS]);
+        const STATE_FACETS = "facets"
+        let state = new State([STATE_LOCATION, STATE_QUERY_RESULTS, STATE_FACETS]);
+        state.updateSharedState(STATE_LOCATION, {
+            chr: "{{ loc_search.location.chromo }}",
+            start: {{ loc_search.location.range.lower }},
+            end: {{ loc_search.location.range.upper }}
+        }
+        );
+        state.updateSharedState(STATE_FACETS, []);
 
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {
             let location = state[key];
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`))
+
+            genDataPages(location.chr, location.start, location.end, 1)();
         });
 
-        state.addCallback(STATE_QUERY_RESULTS, (state, key) => {
+        state.addCallback(STATE_FACETS, _.throttle(
+            (state, key) => {
+                window.history.pushState({}, document.title, searchURL(state[key]));
 
-        })
+                let location = state[STATE_LOCATION];
+
+                genDataPages(location.chr, location.start, location.end, 1, state[STATE_FACETS])();
+            },
+            500,
+            { 'leading': true })
+        )
 
         const _ul = function(_state, key) {
             if (key !== STATE_LOCATION) { return; }
             state.updateSharedState(key, _state[key]);
         }
 
+        let initialLocation = state.getSharedState(STATE_LOCATION);
+
+        let genDataPages = function(chromo, start, end, page, facets = []) {
+            return dataPages(
+                page,
+                _ => regionURL(chromo, start, end, facets),
+                regionTable,
+                region => true,
+                "No DHSs Found",
+                "dnaregion",
+                "dhs_pagination",
+                "dhs",
+                "page"
+            )
+        }
+
+        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1)
+
+        {% if dhss.has_previous %}
+        pageLink(`dhs_first_link`, 1, getPages);
+        pageLink(`dhs_prev_link`, {{ dhss.previous_page_number }}, getPages);
+        {% endif %}
+        {% if dhss.has_next %}
+        pageLink(`dhs_next_link`, {{ dhss.next_page_number }}, getPages);
+        pageLink(`dhs_last_link`, {{ dhss.paginator.num_pages }}, getPages);
+        {% endif %}
+
         const fieldSet = g("facetfield");
         const facetCheckboxes = fieldSet.querySelectorAll("input[type=checkbox]");
-        facetCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener("change",  _.throttle(event => {
-                enabledFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-                                     .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                                     .map(i => `facet=${i.id}`)
-                                     .join('&')
-                searchURL = `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
-                window.history.pushState({}, document.title, searchURL);
-                fetch(`${searchURL}&accept=application/json`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Request Failed: ${response.status} ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        g("dnaregion").replaceWith(regionTable(data["regions"], "No DHSs Found"));
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                    });
 
-            }, 500, { 'leading': true }))
-        })
+        let searchURL = function(facets) {
+            enabledFacets = facets.map(id => `facet=${id}`)
+                                  .join('&')
+            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        }
+
+        let regionURL = function(chromosome, start, end, facets=[]) {
+            enabledFacets = facets.map(id => `facet=${id}`)
+                                  .join('&')
+            return `/search/regionloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`
+        }
+
+        facetCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", _ => {
+                checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+                                     .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                                     .map(i => i.id)
+                state.updateSharedState(STATE_FACETS, checkedFacets);
+            });
+        });
 
         {% switch "effect_plot" %}
         // Show the plot

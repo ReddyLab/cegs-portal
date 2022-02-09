@@ -95,12 +95,13 @@ class DNARegionLoc(TemplateJsonView):
                 * free-text, but should match a genome assembly that exists in the DB
         """
         options = super().request_options(request)
-        options["search_type"] = request.GET.get("search_type", "overlap")
         options["assembly"] = request.GET.get("assembly", None)
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
         options["region_properties"] = request.GET.getlist("property")
         options["response_format"] = request.GET.get("format", None)
         options["region_types"] = request.GET.getlist("region_type")
+        options["search_type"] = request.GET.get("search_type", "overlap")
 
         return options
 
@@ -123,15 +124,16 @@ class DNARegionLoc(TemplateJsonView):
         if not chromo.startswith("chr"):
             chromo = f"chr{chromo}"
 
-        region_list = DNARegionSearch.loc_search(
+        regions = DNARegionSearch.loc_search(
             chromo,
             start,
             end,
             options["assembly"],
             options["search_type"],
             options["region_properties"],
+            options["facets"],
             region_types=options["region_types"],
         )
 
-        region_list_paginator = Paginator(region_list, 20)
+        region_list_paginator = Paginator(regions, 20)
         return region_list_paginator.get_page(options["page"])

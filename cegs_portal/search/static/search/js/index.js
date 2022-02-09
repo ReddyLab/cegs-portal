@@ -113,5 +113,53 @@ function newPagination(pagination_id, page_data, id_prefix="",  page_query_param
             e("span", {class: "step-links"}, stepLinks)
         ]
     )
+}
 
+function pageLink(link_id, page, getPageFunction) {
+    if (link = g(link_id)) {
+        link.onclick = function(e) {
+            e.preventDefault();
+            getPageFunction.bind(getPageFunction)(page);
+        }
+    }
+}
+
+function dataPages(start_page, data_url_function, data_table, data_filter, no_data, data_table_id, pagination_id, id_prefix, page_query) {
+    let data_page = start_page;
+
+    let pageFunc = function(page) {
+        if (page) {
+            data_page = page;
+        }
+
+        fetch(`${data_url_function()}&${page_query}=${data_page}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Request Failed: ${response.status} ${response.statusText}`);
+                }
+
+                return response.json()
+            }).then(data => {
+                if(data.num_pages == 1 && data.regions.length == 0) {
+                    g(data_table_id).replaceWith(data_table([], no_data));
+                    g(pagination_id).replaceWith(e("div", {id: pagination_id, display: "none"}, []));
+                    return;
+                }
+
+                let filtered_data = data.regions.filter(data_filter);
+                g(data_table_id).replaceWith(data_table(filtered_data))
+                g(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
+
+
+                pageLink(`${id_prefix}_first_link`, 1, this);
+                pageLink(`${id_prefix}_prev_link`, data_page - 1, this);
+                pageLink(`${id_prefix}_next_link`, data_page + 1, this);
+                pageLink(`${id_prefix}_last_link`, data.num_pages, this);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
+
+    return pageFunc.bind(pageFunc);
 }

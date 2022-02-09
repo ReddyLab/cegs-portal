@@ -1,16 +1,9 @@
 import re
 from typing import Optional
 
-from django.db import models
-from django.db.models import Prefetch, Q
-
-from cegs_portal.search.models import (
-    ChromosomeLocation,
-    DNARegion,
-    Facet,
-    RegulatoryEffect,
-)
+from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.view_models.v1 import DNARegionSearch, LocSearchType
 
 CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"\b(ENS[0-9a-z]+)", re.IGNORECASE)
@@ -57,35 +50,18 @@ class Search:
     def _dnaregion_search(
         cls, location: ChromosomeLocation, assembly: str, facets: list[int], region_type: Optional[list[str]] = None
     ):
-        q = Q(chromosome_name=location.chromo, location__overlap=location.range, ref_genome=assembly)
-        q &= Q(regulatory_effects__count__gt=0)
-
-        if len(facets) > 0:
-            q &= Q(facet_values__in=facets)
-
-        if region_type is not None:
-            q &= Q(region_type__in=region_type)
-
-        sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
-            "targets",
-            "targets__parent",
-            "target_assemblies",
-            "target_assemblies__feature",
-            "target_assemblies__feature__parent",
+        regions = DNARegionSearch.loc_search(
+            location.chromo,
+            str(location.range.lower),
+            str(location.range.upper),
+            assembly,
+            LocSearchType.OVERLAP.value,
+            ["reg_effect"],
+            facets,
+            region_type,
         )
 
-        return (
-            DNARegion.objects.annotate(models.Count("regulatory_effects"))
-            .prefetch_related(Prefetch("regulatory_effects", queryset=sig_effects), "facet_values")
-            .filter(q)
-            .select_related(
-                "closest_gene",
-                "closest_gene__parent",
-                "closest_gene_assembly",
-                "closest_gene_assembly__feature",
-                "closest_gene_assembly__feature__parent",
-            )
-        )
+        return regions
 
     @classmethod
     def search(cls, query_string: str, facets: list[int] = []):

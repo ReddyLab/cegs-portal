@@ -1,8 +1,8 @@
 from enum import Enum
 from itertools import combinations_with_replacement
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import DNARegion
@@ -54,7 +54,8 @@ class DNARegionSearch:
         end: str,
         assembly: str,
         search_type: str,
-        region_properties: str,
+        region_properties: list[str],
+        facets: list[int] = cast(list[int], list),
         region_types: Optional[list[str]] = None,
     ):
         query: dict[str, Any] = {"chromosome_name": chromo}
@@ -94,18 +95,24 @@ class DNARegionSearch:
                 Prefetch("regulatory_effects", queryset=sig_effects),
                 "facet_values",
             )
+            .annotate(re_count=Count("regulatory_effects"))
             .distinct()
         )
 
+        if len(facets) > 0:
+            dna_regions = dna_regions.filter(facet_values__in=facets)
+
         if "reg_effect" in region_properties:
-            dna_region_list = [region for region in dna_regions if len(region.regulatory_effects.all()) > 0]
-        else:
-            dna_region_list = list(dna_regions)
+            dna_regions = dna_regions.filter(re_count__gt=0)
 
         if "effect_label" in region_properties:
-            for region in dna_region_list:
-                reg_effects = region.regulatory_effects.all()
-                if len(reg_effects) > 0:
+            if "reg_effect" in region_properties:
+                for region in dna_regions.all():
                     setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
+            else:
+                for region in dna_regions.all():
+                    reg_effects = region.regulatory_effects.all()
+                    if len(reg_effects) > 0:
+                        setattr(region, "label", LABELS[f"{region}".__hash__() % LABELS_LEN])
 
-        return dna_region_list
+        return dna_regions
