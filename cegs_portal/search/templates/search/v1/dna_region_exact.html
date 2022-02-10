@@ -88,8 +88,8 @@
         <div class="pagination">
             <span class="step-links">
                 {% if reg_effects.has_previous %}
-                    <a href="?re_page=1">&laquo; first</a>
-                    <a href="?re_page={{ reg_effects.previous_page_number }}">previous</a>
+                    <a id="re_first_link" href="?re_page=1">&laquo; first</a>
+                    <a id="re_prev_link" href="?re_page={{ reg_effects.previous_page_number }}">previous</a>
                 {% endif %}
 
                 <span class="current">
@@ -97,8 +97,8 @@
                 </span>
 
                 {% if reg_effects.has_next %}
-                    <a href="?re_page={{ reg_effects.next_page_number }}">next</a>
-                    <a href="?re_page={{ reg_effects.paginator.num_pages }}">last &raquo;</a>
+                    <a id="re_next_link" href="?re_page={{ reg_effects.next_page_number }}">next</a>
+                    <a id="re_last_link" href="?re_page={{ reg_effects.paginator.num_pages }}">last &raquo;</a>
                 {% endif %}
             </span>
         </div>
@@ -113,50 +113,13 @@
             <input type="text" id="region-dist" value="1000"/>
         </form>
         <button id="region-dist-submit" class="search-button self-end">Find {{ region_type_name_plural }}</button>
-        <table id="dnaregion" style="display:none;"></table>
-        <div id="nearby_region_pagination" display="none"></div>
+        <div id="nearby_region" style="display:none;"></div>
+        <div id="nearby_region_pagination" style="display:none;"></div>
     </div>
 {% endblock %}
 
 {% block inline_javascript %}
     <script>
-        let data_pages = function(data_url_function, data_table, data_filter, no_data, data_table_id, pagination_id, id_prefix) {
-            let data_page = 1;
-
-            let get_pages = function() {
-                fetch(`${data_url_function()}&page=${data_page}`)
-                    .then(response => {
-                        return response.json()
-                    }).then(data => {
-                        if(data.num_pages == 0) {
-                            g(data_table_id).replaceWith(data_table([], no_data));
-                            return;
-                        }
-
-                        let filtered_data = data["regions"].filter(data_filter);
-                        g(data_table_id).replaceWith(data_table(filtered_data))
-                        g(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
-
-                        let page_link = function(link_id, page) {
-                            if (link = g(link_id)) {
-                                link.onclick = function(e) {
-                                    e.preventDefault();
-                                    data_page = page;
-                                    get_pages();
-                                }
-                            }
-                        }
-
-                        page_link(`${id_prefix}_first_link`, 1);
-                        page_link(`${id_prefix}_prev_link`, data_page - 1);
-                        page_link(`${id_prefix}_next_link`, data_page + 1);
-                        page_link(`${id_prefix}_last_link`, data["num_pages"]);
-                    });
-            }
-
-            return get_pages;
-        }
-
         {% if reg_effects|length > 0 %}
         let nonSigShowing = true;
         let effectButton = g("hide-effect");
@@ -178,14 +141,29 @@
             return `/search/regionloc/{{ region.chromosome_name }}/${search_start}/${search_end}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
         }
 
-        g("region-dist-submit").onclick = data_pages(
+        let pageFunc = dataPages(
+            1,
             region_url,
             regionTable,
             region => region.id != {{ region.id }},
             "No nearby {{ region_type_name_plural }}",
-            "dnaregion",
+            "nearby_region",
             "nearby_region_pagination",
-            "nearby_region"
+            "nearby_region",
+            "page"
         );
+
+        g("region-dist-submit").onclick = function(e){
+            pageFunc();
+        }
+
+        {% if reg_effects.has_previous %}
+        pageLink(`re_first_link`, 1, pageFunc);
+        pageLink(`re_prev_link`, {{ reg_effects.previous_page_number }}, pageFunc);
+        {% endif %}
+        {% if reg_effects.has_next %}
+        pageLink(`re_next_link`, {{ reg_effects.next_page_number }}, pageFunc);
+        pageLink(`re_last_link`, {{ reg_effects.paginator.num_pages }}, pageFunc);
+        {% endif %}
     </script>
 {% endblock %}

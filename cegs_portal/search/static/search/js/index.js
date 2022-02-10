@@ -52,12 +52,12 @@ function rc(p, c) {
     a(p, c);
 }
 
-function regionTable(regions, emptyString) {
+function regionTable(regions, emptyString, regionID="dnaregion") {
     if (regions.length == 0) {
-        return e("div", {id: "dnaregion"}, t(emptyString));
+        return e("div", {id: regionID}, t(emptyString));
     }
 
-    newTable = e("table", {id: "dnaregion",  class: "data-table"}, [
+    newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
             e("th", "Region Type"),
             e("th", "Cell Line"),
@@ -88,35 +88,35 @@ function regionTable(regions, emptyString) {
     return newTable;
 }
 
-function newPagination(pagination_id, page_data, id_prefix="",  page_query_param="page") {
-    if (id_prefix != "") {
-        id_prefix = `${id_prefix}_`
+function newPagination(paginationID, pageData, idPrefix="",  pageQueryParam="page") {
+    if (idPrefix != "") {
+        idPrefix = `${idPrefix}_`
     }
     let stepLinks = [];
-    if(page_data["has_prev_page"]) {
-        stepLinks.push(e("a", {href: `?${page_query_param}=1`, id: `${id_prefix}first_link`}, t("« first")))
+    if(pageData["has_prev_page"]) {
+        stepLinks.push(e("a", {href: `?${pageQueryParam}=1`, id: `${idPrefix}first_link`}, t("« first")))
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?${page_query_param}=${page_data["page"] - 1}`, id: `${id_prefix}prev_link`}, t("previous")))
+        stepLinks.push(e("a", {href: `?${pageQueryParam}=${pageData["page"] - 1}`, id: `${idPrefix}prev_link`}, t("previous")))
         stepLinks.push(t(" "))
     }
 
-    stepLinks.push(e("span", {class:"current"}, t(`Page ${page_data["page"]} of ${page_data["num_pages"]}`)))
+    stepLinks.push(e("span", {class:"current"}, t(`Page ${pageData["page"]} of ${pageData["num_pages"]}`)))
 
-    if(page_data["has_next_page"]) {
+    if(pageData["has_next_page"]) {
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?${page_query_param}=${page_data["page"] + 1}`, id: `${id_prefix}next_link`}, t("next")))
+        stepLinks.push(e("a", {href: `?${pageQueryParam}=${pageData["page"] + 1}`, id: `${idPrefix}next_link`}, t("next")))
         stepLinks.push(t(" "))
-        stepLinks.push(e("a", {href: `?${page_query_param}=${page_data["num_pages"]}`, id: `${id_prefix}last_link`}, t("last »")))
+        stepLinks.push(e("a", {href: `?${pageQueryParam}=${pageData["num_pages"]}`, id: `${idPrefix}last_link`}, t("last »")))
     }
 
-    return e("div", {class:"pagination", "id":pagination_id}, [
+    return e("div", {class:"pagination", "id":paginationID}, [
             e("span", {class: "step-links"}, stepLinks)
         ]
     )
 }
 
-function pageLink(link_id, page, getPageFunction) {
-    if (link = g(link_id)) {
+function pageLink(linkID, page, getPageFunction) {
+    if (link = g(linkID)) {
         link.onclick = function(e) {
             e.preventDefault();
             getPageFunction.bind(getPageFunction)(page);
@@ -124,15 +124,15 @@ function pageLink(link_id, page, getPageFunction) {
     }
 }
 
-function dataPages(start_page, data_url_function, data_table, data_filter, no_data, data_table_id, pagination_id, id_prefix, page_query) {
-    let data_page = start_page;
+function dataPages(startPage, dataURLFunction, dataTableFunction, dataFilter, noDataMessage, dataTableID, paginationID, idPrefix, pageQuery) {
+    let dataPage = startPage;
 
     let pageFunc = function(page) {
         if (page) {
-            data_page = page;
+            dataPage = page;
         }
 
-        fetch(`${data_url_function()}&${page_query}=${data_page}`)
+        fetch(`${dataURLFunction()}&${pageQuery}=${dataPage}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Request Failed: ${response.status} ${response.statusText}`);
@@ -141,20 +141,20 @@ function dataPages(start_page, data_url_function, data_table, data_filter, no_da
                 return response.json()
             }).then(data => {
                 if(data.num_pages == 1 && data.regions.length == 0) {
-                    g(data_table_id).replaceWith(data_table([], no_data));
-                    g(pagination_id).replaceWith(e("div", {id: pagination_id, display: "none"}, []));
+                    g(dataTableID).replaceWith(dataTableFunction([], noDataMessage, dataTableID));
+                    g(paginationID).replaceWith(e("div", {id: paginationID, display: "none"}, []));
                     return;
                 }
 
-                let filtered_data = data.regions.filter(data_filter);
-                g(data_table_id).replaceWith(data_table(filtered_data))
-                g(pagination_id).replaceWith(newPagination(pagination_id, data, id_prefix));
+                let filtered_data = data.regions.filter(dataFilter);
+                g(dataTableID).replaceWith(dataTableFunction(filtered_data, "", dataTableID));
+                g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
 
 
-                pageLink(`${id_prefix}_first_link`, 1, this);
-                pageLink(`${id_prefix}_prev_link`, data_page - 1, this);
-                pageLink(`${id_prefix}_next_link`, data_page + 1, this);
-                pageLink(`${id_prefix}_last_link`, data.num_pages, this);
+                pageLink(`${idPrefix}_first_link`, 1, this);
+                pageLink(`${idPrefix}_prev_link`, dataPage - 1, this);
+                pageLink(`${idPrefix}_next_link`, dataPage + 1, this);
+                pageLink(`${idPrefix}_last_link`, data.num_pages, this);
             })
             .catch((error) => {
                 console.error(error);
