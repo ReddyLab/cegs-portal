@@ -137,6 +137,7 @@ svg > g > text {
                 page,
                 _ => regionURL(chromo, start, end, facets),
                 regionTable,
+                emptyRegionTable,
                 region => true,
                 "No DHSs Found",
                 "dnaregion",
@@ -149,12 +150,12 @@ svg > g > text {
         let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1)
 
         {% if dhss.has_previous %}
-        pageLink(`dhs_first_link`, 1, getPages);
-        pageLink(`dhs_prev_link`, {{ dhss.previous_page_number }}, getPages);
+        pageLink("dhs_first_link", 1, getPages);
+        pageLink("dhs_prev_link", {{ dhss.previous_page_number }}, getPages);
         {% endif %}
         {% if dhss.has_next %}
-        pageLink(`dhs_next_link`, {{ dhss.next_page_number }}, getPages);
-        pageLink(`dhs_last_link`, {{ dhss.paginator.num_pages }}, getPages);
+        pageLink("dhs_next_link", {{ dhss.next_page_number }}, getPages);
+        pageLink("dhs_last_link", {{ dhss.paginator.num_pages }}, getPages);
         {% endif %}
 
         const fieldSet = g("facetfield");

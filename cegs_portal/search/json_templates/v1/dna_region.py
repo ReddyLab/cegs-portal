@@ -11,7 +11,7 @@ from cegs_portal.utils.pagination_types import Pageable
 
 def dnaregions(regions: Pageable[DNARegion], json_format: str = None):
     results = {
-        "regions": [_dnaregion(region, region.regulatory_effects.all(), json_format) for region in regions.object_list],
+        "objects": [_dnaregion(region, region.regulatory_effects.all(), json_format) for region in regions.object_list],
         "page": regions.number,
         "has_next_page": regions.has_next(),
         "has_prev_page": regions.has_previous(),

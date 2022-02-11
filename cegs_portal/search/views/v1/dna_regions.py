@@ -60,11 +60,13 @@ class DNARegion(TemplateJsonView):
         reg_effect_page = reg_effect_paginator.get_page(options["re_page"])
 
         for reg_effect in reg_effect_page:
+            # Other DHSs associated with the same Regulatory Effect
             setattr(
                 reg_effect,
                 "co_regulators",
                 [source for source in reg_effect.sources.all() if source.id != region.id],
             )
+            # Other DHSs associated with the same target as this Reg Effect
             co_sources = set()
             for target in reg_effect.targets.all():
                 for tre in target.regulatory_effects.all():

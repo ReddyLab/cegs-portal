@@ -95,7 +95,7 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
 
 def test_dna_regions(regions: Pageable[DNARegion]):
     result = {
-        "regions": [_dnaregion(region, region.regulatory_effects.all()) for region in regions.object_list],
+        "objects": [_dnaregion(region, region.regulatory_effects.all()) for region in regions.object_list],
         "page": regions.number,
         "has_next_page": regions.has_next(),
         "has_prev_page": regions.has_previous(),
@@ -103,7 +103,7 @@ def test_dna_regions(regions: Pageable[DNARegion]):
     }
     assert drs_json(regions) == result
 
-    result["regions"] = [
+    result["objects"] = [
         _dnaregion(region, region.regulatory_effects.all(), json_format="genoverse") for region in regions
     ]
     assert drs_json(regions, json_format="genoverse") == result

@@ -53,7 +53,7 @@
                     return response.json()
                 })
                 .then(data => {
-                    g("dnaregion").replaceWith(regionTable(data["regions"], "No {{ region_type_name }}"));
+                    g("dnaregion").replaceWith(regionTable(data.objects, "No {{ region_type_name }}"));
                     g("region_pagination").replaceWith(newPagination("region_pagination", data));
                 });
 

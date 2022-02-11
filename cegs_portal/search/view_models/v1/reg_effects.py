@@ -18,3 +18,14 @@ class RegEffectSearch:
             .first()
         )
         return reg_effect
+
+    @classmethod
+    def region_search(cls, region_id: str):
+        reg_effects = RegulatoryEffect.objects.filter(sources__in=[int(region_id)]).prefetch_related(
+            "experiment__data_files__cell_lines",
+            "experiment__data_files__tissue_types",
+            "sources__regulatory_effects",
+            "targets__regulatory_effects__sources",
+        )
+
+        return reg_effects

@@ -52,11 +52,11 @@ function rc(p, c) {
     a(p, c);
 }
 
-function regionTable(regions, emptyString, regionID="dnaregion") {
-    if (regions.length == 0) {
-        return e("div", {id: regionID}, t(emptyString));
-    }
+function emptyRegionTable(emptyString, regionID="dnaregion") {
+    return e("div", {id: regionID}, t(emptyString));
+}
 
+function regionTable(regions, regionID="dnaregion") {
     newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
             e("th", "Region Type"),
@@ -84,6 +84,49 @@ function regionTable(regions, emptyString, regionID="dnaregion") {
                 e("td", e("a", {href: `/search/region/${region.id}`}, "More...")),
             ])
         )
+    }
+    return newTable;
+}
+
+function emptyRETable(emptyString, regionID="regeffect") {
+    return e("div", {id: regionID}, t(emptyString));
+}
+
+function reTable(regeffects, regionID="regeffect") {
+    newTable = e("table", {id: regionID,  class: "data-table"}, [
+        e("tr", [
+            e("th", "Direction"),
+            e("th", "Effect Size"),
+            e("th", "Significance"),
+            e("th", "Target Gene"),
+            e("th", "Experiment"),
+            e("th", "Co-regulating DHSs"),
+            e("th", "Co-Sources"),
+            e("th"),
+        ])
+    ])
+    for(effect of regeffects) {
+        if(effect.target_ids == 0) {
+            effect.target_ids = [null];
+        }
+        for(target of effect.target_ids) {
+            newTable.append(
+                e("tr", [
+                    e("td", `${effect.direction}`),
+                    e("td", `${effect.effect_size}`),
+                    e("td", `${effect.significance}`),
+                    target == null ? e("td", "Unknown") : e("td", e("a", {href: `/search/feature/ensemble/${target}`}, target)),
+                    e("td", e("a", {href: `/search/experiment/${effect.experiment.id}`}, effect.experiment.name)),
+                    e("td", effect.co_regulators.length == 0 ? "None" : effect.co_regulators.map(coreg => {
+                        return e("a", {href: `/search/region/${coreg}`}, `DHS: ${coreg}`)
+                    })),
+                    e("td", effect.co_sources.length == 0 ? "None" : effect.co_sources.map(cosrc => {
+                        return e("a", {href: `/search/region/${cosrc}`}, `DHS: ${cosrc}`)
+                    })),
+                    e("td", e("a", {href: `/search/regeffect/${effect.id}`}, "More...")),
+                ])
+            )
+        }
     }
     return newTable;
 }
@@ -124,7 +167,7 @@ function pageLink(linkID, page, getPageFunction) {
     }
 }
 
-function dataPages(startPage, dataURLFunction, dataTableFunction, dataFilter, noDataMessage, dataTableID, paginationID, idPrefix, pageQuery) {
+function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTableFunction, dataFilter, noDataMessage, dataTableID, paginationID, idPrefix, pageQuery, callback) {
     let dataPage = startPage;
 
     let pageFunc = function(page) {
@@ -140,14 +183,14 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, dataFilter, no
 
                 return response.json()
             }).then(data => {
-                if(data.num_pages == 1 && data.regions.length == 0) {
-                    g(dataTableID).replaceWith(dataTableFunction([], noDataMessage, dataTableID));
+                if(data.num_pages == 1 && data.objects.length == 0) {
+                    g(dataTableID).replaceWith(emptyDataTableFunction(noDataMessage, dataTableID));
                     g(paginationID).replaceWith(e("div", {id: paginationID, display: "none"}, []));
                     return;
                 }
 
-                let filtered_data = data.regions.filter(dataFilter);
-                g(dataTableID).replaceWith(dataTableFunction(filtered_data, "", dataTableID));
+                let filtered_data = data.objects.filter(dataFilter);
+                g(dataTableID).replaceWith(dataTableFunction(filtered_data, dataTableID));
                 g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
 
 
@@ -155,6 +198,10 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, dataFilter, no
                 pageLink(`${idPrefix}_prev_link`, dataPage - 1, this);
                 pageLink(`${idPrefix}_next_link`, dataPage + 1, this);
                 pageLink(`${idPrefix}_last_link`, data.num_pages, this);
+
+                if(callback) {
+                    callback();
+                }
             })
             .catch((error) => {
                 console.error(error);

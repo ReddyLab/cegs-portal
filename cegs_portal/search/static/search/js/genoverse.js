@@ -80,7 +80,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     },
     setData: function (data) {
         let oldEffectfulDHSs = this.browser.getSharedState("dhs-effect-data");
-        let newEffectfulDHSs = data["regions"].filter((dhs) => dhs.effects.length > 0);
+        let newEffectfulDHSs = data.objects.filter((dhs) => dhs.effects.length > 0);
         let allEffectfulDHSs = oldEffectfulDHSs ? oldEffectfulDHSs.concat(newEffectfulDHSs) : newEffectfulDHSs;
 
         // Sort DHSs with effects

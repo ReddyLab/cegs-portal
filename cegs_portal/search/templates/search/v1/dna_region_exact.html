@@ -32,7 +32,7 @@
         <div class="text-xl font-bold">Regulatory Effects</div>
         <button id="hide-effect">Hide Non-Signficant Effects</button>
         {% spaceless %}
-        <table class="data-table">
+        <table id="regeffect" class="data-table">
             <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
             {% for reg_effect in reg_effects %}
                 {% for target in reg_effect.targets.all %}
@@ -85,7 +85,7 @@
             {% endfor %}
         </table>
         {% endspaceless %}
-        <div class="pagination">
+        <div id="regeffect_pagination" class="pagination">
             <span class="step-links">
                 {% if reg_effects.has_previous %}
                     <a id="re_first_link" href="?re_page=1">&laquo; first</a>
@@ -123,8 +123,8 @@
         {% if reg_effects|length > 0 %}
         let nonSigShowing = true;
         let effectButton = g("hide-effect");
-        effectButton.onclick = function() {
-            nonSigShowing = !nonSigShowing;
+
+        let toggleNonSig = function(nonSigShowing) {
             let trs = Array.from(document.getElementsByTagName("tr"));
             let nonSigRows = trs.filter(tr => Array.from(tr.getElementsByTagName("td")).filter(td => td.innerHTML == "non_sig").length != 0);
             for (row of nonSigRows) {
@@ -132,19 +132,25 @@
             }
             rc(effectButton, t(nonSigShowing ? "Hide Non-Signficant Effects" : "Show Non-Signficant Effects"));
         }
+
+        effectButton.onclick = function() {
+            nonSigShowing = !nonSigShowing;
+            toggleNonSig(nonSigShowing)
+        }
         {% endif %}
 
-        let region_url = function() {
+        let regionURLFunc = function() {
             let dist = Number(g("region-dist").value);
-            let search_start = Math.max({{ region.location.lower }} - dist, 0);
-            let search_end = {{ region.location.upper }} + dist;
-            return `/search/regionloc/{{ region.chromosome_name }}/${search_start}/${search_end}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
+            let searchStart = Math.max({{ region.location.lower }} - dist, 0);
+            let searchEnd = {{ region.location.upper }} + dist;
+            return `/search/regionloc/{{ region.chromosome_name }}/${searchStart}/${searchEnd}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
         }
 
-        let pageFunc = dataPages(
+        let regionPageFunc = dataPages(
             1,
-            region_url,
+            regionURLFunc,
             regionTable,
+            emptyRegionTable,
             region => region.id != {{ region.id }},
             "No nearby {{ region_type_name_plural }}",
             "nearby_region",
@@ -154,16 +160,34 @@
         );
 
         g("region-dist-submit").onclick = function(e){
-            pageFunc();
+            regionPageFunc();
         }
 
+        let reURLFunc = function() {
+            return `/search/regeffect/region/{{ region.id }}?accept=application/json`
+        }
+
+        let rePageFunc = dataPages(
+            1,
+            reURLFunc,
+            reTable,
+            emptyRETable,
+            re => true,
+            "No associated regulatory effects",
+            "regeffect",
+            "regeffect_pagination",
+            "re",
+            "page",
+            _ => toggleNonSig(nonSigShowing)
+        );
+
         {% if reg_effects.has_previous %}
-        pageLink(`re_first_link`, 1, pageFunc);
-        pageLink(`re_prev_link`, {{ reg_effects.previous_page_number }}, pageFunc);
+        pageLink("re_first_link", 1, rePageFunc);
+        pageLink("re_prev_link", {{ reg_effects.previous_page_number }}, rePageFunc);
         {% endif %}
         {% if reg_effects.has_next %}
-        pageLink(`re_next_link`, {{ reg_effects.next_page_number }}, pageFunc);
-        pageLink(`re_last_link`, {{ reg_effects.paginator.num_pages }}, pageFunc);
+        pageLink("re_next_link", {{ reg_effects.next_page_number }}, rePageFunc);
+        pageLink("re_last_link", {{ reg_effects.paginator.num_pages }}, rePageFunc);
         {% endif %}
     </script>
 {% endblock %}
