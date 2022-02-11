@@ -21,11 +21,11 @@
             <div class="p-2" id="genoverse"></div>
             <div class="text-xl font-bold">Sites</div>
             {% include "search/v1/partials/_dnaregion.html" with regions=regions %}
-            <div id="region_pagination" class="pagination">
+            <div id="dhs_pagination" class="pagination">
                 <span class="step-links">
                     {% if regions.has_previous %}
-                        <a href="?page=1">&laquo; first</a>
-                        <a href="?page={{ regions.previous_page_number }}">previous</a>
+                        <a id="dhs_first_link" href="?page=1">&laquo; first</a>
+                        <a id="dhs_prev_link" href="?page={{ regions.previous_page_number }}">previous</a>
                     {% endif %}
 
                     <span class="current">
@@ -33,8 +33,8 @@
                     </span>
 
                     {% if regions.has_next %}
-                        <a href="?page={{ regions.next_page_number }}">next</a>
-                        <a href="?page={{ regions.paginator.num_pages }}">last &raquo;</a>
+                        <a id="dhs_next_link" href="?page={{ regions.next_page_number }}">next</a>
+                        <a id="dhs_last_link" href="?page={{ regions.paginator.num_pages }}">last &raquo;</a>
                     {% endif %}
                 </span>
             </div>
@@ -44,20 +44,57 @@
 
 {% block inline_javascript %}
     <script>
-        window.addEventListener("hashchange", _.throttle(function() {
-            let hash = window.location.hash;
-            [_, chromo, start, end] = hash.match(/^#r\=(\d+):(\d+)-(\d+)$/, '')
+        const STATE_LOCATION = "location";
+        let state = new State([STATE_LOCATION]);
+        state.updateSharedState(STATE_LOCATION, {
+            chr: "{{ loc.chr }}",
+            start: {{ loc.start }},
+            end: {{ loc.end }}
+        }
+        );
 
-            fetch(`/search/regionloc/chr${chromo}/${start}/${end}?search_type=overlap&accept=application/json&{{ region_type_query_slug }}`)
-                .then(response => {
-                    return response.json()
-                })
-                .then(data => {
-                    g("dnaregion").replaceWith(regionTable(data.objects, "No {{ region_type_name }}"));
-                    g("region_pagination").replaceWith(newPagination("region_pagination", data));
-                });
+        // Update the chromosome location at the top of the page
+        state.addCallback(STATE_LOCATION, (state, key) => {
+            let location = state[key];
+            genDataPages(location.chr, location.start, location.end, 1)();
+        });
 
-        }, 500, { 'leading': true }));
+        const _ul = function(_state, key) {
+            if (key !== STATE_LOCATION) { return; }
+            state.updateSharedState(key, _state[key]);
+        };
+
+        let initialLocation = state.getSharedState(STATE_LOCATION);
+
+        let regionURL = function(chromosome, start, end) {
+            return `/search/regionloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs`;
+        }
+
+        let genDataPages = function(chromo, start, end, page) {
+            return dataPages(
+                page,
+                _ => regionURL(chromo, start, end),
+                regionTable,
+                emptyRegionTable,
+                region => true,
+                "No DHSs Found",
+                "dnaregion",
+                "dhs_pagination",
+                "dhs",
+                "page"
+            );
+        }
+
+        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1);
+
+        {% if regions.has_previous %}
+        pageLink("dhs_first_link", 1, getPages);
+        pageLink("dhs_prev_link", {{ regions.previous_page_number }}, getPages);
+        {% endif %}
+        {% if regions.has_next %}
+        pageLink("dhs_next_link", {{ regions.next_page_number }}, getPages);
+        pageLink("dhs_last_link", {{ regions.paginator.num_pages }}, getPages);
+        {% endif %}
 
         new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
@@ -71,6 +108,7 @@
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
+            sharedStateCallbacks: [_ul],
             tracks    : [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
                 Genoverse.Track.Scalebar,

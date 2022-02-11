@@ -92,6 +92,12 @@ svg > g > text {
 {% endblock %}
 {% block inline_javascript %}
     <script>
+        let searchURL = function(facets) {
+            enabledFacets = facets.map(id => `facet=${id}`)
+                                  .join('&')
+            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        }
+
         const STATE_LOCATION = "location";
         const STATE_QUERY_RESULTS = "query-results";
         const STATE_FACETS = "facets"
@@ -108,7 +114,7 @@ svg > g > text {
         state.addCallback(STATE_LOCATION, (state, key) => {
             let location = state[key];
 
-            rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`))
+            rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`));
 
             genDataPages(location.chr, location.start, location.end, 1)();
         });
@@ -123,7 +129,7 @@ svg > g > text {
             },
             500,
             { 'leading': true })
-        )
+        );
 
         const _ul = function(_state, key) {
             if (key !== STATE_LOCATION) { return; }
@@ -131,6 +137,12 @@ svg > g > text {
         }
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
+
+        let regionURL = function(chromosome, start, end, facets=[]) {
+            enabledFacets = facets.map(id => `facet=${id}`)
+                                  .join('&');
+            return `/search/regionloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        }
 
         let genDataPages = function(chromo, start, end, page, facets = []) {
             return dataPages(
@@ -144,10 +156,10 @@ svg > g > text {
                 "dhs_pagination",
                 "dhs",
                 "page"
-            )
+            );
         }
 
-        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1)
+        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1);
 
         {% if dhss.has_previous %}
         pageLink("dhs_first_link", 1, getPages);
@@ -160,18 +172,6 @@ svg > g > text {
 
         const fieldSet = g("facetfield");
         const facetCheckboxes = fieldSet.querySelectorAll("input[type=checkbox]");
-
-        let searchURL = function(facets) {
-            enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&')
-            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
-        }
-
-        let regionURL = function(chromosome, start, end, facets=[]) {
-            enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&')
-            return `/search/regionloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`
-        }
 
         facetCheckboxes.forEach(checkbox => {
             checkbox.addEventListener("change", _ => {
