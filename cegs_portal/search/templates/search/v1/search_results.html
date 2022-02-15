@@ -19,7 +19,6 @@ svg > g > text {
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/state.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
@@ -91,9 +90,12 @@ svg > g > text {
     </div>
 {% endblock %}
 {% block inline_javascript %}
-    <script>
+    <script type="module">
+        import { e, g, rc, t } from "{% static 'search/js/dom.js' %}";
+        import { dataPages, regionTable, emptyRegionTable, pageLink } from "{% static 'search/js/tables.js' %}"
+
         let searchURL = function(facets) {
-            enabledFacets = facets.map(id => `facet=${id}`)
+            let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&')
             return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
@@ -139,7 +141,7 @@ svg > g > text {
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
         let regionURL = function(chromosome, start, end, facets=[]) {
-            enabledFacets = facets.map(id => `facet=${id}`)
+            let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&');
             return `/search/regionloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }

@@ -1,63 +1,11 @@
-function a(p, c) {
-    p.appendChild(c)
-}
-
-function e(name) {
-    attributes = {};
-    children = [];
-    if (arguments.length == 2) {
-        children = arguments[1];
-    }
-    if (arguments.length == 3) {
-        attributes = arguments[1];
-        children = arguments[2];
-    }
-
-    element = document.createElement(name);
-    for (key in attributes) {
-        element.setAttribute(key, attributes[key]);
-    }
-    if (Array.isArray(children)) {
-        for (child of children) {
-            if (typeof child === "string") {
-                child = t(child);
-            }
-            a(element, child);
-        }
-    } else {
-        if (typeof children === "string") {
-            children = t(children);
-        }
-
-        a(element, children);
-    }
-
-    return element;
-}
-
-function g(id) {
-    return document.getElementById(id);
-}
-
-function t(text) {
-    return document.createTextNode(text);
-}
-
-// Replace Children
-function rc(p, c) {
-    while (p.firstChild) {
-        p.removeChild(p.firstChild);
-    }
-
-    a(p, c);
-}
+import { e, g, t } from "./dom.js";
 
 function emptyRegionTable(emptyString, regionID="dnaregion") {
     return e("div", {id: regionID}, t(emptyString));
 }
 
 function regionTable(regions, regionID="dnaregion") {
-    newTable = e("table", {id: regionID,  class: "data-table"}, [
+    let newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
             e("th", "Region Type"),
             e("th", "Cell Line"),
@@ -68,7 +16,7 @@ function regionTable(regions, regionID="dnaregion") {
             e("th"),
         ])
     ])
-    for(region of regions) {
+    for(const region of regions) {
         newTable.append(
             e("tr", [
                 e("td", region.type),
@@ -93,7 +41,7 @@ function emptyRETable(emptyString, regionID="regeffect") {
 }
 
 function reTable(regeffects, regionID="regeffect") {
-    newTable = e("table", {id: regionID,  class: "data-table"}, [
+    let newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
             e("th", "Direction"),
             e("th", "Effect Size"),
@@ -105,11 +53,11 @@ function reTable(regeffects, regionID="regeffect") {
             e("th"),
         ])
     ])
-    for(effect of regeffects) {
+    for(let effect of regeffects) {
         if(effect.target_ids == 0) {
             effect.target_ids = [null];
         }
-        for(target of effect.target_ids) {
+        for(const target of effect.target_ids) {
             newTable.append(
                 e("tr", [
                     e("td", `${effect.direction}`),
@@ -159,7 +107,8 @@ function newPagination(paginationID, pageData, idPrefix="",  pageQueryParam="pag
 }
 
 function pageLink(linkID, page, getPageFunction) {
-    if (link = g(linkID)) {
+    let link = g(linkID);
+    if (link) {
         link.onclick = function(e) {
             e.preventDefault();
             getPageFunction.bind(getPageFunction)(page);
@@ -210,3 +159,5 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
 
     return pageFunc.bind(pageFunc);
 }
+
+export { pageLink, dataPages, newPagination, regionTable, emptyRegionTable, emptyRETable, reTable };

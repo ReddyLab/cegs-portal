@@ -6,7 +6,6 @@
 {% block javascript %}
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'search/js/index.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -120,7 +119,10 @@
 {% endblock content %}
 
 {% block inline_javascript %}
-    <script>
+    <script type="module">
+        import { g } from "{% static 'search/js/dom.js' %}";
+        import { regionTable } from "{% static 'search/js/tables.js' %}"
+
         let assemblies = [
             {% for assembly in feature.assemblies.all %}
             {
@@ -145,7 +147,7 @@
             Promise.all(fetches)
                 .then(data => {
                     let regions = [];
-                    for (d of data) {
+                    for (const d of data) {
                         regions.push(...d);
                     }
                     g("dnaregion").replaceWith(regionTable(regions, "No nearby DNA Regions"))
