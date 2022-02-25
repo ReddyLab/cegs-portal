@@ -177,7 +177,7 @@ svg > g > text {
 
         facetCheckboxes.forEach(checkbox => {
             checkbox.addEventListener("change", _ => {
-                checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
                                      .map(i => i.id)
                 state.updateSharedState(STATE_FACETS, checkedFacets);
