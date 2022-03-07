@@ -17,24 +17,18 @@ class EffectDirectionType(Enum):
 
 
 class RegulatoryEffect(Searchable, FacetedModel):
-    DIRECTION_CHOICES = [
-        (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
-        (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
-        (EffectDirectionType.BOTH, "both"),
-        (EffectDirectionType.NON_SIGNIFICANT, "non_sig"),  # significance >= 0.01 or value = 0
-    ]
-    direction = models.CharField(
-        max_length=8,
-        choices=DIRECTION_CHOICES,
-        default=EffectDirectionType.NON_SIGNIFICANT,
-    )
+    # Facets:
+    #  * Direction (Discrete, EffectDirectionType)
+    #  * Raw p value (Continuous, float)
+    #  * Signficance (Continuous, float)
+    #  * Effect Size (Continuous, float)
+
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    effect_size = models.FloatField(null=True)  # log2 fold changes
-    significance = models.FloatField(null=True)  # an adjusted p value
-    raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
     sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
     targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
     target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
 
     def __str__(self):
-        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501
+        direction = self.facet_values.get(facet__name="Direction")
+        effect_size = self.facet_values.get(facet__name="Effect Size")
+        return f"{direction.value}: {self.sources.count()} source(s) -> {effect_size.num_value} on {self.targets.count()} target(s)"  # noqa: E501
