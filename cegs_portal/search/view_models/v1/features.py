@@ -69,6 +69,7 @@ class FeatureSearch:
             "dnaregion_set__regulatory_effects",
             "regulatory_effects",
             "regulatory_effects__sources",
+            "regulatory_effects__facet_values",
         )
         if distinct:
             features = features.distinct()
