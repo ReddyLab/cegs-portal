@@ -37,4 +37,7 @@ class FacetedModel(models.Model):
     class Meta:
         abstract = True
 
+    class Facets:
+        pass
+
     facet_values = models.ManyToManyField(FacetValue)
