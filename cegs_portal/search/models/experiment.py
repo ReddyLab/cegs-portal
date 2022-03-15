@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.db import models
 
 from cegs_portal.search.models.facets import FacetedModel
@@ -19,11 +21,20 @@ class TissueType(models.Model):
 
 
 class Experiment(FacetedModel):
+    class Facet(Enum):
+        ASSAYS = "Experiment Assays"
+
     archived = models.BooleanField(default=False)
     description = models.CharField(max_length=4096, null=True)
     experiment_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=512)
     other_files = models.ManyToManyField(File, related_name="experiments")
+
+    def assay(self):
+        return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
+
+    def __str__(self):
+        return f"{self.id}: {self.name} ({self.experiment_type})"
 
 
 class ExperimentDataFile(models.Model):
@@ -36,3 +47,6 @@ class ExperimentDataFile(models.Model):
     ref_genome_patch = models.CharField(max_length=10)
     significance_measure = models.CharField(max_length=2048)
     tissue_types = models.ManyToManyField(TissueType, related_name="experiment_data")
+
+    def __str__(self):
+        return f"{self.filename}:\n{self.description}"

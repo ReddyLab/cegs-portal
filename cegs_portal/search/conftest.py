@@ -4,9 +4,11 @@ import pytest
 from django.db.models import Manager
 
 from cegs_portal.search.models import (
+    EffectDirectionType,
     Experiment,
     ExperimentDataFile,
     Facet,
+    FacetType,
     Feature,
     FeatureAssembly,
     File,
@@ -138,7 +140,23 @@ def assembly() -> FeatureAssembly:
 
 @pytest.fixture
 def reg_effect() -> RegulatoryEffect:
-    effect = RegEffectFactory(sources=(DNARegionFactory(), DNARegionFactory()))
+    direction_facet = FacetFactory(description="", name=RegulatoryEffect.Facet.DIRECTION.value)
+    p_val_facet = FacetFactory(
+        description="", name=RegulatoryEffect.Facet.RAW_P_VALUE.value, facet_type=FacetType.CONTINUOUS
+    )
+    sig_facet = FacetFactory(
+        description="", name=RegulatoryEffect.Facet.SIGNIFICANCE.value, facet_type=FacetType.CONTINUOUS
+    )
+    effect_size_facet = FacetFactory(
+        description="", name=RegulatoryEffect.Facet.EFFECT_SIZE.value, facet_type=FacetType.CONTINUOUS
+    )
+    direction = FacetValueFactory(facet=direction_facet, value=EffectDirectionType.ENRICHED)
+    p_val = FacetValueFactory(facet=p_val_facet)
+    sig = FacetValueFactory(facet=sig_facet)
+    effect_size = FacetValueFactory(facet=effect_size_facet)
+    effect = RegEffectFactory(
+        sources=(DNARegionFactory(), DNARegionFactory()), facet_values=(direction, p_val, sig, effect_size)
+    )
     effect.experiment.data_files.add(
         ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
     )

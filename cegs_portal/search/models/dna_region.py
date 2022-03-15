@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
@@ -15,6 +17,9 @@ class DNARegion(Searchable, FacetedModel):
             GistIndex(fields=["location"], name="search_region_location_index"),
         ]
 
+    class Facet(Enum):
+        ASSAYS = "Experiment Assays"
+
     cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
     closest_gene = models.ForeignKey(Feature, null=True, on_delete=models.SET_NULL)
@@ -28,6 +33,10 @@ class DNARegion(Searchable, FacetedModel):
     region_type = models.CharField(max_length=50, default="")
     source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
     strand = models.CharField(max_length=1, null=True)
+
+    @property
+    def assay(self):
+        return self.facet_values.get(facet__name=DNARegion.Facet.ASSAYS.value).value
 
     def __str__(self):
         return (

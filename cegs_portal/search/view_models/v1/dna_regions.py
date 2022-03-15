@@ -5,8 +5,7 @@ from typing import Any, Optional, cast
 from django.db.models import Count, Prefetch
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNARegion
-from cegs_portal.search.models.reg_effects import RegulatoryEffect
+from cegs_portal.search.models import DNARegion, RegulatoryEffect
 from cegs_portal.search.view_models.errors import ViewModelError
 
 LABEL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -37,12 +36,16 @@ class DNARegionSearch:
         if region is None:
             return None, None
 
-        region_reg_effects = RegulatoryEffect.objects.filter(sources__in=[region.id]).prefetch_related(
-            "targets",
-            "targets__regulatory_effects",
-            "targets__regulatory_effects__sources",
-            "experiment",
-            "sources",
+        region_reg_effects = (
+            RegulatoryEffect.objects.with_facet_values()
+            .filter(sources__in=[region.id])
+            .prefetch_related(
+                "targets",
+                "targets__regulatory_effects",
+                "targets__regulatory_effects__sources",
+                "experiment",
+                "sources",
+            )
         )
         return region, region_reg_effects
 
@@ -75,12 +78,16 @@ class DNARegionSearch:
             query["region_type__in"] = region_types
 
         query[field] = NumericRange(int(start), int(end), "[)")
-        sig_effects = RegulatoryEffect.objects.exclude(direction__exact="non_sig").prefetch_related(
-            "targets",
-            "targets__parent",
-            "target_assemblies",
-            "target_assemblies__feature",
-            "target_assemblies__feature__parent",
+        sig_effects = (
+            RegulatoryEffect.objects.with_facet_values()
+            .exclude(facet_values__value__in=["non_sig"])
+            .prefetch_related(
+                "targets",
+                "targets__parent",
+                "target_assemblies",
+                "target_assemblies__feature",
+                "target_assemblies__feature__parent",
+            )
         )
         dna_regions = (
             DNARegion.objects.filter(**query)

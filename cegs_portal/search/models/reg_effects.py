@@ -16,25 +16,40 @@ class EffectDirectionType(Enum):
     BOTH = "both"
 
 
+class RegulatoryEffectSet(models.QuerySet):
+    def with_facet_values(self):
+        return self.prefetch_related("facet_values")
+
+
 class RegulatoryEffect(Searchable, FacetedModel):
-    DIRECTION_CHOICES = [
-        (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
-        (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
-        (EffectDirectionType.BOTH, "both"),
-        (EffectDirectionType.NON_SIGNIFICANT, "non_sig"),  # significance >= 0.01 or value = 0
-    ]
-    direction = models.CharField(
-        max_length=8,
-        choices=DIRECTION_CHOICES,
-        default=EffectDirectionType.NON_SIGNIFICANT,
-    )
+    class Facet(Enum):
+        DIRECTION = "Direction"  # EffectDirectionType
+        RAW_P_VALUE = "Raw p value"  # float
+        SIGNIFICANCE = "Significance"  # float
+        EFFECT_SIZE = "Effect Size"  # float
+
+    objects = RegulatoryEffectSet.as_manager()
+
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    effect_size = models.FloatField(null=True)  # log2 fold changes
-    significance = models.FloatField(null=True)  # an adjusted p value
-    raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
     sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
     targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
     target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
 
+    @property
+    def direction(self):
+        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.DIRECTION.value).value
+
+    @property
+    def effect_size(self):
+        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.EFFECT_SIZE.value).num_value
+
+    @property
+    def significance(self):
+        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.SIGNIFICANCE.value).num_value
+
+    @property
+    def raw_p_value(self):
+        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.RAW_P_VALUE.value).num_value
+
     def __str__(self):
-        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501
+        return f"{self.direction.value}: {self.sources.count()} source(s) -> {self.effect_size.num_value} on {self.targets.count()} target(s)"  # noqa: E501
