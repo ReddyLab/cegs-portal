@@ -7,8 +7,9 @@ from cegs_portal.search.models.validators import validate_gene_ids
 
 
 class FeatureAssembly(Searchable):
-    class Meta:
+    class Meta(Searchable.Meta):
         indexes = [
+            models.Index(fields=["searchable"], name="%(class)s_srchbl_idx"),
             models.Index(fields=["name"], name="sfa_name_index"),
             models.Index(fields=["chrom_name"], name="sfa_chrom_name_index"),
             models.Index(fields=["feature_type"], name="sfa_feature_type_index"),

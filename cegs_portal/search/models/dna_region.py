@@ -9,8 +9,11 @@ from cegs_portal.search.models.searchable import Searchable
 
 
 class DNARegion(Searchable, FacetedModel):
-    class Meta:
-        indexes = [GistIndex(fields=["location"], name="search_region_location_index")]
+    class Meta(Searchable.Meta):
+        indexes = [
+            models.Index(fields=["searchable"], name="%(class)s_srchbl_idx"),
+            GistIndex(fields=["location"], name="search_region_location_index"),
+        ]
 
     cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
