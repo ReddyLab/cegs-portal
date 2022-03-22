@@ -40,6 +40,10 @@ class RegulatoryEffect(Searchable, FacetedModel):
         return self.facet_values.get(facet__name=RegulatoryEffect.Facet.DIRECTION.value).value
 
     @property
+    def direction_id(self):
+        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.DIRECTION.value).id
+
+    @property
     def effect_size(self):
         return self.facet_values.get(facet__name=RegulatoryEffect.Facet.EFFECT_SIZE.value).num_value
 
