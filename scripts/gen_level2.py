@@ -14,6 +14,52 @@ from cegs_portal.search.models import (
     RegulatoryEffect,
 )
 
+#  Output json format:
+#  {
+#    "bucket_size": <bucket_size parameter value>,
+#    "chromosomes": [
+#      {
+#        "chrom": <chromosome number>,
+#        "gene_intervals": [
+#          {
+#            "start": <start position, 1-indexed>,
+#            "genes": [
+#              [
+#                [<continuous list of effect direction id, effect size, and significance for each gene in this bucket>],
+#                [<bucket indexes containing reg-effect associated ccres>]
+#              ],
+#              ...
+#            ],
+#          },
+#          ...
+#        ],
+#        "ccre_intervals": [
+#          {
+#            "start": <start position, 1-indexed>,
+#            "ccres": [
+#              [
+#                [<continuous list of effect direction id, effect size, and significance for each ccre in this bucket>],
+#                [<bucket indexes containing reg-effect associated genes>]
+#              ],
+#              ...
+#            ]
+#          },
+#          ...
+#        ]
+#      }
+#    ],
+#    "facets": [
+#      {
+#        "name": <facet name>,
+#        "description": <facet description>,
+#        "type": <FacetType.DISCRETE or FacetType.CONTINUOUS>,
+#        "values": { <id>: <value> },  # if discrete
+#        "range": [<start>, <end>]  # if continuous
+#      }
+#    ]
+# }
+#
+
 GRCH38 = [
     ("1", 248956422),
     ("2", 242193529),
@@ -113,36 +159,33 @@ def run(output_dir, chrom, bucket_size=100_000):
 
             if gene.strand == "-":
                 gene_start = gene.location.upper
+
             gene_counter[bucket(gene_start)].add(gene)
 
-        for gene in genes:
-            if gene.strand == "+":
-                gene_start = gene.location.lower
-
-            if gene.strand == "-":
-                gene_start = gene.location.upper
-
-            gene_dict = gene_buckets[bucket(gene_start)].get(gene.name, {"d": set(), "e": [], "s": [], "sr": set()})
-            gene_dict["d"].add(reg_effect.direction)
-            gene_dict["e"].append(reg_effect.effect_size)
-            gene_dict["s"].append(reg_effect.significance)
-            gene_dict["sr"].update(source_counter.keys())
+            gene_dict = gene_buckets[bucket(gene_start)].get(gene.name, [[], set()])
+            gene_dict[0].extend(
+                [
+                    reg_effect.direction_id,
+                    reg_effect.effect_size,
+                    reg_effect.significance,
+                ]
+            )
+            gene_dict[1].update(source_counter.keys())
             gene_buckets[bucket(gene_start)][gene.name] = gene_dict
 
         for source in sources:
             coords = (source.location.lower, source.location.upper)
 
-            ccre_dict = ccre_buckets[bucket(source.location.lower)].get(
-                coords, {"d": set(), "e": [], "s": [], "tg": set()}
+            ccre_dict = ccre_buckets[bucket(source.location.lower)].get(coords, [[], set()])
+            ccre_dict[0].extend(
+                [
+                    reg_effect.direction_id,
+                    reg_effect.effect_size,
+                    reg_effect.significance,
+                ]
             )
-            ccre_dict["d"].add(reg_effect.direction)
-            ccre_dict["e"].append(reg_effect.effect_size)
-            ccre_dict["s"].append(reg_effect.significance)
-            ccre_dict["tg"].update(gene_counter.keys())
+            ccre_dict[1].update(gene_counter.keys())
             ccre_buckets[bucket(source.location.lower)][coords] = ccre_dict
-
-    # for query in [{"sql": q["sql"][0:min(512, len(q["sql"]))], "time": q["time"]} for q in connection.queries]:
-    #     print(query)
 
     print(f"Buckets filled... {time.perf_counter() - fbt} s")
     for j, gene_bucket in enumerate(gene_buckets):
@@ -152,14 +195,11 @@ def run(output_dir, chrom, bucket_size=100_000):
         chrom_dict["gene_intervals"].append(
             {
                 "start": bucket_size * j + 1,
-                "end": bucket_size * (j + 1),
                 "genes": [
-                    {
-                        "d": list(info["d"]),
-                        "e": minmax(info["e"]),
-                        "s": minmax(info["s"]),
-                        "sr": list(info["sr"]),
-                    }
+                    [
+                        info[0],
+                        list(info[1]),
+                    ]
                     for _, info in gene_bucket.items()
                 ],
             }
@@ -171,14 +211,11 @@ def run(output_dir, chrom, bucket_size=100_000):
         chrom_dict["ccre_intervals"].append(
             {
                 "start": bucket_size * j + 1,
-                "end": bucket_size * (j + 1),
                 "ccres": [
-                    {
-                        "d": list(info["d"]),
-                        "e": minmax(info["e"]),
-                        "s": minmax(info["s"]),
-                        "tg": list(info["tg"]),
-                    }
+                    [
+                        info[0],
+                        list(info[1]),
+                    ]
                     for _, info in ccre_bucket.items()
                 ],
             }
@@ -207,6 +244,7 @@ def run(output_dir, chrom, bucket_size=100_000):
         facets.append(facet_dict)
 
     data = {
+        "bucket_size": bucket_size,
         "chromosomes": [chrom_dict],
         "facets": facets,
     }
