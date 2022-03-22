@@ -1,4 +1,5 @@
-from .base import APPS_DIR, INSTALLED_APPS, MIDDLEWARE, STATICFILES_DIRS, env  # noqa
+from .base import *  # noqa
+from .base import env
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -61,7 +62,7 @@ if env("USE_DOCKER") == "yes":
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS += [str(APPS_DIR / "static_data")]
+STATICFILES_DIRS += [str(APPS_DIR / "static_data")]  # noqa F405
 
 # Your stuff...
 # ------------------------------------------------------------------------------
