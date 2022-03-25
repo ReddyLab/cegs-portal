@@ -1,4 +1,6 @@
 #!/bin/sh
+set -euo pipefail
+
 OUTPUT_DIR=$1
 
 python manage.py shell -c "from scripts import gen_level3; gen_level3.run(\"$OUTPUT_DIR/level3_chr1\", \"1\")"
