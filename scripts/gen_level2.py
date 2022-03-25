@@ -129,7 +129,7 @@ def run(output_dir, chrom, bucket_size=100_000):
     chrom_size = [c for c in chroms if c[0] == chrom][0][1]
     gene_buckets = [dict() for _ in range(bucket(chrom_size) + 1)]
     ccre_buckets = [dict() for _ in range(bucket(chrom_size) + 1)]
-    chrom_dict = {"chrom": chrom, "gene_intervals": [], "ccre_intervals": []}
+    chrom_dict = {"chrom": chrom, "bucket_size": bucket_size, "gene_intervals": [], "ccre_intervals": []}
     print("Initialized...")
     dna_regions = DNARegion.objects.filter(chromosome_name=f"chr{chrom}")
     feature_assemblies = FeatureAssembly.objects.filter(chrom_name=f"chr{chrom}")
@@ -244,7 +244,6 @@ def run(output_dir, chrom, bucket_size=100_000):
         facets.append(facet_dict)
 
     data = {
-        "bucket_size": bucket_size,
         "chromosomes": [chrom_dict],
         "facets": facets,
     }

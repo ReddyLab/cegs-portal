@@ -121,7 +121,9 @@ def run(output_file, bucket_size=5_000_000):
     chroms = GRCH37
     gene_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
     ccre_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
-    chrom_dicts = [{"chrom": chrom, "gene_intervals": [], "ccre_intervals": []} for chrom, _ in chroms]
+    chrom_dicts = [
+        {"chrom": chrom, "bucket_size": bucket_size, "gene_intervals": [], "ccre_intervals": []} for chrom, _ in chroms
+    ]
     print("Initialized...")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
@@ -238,7 +240,6 @@ def run(output_file, bucket_size=5_000_000):
         facets.append(facet_dict)
 
     data = {
-        "bucket_size": bucket_size,
         "chromosomes": chrom_dicts,
         "facets": facets,
     }
