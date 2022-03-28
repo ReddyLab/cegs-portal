@@ -3,6 +3,7 @@ stages:
   - build
   - test
   - scan
+  - deletecontainer
   - updatechart
 
 
@@ -18,24 +19,33 @@ flake8:
   before_script:
     - pip install -q flake8 --no-warn-script-location
   script:
-    - PATH=$PATH:/tmp/.local/bin flake8
+    - PATH=${PATH}:/tmp/.local/bin flake8
 
 build-test:
   extends: .kaniko_build
   variables:
-    THE_DOCKERFILE: $TEST_DOCKERFILE
+    THE_DOCKERFILE: ${TEST_DOCKERFILE}
+  only:
+    - main
+
+build-qa:
+  extends: .kaniko_build
+  variables:
+    THE_DOCKERFILE: ${TEST_DOCKERFILE}
+    THE_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
   except:
+    - main
     - production
 
 build-prod:
   extends: .kaniko_build
   variables:
-    THE_DOCKERFILE: $PROD_DOCKERFILE
-    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
+    THE_DOCKERFILE: ${PROD_DOCKERFILE}
+    THE_IMAGE: ${CI_REGISTRY_IMAGE}:prod
   only:
     - production
 
-pytest:
+.pytest: &pytest
   stage: test
   tags:
     - kube-executor
@@ -62,11 +72,27 @@ pytest:
     - python manage.py collectstatic
   script:
     - pytest
-  except:
-    - production
   retry:
     max: 2
     when: runner_system_failure
+
+pytest-test:
+  extends: .pytest
+  only:
+    - main
+
+pytest-prod:
+  extends: .pytest
+  image: ${CI_REGISTRY_IMAGE}:prod
+  only:
+    - production
+
+pytest-qa:
+  extends: .pytest
+  image: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+  except:
+    - production
+    - main
 
 scan-test:
   extends: .docker_scan
@@ -76,21 +102,35 @@ scan-test:
 scan-prod:
   extends: .docker_scan
   variables:
-    THE_IMAGE: $CI_REGISTRY_IMAGE:prod
+    THE_IMAGE: ${CI_REGISTRY_IMAGE}:prod
   only:
     - production
 
+deletecontainer-qa:
+  image: ${CI_REGISTRY}/utility/images/basic-shell-executor:latest
+  stage: deletecontainer
+  script:
+    - set -euo pipefail
+    - TAG=${CI_COMMIT_REF_SLUG}
+    - CONTENT_TYPE="application/json"
+    - 'curl -sfv -X DELETE -H "Private-Token: ${DELETE_CONTAINER_TAG}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/1732/tags/${TAG}"'
+  tags:
+    - kube-executor
+  retry:
+    max: 2
+    when: runner_system_failure
+
 .updatechart:
   retry: 1
-  image: $CI_REGISTRY/utility/images/basic-shell-executor:latest
+  image: ${CI_REGISTRY}/utility/images/basic-shell-executor:latest
   stage: updatechart
   script:
+    - set -euo pipefail
     - TAG=${TAG:-dev}
-    - REGISTRY_ENDPOINT="https://gitlab.dhe.duke.edu"
     - CONTENT_TYPE="application/json"
-    - SHA=$(curl -sf -H "Private-Token:$SELF_API_TOKEN" -H "accept:$CONTENT_TYPE" "$REGISTRY_ENDPOINT/api/v4/projects/4707/registry/repositories/1732/tags/$TAG" | jq ".digest")
-    - curl -sf -X PUT -H "Private-Token:$CHART_API_TOKEN" "$REGISTRY_ENDPOINT/api/v4/projects/4782/variables/$IMAGE_SHA" -F "value=$SHA"
-    - curl -sf -X POST -H "Private-Token:$CHART_API_TOKEN" -F token=$DEPLOY_TRIGGER_TOKEN -F ref=$TRIGGER_BRANCH $REGISTRY_ENDPOINT/api/v4/projects/4782/trigger/pipeline
+    - 'SHA=$(curl -sf -H "Private-Token: ${SELF_API_TOKEN}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/1732/tags/$TAG" | jq ".digest")'
+    - 'curl -sf -X PUT -H "Private-Token: ${CHART_API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/$IMAGE_SHA" -F "value=${SHA}"'
+    - 'curl -sf -X POST -H "Private-Token: ${CHART_API_TOKEN}" -F token=${DEPLOY_TRIGGER_TOKEN} -F ref=${TRIGGER_BRANCH} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline'
   tags:
     - kube-executor
 
@@ -99,8 +139,8 @@ updatechart-test:
   variables:
     IMAGE_SHA: DEV_IMAGE_SHA
     TRIGGER_BRANCH: master
-  except:
-    - production
+  only:
+    - main
 
 updatechart-prod:
   extends: .updatechart
