@@ -133,8 +133,8 @@ deletecontainer-qa:
     - CONTENT_TYPE="application/json"
     - 'SHA=$(curl -sf -H "Private-Token: ${SELF_API_TOKEN}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/1732/tags/$TAG" | jq ".digest")'
     - echo ${SHA}
-    - 'curl -svf -X PUT -H "Private-Token: ${CHART_API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/variables/${IMAGE_SHA}" -F "value=${SHA}"'
-    - 'curl -svf -X POST -H "Private-Token: ${CHART_API_TOKEN}" -F token=${DEPLOY_TRIGGER_TOKEN} -F ref=${TRIGGER_BRANCH} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline'
+    - 'curl -svf -X PUT -H "Private-Token: ${CHART_API_TOKEN}" "${CI_API_V4_URL}/projects/4782/variables/${IMAGE_SHA}" -F "value=${SHA}"'
+    - 'curl -svf -X POST -H "Private-Token: ${CHART_API_TOKEN}" -F token=${DEPLOY_TRIGGER_TOKEN} -F ref=${TRIGGER_BRANCH} "${CI_API_V4_URL}/projects/4782/trigger/pipeline"'
   tags:
     - kube-executor
 
