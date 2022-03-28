@@ -1,7 +1,7 @@
-ARG PYTHON_VERSION=3.9-slim-buster
+ARG PYTHON_VERSION=3.9.12-slim-buster
 
 # define an alias for the specfic python version used in this file.
-FROM python:${PYTHON_VERSION} as python
+FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
 
 # Python build stage
 FROM python as python-build-stage
@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev
+  libpq-dev \
+  libgmp10
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -41,6 +42,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libpq-dev \
   # Translations dependencies
   gettext \
+  libgmp10 \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
