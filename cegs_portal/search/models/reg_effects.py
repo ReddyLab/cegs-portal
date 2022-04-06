@@ -10,10 +10,10 @@ from cegs_portal.search.models.searchable import Searchable
 
 
 class EffectDirectionType(Enum):
-    DEPLETED = "depleted"
-    ENRICHED = "enriched"
-    NON_SIGNIFICANT = "non_sig"
-    BOTH = "both"
+    DEPLETED = "Depleted Only"
+    ENRICHED = "Enriched Only"
+    NON_SIGNIFICANT = "Non-significant"
+    BOTH = "Mixed"
 
 
 class RegulatoryEffectSet(models.QuerySet):

@@ -80,7 +80,7 @@ class DNARegionSearch:
         query[field] = NumericRange(int(start), int(end), "[)")
         sig_effects = (
             RegulatoryEffect.objects.with_facet_values()
-            .exclude(facet_values__value__in=["non_sig"])
+            .exclude(facet_values__value__in=["Non-significant"])
             .prefetch_related(
                 "targets",
                 "targets__parent",

@@ -29,7 +29,7 @@
     {% if reg_effects|length > 0 %}
     <div class="pt-8 max-w-5xl">
         <div class="text-xl font-bold">Regulatory Effects</div>
-        <button id="hide-effect">Hide Non-Signficant Effects</button>
+        <button id="hide-effect">Hide Non-significant Effects</button>
         {% spaceless %}
         <table id="regeffect" class="data-table">
             <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
@@ -128,11 +128,11 @@
 
         let toggleNonSig = function(nonSigShowing) {
             let trs = Array.from(document.getElementsByTagName("tr"));
-            let nonSigRows = trs.filter(tr => Array.from(tr.getElementsByTagName("td")).filter(td => td.innerHTML == "non_sig").length != 0);
+            let nonSigRows = trs.filter(tr => Array.from(tr.getElementsByTagName("td")).filter(td => td.innerHTML == "Non-significant").length != 0);
             for (let row of nonSigRows) {
                 row.style = `display: ${nonSigShowing ? 'table-row' : 'none'}`
             }
-            rc(effectButton, t(nonSigShowing ? "Hide Non-Signficant Effects" : "Show Non-Signficant Effects"));
+            rc(effectButton, t(nonSigShowing ? "Hide Non-significant Effects" : "Show Non-significant Effects"));
         }
 
         effectButton.onclick = function() {
