@@ -18,6 +18,8 @@ export function State(initialState) {
         return this._sharedState[key];
     };
 
+    this.g = this.getSharedState;
+
     this.updateSharedState = function (key, value) {
         this._checkSharedStateKey(key);
 
@@ -27,9 +29,19 @@ export function State(initialState) {
         }
     };
 
-    this.addCallback = function(key, callback) {
-        this._checkSharedStateKey(key);
+    this.u = this.updateSharedState;
 
-        this._callbacks[key].push(callback)
+    this.addCallback = function(keys, callback) {
+        if (!Array.isArray(keys)) {
+            keys = [keys];
+        }
+
+        for (const key of keys) {
+            this._checkSharedStateKey(key);
+
+            this._callbacks[key].push(callback)
+        }
     }
+
+    this.ac = this.addCallback;
 }
