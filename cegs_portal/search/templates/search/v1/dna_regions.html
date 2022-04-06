@@ -43,16 +43,17 @@
 
 {% block inline_javascript %}
     <script type="module">
+        import { State } from "{% static 'search/js/state.js' %}";
         import { dataPages, regionTable, emptyRegionTable, pageLink } from "{% static 'search/js/tables.js' %}"
 
         const STATE_LOCATION = "location";
-        let state = new State([STATE_LOCATION]);
-        state.updateSharedState(STATE_LOCATION, {
-            chr: "{{ loc.chr }}",
-            start: {{ loc.start }},
-            end: {{ loc.end }}
-        }
-        );
+        let state = new State({
+            STATE_LOCATION: {
+                chr: "{{ loc.chr }}",
+                start: {{ loc.start }},
+                end: {{ loc.end }}
+            }
+        });
 
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {

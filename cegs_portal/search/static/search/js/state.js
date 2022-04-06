@@ -1,9 +1,8 @@
-function State(keys) {
-    this.keys = keys;
+export function State(initialState) {
+    this.keys = Object.keys(initalState);
     this._callbacks = {}
-    this._sharedState = {};
-    for (var key of keys) {
-        this._sharedState[key] = null;
+    this._sharedState = initialState;
+    for (var key of this.keys) {
         this._callbacks[key] = [];
     };
 

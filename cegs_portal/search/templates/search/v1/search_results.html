@@ -92,6 +92,7 @@ svg > g > text {
 {% block inline_javascript %}
     <script type="module">
         import { e, g, rc, t } from "{% static 'search/js/dom.js' %}";
+        import { State } from "{% static 'search/js/state.js' %}";
         import { dataPages, regionTable, emptyRegionTable, pageLink } from "{% static 'search/js/tables.js' %}"
 
         let searchURL = function(facets) {
@@ -101,16 +102,15 @@ svg > g > text {
         }
 
         const STATE_LOCATION = "location";
-        const STATE_QUERY_RESULTS = "query-results";
         const STATE_FACETS = "facets"
-        let state = new State([STATE_LOCATION, STATE_QUERY_RESULTS, STATE_FACETS]);
-        state.updateSharedState(STATE_LOCATION, {
-            chr: "{{ loc_search.location.chromo }}",
-            start: {{ loc_search.location.range.lower }},
-            end: {{ loc_search.location.range.upper }}
-        }
-        );
-        state.updateSharedState(STATE_FACETS, []);
+        let state = new State({
+            STATE_LOCATION : {
+                chr: "{{ loc_search.location.chromo }}",
+                start: {{ loc_search.location.range.lower }},
+                end: {{ loc_search.location.range.upper }}
+            },
+            STATE_FACETS: []
+        });
 
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {
