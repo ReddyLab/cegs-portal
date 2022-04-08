@@ -46,7 +46,10 @@
         </div>
         {% endif %}
 
-        <div id="chrom-data"></div>
+        <div>
+            <div class="text-xl font-bold">Experiment Coverage</div>
+            <div id="chrom-data"></div>
+        </div>
     </div>
 {% endblock %}
 
@@ -56,6 +59,7 @@
         import { a, e, g } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
+        import { Legend } from "{% static 'search/js/obsLegend.js' %}";
 
         class Tooltip {
             constructor() {
@@ -161,6 +165,8 @@
         const STATE_CCRE_COUNT_INTERVAL_LEVEL2 = "state-ccre-count-interval-level2";
         const STATE_GENE_COUNT_INTERVAL_LEVEL2 = "state-gene-count-interval-level2";
 
+        let level1cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
+        let level1GeneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
         let state = new State({
             [STATE_ZOOMED]: false,
             [STATE_ORIGIN]: {x: 0, y: 0},
@@ -168,9 +174,9 @@
             [STATE_SCALE]: 1,
             [STATE_SCALE_X]: 1,
             [STATE_SCALE_Y]: 1,
-            [STATE_CCRE_COUNT_RANGE]: [0, 0],
-            [STATE_GENE_COUNT_RANGE]: [0, 0],
-            [STATE_VIEWBOX]: [{x: 0, y: 0}, viewWidth, viewHeight],
+            [STATE_CCRE_COUNT_RANGE]: level1cCRECountInterval[1] - level1cCRECountInterval[0],
+            [STATE_GENE_COUNT_RANGE]: level1GeneCountInterval[1] - level1GeneCountInterval[0],
+            [STATE_VIEWBOX]: [0, 0, viewWidth, viewHeight],
             [STATE_DIRECTION_FILTER]: [],
             [STATE_CONTINUOUS_FILTER]: [],
             [STATE_COUNT_FILTER]: [],
@@ -179,8 +185,8 @@
             [STATE_COUNT_FILTERED_LEVEL1]: level1,
             [STATE_EFFECT_SIZE_INTERVAL]: [0, 1],
             [STATE_SIGNIFICANCE_INTERVAL]: [0, 1],
-            [STATE_CCRE_COUNT_INTERVAL_LEVEL1]: [0, 0],
-            [STATE_GENE_COUNT_INTERVAL_LEVEL1]: [0, 0],
+            [STATE_CCRE_COUNT_INTERVAL_LEVEL1]: level1cCRECountInterval,
+            [STATE_GENE_COUNT_INTERVAL_LEVEL1]: level1GeneCountInterval,
             [STATE_DISCRETE_FILTERED_LEVEL2]: level2,
             [STATE_CONTINUOUS_FILTERED_LEVEL2]: level2,
             [STATE_COUNT_FILTERED_LEVEL2]: level2,
@@ -188,12 +194,13 @@
             [STATE_GENE_COUNT_INTERVAL_LEVEL2]: [0, 0]
         });
 
-        let level1cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
-        let level1GeneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
-        state.u(STATE_CCRE_COUNT_INTERVAL_LEVEL1, level1cCRECountInterval);
-        state.u(STATE_GENE_COUNT_INTERVAL_LEVEL1, level1GeneCountInterval)
-        state.u(STATE_CCRE_COUNT_RANGE, level1cCRECountInterval[1] - level1cCRECountInterval[0]);
-        state.u(STATE_GENE_COUNT_RANGE, level1GeneCountInterval[1] - level1GeneCountInterval[0]);
+
+        a(g("chrom-data"), Legend(d3.scaleSequential(level1cCRECountInterval, ccreColors), {
+            title: "cCRE Count"
+        }));
+        a(g("chrom-data"), Legend(d3.scaleSequential(level1GeneCountInterval, geneColors), {
+            title: "Gene Count"
+        }));
         a(g("chrom-data"), renderSVG(level1, [0, 0, viewWidth, viewHeight], 1, 1, false));
 
         function renderSVG(currentLevel, viewBox, scaleX, scaleY, zoomed) {
