@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+{% endblock %}
+
 {% block title %}Experiment{% endblock %}
 {% block content %}
     <div class="max-w-5xl">
@@ -41,5 +46,455 @@
         </div>
         {% endif %}
 
+        <div id="chrom-data"></div>
     </div>
+{% endblock %}
+
+{% block inline_javascript %}
+    <script type="module">
+
+        import { a, e, g } from "{% static 'search/js/dom.js' %}";
+        import { State } from "{% static 'search/js/state.js' %}";
+        import { getJson } from "{% static 'search/js/files.js' %}";
+
+        class Tooltip {
+            constructor() {
+                this._count = e("text", {y: "-32"}, []);
+                this._range = e("text", {y: "-20"}, []);
+                this.node = e("g", {"pointer-events": "none", display: "none", "font-family": "sans-serif", "font-size": "12", "text-anchor": "middle"}, [
+                    e("rect", {x: "-85", width: "170", y: "-50", height: "40", fill: "white"}, []),
+                    this._count,
+                    this._range
+                ]);
+            }
+
+            show(chomIdx, d) {
+                this.node.removeAttribute("display");
+                this.node.setAttribute("transform", `translate(${xInset + toPx(d.start) * 1}, ${yInset + (chomIdx * (chromHeight + chromSpacing) * 1)}) scale(2)`);
+                this._count.textContent = `Ct: ${(d.ccres || d.genes).length}`;
+                this._range.textContent = `Loc: (${d.start}, ${d.end})`;
+            }
+
+            hide() {
+                this.node.setAttribute("display", "none");
+            }
+        }
+
+        let genome = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/grch37.json");
+        let level1 = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/level1_data.json");
+        let level2 = [
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_1.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_2.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_3.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_4.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_5.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_6.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_7.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_8.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_9.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_10.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_11.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_12.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_13.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_14.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_15.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_16.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_17.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_18.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_19.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_20.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_21.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_22.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_X.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_Y.json"),
+            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_MT.json"),
+        ]
+
+        const ccreColors = d3.interpolateCool;
+        const geneColors = d3.interpolateWarm;
+        const xInset = 50;
+        const yInset = 100;
+        const chromHeight = 98;
+        const chromSpacing = 10;
+        const maxPxChromWidth = 2048;
+        const maxChromSize = genome.reduce((a, c) => c.size > a ? c.size : a, 0);
+        const viewWidth = maxPxChromWidth + (xInset * 2)
+        const viewHeight = (yInset * 2) + (chromHeight + chromSpacing) * genome.length
+        const bandColors = {
+            acen: '#708090',
+            gneg: '#FFFFFF',
+            gpos: '#000000',
+            gpos100: '#000000',
+            gpos25: '#D9D9D9',
+            gpos33: '#BFBFBF',
+            gpos50: '#999999',
+            gpos66: '#7F7F7F',
+            gpos75: '#666666',
+            gvar: '#E0E0E0',
+            stalk: '#708090'
+        };
+
+        const tooltip = new Tooltip();
+
+        const STATE_ZOOMED = "state-zoomed";
+        const STATE_ORIGIN = "state-origin";
+        const STATE_LEVEL_INDEX = "state-level-index";
+        const STATE_SCALE = "state-scale";
+        const STATE_SCALE_X = "state-scale-x";
+        const STATE_SCALE_Y = "state-scale-y";
+        const STATE_CCRE_COUNT_RANGE = "state-ccre-count-range";
+        const STATE_GENE_COUNT_RANGE = "state-gene-count-range";
+        const STATE_VIEWBOX = "state-viewbox";
+        const STATE_DIRECTION_FILTER = "state-direction-filter";
+        const STATE_CONTINUOUS_FILTER = "state-continuous-filter";
+        const STATE_COUNT_FILTER = "state-count-filter";
+        const STATE_DISCRETE_FILTERED_LEVEL1 = "state-discrete-filtered-level1";
+        const STATE_CONTINUOUS_FILTERED_LEVEL1 = "state-continuous-filtered-level1";
+        const STATE_COUNT_FILTERED_LEVEL1 = "state-count-filtered-level1";
+        const STATE_EFFECT_SIZE_INTERVAL = "state-effect-size-interval";
+        const STATE_SIGNIFICANCE_INTERVAL = "state-significance-interval";
+        const STATE_CCRE_COUNT_INTERVAL_LEVEL1 = "state-ccre-count-interval-level1";
+        const STATE_GENE_COUNT_INTERVAL_LEVEL1 = "state-gene-count-interval-level1";
+        const STATE_DISCRETE_FILTERED_LEVEL2 = "state-discrete-filtered-level2";
+        const STATE_CONTINUOUS_FILTERED_LEVEL2 = "state-continuous-filtered-level2";
+        const STATE_COUNT_FILTERED_LEVEL2 = "state-count-filtered-level2";
+        const STATE_CCRE_COUNT_INTERVAL_LEVEL2 = "state-ccre-count-interval-level2";
+        const STATE_GENE_COUNT_INTERVAL_LEVEL2 = "state-gene-count-interval-level2";
+
+        let state = new State({
+            [STATE_ZOOMED]: false,
+            [STATE_ORIGIN]: {x: 0, y: 0},
+            [STATE_LEVEL_INDEX]: 0,
+            [STATE_SCALE]: 1,
+            [STATE_SCALE_X]: 1,
+            [STATE_SCALE_Y]: 1,
+            [STATE_CCRE_COUNT_RANGE]: [0, 0],
+            [STATE_GENE_COUNT_RANGE]: [0, 0],
+            [STATE_VIEWBOX]: [{x: 0, y: 0}, viewWidth, viewHeight],
+            [STATE_DIRECTION_FILTER]: [],
+            [STATE_CONTINUOUS_FILTER]: [],
+            [STATE_COUNT_FILTER]: [],
+            [STATE_DISCRETE_FILTERED_LEVEL1]: level1,
+            [STATE_CONTINUOUS_FILTERED_LEVEL1]: level1,
+            [STATE_COUNT_FILTERED_LEVEL1]: level1,
+            [STATE_EFFECT_SIZE_INTERVAL]: [0, 1],
+            [STATE_SIGNIFICANCE_INTERVAL]: [0, 1],
+            [STATE_CCRE_COUNT_INTERVAL_LEVEL1]: [0, 0],
+            [STATE_GENE_COUNT_INTERVAL_LEVEL1]: [0, 0],
+            [STATE_DISCRETE_FILTERED_LEVEL2]: level2,
+            [STATE_CONTINUOUS_FILTERED_LEVEL2]: level2,
+            [STATE_COUNT_FILTERED_LEVEL2]: level2,
+            [STATE_CCRE_COUNT_INTERVAL_LEVEL2]: [0, 0],
+            [STATE_GENE_COUNT_INTERVAL_LEVEL2]: [0, 0]
+        });
+
+        let level1cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
+        let level1GeneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
+        state.u(STATE_CCRE_COUNT_INTERVAL_LEVEL1, level1cCRECountInterval);
+        state.u(STATE_GENE_COUNT_INTERVAL_LEVEL1, level1GeneCountInterval)
+        state.u(STATE_CCRE_COUNT_RANGE, level1cCRECountInterval[1] - level1cCRECountInterval[0]);
+        state.u(STATE_GENE_COUNT_RANGE, level1GeneCountInterval[1] - level1GeneCountInterval[0]);
+        a(g("chrom-data"), renderSVG(level1, [0, 0, viewWidth, viewHeight], 1, 1, false));
+
+        function renderSVG(currentLevel, viewBox, scaleX, scaleY, zoomed) {
+            const bucketHeight = 44 * scaleY;
+            const level1cCRECountInterval = state.g(STATE_CCRE_COUNT_INTERVAL_LEVEL1);
+            const level1GeneCountInterval = state.g(STATE_GENE_COUNT_INTERVAL_LEVEL1);
+            const ccreCountRange = state.g(STATE_CCRE_COUNT_RANGE);
+            const geneCountRange = state.g(STATE_GENE_COUNT_RANGE);
+
+            const svg = d3.create("svg")
+                .attr("stroke", "black")
+                .attr("viewBox", viewBox)
+                .style("max-width", `${maxPxChromWidth + 20}px`)
+                .style("display", "block")
+                .style("margin", "auto");
+
+            let chromGroups = [];
+            for (let i = 0; i < genome.length; i++) {
+                const frame = svg.append("g");
+                chromGroups.push(frame);
+                const chrom = frame.append("g");
+                chrom.selectAll("path")
+                .data(genome[i].bands)
+                .join("path")
+                    .attr("fill", b => bandColors[b.type])
+                    .attr("fill-opacity", 0.3)
+                    .attr("stroke", "none")
+                    .attr("d", chromosomeBand(i));
+                chrom.append("path")
+                    .attr("stroke-width", 1)
+                    .attr("stroke", "black")
+                    .attr("fill", "none")
+                    .attr("d", chromosomeOutline(genome[i], i));
+            }
+
+            let nameGroup = svg.append("g")
+            nameGroup.selectAll("text")
+            .data(currentLevel.chromosomes)
+            .join("text")
+                .attr("x", 10)
+                .attr("y", (chromo, i) => yInset  + ((chromHeight / 2) + (chromSpacing + chromHeight) * i) * scaleY)
+                .attr("font-size", Math.max(Math.ceil(14 * (scaleY * 0.3)), 14))
+                .text(chromo => chromo.chrom)
+
+            for (let i = 0; i < currentLevel.chromosomes.length; i++) {
+                const bucketWidth = toPx(currentLevel.chromosomes[i].bucket_size) * scaleX;
+
+                const frame = chromGroups[i];
+                const ccreOverlay = frame.append("g");
+                ccreOverlay.attr("stroke", "none");
+
+                let ccreRects = ccreOverlay.selectAll("rect")
+                .data(currentLevel.chromosomes[i].ccre_intervals.filter(ccre => ccre.ccres.length > 0))
+                .join("rect")
+                    .attr("fill", ccre => ccreColors((ccre.ccres.length - level1cCRECountInterval[0]) / ccreCountRange))
+                    .attr("x", ccre => xInset + toPx(ccre.start) * scaleX)
+                    .attr("y", yInset + (chromSpacing + chromHeight) * i * scaleY)
+                    .attr("width", bucketWidth)
+                    .attr("height", bucketHeight);
+
+                const geneOverlay = frame.append("g");
+                geneOverlay.attr("stroke", "none");
+                let geneRects = geneOverlay.selectAll("rect")
+                    .data(currentLevel.chromosomes[i].gene_intervals.filter(gene => gene.genes.length > 0))
+                    .join("rect")
+                    .attr("fill", gene => geneColors((gene.genes.length - level1GeneCountInterval[0]) / geneCountRange))
+                    .attr("x", gene => xInset + toPx(gene.start) * scaleX)
+                    .attr("y", yInset + (54 + (chromSpacing + chromHeight) * i) * scaleY)
+                    .attr("width", bucketWidth)
+                    .attr("height", bucketHeight);
+
+                ccreRects.on("mouseenter", (event, rect) => {
+                    ccreRects.attr("stroke", node => node.start == rect.start ? "red" : null);
+                    ccreRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
+
+                    let gene_buckets = new Set()
+                    for(const ccre of rect.ccres) {
+                        for (const gene_bucket of ccre[1]){
+                            gene_buckets.add(gene_bucket);
+                        }
+                    }
+
+                    geneRects.attr("stroke", function(node) {
+                        if(gene_buckets.has((node.start - 1) / 2000000)) {
+                            return "yellow";
+                        }
+                        return null
+                    });
+                    geneRects.attr("stroke-width", function(node) {
+                        if(gene_buckets.has((node.start - 1) / 2000000)) {
+                            return 8;
+                        }
+                        return null
+                    });
+                    rect.end = rect.start + currentLevel.bucket_size;
+                    tooltip.show(i, rect);
+                })
+                .on("mouseleave", (event, rect) => {
+                    ccreRects.attr("stroke", null);
+                    ccreRects.attr("stroke-width", null);
+                    geneRects.attr("stroke", null);
+                    geneRects.attr("stroke-width", null);
+                    tooltip.hide();
+                })
+                .on("click", (event, rect) => {
+                    if(zoomed) {
+                        state.u(STATE_SCALE_X, 0);
+                        state.u(STATE_SCALE_Y, 0);
+                    } else {
+                        state.u(STATE_SCALE_X, xInset + toPx(rect.start) * 30 - viewHeight / 6);
+                        state.u(STATE_SCALE_Y, yInset + (chromHeight + chromSpacing) * i * 15 - viewHeight / 6);
+                        state.u(STATE_LEVEL_INDEX, i);
+                    }
+                    state.u(STATE_ZOOMED, !zoomed);
+                });
+
+                geneRects.on("mouseenter", (event, rect) => {
+                    geneRects.attr("stroke", node => node.start == rect.start ? "red" : null);
+                    geneRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
+
+                    let ccre_buckets = new Set()
+                    for(const gene of rect.genes) {
+                        for (const ccre_bucket of gene[1]){
+                            ccre_buckets.add(ccre_bucket);
+                        }
+                    }
+
+                    ccreRects.attr("stroke", function(node) {
+                        if(ccre_buckets.has((node.start - 1) / 2000000)) {
+                            return "yellow";
+                        }
+                        return null
+                    });
+                    ccreRects.attr("stroke-width", function(node) {
+                        if(ccre_buckets.has((node.start - 1) / 2000000)) {
+                            return 8;
+                        }
+                        return null
+                    });
+                    rect.end = rect.start + currentLevel.bucket_size;
+                    tooltip.show(i, rect);
+                })
+                .on("mouseleave", (event, rect) => {
+                    geneRects.attr("stroke", null);
+                    geneRects.attr("stroke-width", null);
+                    ccreRects.attr("stroke", null);
+                    ccreRects.attr("stroke-width", null);
+                    tooltip.hide();
+                })
+                .on("click", (event, rect) => {
+                    if(zoomed) {
+                        state.u(STATE_SCALE_X, 0);
+                        state.u(STATE_SCALE_Y, 0);
+                    } else {
+                        state.u(STATE_SCALE_X, xInset + toPx(rect.start) * 30 - viewHeight / 6);
+                        state.u(STATE_SCALE_Y, yInset + (chromHeight + chromSpacing) * i * 15 - viewHeight / 6);
+                        state.u(STATE_LEVEL_INDEX, i);
+                    }
+                    state.u(STATE_ZOOMED, !zoomed);
+                });
+            }
+
+            svg.append(() => tooltip.node);
+
+            return svg.node();
+        }
+
+        let currentLevel = function(){
+            if (zoomed) {
+                let tempLevel = _.cloneDeep(level1);
+                tempLevel.chromosomes[levelIndex] = filteredLevel2.chromosomes[0];
+                tempLevel.bucket_size = filteredLevel2.bucket_size;
+                return tempLevel;
+            } else {
+                return filteredLevel1
+            }
+        }();
+
+        function chromosomeOutline(d, i) {
+            const scale = state.g(STATE_SCALE);
+            const scaleX = state.g(STATE_SCALE_X);
+            const scaleY = state.g(STATE_SCALE_Y);
+            const width = toPx(d.size) * scaleX;
+            const top = yInset + (chromSpacing + chromHeight) * i * scaleY;
+            const bottom = top + chromHeight * scaleY;
+            const outlinePath = ["M", xInset, ",", top];
+            outlinePath.push(
+                "C", xInset - (12 * scale) ,",", top, " ",
+                xInset - (12 * scale) , ",", bottom, " ",
+                xInset, ",", bottom,
+            );
+            outlinePath.push("M", xInset + width ,",", top);
+            outlinePath.push(
+                "C", xInset + width + (12 * scale) ,",", top, " ",
+                xInset + width + (12 * scale) , ",", bottom, " ",
+                xInset + width, ",", bottom,
+            );
+
+            for(const band of d.bands) {
+                let bandStart = band.start < band.end ? band.start : band.end;
+                let bandEnd = band.start > band.end ? band.start : band.end;
+                let bandPxStart = toPx(bandStart) * scaleX;
+                let bandPxEnd = toPx(bandEnd) * scaleX;
+                let bandPxWidth = bandPxEnd - bandPxStart;
+
+                if(band.type == "acen") {
+                    if(band.id.startsWith("p")) {
+                        outlinePath.push("M", xInset + bandPxStart ,",", top);
+                        outlinePath.push("l", bandPxWidth, ",", chromHeight / 2 * scaleY);
+                        outlinePath.push("l", -bandPxWidth, ",", chromHeight / 2 * scaleY);
+                    } else {
+                        outlinePath.push("M", xInset + bandPxEnd ,",", top);
+                        outlinePath.push("l", -bandPxWidth, ",", chromHeight / 2 * scaleY);
+                        outlinePath.push("l", bandPxWidth, ",", chromHeight / 2 * scaleY);
+                    }
+                } else {
+                    outlinePath.push("M", xInset + bandPxStart ,",", top);
+                    outlinePath.push("l", bandPxWidth, ",", 0);
+                    outlinePath.push("M", xInset + bandPxStart ,",", bottom);
+                    outlinePath.push("l", bandPxWidth, ",", 0);
+                }
+            }
+
+            return outlinePath.join("");
+        }
+
+        function chromosomeBand(chromIndex) {
+            return function(band) {
+                const scaleX = state.g(STATE_SCALE_X);
+                const scaleY = state.g(STATE_SCALE_Y);
+                const top = yInset + (chromSpacing + chromHeight) * chromIndex * scaleY;
+                const bottom = top + chromHeight * scaleY;
+                let bandStart = band.start < band.end ? band.start : band.end;
+                let bandPxStart = toPx(bandStart) * scaleX;
+                let bandEnd = band.start > band.end ? band.start : band.end;
+                let bandPxEnd = toPx(bandEnd) * scaleX;
+                let bandSize = bandEnd - bandStart;
+                let bandPxWidth = bandPxEnd - bandPxStart;
+                let outlinePath = ["M", xInset + bandPxStart, ",", top];
+                if(band.type == "acen") {
+                    if(band.id.startsWith("p")) {
+                        outlinePath.push("M", xInset + bandPxStart ,",", top);
+                        outlinePath.push("l", bandPxWidth, ",", chromHeight / 2 * scaleY);
+                        outlinePath.push("l", -bandPxWidth, ",", chromHeight / 2 * scaleY);
+                    } else {
+                        outlinePath.push("M", xInset + bandPxEnd ,",", top);
+                        outlinePath.push("l", -bandPxWidth, ",", chromHeight / 2 * scaleY);
+                        outlinePath.push("l", bandPxWidth, ",", chromHeight / 2 * scaleY);
+                    }
+                } else {
+                    outlinePath.push("l", 0, ",", chromHeight * scaleY);
+                    outlinePath.push("l", bandPxWidth, ",", 0);
+                    outlinePath.push("l", 0, ",", -chromHeight * scaleY);
+                    outlinePath.push("l", -bandPxWidth, ",", 0);
+                }
+
+                return outlinePath.join("");
+            }
+        }
+
+        function toPx(size) {
+            return maxPxChromWidth * (size / maxChromSize);
+        }
+
+        function levelCountInterval(data, interval, item) {
+            const chroms = data.chromosomes;
+            let max = Number.NEGATIVE_INFINITY;
+            let min = Number.POSITIVE_INFINITY;
+            for (const chrom of chroms) {
+                const count = chrom[interval].map(d => d[item].length);
+                max = Math.max(max, Math.max(...chrom[interval].map(d => d[item].length)));
+                min = Math.min(min, Math.min(...chrom[interval].map(d => d[item].length)));
+            }
+
+            return [min, max];
+        }
+
+        function regEffectDataInterval(data, dataOffset) {
+            const chroms = data.chromosomes;
+            let max = Number.NEGATIVE_INFINITY;
+            let min = Number.POSITIVE_INFINITY;
+            for (const chrom of chroms) {
+                for (const geneInterval of chrom.gene_intervals) {
+                    for (const gene of geneInterval.genes) {
+                        for (let i = dataOffset; i < gene[0].length; i += 3) {
+                            max = Math.max(max, gene[0][i]);
+                            min = Math.min(min, gene[0][i]);
+                        }
+                    }
+                }
+                for (const ccreInterval of chrom.ccre_intervals) {
+                    for (const ccre of ccreInterval.ccres) {
+                        for (let i = dataOffset; i < ccre[0].length; i += 3) {
+                            max = Math.max(max, ccre[0][i]);
+                            min = Math.min(min, ccre[0][i]);
+                        }
+                    }
+                }
+            }
+
+            return [min, max];
+        }
+    </script>
 {% endblock %}

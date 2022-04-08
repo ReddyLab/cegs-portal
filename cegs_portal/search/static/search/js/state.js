@@ -1,8 +1,9 @@
 export function State(initialState) {
-    this.keys = Object.keys(initalState);
-    this._callbacks = {}
+    this.keys = Object.keys(initialState);
+    this._callbacks = {};
     this._sharedState = initialState;
-    for (var key of this.keys) {
+
+    for (const key of this.keys) {
         this._callbacks[key] = [];
     };
 
@@ -24,7 +25,7 @@ export function State(initialState) {
         this._checkSharedStateKey(key);
 
         this._sharedState[key] = value;
-        for (var callback of this._callbacks[key]) {
+        for (const callback of this._callbacks[key]) {
             callback(this._sharedState, key);
         }
     };
