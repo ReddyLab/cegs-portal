@@ -4,41 +4,42 @@
 {% block title %}Experiment{% endblock %}
 {% block content %}
     <div class="max-w-5xl">
-    <div class="text-2xl font-bold">{{ experiment.name }}</div>
-    <table class="data-table">
-        <tr><th>Description</th><td>{{ experiment.description }}</td></tr>
-        <tr><th>Assay</th><td>{{ experiment.experiment_type }}</td></tr>
-        <tr><th>Cell Lines</th><td>{{ experiment.cell_lines|join:", " }}</td></tr>
-        <tr><th>Tissue Types</th><td>{{ experiment.tissue_types|join:", " }}</td></tr>
-        <tr><th>Assemblies</th><td>{{ experiment.assemblies|join:", " }}</td></tr>
-    </table>
-
-    {% if experiment.data_files.all|length > 0 %}
-    <div>
-        <div class="text-xl font-bold">Data Files</div>
-        {% for file in experiment.data_files.all %}
+        <div class="text-2xl font-bold">{{ experiment.name }}</div>
         <table class="data-table">
-            <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
-            <tr><th>Description</th><td>{{ file.description }}</td></tr>
-            <tr><th>Cell Lines</th><td>{{ file.cell_lines.all|join:", " }}</td></tr>
-            <tr><th>Tissue Types</th><td>{{ file.tissue_types.all|join:", " }}</td></tr>
-            <tr><th>Assembly</th><td>{{ file.ref_genome }}.{{ file.ref_genome_patch|default:"0" }}</td></tr>
+            <tr><th>Description</th><td>{{ experiment.description }}</td></tr>
+            <tr><th>Assay</th><td>{{ experiment.experiment_type }}</td></tr>
+            <tr><th>Cell Lines</th><td>{{ experiment.cell_lines|join:", " }}</td></tr>
+            <tr><th>Tissue Types</th><td>{{ experiment.tissue_types|join:", " }}</td></tr>
+            <tr><th>Assemblies</th><td>{{ experiment.assemblies|join:", " }}</td></tr>
         </table>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    {% if experiment.other_files.all|length > 0 %}
-    <div>
-        <div class="text-xl font-bold">Other Files</div>
-        {% for file in experiment.other_files.all %}
-        <table class="data-table">
-            <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
-            <tr><th>Description</th><td>{{ file.description }}</td></tr>
-            <tr><th>Location</th><td><a href="{{ file.url }}">{{ file.url }}</a></td></tr>
-        </table>
-        {% endfor %}
-    </div>
-    {% endif %}
+        {% if experiment.data_files.all|length > 0 %}
+        <div>
+            <div class="text-xl font-bold">Data Files</div>
+            {% for file in experiment.data_files.all %}
+            <table class="data-table">
+                <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
+                <tr><th>Description</th><td>{{ file.description }}</td></tr>
+                <tr><th>Cell Lines</th><td>{{ file.cell_lines.all|join:", " }}</td></tr>
+                <tr><th>Tissue Types</th><td>{{ file.tissue_types.all|join:", " }}</td></tr>
+                <tr><th>Assembly</th><td>{{ file.ref_genome }}.{{ file.ref_genome_patch|default:"0" }}</td></tr>
+            </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if experiment.other_files.all|length > 0 %}
+        <div>
+            <div class="text-xl font-bold">Other Files</div>
+            {% for file in experiment.other_files.all %}
+            <table class="data-table">
+                <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
+                <tr><th>Description</th><td>{{ file.description }}</td></tr>
+                <tr><th>Location</th><td><a href="{{ file.url }}">{{ file.url }}</a></td></tr>
+            </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+
     </div>
 {% endblock %}
