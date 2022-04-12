@@ -5,16 +5,24 @@ from django.db.models import F, IntegerField
 from django.db.models.functions import Abs, Lower, Upper
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNARegion, FeatureAssembly
+from cegs_portal.search.models import DNARegion, Facet, FacetValue, FeatureAssembly
 from utils import FileMetadata, get_delimiter, timer
 
 LOAD_BATCH_SIZE = 10_000
 
+CCRE_FACET = Facet.objects.get(name="cCRE Category")
+CCRE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=CCRE_FACET.id).all()}
 
+
+@timer("Save cCREs")
 def bulk_save(sites):
     with transaction.atomic():
-        print("Adding DNaseIHypersensitiveSites")
         DNARegion.objects.bulk_create(sites, batch_size=1000)
+
+
+def get_facets(facet_string):
+    facet_values = facet_string.split(",")
+    return [CCRE_FACET_VALUES[value] for value in facet_values]
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -22,12 +30,23 @@ def bulk_save(sites):
 def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     new_sites: list[DNARegion] = []
+    facets: list[list[FacetValue]] = []
+    print("Starting line 0")
     for i, line in enumerate(reader):
         if i % LOAD_BATCH_SIZE == 0 and i != 0:
-            print(f"line {i + 1}")
+            print(f"Saving {i - LOAD_BATCH_SIZE}-{i - 1}")
             bulk_save(new_sites)
+            for site, facet_qset in zip(new_sites, facets):
+                for facet in facet_qset:
+                    site.facet_values.add(facet)
             new_sites = []
-        chrom_name, dhs_start_str, dhs_end_str, accession_id = line
+            facets = []
+            print(f"Starting line {i}")
+        chrom_name, dhs_start_str, dhs_end_str, _, accession_id, ccre_categories = line
+
+        if "_" in chrom_name:
+            continue
+
         dhs_start = int(dhs_start_str)
         dhs_end = int(dhs_end_str)
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
@@ -81,8 +100,12 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
             source=source_file,
         )
         new_sites.append(dhs)
+        facets.append(get_facets(ccre_categories))
 
     bulk_save(new_sites)
+    for site, facet_qset in zip(new_sites, facets):
+        for facet in facet_qset:
+            site.facet_values.add(facet)
 
 
 def check_filename(ccre_data: str):
