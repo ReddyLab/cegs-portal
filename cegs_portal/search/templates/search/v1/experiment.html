@@ -57,34 +57,10 @@
 
 {% block inline_javascript %}
     <script type="module">
-
         import { a, e, g, rc } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
-
-        class Tooltip {
-            constructor() {
-                this._count = e("text", {y: "-32"}, []);
-                this._range = e("text", {y: "-20"}, []);
-                this.node = e("g", {"pointer-events": "none", display: "none", "font-family": "sans-serif", "font-size": "12", "text-anchor": "middle"}, [
-                    e("rect", {x: "-85", width: "170", y: "-50", height: "40", fill: "white"}, []),
-                    this._count,
-                    this._range
-                ]);
-            }
-
-            show(chomIdx, d) {
-                this.node.removeAttribute("display");
-                this.node.setAttribute("transform", `translate(${xInset + toPx(d.start) * 1}, ${yInset + (chomIdx * (chromHeight + chromSpacing) * 1)}) scale(2)`);
-                this._count.textContent = `Ct: ${(d.ccres || d.genes).length}`;
-                this._range.textContent = `Loc: (${d.start}, ${d.end})`;
-            }
-
-            hide() {
-                this.node.setAttribute("display", "none");
-            }
-        }
 
         let genome = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/grch37.json");
         let level1 = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/level1_data.json");
@@ -139,8 +115,7 @@
             gvar: '#E0E0E0',
             stalk: '#708090'
         };
-
-        const tooltip = new Tooltip();
+        const svgns = "http://www.w3.org/2000/svg";
 
         const STATE_ZOOMED = "state-zoomed";
         const STATE_LEVEL_INDEX = "state-level-index";
@@ -188,6 +163,44 @@
             [STATE_GENE_COUNT_INTERVAL_LEVEL2]: [0, 0]
         });
 
+        class Tooltip {
+            constructor() {
+                this._count = document.createElementNS(svgns, "text");
+                this._count.setAttribute("y", "-32");
+                this._range = document.createElementNS(svgns, "text");
+                this._range.setAttribute("y", "-20");
+                this.node = document.createElementNS(svgns, "g");
+                this.node.setAttribute("pointer-events", "none");
+                this.node.setAttribute("display", "none");
+                this.node.setAttribute("font-family", "sans-serif");
+                this.node.setAttribute("font-size", "12");
+                this.node.setAttribute("text-anchor", "middle");
+                this._rect = document.createElementNS(svgns, "rect");
+                this._rect.setAttribute("x", "-85");
+                this._rect.setAttribute("width", "170");
+                this._rect.setAttribute("y", "-50");
+                this._rect.setAttribute("height", "40");
+                this._rect.setAttribute("fill", "white");
+                this.node.appendChild(this._rect);
+                this.node.appendChild(this._count);
+                this.node.appendChild(this._range);
+            }
+
+            show(chomIdx, d) {
+                let scaleX = state.g(STATE_SCALE_X);
+                let scaleY = state.g(STATE_SCALE_Y);
+                this.node.removeAttribute("display");
+                this.node.setAttribute("transform", `translate(${xInset + toPx(d.start) * scaleX}, ${yInset + (chomIdx * (chromHeight + chromSpacing) * scaleY)}) scale(2)`);
+                this._count.textContent = `Ct: ${(d.ccres || d.genes).length}`;
+                this._range.textContent = `Loc: (${d.start}, ${d.end})`;
+            }
+
+            hide() {
+                this.node.setAttribute("display", "none");
+            }
+        }
+
+        const tooltip = new Tooltip();
 
         a(g("chrom-data-legend"), Legend(d3.scaleSequential(level1cCRECountInterval, ccreColors), {
             title: "cCRE Count"
@@ -310,7 +323,7 @@
                         }
                         return null
                     });
-                    rect.end = rect.start + currentLevel.bucket_size;
+                    rect.end = rect.start + currentLevel.chromosomes[i].bucket_size;
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
@@ -343,7 +356,7 @@
                         }
                         return null
                     });
-                    rect.end = rect.start + currentLevel.bucket_size;
+                    rect.end = rect.start + currentLevel.chromosomes[i].bucket_size;
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
