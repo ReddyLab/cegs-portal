@@ -3,6 +3,7 @@
 
 {% block javascript %}
 {{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 {% endblock %}
 
@@ -48,6 +49,7 @@
 
         <div>
             <div class="text-xl font-bold">Experiment Coverage</div>
+            <div id="chrom-data-legend"></div>
             <div id="chrom-data"></div>
         </div>
     </div>
@@ -56,7 +58,7 @@
 {% block inline_javascript %}
     <script type="module">
 
-        import { a, e, g } from "{% static 'search/js/dom.js' %}";
+        import { a, e, g, rc } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
@@ -141,13 +143,10 @@
         const tooltip = new Tooltip();
 
         const STATE_ZOOMED = "state-zoomed";
-        const STATE_ORIGIN = "state-origin";
         const STATE_LEVEL_INDEX = "state-level-index";
         const STATE_SCALE = "state-scale";
         const STATE_SCALE_X = "state-scale-x";
         const STATE_SCALE_Y = "state-scale-y";
-        const STATE_CCRE_COUNT_RANGE = "state-ccre-count-range";
-        const STATE_GENE_COUNT_RANGE = "state-gene-count-range";
         const STATE_VIEWBOX = "state-viewbox";
         const STATE_DIRECTION_FILTER = "state-direction-filter";
         const STATE_CONTINUOUS_FILTER = "state-continuous-filter";
@@ -169,13 +168,10 @@
         let level1GeneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
         let state = new State({
             [STATE_ZOOMED]: false,
-            [STATE_ORIGIN]: {x: 0, y: 0},
             [STATE_LEVEL_INDEX]: 0,
             [STATE_SCALE]: 1,
             [STATE_SCALE_X]: 1,
             [STATE_SCALE_Y]: 1,
-            [STATE_CCRE_COUNT_RANGE]: level1cCRECountInterval[1] - level1cCRECountInterval[0],
-            [STATE_GENE_COUNT_RANGE]: level1GeneCountInterval[1] - level1GeneCountInterval[0],
             [STATE_VIEWBOX]: [0, 0, viewWidth, viewHeight],
             [STATE_DIRECTION_FILTER]: [],
             [STATE_CONTINUOUS_FILTER]: [],
@@ -185,8 +181,6 @@
             [STATE_COUNT_FILTERED_LEVEL1]: level1,
             [STATE_EFFECT_SIZE_INTERVAL]: [0, 1],
             [STATE_SIGNIFICANCE_INTERVAL]: [0, 1],
-            [STATE_CCRE_COUNT_INTERVAL_LEVEL1]: level1cCRECountInterval,
-            [STATE_GENE_COUNT_INTERVAL_LEVEL1]: level1GeneCountInterval,
             [STATE_DISCRETE_FILTERED_LEVEL2]: level2,
             [STATE_CONTINUOUS_FILTERED_LEVEL2]: level2,
             [STATE_COUNT_FILTERED_LEVEL2]: level2,
@@ -195,20 +189,18 @@
         });
 
 
-        a(g("chrom-data"), Legend(d3.scaleSequential(level1cCRECountInterval, ccreColors), {
+        a(g("chrom-data-legend"), Legend(d3.scaleSequential(level1cCRECountInterval, ccreColors), {
             title: "cCRE Count"
         }));
-        a(g("chrom-data"), Legend(d3.scaleSequential(level1GeneCountInterval, geneColors), {
+        a(g("chrom-data-legend"), Legend(d3.scaleSequential(level1GeneCountInterval, geneColors), {
             title: "Gene Count"
         }));
-        a(g("chrom-data"), renderSVG(level1, [0, 0, viewWidth, viewHeight], 1, 1, false));
+        rc(g("chrom-data"), renderSVG(level1, level1cCRECountInterval, level1GeneCountInterval, [0, 0, viewWidth, viewHeight], 1, 1, false));
 
-        function renderSVG(currentLevel, viewBox, scaleX, scaleY, zoomed) {
+        function renderSVG(currentLevel, ccreCountInterval, geneCountInterval, viewBox, scaleX, scaleY, zoomed) {
             const bucketHeight = 44 * scaleY;
-            const level1cCRECountInterval = state.g(STATE_CCRE_COUNT_INTERVAL_LEVEL1);
-            const level1GeneCountInterval = state.g(STATE_GENE_COUNT_INTERVAL_LEVEL1);
-            const ccreCountRange = state.g(STATE_CCRE_COUNT_RANGE);
-            const geneCountRange = state.g(STATE_GENE_COUNT_RANGE);
+            const ccreCountRange = ccreCountInterval[1] - ccreCountInterval[0];
+            const geneCountRange = geneCountInterval[1] - geneCountInterval[0];
 
             const svg = d3.create("svg")
                 .attr("stroke", "black")
@@ -255,7 +247,7 @@
                 let ccreRects = ccreOverlay.selectAll("rect")
                 .data(currentLevel.chromosomes[i].ccre_intervals.filter(ccre => ccre.ccres.length > 0))
                 .join("rect")
-                    .attr("fill", ccre => ccreColors((ccre.ccres.length - level1cCRECountInterval[0]) / ccreCountRange))
+                    .attr("fill", ccre => ccreColors((ccre.ccres.length - ccreCountInterval[0]) / ccreCountRange))
                     .attr("x", ccre => xInset + toPx(ccre.start) * scaleX)
                     .attr("y", yInset + (chromSpacing + chromHeight) * i * scaleY)
                     .attr("width", bucketWidth)
@@ -266,11 +258,34 @@
                 let geneRects = geneOverlay.selectAll("rect")
                     .data(currentLevel.chromosomes[i].gene_intervals.filter(gene => gene.genes.length > 0))
                     .join("rect")
-                    .attr("fill", gene => geneColors((gene.genes.length - level1GeneCountInterval[0]) / geneCountRange))
+                    .attr("fill", gene => geneColors((gene.genes.length - geneCountInterval[0]) / geneCountRange))
                     .attr("x", gene => xInset + toPx(gene.start) * scaleX)
                     .attr("y", yInset + (54 + (chromSpacing + chromHeight) * i) * scaleY)
                     .attr("width", bucketWidth)
                     .attr("height", bucketHeight);
+
+                let mouseLeave = () => {
+                    ccreRects.attr("stroke", null);
+                    ccreRects.attr("stroke-width", null);
+                    geneRects.attr("stroke", null);
+                    geneRects.attr("stroke-width", null);
+                    tooltip.hide();
+                }
+
+                let click = (i, start) => {
+                    if(zoomed) {
+                        state.u(STATE_VIEWBOX, [0, 0, viewWidth, viewHeight]);
+                    } else {
+                        state.u(STATE_VIEWBOX, [
+                            xInset + toPx(start) * 30 - viewHeight / 6,
+                            yInset + (chromHeight + chromSpacing) * i * 15 - viewHeight / 6,
+                            viewWidth,
+                            viewHeight
+                        ]);
+                        state.u(STATE_LEVEL_INDEX, i);
+                    }
+                    state.u(STATE_ZOOMED, !zoomed);
+                }
 
                 ccreRects.on("mouseenter", (event, rect) => {
                     ccreRects.attr("stroke", node => node.start == rect.start ? "red" : null);
@@ -299,22 +314,10 @@
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
-                    ccreRects.attr("stroke", null);
-                    ccreRects.attr("stroke-width", null);
-                    geneRects.attr("stroke", null);
-                    geneRects.attr("stroke-width", null);
-                    tooltip.hide();
+                    mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    if(zoomed) {
-                        state.u(STATE_SCALE_X, 0);
-                        state.u(STATE_SCALE_Y, 0);
-                    } else {
-                        state.u(STATE_SCALE_X, xInset + toPx(rect.start) * 30 - viewHeight / 6);
-                        state.u(STATE_SCALE_Y, yInset + (chromHeight + chromSpacing) * i * 15 - viewHeight / 6);
-                        state.u(STATE_LEVEL_INDEX, i);
-                    }
-                    state.u(STATE_ZOOMED, !zoomed);
+                    click(i, rect.start);
                 });
 
                 geneRects.on("mouseenter", (event, rect) => {
@@ -344,22 +347,10 @@
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
-                    geneRects.attr("stroke", null);
-                    geneRects.attr("stroke-width", null);
-                    ccreRects.attr("stroke", null);
-                    ccreRects.attr("stroke-width", null);
-                    tooltip.hide();
+                    mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    if(zoomed) {
-                        state.u(STATE_SCALE_X, 0);
-                        state.u(STATE_SCALE_Y, 0);
-                    } else {
-                        state.u(STATE_SCALE_X, xInset + toPx(rect.start) * 30 - viewHeight / 6);
-                        state.u(STATE_SCALE_Y, yInset + (chromHeight + chromSpacing) * i * 15 - viewHeight / 6);
-                        state.u(STATE_LEVEL_INDEX, i);
-                    }
-                    state.u(STATE_ZOOMED, !zoomed);
+                    click(i, rect.start);
                 });
             }
 
@@ -368,16 +359,6 @@
             return svg.node();
         }
 
-        let currentLevel = function(){
-            if (zoomed) {
-                let tempLevel = _.cloneDeep(level1);
-                tempLevel.chromosomes[levelIndex] = filteredLevel2.chromosomes[0];
-                tempLevel.bucket_size = filteredLevel2.bucket_size;
-                return tempLevel;
-            } else {
-                return filteredLevel1
-            }
-        }();
 
         function chromosomeOutline(d, i) {
             const scale = state.g(STATE_SCALE);
@@ -503,5 +484,34 @@
 
             return [min, max];
         }
+
+        state.ac(STATE_ZOOMED, (s, key) => {
+            const zoomed = s[key];
+            const viewBox = state.g(STATE_VIEWBOX);
+            const scale = zoomed ? 15 : 1;
+            const scaleX = zoomed ? 30 : 1;
+            const scaleY = zoomed ? 15 : 1;
+            const levelIndex = state.g(STATE_LEVEL_INDEX);
+            state.u(STATE_SCALE, scale);
+            state.u(STATE_SCALE_X, scaleX);
+            state.u(STATE_SCALE_Y, scaleY);
+
+            let currentLevel = level1;
+            if (zoomed) {
+                currentLevel = _.cloneDeep(level1);
+                currentLevel.chromosomes[levelIndex] = level2[levelIndex].chromosomes[0];
+                currentLevel.bucket_size = level2[levelIndex].bucket_size;
+            }
+
+            let level2cCRECountInterval = levelCountInterval(level2[levelIndex], "ccre_intervals", "ccres");
+            let level2GeneCountInterval = levelCountInterval(level2[levelIndex], "gene_intervals", "genes");
+
+            rc(g("chrom-data"), renderSVG(
+                currentLevel,
+                zoomed ? level2cCRECountInterval : level1cCRECountInterval,
+                zoomed ? level2GeneCountInterval : level1GeneCountInterval,
+                viewBox, scaleX, scaleY, zoomed));
+        });
+
     </script>
 {% endblock %}

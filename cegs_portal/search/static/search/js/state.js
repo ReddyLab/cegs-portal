@@ -32,7 +32,7 @@ export function State(initialState) {
 
     this.u = this.updateSharedState;
 
-    this.addCallback = function(keys, callback) {
+    this.addCallback = function (keys, callback) {
         if (!Array.isArray(keys)) {
             keys = [keys];
         }
@@ -42,7 +42,7 @@ export function State(initialState) {
 
             this._callbacks[key].push(callback)
         }
-    }
+    };
 
     this.ac = this.addCallback;
 }
