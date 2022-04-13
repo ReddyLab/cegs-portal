@@ -48,7 +48,7 @@
         {% endif %}
 
         <div>
-            <div class="text-xl font-bold">Experiment Coverage</div>
+            <div id="chrom-data-header" class="text-xl font-bold"></div>
             <div id="chrom-data-legend"></div>
             <div id="chrom-data"></div>
         </div>
@@ -57,40 +57,46 @@
 
 {% block inline_javascript %}
     <script type="module">
-        import { a, e, g, rc } from "{% static 'search/js/dom.js' %}";
+        import { a, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
-
-        let genome = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/grch37.json");
-        let level1 = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/level1_data.json");
-        let level2 = [
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_1.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_2.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_3.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_4.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_5.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_6.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_7.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_8.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_9.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_10.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_11.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_12.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_13.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_14.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_15.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_16.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_17.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_18.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_19.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_20.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_21.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_22.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_X.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_Y.json"),
-            await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_MT.json"),
-        ]
+        let genome;
+        let level1;
+        let level2;
+        try {
+            genome = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/grch37.json");
+            level1 = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.id }}/level1_data.json");
+            level2 = [
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_1.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_2.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_3.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_4.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_5.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_6.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_7.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_8.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_9.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_10.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_11.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_12.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_13.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_14.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_15.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_16.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_17.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_18.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_19.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_20.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_21.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_22.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_X.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_Y.json"),
+                await getJson("{% get_static_prefix %}search/experiments/{{experiment.id}}/level2_MT.json"),
+            ]
+        } catch (error) {
+            // If the files can't be loaded we don't want to even try to show the visualization.
+        }
 
         const ccreColors = d3.interpolateCool;
         const geneColors = d3.interpolateWarm;
@@ -202,6 +208,7 @@
 
         const tooltip = new Tooltip();
 
+        rc(g("chrom-data-header"), t("Experiment Coverage"));
         a(g("chrom-data-legend"), Legend(d3.scaleSequential(level1cCRECountInterval, ccreColors), {
             title: "cCRE Count"
         }));
