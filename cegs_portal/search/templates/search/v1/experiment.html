@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
+{% block css %}
+{{ block.super }}
+<link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block javascript %}
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 {% endblock %}
 
@@ -48,6 +54,16 @@
         {% endif %}
 
         <div>
+            <div id="chrom-data-filters">
+                <div id="chrom-data-discrete-facets">
+
+                </div>
+                <div id="chrom-data-continuous-facets">
+                </div>
+                <div id="chrom-data-counts">
+
+                </div>
+            </div>
             <div id="chrom-data-header" class="text-xl font-bold"></div>
             <div id="chrom-data-legend"></div>
             <div id="chrom-data"></div>
@@ -505,6 +521,71 @@
             return [min, max];
         }
 
+        function discreteFilterControls(facets) {
+            return facets
+            .filter(f => f.type == "FacetType.DISCRETE")
+            .map(facet => {
+                return e("fieldset", {name: "facetfield"}, [
+                    e("legend", facet.name),
+                    e("div", {class: "flex flex-row flex-wrap gap-1"},
+                    Object.entries(facet.values).map(entry => {
+                        return e("div", [
+                            e("input", {type:"checkbox", id:entry[0], name:facet.name}, []),
+                            e("label", {for:entry[0]}, entry[1])
+                        ])
+                    })
+                    )
+                ])
+            });
+        }
+
+        discreteFilterControls(level1.facets).forEach(element => {
+            a(g("chrom-data-discrete-facets"), element)
+        });
+
+        function continuousFilterControls(facets) {
+            const contFacets = facets.filter(f => f.type == "FacetType.CONTINUOUS");
+            let sliderNodes = contFacets.map(_ => e("div", {name: "facetslider"}, []));
+            let filterNodes = [];
+
+            for (let i = 0; i < contFacets.length; i++) {
+                let facet = contFacets[i];
+                let sliderNode = sliderNodes[i];
+
+                noUiSlider.create(sliderNode, {
+                    start: [facet.range[0], facet.range[1]],
+                    connect: true,
+                    range: {
+                        'min': facet.range[0],
+                        'max': facet.range[1]
+                    },
+                    pips: {
+                        mode: 'range',
+                        density: 5
+                    }
+                });
+
+                sliderNode.noUiSlider.on("start", function(values, handle) {
+                    sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
+                })
+
+                sliderNode.noUiSlider.on("end", function(values, handle) {
+                    sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
+                })
+
+                filterNodes.push(e("div", {class: "h-24"}, [
+                    e("div", facet.name),
+                    sliderNode
+                ]))
+            }
+
+
+            return filterNodes;
+        }
+
+        continuousFilterControls(level1.facets).forEach(element => {
+            a(g("chrom-data-continuous-facets"), element)
+        });
         state.ac(STATE_ZOOMED, (s, key) => {
             const zoomed = s[key];
             const viewBox = state.g(STATE_VIEWBOX);
