@@ -43,13 +43,17 @@ function t(text) {
     return document.createTextNode(text);
 }
 
-// Replace Children
-function rc(p, c) {
+// Clear children
+function cc(p) {
     while (p.firstChild) {
         p.removeChild(p.firstChild);
     }
+}
 
+// Replace Children
+function rc(p, c) {
+    cc(p);
     a(p, c);
 }
 
-export { a, e, g, t, rc };
+export { a, cc, e, g, rc, t };
