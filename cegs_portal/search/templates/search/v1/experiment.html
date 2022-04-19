@@ -152,10 +152,9 @@
         const STATE_DISCRETE_FILTERED = "state-discrete-filtered";
         const STATE_CONTINUOUS_FILTERED = "state-continuous-filtered";
         const STATE_COUNT_FILTERED = "state-count-filtered";
-        const STATE_CCRE_COUNT_INTERVAL = "state-ccre-count-interval";
-        const STATE_GENE_COUNT_INTERVAL = "state-gene-count-interval";
         const STATE_EFFECT_SIZE_INTERVAL = "state-effect-size-interval";
         const STATE_SIGNIFICANCE_INTERVAL = "state-significance-interval";
+        const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 
         let cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
         let geneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
@@ -173,10 +172,9 @@
             [STATE_DISCRETE_FILTERED]: level1,
             [STATE_CONTINUOUS_FILTERED]: level1,
             [STATE_COUNT_FILTERED]: level1,
-            [STATE_CCRE_COUNT_INTERVAL]: cCRECountInterval,
-            [STATE_GENE_COUNT_INTERVAL]: geneCountInterval,
             [STATE_EFFECT_SIZE_INTERVAL]: [0, 1],
             [STATE_SIGNIFICANCE_INTERVAL]: [0, 1]
+            [STATE_COUNT_FILTER_INTERVALS]: {ccre: cCRECountInterval, gene: geneCountInterval}
         });
 
         class Tooltip {
@@ -647,6 +645,68 @@
             a(g("chrom-data-continuous-facets"), element)
         });
 
+        function countFilterControls() {
+            let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
+            let filterNodes = [];
+            let intervals = state.g(STATE_COUNT_FILTER_INTERVALS);
+
+            let range = intervals.ccre;
+
+            for (let i = 0; i < 2; i++) {
+                let sliderNode = sliderNodes[i];
+
+                let range;
+                let name;
+
+                if (i == 0) {
+                    range = intervals.ccre;
+                    name = "cCRE Count";
+                } else if (i == 1) {
+                    range = intervals.gene;
+                    name = "Gene count";
+                } else {
+                    continue;
+                }
+
+                noUiSlider.create(sliderNode, {
+                    start: [range[0], range[1]],
+                    step: 1,
+                    connect: true,
+                    range: {
+                        'min': range[0],
+                        'max': range[1]
+                    },
+                    pips: {
+                        mode: 'range',
+                        density: 5,
+
+                    }
+                });
+
+                sliderNode.noUiSlider.on("start", function(values, handle) {
+                    sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
+                })
+
+                sliderNode.noUiSlider.on("end", function(values, handle) {
+                    sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
+                })
+
+                sliderNode.noUiSlider.on("update", function(values, handle) {
+                    //sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
+                })
+
+                filterNodes.push(e("div", {class: "h-24"}, [
+                    e("div", name),
+                    sliderNode
+                ]))
+            }
+
+            return filterNodes;
+        }
+
+        countFilterControls().forEach(element => {
+            a(g("chrom-data-counts"), element)
+        });
 
         function render() {
             const scale = state.g(STATE_SCALE);
@@ -656,8 +716,9 @@
             const zoomed = state.g(STATE_ZOOMED);
             const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
             let currentLevel = state.g(STATE_DISCRETE_FILTERED);
-            let cCRECountInterval = state.g(STATE_CCRE_COUNT_INTERVAL);
-            let geneCountInterval = state.g(STATE_GENE_COUNT_INTERVAL);
+            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
+            let cCRECountInterval = countIntervals.ccre;
+            let geneCountInterval = countIntervals.gene;
 
             rc(g("chrom-data"), renderSVG(currentLevel, cCRECountInterval, geneCountInterval, viewBox, scaleX, scaleY, zoomed));
             rc(g("chrom-data-legend"), Legend(d3.scaleSequential(cCRECountInterval, ccreColors), {
