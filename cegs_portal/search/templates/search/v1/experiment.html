@@ -73,7 +73,7 @@
 
 {% block inline_javascript %}
     <script type="module">
-        import { a, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
+        import { a, cc, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
@@ -152,8 +152,7 @@
         const STATE_DISCRETE_FILTERED = "state-discrete-filtered";
         const STATE_CONTINUOUS_FILTERED = "state-continuous-filtered";
         const STATE_COUNT_FILTERED = "state-count-filtered";
-        const STATE_EFFECT_SIZE_INTERVAL = "state-effect-size-interval";
-        const STATE_SIGNIFICANCE_INTERVAL = "state-significance-interval";
+        const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
         const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 
         let cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
@@ -172,8 +171,7 @@
             [STATE_DISCRETE_FILTERED]: level1,
             [STATE_CONTINUOUS_FILTERED]: level1,
             [STATE_COUNT_FILTERED]: level1,
-            [STATE_EFFECT_SIZE_INTERVAL]: [0, 1],
-            [STATE_SIGNIFICANCE_INTERVAL]: [0, 1]
+            [STATE_CONTINUOUS_FILTER_INTERVALS]: {effectSize: [0, 1], significance: [0,1]},
             [STATE_COUNT_FILTER_INTERVALS]: {ccre: cCRECountInterval, gene: geneCountInterval}
         });
 
@@ -601,25 +599,44 @@
             });
         });
 
-        function continuousFilterControls(facets) {
-            const contFacets = facets.filter(f => f.type == "FacetType.CONTINUOUS");
+        function continuousFilterControls() {
+            const contFacets = level1.facets.filter(f => f.type == "FacetType.CONTINUOUS");
             let sliderNodes = contFacets.map(_ => e("div", {name: "facetslider"}, []));
             let filterNodes = [];
+            let intervals = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);
 
             for (let i = 0; i < contFacets.length; i++) {
                 let facet = contFacets[i];
                 let sliderNode = sliderNodes[i];
 
+                let range;
+
+                if (facet.name === "Effect Size") {
+                    range = intervals.effectSize;
+                } else if (facet.name === "Significance") {
+                    range = intervals.significance;
+                } else {
+                    continue;
+                }
+
                 noUiSlider.create(sliderNode, {
-                    start: [facet.range[0], facet.range[1]],
+                    start: [range[0], range[1]],
+                    format: {
+                        to: n => n.toPrecision(3),
+                        from: s => Number.parseFloat(s)
+                    },
                     connect: true,
                     range: {
-                        'min': facet.range[0],
-                        'max': facet.range[1]
+                        'min': range[0],
+                        'max': range[1]
                     },
                     pips: {
                         mode: 'range',
-                        density: 5
+                        density: 5,
+                        format: {
+                            to: n => n.toPrecision(3),
+                            from: s => Number.parseFloat(s)
+                        }
                     }
                 });
 
@@ -631,17 +648,20 @@
                     sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
                 })
 
+                sliderNode.noUiSlider.on("update", function(values, handle) {
+                    //sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
+                })
+
                 filterNodes.push(e("div", {class: "h-24"}, [
                     e("div", facet.name),
                     sliderNode
                 ]))
             }
 
-
             return filterNodes;
         }
 
-        continuousFilterControls(level1.facets).forEach(element => {
+        continuousFilterControls().forEach(element => {
             a(g("chrom-data-continuous-facets"), element)
         });
 
@@ -749,24 +769,37 @@
             }
         });
 
-        state.ac([STATE_NON_FILTERED, STATE_DISCRETE_FACETS], (s, key) => {
+        state.ac([STATE_NON_FILTERED, STATE_DISCRETE_FACETS, STATE_CONTINUOUS_FACETS], (s, key) => {
             const currentLevel = state.g(STATE_NON_FILTERED);
             let discreteFilteredLevel = discreteFacetFilter(currentLevel, state.g(STATE_DISCRETE_FACETS))
             let chromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
+
             state.u(STATE_DISCRETE_FILTERED, discreteFilteredLevel)
-            state.u(STATE_EFFECT_SIZE_INTERVAL, regEffectDataInterval(discreteFilteredLevel, 1, chromoIndex));
-            state.u(STATE_SIGNIFICANCE_INTERVAL, regEffectDataInterval(discreteFilteredLevel, 2, chromoIndex));
-            let cCRECountInterval = levelCountInterval(discreteFilteredLevel, "ccre_intervals", "ccres", chromoIndex);
-            let geneCountInterval = levelCountInterval(discreteFilteredLevel, "gene_intervals", "genes", chromoIndex);
-            state.u(STATE_CCRE_COUNT_INTERVAL, cCRECountInterval);
-            state.u(STATE_GENE_COUNT_INTERVAL, geneCountInterval);
+
+            state.u(STATE_CONTINUOUS_FILTER_INTERVALS, {
+                effectSize: regEffectDataInterval(discreteFilteredLevel, 1, chromoIndex),
+                significance: regEffectDataInterval(discreteFilteredLevel, 2, chromoIndex)
+            })
+            state.u(STATE_COUNT_FILTER_INTERVALS, {
+                ccre: levelCountInterval(discreteFilteredLevel, "ccre_intervals", "ccres", chromoIndex),
+                gene: levelCountInterval(discreteFilteredLevel, "gene_intervals", "genes", chromoIndex)
+            })
+
             render();
         });
 
+        state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
+            cc(g("chrom-data-continuous-facets"));
+            continuousFilterControls().forEach(element => {
+                a(g("chrom-data-continuous-facets"), element)
+            });
+        })
 
-
-
-
-
+        state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
+            cc(g("chrom-data-counts"));
+            countFilterControls().forEach(element => {
+                a(g("chrom-data-counts"), element)
+            });
+        })
     </script>
 {% endblock %}
