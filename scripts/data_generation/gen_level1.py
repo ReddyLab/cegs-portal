@@ -113,11 +113,6 @@ def run(output_file, bucket_size=5_000_000):
     def bucket(start):
         return start // bucket_size
 
-    def minmax(numbers):
-        min_num = min(numbers)
-        max_num = max(numbers)
-        return [min_num, max_num]
-
     chroms = GRCH37
     gene_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
     ccre_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
@@ -173,6 +168,7 @@ def run(output_file, bucket_size=5_000_000):
             ccre_dict[0].extend(
                 [
                     reg_effect.direction_id,
+                    # source.ccre_category_ids,
                     reg_effect.effect_size,
                     reg_effect.significance,
                 ]
@@ -219,10 +215,17 @@ def run(output_file, bucket_size=5_000_000):
 
     facets = []
     for facet in Facet.objects.all():
-        facet_dict = {}
-        facet_dict["name"] = facet.name
-        facet_dict["description"] = facet.description
-        facet_dict["type"] = facet.facet_type
+        # These are the facets we use for this data
+        experiment_facets = ["Direction", "Effect Size", "cCRE Category", "Significance"]
+        if facet.name not in experiment_facets:
+            continue
+
+        facet_dict = {
+            "name": facet.name,
+            "description": facet.description,
+            "type": facet.facet_type,
+        }
+
         if facet.facet_type == str(FacetType.DISCRETE):
             facet_dict["values"] = {fv.id: fv.value for fv in facet.values.all()}
         elif facet.facet_type == str(FacetType.CONTINUOUS):

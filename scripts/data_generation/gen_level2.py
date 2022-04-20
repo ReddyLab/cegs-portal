@@ -223,10 +223,17 @@ def run(output_dir, chrom, bucket_size=100_000):
 
     facets = []
     for facet in Facet.objects.all():
-        facet_dict = {}
-        facet_dict["name"] = facet.name
-        facet_dict["description"] = facet.description
-        facet_dict["type"] = facet.facet_type
+        # These are the facets we use for this data
+        experiment_facets = ["Direction", "Effect Size", "cCRE Category", "Significance"]
+        if facet.name not in experiment_facets:
+            continue
+
+        facet_dict = {
+            "name": facet.name,
+            "description": facet.description,
+            "type": facet.facet_type,
+        }
+
         if facet.facet_type == str(FacetType.DISCRETE):
             facet_dict["values"] = [fv.value for fv in facet.values.all()]
         elif facet.facet_type == str(FacetType.CONTINUOUS):
