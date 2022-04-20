@@ -4,6 +4,32 @@
 {% block css %}
 {{ block.super }}
 <link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet">
+<style>
+    .noUi-horizontal {
+        height: 10px;
+    }
+
+    .noUi-horizontal .noUi-handle {
+        width: 20px;
+        height: 20px;
+    }
+
+    .noUi-handle {
+        border-radius: 10px;
+    }
+
+    .noUi-handle:before, .noUi-handle:after {
+        display: none;
+    }
+
+    .noUi-connect {
+        background: rgba(1, 33, 105, 1);
+    }
+
+    .noUi-pips-horizontal {
+        transform: translate(6px);
+    }
+</style>
 {% endblock %}
 
 {% block javascript %}
