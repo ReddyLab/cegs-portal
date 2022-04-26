@@ -286,7 +286,8 @@
                 .text(chromo => chromo.chrom)
 
             for (let i = 0; i < currentLevel.chromosomes.length; i++) {
-                const bucketWidth = toPx(currentLevel.chromosomes[i].bucket_size) * scaleX;
+                const bucketSize = currentLevel.chromosomes[i].bucket_size;
+                const bucketWidth = toPx(bucketSize) * scaleX;
 
                 const frame = chromGroups[i];
                 const ccreOverlay = frame.append("g");
@@ -347,18 +348,18 @@
                     }
 
                     geneRects.attr("stroke", function(node) {
-                        if(gene_buckets.has((node.start - 1) / 2000000)) {
+                        if(gene_buckets.has((node.start - 1) / bucketSize)) {
                             return "yellow";
                         }
                         return null
                     });
                     geneRects.attr("stroke-width", function(node) {
-                        if(gene_buckets.has((node.start - 1) / 2000000)) {
+                        if(gene_buckets.has((node.start - 1) / bucketSize)) {
                             return 8;
                         }
                         return null
                     });
-                    rect.end = rect.start + currentLevel.chromosomes[i].bucket_size;
+                    rect.end = rect.start + bucketSize;
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
@@ -380,18 +381,18 @@
                     }
 
                     ccreRects.attr("stroke", function(node) {
-                        if(ccre_buckets.has((node.start - 1) / 2000000)) {
+                        if(ccre_buckets.has((node.start - 1) / bucketSize)) {
                             return "yellow";
                         }
                         return null
                     });
                     ccreRects.attr("stroke-width", function(node) {
-                        if(ccre_buckets.has((node.start - 1) / 2000000)) {
+                        if(ccre_buckets.has((node.start - 1) / bucketSize)) {
                             return 8;
                         }
                         return null
                     });
-                    rect.end = rect.start + currentLevel.chromosomes[i].bucket_size;
+                    rect.end = rect.start + bucketSize;
                     tooltip.show(i, rect);
                 })
                 .on("mouseleave", (event, rect) => {
