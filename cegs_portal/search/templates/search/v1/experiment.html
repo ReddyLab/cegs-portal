@@ -502,8 +502,8 @@
             let min = Number.POSITIVE_INFINITY;
             for (const chrom of chroms) {
                 const count = chrom[interval].map(d => d[item].length);
-                max = Math.max(max, Math.max(...chrom[interval].map(d => d[item].length)));
-                min = Math.min(min, Math.min(...chrom[interval].map(d => d[item].length)));
+                max = Math.max(max, Math.max(...count));
+                min = Math.min(min, Math.min(...count));
             }
 
             if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
@@ -523,17 +523,23 @@
             for (const chrom of chroms) {
                 for (const geneInterval of chrom.gene_intervals) {
                     for (const gene of geneInterval.genes) {
-                        for (let i = dataOffset; i < gene[0].length; i += 3) {
-                            max = Math.max(max, gene[0][i]);
-                            min = Math.min(min, gene[0][i]);
+                        let contFacetCount = gene[0][0];
+                        for (let i = 1; i < gene[0].length;) {
+                            let discreteFacetCount = gene[0][i]
+                            max = Math.max(max, gene[0][i + discreteFacetCount + dataOffset]);
+                            min = Math.min(min, gene[0][i + discreteFacetCount + dataOffset]);
+                            i += discreteFacetCount + contFacetCount + 1;
                         }
                     }
                 }
                 for (const ccreInterval of chrom.ccre_intervals) {
                     for (const ccre of ccreInterval.ccres) {
-                        for (let i = dataOffset; i < ccre[0].length; i += 3) {
-                            max = Math.max(max, ccre[0][i]);
-                            min = Math.min(min, ccre[0][i]);
+                        let contFacetCount = ccre[0][0];
+                        for (let i = 1; i < ccre[0].length;) {
+                            let discreteFacetCount = ccre[0][i]
+                            max = Math.max(max, ccre[0][i + discreteFacetCount + dataOffset]);
+                            min = Math.min(min, ccre[0][i + discreteFacetCount + dataOffset]);
+                            i += discreteFacetCount + contFacetCount + 1;
                         }
                     }
                 }
@@ -586,46 +592,71 @@
             }
 
             let facets = new Set(discreteFacetIds);
+            let geneFacets = level1.facets
+                .filter(f => f.type == "FacetType.DISCRETE" && f.coverage.includes("gene"))
+                .map(f => Object.keys(f.values).map(k => Number.parseInt(k)));
+
+            let cCREFacets = level1.facets
+                .filter(f => f.type == "FacetType.DISCRETE" && f.coverage.includes("ccre"))
+                .map(f => Object.keys(f.values).map(k => Number.parseInt(k)));
+
+            let geneFacetsWithSelections = geneFacets.filter(gf => _.intersection(gf, discreteFacetIds).length > 0);
+            let cCREFacetsWithSelections = cCREFacets.filter(cf => _.intersection(cf, discreteFacetIds).length > 0);
+
+            let selectedGeneFacets = geneFacets.map(gf => _.intersection(gf, discreteFacetIds)).filter(gf => _.intersection(gf, discreteFacetIds).length > 0);
+            let selectedcCREFacets = cCREFacets.map(cf => _.intersection(cf, discreteFacetIds)).filter(cf => _.intersection(cf, discreteFacetIds).length > 0);
 
             for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-                for (let iIdx = 0; iIdx < data.chromosomes[cIdx].gene_intervals.length; iIdx++) {
-                    let newGenes = [];
-                    for (let gIdx = 0; gIdx < data.chromosomes[cIdx].gene_intervals[iIdx].genes.length; gIdx++) {
-                        let regEffects = data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][0];
-                        let newRegEffects = [];
-                        for (let rIdx = 0; rIdx < regEffects.length; rIdx += 3) {
-                            const facetId = regEffects[rIdx];
+                if (geneFacetsWithSelections.length > 0) {
+                    for (let iIdx = 0; iIdx < data.chromosomes[cIdx].gene_intervals.length; iIdx++) {
+                        let newGenes = [];
+                        for (let gIdx = 0; gIdx < data.chromosomes[cIdx].gene_intervals[iIdx].genes.length; gIdx++) {
+                            let regEffects = data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][0];
+                            const contFacetCount = regEffects[0];
+                            let newRegEffects = [contFacetCount];
+                            for (let rIdx = 1; rIdx < regEffects.length;) {
+                                const discFacetCount = regEffects[rIdx];
+                                const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
+                                const contFacets = regEffects.slice(rIdx + 1 + discFacetCount, rIdx + 1 + discFacetCount + contFacetCount);
 
-                            if (facets.has(facetId)) {
-                                newRegEffects.push(facetId, regEffects[rIdx + 1], regEffects[rIdx + 2]);
+                                if (selectedGeneFacets.every(gf => _.intersection(gf, discFacets).length > 0)) {
+                                    newRegEffects.push(discFacetCount, ...discFacets, ...contFacets);
+                                }
+                                rIdx += 1 + discFacetCount + contFacetCount;
+                            }
+
+                            if (newRegEffects.length > 0) {
+                                newGenes.push([newRegEffects, data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][1]]);
                             }
                         }
-
-                        if (newRegEffects.length > 0) {
-                            newGenes.push([newRegEffects, data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][1]]);
-                        }
+                        data.chromosomes[cIdx].gene_intervals[iIdx].genes = newGenes;
                     }
-                    data.chromosomes[cIdx].gene_intervals[iIdx].genes = newGenes;
                 }
 
-                for (let iIdx = 0; iIdx < data.chromosomes[cIdx].ccre_intervals.length; iIdx++) {
-                    let newcCREs = [];
-                    for (let gIdx = 0; gIdx < data.chromosomes[cIdx].ccre_intervals[iIdx].ccres.length; gIdx++) {
-                        let regEffects = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][0];
-                        let newRegEffects = [];
-                        for (let rIdx = 0; rIdx < regEffects.length; rIdx += 3) {
-                            const facetId = regEffects[rIdx];
+                if (cCREFacetsWithSelections.length > 0) {
+                    for (let iIdx = 0; iIdx < data.chromosomes[cIdx].ccre_intervals.length; iIdx++) {
+                        let newcCREs = [];
+                        for (let gIdx = 0; gIdx < data.chromosomes[cIdx].ccre_intervals[iIdx].ccres.length; gIdx++) {
+                            const regEffects = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][0];
+                            const contFacetCount = regEffects[0];
+                            let newRegEffects = [contFacetCount];
+                            for (let rIdx = 1; rIdx < regEffects.length;) {
+                                const discFacetCount = regEffects[rIdx];
+                                const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
+                                const contFacets = regEffects.slice(rIdx + 1 + discFacetCount, rIdx + 1 + discFacetCount + contFacetCount);
 
-                            if (facets.has(facetId)) {
-                                newRegEffects.push(facetId, regEffects[rIdx + 1], regEffects[rIdx + 2]);
+                                if (selectedcCREFacets.every(cf => _.intersection(cf, discFacets).length > 0)) {
+                                    newRegEffects.push(discFacetCount, ...discFacets, ...contFacets);
+                                }
+                                rIdx += 1 + discFacetCount + contFacetCount;
+                            }
+
+                            if (newRegEffects.length > 1) {
+                                newcCREs.push([newRegEffects, data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][1]]);
                             }
                         }
-
-                        if (newRegEffects.length > 0) {
-                            newcCREs.push([newRegEffects, data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][1]]);
-                        }
+                        data.chromosomes[cIdx].ccre_intervals[iIdx].ccres = newcCREs;
                     }
-                    data.chromosomes[cIdx].ccre_intervals[iIdx].ccres = newcCREs;
                 }
             }
 
@@ -709,18 +740,23 @@
                     let newGenes = [];
                     for (let gIdx = 0; gIdx < data.chromosomes[cIdx].gene_intervals[iIdx].genes.length; gIdx++) {
                         let regEffects = data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][0];
-                        let newRegEffects = [];
-                        for (let rIdx = 0; rIdx < regEffects.length; rIdx += 3) {
-                            const effectSize = regEffects[rIdx + 1];
-                            const significance = regEffects[rIdx + 2];
+                        let contFacetCount = regEffects[0];
+                        let newRegEffects = [contFacetCount];
+                        for (let rIdx = 1; rIdx < regEffects.length;) {
+                            const discFacetCount = regEffects[rIdx];
+                            const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
+                            const contFacets = regEffects.slice(rIdx + 1 + discFacetCount, rIdx + 1 + discFacetCount + contFacetCount);
+                            const effectSize = regEffects[rIdx + 1 + discFacetCount];
+                            const significance = regEffects[rIdx + 1 + discFacetCount + 1];
 
                             if ((effectSize >= effectSizeRange[0] && effectSize <= effectSizeRange[1]) &&
                                 (significance >= sigRange[0] && significance <= sigRange[1])) {
-                                newRegEffects.push(regEffects[rIdx], effectSize, significance);
+                                newRegEffects.push(discFacetCount, ...discFacets, ...contFacets);
                             }
+                            rIdx += 1 + discFacetCount + contFacetCount;
                         }
 
-                        if (newRegEffects.length > 0) {
+                        if (newRegEffects.length > 1) {
                             newGenes.push([newRegEffects, data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][1]]);
                         }
                     }
@@ -731,18 +767,23 @@
                     let newcCREs = [];
                     for (let gIdx = 0; gIdx < data.chromosomes[cIdx].ccre_intervals[iIdx].ccres.length; gIdx++) {
                         let regEffects = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][0];
-                        let newRegEffects = [];
-                        for (let rIdx = 0; rIdx < regEffects.length; rIdx += 3) {
-                            const effectSize = regEffects[rIdx + 1];
-                            const significance = regEffects[rIdx + 2];
+                        let contFacetCount = regEffects[0];
+                        let newRegEffects = [contFacetCount];
+                        for (let rIdx = 1; rIdx < regEffects.length;) {
+                            const discFacetCount = regEffects[rIdx];
+                            const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
+                            const contFacets = regEffects.slice(rIdx + 1 + discFacetCount, rIdx + 1 + discFacetCount + contFacetCount);
+                            const effectSize = regEffects[rIdx + 1 + discFacetCount];
+                            const significance = regEffects[rIdx + 1 + discFacetCount + 1];
 
                             if ((effectSize >= effectSizeRange[0] && effectSize <= effectSizeRange[1]) &&
                                 (significance >= sigRange[0] && significance <= sigRange[1])) {
-                                newRegEffects.push(regEffects[rIdx], effectSize, significance);
+                                newRegEffects.push(discFacetCount, ...discFacets, ...contFacets);
                             }
+                            rIdx += 1 + discFacetCount + contFacetCount;
                         }
 
-                        if (newRegEffects.length > 0) {
+                        if (newRegEffects.length > 1) {
                             newcCREs.push([newRegEffects, data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][1]]);
                         }
                     }

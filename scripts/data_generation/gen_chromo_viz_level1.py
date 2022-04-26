@@ -17,7 +17,7 @@ from cegs_portal.search.models import Facet, FacetType, FacetValue, RegulatoryEf
 #            "start": <start position, 1-indexed>,
 #            "genes": [
 #              [
-#                [<continuous list of effect direction id, effect size, and significance for each gene in this bucket>],
+#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
 #                [<bucket indexes containing reg-effect associated ccres>]
 #              ],
 #              ...
@@ -30,7 +30,7 @@ from cegs_portal.search.models import Facet, FacetType, FacetValue, RegulatoryEf
 #            "start": <start position, 1-indexed>,
 #            "ccres": [
 #              [
-#                [<continuous list of effect direction id, effect size, and significance for each ccre in this bucket>],
+#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
 #                [<bucket indexes containing reg-effect associated genes>]
 #              ],
 #              ...
@@ -123,7 +123,7 @@ def run(output_file, bucket_size=5_000_000):
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
         .filter(experiment_id=20)
-        .prefetch_related("target_assemblies", "sources")
+        .prefetch_related("target_assemblies", "sources", "sources__facet_values")
     )
     print("Query built...")
     sources = set()
@@ -149,10 +149,12 @@ def run(output_file, bucket_size=5_000_000):
 
             gene_counter[bucket(gene_start)].add(gene)
 
-            gene_dict = gene_buckets[chrom][bucket(gene_start)].get(gene.name, [[], set()])
+            gene_dict = gene_buckets[chrom][bucket(gene_start)].get(gene.name, [[2], set()])
+            disc_facets = [reg_effect.direction_id]
             gene_dict[0].extend(
                 [
-                    reg_effect.direction_id,
+                    len(disc_facets),
+                    *disc_facets,
                     reg_effect.effect_size,
                     reg_effect.significance,
                 ]
@@ -164,11 +166,14 @@ def run(output_file, bucket_size=5_000_000):
             chrom = source.chromosome_name[3:]
             coords = (source.location.lower, source.location.upper)
 
-            ccre_dict = ccre_buckets[chrom][bucket(source.location.lower)].get(coords, [[], set()])
+            ccre_dict = ccre_buckets[chrom][bucket(source.location.lower)].get(
+                coords, [[2], set()]
+            )  # 2 is the number of continuous facets
+            disc_facets = [reg_effect.direction_id, *source.ccre_category_ids, source.ccre_overlap_id]
             ccre_dict[0].extend(
                 [
-                    reg_effect.direction_id,
-                    # source.ccre_category_ids,
+                    len(disc_facets),
+                    *disc_facets,
                     reg_effect.effect_size,
                     reg_effect.significance,
                 ]
@@ -214,16 +219,25 @@ def run(output_file, bucket_size=5_000_000):
             )
 
     facets = []
+    # These are the facets we use for this data
+    experiment_facets = {
+        "Direction": ["gene", "ccre"],
+        "Effect Size": ["gene", "ccre"],
+        "cCRE Category": ["ccre"],
+        "cCRE Overlap": ["ccre"],
+        "Significance": ["gene", "ccre"],
+    }
+    experiment_facet_names = {name for name in experiment_facets.keys()}
+
     for facet in Facet.objects.all():
-        # These are the facets we use for this data
-        experiment_facets = ["Direction", "Effect Size", "cCRE Category", "Significance"]
-        if facet.name not in experiment_facets:
+        if facet.name not in experiment_facet_names:
             continue
 
         facet_dict = {
             "name": facet.name,
             "description": facet.description,
             "type": facet.facet_type,
+            "coverage": experiment_facets[facet.name],
         }
 
         if facet.facet_type == str(FacetType.DISCRETE):

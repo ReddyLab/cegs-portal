@@ -25,7 +25,7 @@ from cegs_portal.search.models import (
 #            "start": <start position, 1-indexed>,
 #            "genes": [
 #              [
-#                [<continuous list of effect direction id, effect size, and significance for each gene in this bucket>],
+#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
 #                [<bucket indexes containing reg-effect associated ccres>]
 #              ],
 #              ...
@@ -38,7 +38,7 @@ from cegs_portal.search.models import (
 #            "start": <start position, 1-indexed>,
 #            "ccres": [
 #              [
-#                [<continuous list of effect direction id, effect size, and significance for each ccre in this bucket>],
+#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
 #                [<bucket indexes containing reg-effect associated genes>]
 #              ],
 #              ...
@@ -70,7 +70,7 @@ GRCH38 = [
     ("7", 159345973),
     ("8", 145138636),
     ("9", 138394717),
-    ("10", 133_797_422),
+    ("10", 133797422),
     ("11", 135086622),
     ("12", 133275309),
     ("13", 114364328),
@@ -162,10 +162,12 @@ def run(output_dir, chrom, bucket_size=100_000):
 
             gene_counter[bucket(gene_start)].add(gene)
 
-            gene_dict = gene_buckets[bucket(gene_start)].get(gene.name, [[], set()])
+            gene_dict = gene_buckets[bucket(gene_start)].get(gene.name, [[2], set()])
+            disc_facets = [reg_effect.direction_id]
             gene_dict[0].extend(
                 [
-                    reg_effect.direction_id,
+                    len(disc_facets),
+                    *disc_facets,
                     reg_effect.effect_size,
                     reg_effect.significance,
                 ]
@@ -176,10 +178,14 @@ def run(output_dir, chrom, bucket_size=100_000):
         for source in sources:
             coords = (source.location.lower, source.location.upper)
 
-            ccre_dict = ccre_buckets[bucket(source.location.lower)].get(coords, [[], set()])
+            ccre_dict = ccre_buckets[bucket(source.location.lower)].get(
+                coords, [[2], set()]
+            )  # 2 is the number of continuous facets
+            disc_facets = [reg_effect.direction_id, *source.ccre_category_ids, source.ccre_overlap_id]
             ccre_dict[0].extend(
                 [
-                    reg_effect.direction_id,
+                    len(disc_facets),
+                    *disc_facets,
                     reg_effect.effect_size,
                     reg_effect.significance,
                 ]
@@ -222,20 +228,29 @@ def run(output_dir, chrom, bucket_size=100_000):
         )
 
     facets = []
+    # These are the facets we use for this data
+    experiment_facets = {
+        "Direction": ["gene", "ccre"],
+        "Effect Size": ["gene", "ccre"],
+        "cCRE Category": ["ccre"],
+        "cCRE Overlap": ["ccre"],
+        "Significance": ["gene", "ccre"],
+    }
+    experiment_facet_names = {name for name in experiment_facets.keys()}
+
     for facet in Facet.objects.all():
-        # These are the facets we use for this data
-        experiment_facets = ["Direction", "Effect Size", "cCRE Category", "Significance"]
-        if facet.name not in experiment_facets:
+        if facet.name not in experiment_facet_names:
             continue
 
         facet_dict = {
             "name": facet.name,
             "description": facet.description,
             "type": facet.facet_type,
+            "coverage": experiment_facets[facet.name],
         }
 
         if facet.facet_type == str(FacetType.DISCRETE):
-            facet_dict["values"] = [fv.value for fv in facet.values.all()]
+            facet_dict["values"] = {fv.id: fv.value for fv in facet.values.all()}
         elif facet.facet_type == str(FacetType.CONTINUOUS):
             min_val = (
                 FacetValue.objects.filter(facet=facet, regulatoryeffect__in=reg_effects)
