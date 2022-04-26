@@ -5,9 +5,9 @@ from cegs_portal.search.models import Experiment
 
 class ExperimentSearch:
     @classmethod
-    def id_search(cls, experiment_id):
+    def accession_search(cls, accession_id):
         experiment = (
-            Experiment.objects.filter(id=experiment_id)
+            Experiment.objects.filter(accession_id=accession_id)
             .prefetch_related("data_files", "data_files__cell_lines", "data_files__tissue_types", "other_files")
             .first()
         )

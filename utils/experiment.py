@@ -44,12 +44,14 @@ class ExperimentMetadata:
     experiment_type: str
     name: str
     filename: str
+    accession_id: str
     other_file_metadata: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
         self.description = experiment_dict["description"]
         self.experiment_type = experiment_dict["type"]
         self.name = experiment_dict["name"]
+        self.accession_id = experiment_dict["accession_id"]
         self.filename = experiment_filename
         self.data_file_metadata = []
         self.other_file_metadata = []
@@ -61,6 +63,7 @@ class ExperimentMetadata:
     def db_save(self):
         experiment = Experiment(
             name=self.name,
+            accession_id=self.accession_id,
             description=self.description,
             experiment_type=self.experiment_type,
         )

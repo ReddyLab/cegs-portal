@@ -12,7 +12,7 @@ class ExperimentView(TemplateJsonView):
     template_data_name = "experiment"
 
     def get_data(self, options, exp_id):
-        experi = ExperimentSearch.id_search(exp_id)
+        experi = ExperimentSearch.accession_search(exp_id)
 
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
