@@ -73,7 +73,7 @@ def test_feature_children(feature: Feature):
 def test_region(region: DNARegion):
     result = {
         "id": region.id,
-        "chr": region.chromosome_name,
+        "chr": region.chrom_name,
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
@@ -85,7 +85,7 @@ def test_region(region: DNARegion):
     assert r_json(region) == result
 
     result["id"] = str(region.id)
-    result["chr"] = region.chromosome_name.removeprefix("chr")
+    result["chr"] = region.chrom_name.removeprefix("chr")
 
     assert r_json(region, json_format="genoverse") == result
 

@@ -23,7 +23,7 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
 
     result = {
         "id": region.id,
-        "chr": region.chromosome_name,
+        "chr": region.chrom_name,
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
@@ -51,7 +51,7 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
     assert dr_json(region_tuple) == result
 
     result["id"] = str(region.id)
-    result["chr"] = region.chromosome_name.removeprefix("chr")
+    result["chr"] = region.chrom_name.removeprefix("chr")
     result["effects"] = [re_json(effect, json_format="genoverse") for effect in reg_effects]
 
     assert dr_json(region_tuple, json_format="genoverse") == result
@@ -85,10 +85,10 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
 
     if json_format == "genoverse":
         result["id"] = str(region.id)
-        result["chr"] = region.chromosome_name.removeprefix("chr")
+        result["chr"] = region.chrom_name.removeprefix("chr")
     else:
         result["id"] = region.id
-        result["chr"] = region.chromosome_name
+        result["chr"] = region.chrom_name
 
     return result
 

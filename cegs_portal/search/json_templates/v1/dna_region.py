@@ -53,10 +53,10 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
 
     if json_format == "genoverse":
         result["id"] = str(region.id)
-        result["chr"] = region.chromosome_name.removeprefix("chr")
+        result["chr"] = region.chrom_name.removeprefix("chr")
     else:
         result["id"] = region.id
-        result["chr"] = region.chromosome_name
+        result["chr"] = region.chrom_name
 
     return result
 

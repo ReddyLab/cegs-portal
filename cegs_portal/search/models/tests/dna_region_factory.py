@@ -18,7 +18,7 @@ class DNARegionFactory(DjangoModelFactory):
         model = DNARegion
 
     cell_line = Faker("text", max_nb_chars=50)
-    chromosome_name = Faker("text", max_nb_chars=10)
+    chrom_name = Faker("text", max_nb_chars=10)
     closest_gene_assembly = factory.SubFactory(FeatureAssemblyFactory)
     closest_gene = factory.SubFactory(FeatureFactory, parent=None)
     closest_gene_distance = random.randint(0, 10000)

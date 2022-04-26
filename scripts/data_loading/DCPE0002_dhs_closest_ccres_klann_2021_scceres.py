@@ -28,7 +28,7 @@ def run(closest_filename):
             if current_dhs is None:
                 # print(dhs_chr, dhs_start, dhs_end)
                 current_dhs = DNARegion.objects.get(
-                    chromosome_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), region_type="dhs"
+                    chrom_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), region_type="dhs"
                 )
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
 
@@ -51,7 +51,7 @@ def run(closest_filename):
                     overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
 
                 current_ccres = DNARegion.objects.filter(
-                    chromosome_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
+                    chrom_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
                 ).prefetch_related("facet_values")
                 ccre_category_set = set()
                 for ccre in current_ccres.all():
@@ -100,7 +100,7 @@ def run(closest_filename):
 
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
                 current_dhs = DNARegion.objects.get(
-                    chromosome_name=current_chr, location=NumericRange(current_start, current_end), region_type="dhs"
+                    chrom_name=current_chr, location=NumericRange(current_start, current_end), region_type="dhs"
                 )
                 assert current_dhs is not None
                 current_ccre_locations = set()
@@ -120,7 +120,7 @@ def run(closest_filename):
             overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
 
         current_ccres = DNARegion.objects.filter(
-            chromosome_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
+            chrom_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
         ).prefetch_related("facet_values")
         ccre_category_set = set()
         for ccre in current_ccres.all():

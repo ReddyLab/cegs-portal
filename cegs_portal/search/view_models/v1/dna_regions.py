@@ -61,7 +61,7 @@ class DNARegionSearch:
         facets: list[int] = cast(list[int], list),
         region_types: Optional[list[str]] = None,
     ):
-        query: dict[str, Any] = {"chromosome_name": chromo}
+        query: dict[str, Any] = {"chrom_name": chromo}
 
         field = "location"
         if search_type == LocSearchType.OVERLAP.value:

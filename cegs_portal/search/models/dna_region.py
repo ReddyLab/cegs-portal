@@ -23,7 +23,7 @@ class DNARegion(Searchable, FacetedModel):
         DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
 
     cell_line = models.CharField(max_length=50, null=True)
-    chromosome_name = models.CharField(max_length=10)
+    chrom_name = models.CharField(max_length=10)
     closest_gene = models.ForeignKey(Feature, null=True, on_delete=models.SET_NULL)
     closest_gene_assembly = models.ForeignKey(FeatureAssembly, null=True, on_delete=models.SET_NULL)
     closest_gene_distance = models.IntegerField()
@@ -49,6 +49,4 @@ class DNARegion(Searchable, FacetedModel):
         return self.facet_values.get(facet__name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
 
     def __str__(self):
-        return (
-            f"{self.chromosome_name}: {self.location.lower}-{self.location.upper} ({self.cell_line or 'No Cell Line'})"
-        )
+        return f"{self.chrom_name}: {self.location.lower}-{self.location.upper} ({self.cell_line or 'No Cell Line'})"

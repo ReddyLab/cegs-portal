@@ -66,7 +66,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         try:
-            dhs = DNARegion.objects.get(chromosome_name=chrom_name, location=dhs_location)
+            dhs = DNARegion.objects.get(chrom_name=chrom_name, location=dhs_location)
         except ObjectDoesNotExist:
             dhs_loc = f"{chrom_name}: {dhs_start}-{dhs_end}"
             if dhs_loc not in new_dhs_set:
@@ -74,7 +74,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
                 print(dhs_loc)
             dhs = DNARegion(
                 cell_line=cell_line,
-                chromosome_name=chrom_name,
+                chrom_name=chrom_name,
                 closest_gene=None,
                 closest_gene_assembly=None,
                 closest_gene_distance=0,

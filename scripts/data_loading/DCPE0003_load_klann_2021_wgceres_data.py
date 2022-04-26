@@ -102,7 +102,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
 
         dhs = DNARegion(
             cell_line=cell_line,
-            chromosome_name=chrom_name,
+            chrom_name=chrom_name,
             closest_gene=closest_gene,
             closest_gene_distance=distance,
             closest_gene_name=gene_name,

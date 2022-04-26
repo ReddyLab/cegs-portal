@@ -163,7 +163,7 @@ def run(output_file, bucket_size=5_000_000):
             gene_buckets[chrom][bucket(gene_start)][gene.name] = gene_dict
 
         for source in sources:
-            chrom = source.chromosome_name[3:]
+            chrom = source.chrom_name[3:]
             coords = (source.location.lower, source.location.upper)
 
             ccre_dict = ccre_buckets[chrom][bucket(source.location.lower)].get(

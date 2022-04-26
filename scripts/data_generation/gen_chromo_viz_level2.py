@@ -131,7 +131,7 @@ def run(output_dir, chrom, bucket_size=100_000):
     ccre_buckets = [dict() for _ in range(bucket(chrom_size) + 1)]
     chrom_dict = {"chrom": chrom, "bucket_size": bucket_size, "gene_intervals": [], "ccre_intervals": []}
     print("Initialized...")
-    dna_regions = DNARegion.objects.filter(chromosome_name=f"chr{chrom}")
+    dna_regions = DNARegion.objects.filter(chrom_name=f"chr{chrom}")
     feature_assemblies = FeatureAssembly.objects.filter(chrom_name=f"chr{chrom}")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()

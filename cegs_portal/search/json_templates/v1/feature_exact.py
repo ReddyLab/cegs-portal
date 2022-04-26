@@ -63,10 +63,10 @@ def region(region_obj: DNARegion, json_format: str = None):
 
     if json_format == "genoverse":
         result["id"] = str(region_obj.id)
-        result["chr"] = region_obj.chromosome_name.removeprefix("chr")
+        result["chr"] = region_obj.chrom_name.removeprefix("chr")
     else:
         result["id"] = region_obj.id
-        result["chr"] = region_obj.chromosome_name
+        result["chr"] = region_obj.chrom_name
 
     return result
 

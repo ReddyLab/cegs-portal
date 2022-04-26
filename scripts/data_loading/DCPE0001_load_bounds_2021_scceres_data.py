@@ -74,7 +74,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
 
         region = DNARegion(
             cell_line=cell_line,
-            chromosome_name=chrom_name,
+            chrom_name=chrom_name,
             closest_gene=closest_gene,
             closest_gene_assembly=closest_assembly,
             closest_gene_distance=distance,

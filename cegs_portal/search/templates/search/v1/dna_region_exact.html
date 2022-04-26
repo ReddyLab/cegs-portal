@@ -16,7 +16,7 @@
                 <tr><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th><th></th></tr>
             <tr>
                 <td>{{ region.cell_line }}</td>
-                <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
+                <td><span>{{ region.chrom_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
                 <td>{{ region.strand }}</td>
                 <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }}</a></td>
                 <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
@@ -145,7 +145,7 @@
             let dist = Number(g("region-dist").value);
             let searchStart = Math.max({{ region.location.lower }} - dist, 0);
             let searchEnd = {{ region.location.upper }} + dist;
-            return `/search/regionloc/{{ region.chromosome_name }}/${searchStart}/${searchEnd}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
+            return `/search/regionloc/{{ region.chrom_name }}/${searchStart}/${searchEnd}?assembly={{ region.ref_genome }}&search_type=overlap&accept=application/json&region_type={{ region.region_type }}`
         }
 
         let regionPageFunc = dataPages(

@@ -61,7 +61,7 @@
                 <tr>
                     <td>{{ region.region_type }}</td>
                     <td>{{ region.cell_line }}</td>
-                    <td><span>{{ region.chromosome_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper|add:"-1" }}</span></td>
+                    <td><span>{{ region.chrom_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper|add:"-1" }}</span></td>
                     <td>{{ region.strand }}</td>
                     <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
                     <td>{{ region.regulatory_effects.count }}</td>

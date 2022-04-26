@@ -69,10 +69,10 @@ def _dnaregion(dnaregion: DNARegion, json_format=None):
 
     if json_format == "genoverse":
         result["id"] = str(dnaregion.id)
-        result["chr"] = dnaregion.chromosome_name.removeprefix("chr")
+        result["chr"] = dnaregion.chrom_name.removeprefix("chr")
     else:
         result["id"] = dnaregion.id
-        result["chr"] = dnaregion.chromosome_name
+        result["chr"] = dnaregion.chrom_name
 
     return result
 

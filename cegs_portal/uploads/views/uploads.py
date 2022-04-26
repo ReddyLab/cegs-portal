@@ -31,7 +31,7 @@ def handle_uploaded_file(file):
             continue
 
         dhs = DNARegion(
-            chromosome_name=chrom,
+            chrom_name=chrom,
             location=NumericRange(int(start), int(end)),
             cell_line=cell_line,
         )
