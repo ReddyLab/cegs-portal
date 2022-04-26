@@ -56,4 +56,4 @@ class RegulatoryEffect(Searchable, FacetedModel):
         return self.facet_values.get(facet__name=RegulatoryEffect.Facet.RAW_P_VALUE.value).num_value
 
     def __str__(self):
-        return f"{self.direction.value}: {self.sources.count()} source(s) -> {self.effect_size.num_value} on {self.targets.count()} target(s)"  # noqa: E501
+        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501

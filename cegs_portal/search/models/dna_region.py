@@ -19,6 +19,8 @@ class DNARegion(Searchable, FacetedModel):
 
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
+        CCRE_CATEGORIES = "cCRE Category"
+        DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
 
     cell_line = models.CharField(max_length=50, null=True)
     chromosome_name = models.CharField(max_length=10)
@@ -37,6 +39,14 @@ class DNARegion(Searchable, FacetedModel):
     @property
     def assay(self):
         return self.facet_values.get(facet__name=DNARegion.Facet.ASSAYS.value).value
+
+    @property
+    def ccre_category_ids(self):
+        return [v.id for v in self.facet_values.filter(facet__name=DNARegion.Facet.CCRE_CATEGORIES.value).all()]
+
+    @property
+    def ccre_overlap_id(self):
+        return self.facet_values.get(facet__name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
 
     def __str__(self):
         return (
