@@ -1,7 +1,7 @@
 from django.contrib.postgres.fields import IntegerRangeField
 from django.db import models
 
-from cegs_portal.search.models.features import Feature
+from cegs_portal.search.models.features import Feature, FeatureAssembly
 
 
 class GencodeRegion(models.Model):
@@ -36,6 +36,14 @@ class GencodeAnnotation(models.Model):
 
     feature = models.ForeignKey(
         Feature,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="annotation",
+    )
+
+    feature_assembly = models.ForeignKey(
+        FeatureAssembly,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
