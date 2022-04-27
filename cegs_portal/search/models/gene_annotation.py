@@ -32,6 +32,7 @@ class GencodeAnnotation(models.Model):
     level = models.IntegerField()
     region = models.ForeignKey(GencodeRegion, on_delete=models.SET_NULL, null=True)
     attributes = models.JSONField(null=True)
+    version = models.IntegerField()
 
     feature = models.ForeignKey(
         Feature,
