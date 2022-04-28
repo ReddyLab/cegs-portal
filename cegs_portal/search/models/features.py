@@ -14,7 +14,7 @@ class FeatureAssembly(Searchable):
             models.Index(fields=["chrom_name"], name="sfa_chrom_name_index"),
             models.Index(fields=["feature_type"], name="sfa_feature_type_index"),
             GistIndex(fields=["location"], name="sfa_loc_index"),
-            # models.Index(fields=["ensembl_id"], name="sf_ensembl_id_index"), # Add after data is migrated
+            models.Index(fields=["ensembl_id"], name="sfa_ensembl_id_index"),
         ]
 
     chrom_name = models.CharField(max_length=10)
@@ -29,7 +29,7 @@ class FeatureAssembly(Searchable):
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
     feature = models.ForeignKey(
-        "Feature", on_delete=models.CASCADE, related_name="assemblies"
+        "Feature", on_delete=models.CASCADE, related_name="assemblies", null=True
     )  # remove this after feature data is migrated
 
     # gene, tanscript, etc.
