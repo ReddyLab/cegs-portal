@@ -29,7 +29,6 @@ class FacetValue(models.Model):
         ]
 
     value = models.CharField(max_length=30, null=True)
-    num_value = models.FloatField(null=True)
     facet = models.ForeignKey(Facet, on_delete=models.CASCADE, related_name="values")
 
 
@@ -41,3 +40,4 @@ class FacetedModel(models.Model):
         pass
 
     facet_values = models.ManyToManyField(FacetValue)
+    facet_num_values = models.JSONField(null=True)
