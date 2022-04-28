@@ -1,43 +1,37 @@
 from urllib.parse import unquote
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import (
-    Feature,
-    FeatureAssembly,
-    GencodeAnnotation,
-    GencodeRegion,
-)
+from cegs_portal.search.models import FeatureAssembly, GencodeAnnotation, GencodeRegion
 from utils import timer
 
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
 
-ANNOTATION_BUFFER_SIZE = 50_000
+ANNOTATION_BUFFER_SIZE = 5_000
 
 
 #
 # The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
+# https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
 #
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
+#     If the model’s primary key is an AutoField, the primary key attribute can only
+#     be retrieved on certain databases (currently PostgreSQL, MariaDB 10.5+, and
+#     SQLite 3.35+). On other databases, it will not be set.
 #
 # So the objects won't need to be saved one-at-a-time like they are, which is slow.
 #
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-@timer("Saving annotations", level=1, unit="s")
+@timer("Saving annotations", level=2, unit="s")
 def bulk_annotation_save(genome_annotations: list[GencodeAnnotation]):
-    GencodeAnnotation.objects.bulk_create(genome_annotations, batch_size=500)
+    GencodeAnnotation.objects.bulk_create(genome_annotations, batch_size=1000)
 
 
-@timer("Loading annotations")
-def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
+@timer("Loading annotations", level=1)
+def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, version):
     line_count = 0
     annotations: list[GencodeAnnotation] = []
     region = None
@@ -91,6 +85,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
             gene_type=attr_dict["gene_type"],
             level=int(attr_dict["level"]),
             region=region,
+            version=version,
         )
 
         for v in ANNOTATION_VALUE_ATTRIBUTES:
@@ -103,31 +98,27 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch):
     bulk_annotation_save(annotations)
 
 
-@timer("Creating Genes")
+def bulk_feature_save(assemblies, parent_ids=[]):
+    with transaction.atomic():
+        if len(parent_ids) > 0:
+            parents = FeatureAssembly.objects.filter(ensembl_id__in=parent_ids)
+            parents_dict = {p.ensembl_id: p for p in parents.all()}
+            for a, pid in zip(assemblies, parent_ids):
+                a.parent = parents_dict[pid]
+        FeatureAssembly.objects.bulk_create(assemblies)
+
+
+@timer("Creating Genes", level=1)
 def create_genes(ref_genome, ref_genome_patch):
     gene_annotations = GencodeAnnotation.objects.filter(
         annotation_type="gene", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
 
-    for annotation in gene_annotations:
-
-        # UPDATE public.search_gencodeannotation as a
-        # SET gene_id = g.id
-        # FROM public.search_gene AS g
-        # WHERE starts_with(reverse(a.id_attr), 'Y_RAP_') and g.ensembl_id = split_part(a.id_attr, '.', 1);
-        gene_id = annotation.id_attr
-        if gene_id.endswith("_PAR_Y"):
-            # These genes are from the Pseudoautosomal region of the Y chromosome and
-            # have already been defined as part of the X chromosome.
-            try:
-                gene = Feature.objects.get(ensembl_id=gene_id.split(".")[0])
-            except ObjectDoesNotExist:
-                continue
-            else:
-                with transaction.atomic():
-                    annotation.feature = gene
-                    annotation.save()
-                    continue
+    assembly_buffer = []
+    for annotation in gene_annotations.iterator():
+        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
+            bulk_feature_save(assembly_buffer)
+            assembly_buffer = []
 
         ensembl_id = None
         ids = {}
@@ -141,53 +132,36 @@ def create_genes(ref_genome, ref_genome_patch):
         if value := annotation.attributes.get("havana_gene", False):
             ids["havana"] = value
 
-        with transaction.atomic():
-            assembly = FeatureAssembly(
-                chrom_name=annotation.chrom_name,
-                ids=ids,
-                location=annotation.location,
-                name=annotation.gene_name,
-                strand=annotation.strand,
-                ref_genome=annotation.ref_genome,
-                ref_genome_patch=annotation.ref_genome_patch,
-            )
+        assembly = FeatureAssembly(
+            chrom_name=annotation.chrom_name,
+            ids=ids,
+            location=annotation.location,
+            name=annotation.gene_name,
+            strand=annotation.strand,
+            ref_genome=annotation.ref_genome,
+            ref_genome_patch=annotation.ref_genome_patch,
+            feature_type="gene",
+            feature_subtype=annotation.gene_type,
+            ensembl_id=ensembl_id,
+        )
+        assembly_buffer.append(assembly)
 
-            try:
-                gene = Feature.objects.get(ensembl_id=ensembl_id)
-            except ObjectDoesNotExist:
-                gene = Feature(feature_type="gene", feature_subtype=annotation.gene_type, ensembl_id=ensembl_id)
-                gene.save()
-
-                # The gene already exists, so just update it with a new assembly location
-                # and add it to the annotation
-            annotation.feature = gene
-            annotation.save()
-
-            assembly.feature = gene
-            assembly.save()
+    bulk_feature_save(assembly_buffer)
 
 
-@timer("Creating Transcripts")
+@timer("Creating Transcripts", level=1)
 def create_transcripts(ref_genome, ref_genome_patch):
     tx_annotations = GencodeAnnotation.objects.filter(
         annotation_type="transcript", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
 
-    gene_id = None
-    for annotation in tx_annotations:
-        transcript_id = annotation.id_attr
-        if transcript_id.endswith("_PAR_Y"):
-            # These transcripts are from the Pseudoautosomal region of the Y chromosome and
-            # have already been defined as part of the X chromosome.
-            try:
-                transcript = Feature.objects.get(ensembl_id=transcript_id.split(".")[0])
-            except ObjectDoesNotExist:
-                continue
-            else:
-                with transaction.atomic():
-                    annotation.feature = transcript
-                    annotation.save()
-                    continue
+    assembly_buffer = []
+    parent_ids = []
+    for annotation in tx_annotations.iterator():
+        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
+            bulk_feature_save(assembly_buffer, parent_ids)
+            assembly_buffer = []
+            parent_ids = []
 
         ensembl_id = None
         ids = {}
@@ -198,90 +172,65 @@ def create_transcripts(ref_genome, ref_genome_patch):
         if value := annotation.attributes.get("havana_transcript", False):
             ids["havana"] = value
 
-        with transaction.atomic():
-            assembly = FeatureAssembly(
-                chrom_name=annotation.chrom_name,
-                ids=ids,
-                location=annotation.location,
-                name=annotation.attributes["transcript_name"],
-                strand=annotation.strand,
-                ref_genome=annotation.ref_genome,
-                ref_genome_patch=annotation.ref_genome_patch,
-            )
+        parent_ids.append(annotation.attributes["gene_id"].split(".")[0])
+        assembly = FeatureAssembly(
+            chrom_name=annotation.chrom_name,
+            ids=ids,
+            location=annotation.location,
+            name=annotation.attributes["transcript_name"],
+            strand=annotation.strand,
+            ref_genome=annotation.ref_genome,
+            ref_genome_patch=annotation.ref_genome_patch,
+            ensembl_id=ensembl_id,
+            feature_type="transcript",
+            feature_subtype=annotation.attributes["transcript_type"],
+        )
+        assembly_buffer.append(assembly)
 
-            try:
-                transcript = Feature.objects.get(ensembl_id=ensembl_id)
-            except ObjectDoesNotExist:
-                temp_gene_id = annotation.attributes["gene_id"].split(".")[0]
-                if gene_id != temp_gene_id:
-                    gene_id = temp_gene_id
-                gene = Feature.objects.get(ensembl_id=gene_id)
-                transcript = Feature(
-                    feature_type="transcript",
-                    ensembl_id=ensembl_id,
-                    parent=gene,
-                    feature_subtype=annotation.attributes["transcript_type"],
-                )
-                transcript.save()
-
-            annotation.feature = transcript
-            annotation.save()
-
-            assembly.feature = transcript
-            assembly.save()
+    bulk_feature_save(assembly_buffer, parent_ids)
 
 
-@timer("Creating Exons")
+@timer("Creating Exons", level=1)
 def create_exons(ref_genome, ref_genome_patch):
     exon_annotations = GencodeAnnotation.objects.filter(
         annotation_type="exon", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
 
-    transcript_id = None
-    for annotation in exon_annotations:
+    assembly_buffer = []
+    parent_ids = []
+    for annotation in exon_annotations.iterator():
+        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
+            bulk_feature_save(assembly_buffer, parent_ids)
+            assembly_buffer = []
+            parent_ids = []
+
         ids = {}
         exon_id = annotation.id_attr
         if value := annotation.attributes.get("exon_id", False):
             ids["ensembl"] = value
             exon_id = value
 
-        with transaction.atomic():
-            assembly = FeatureAssembly(
-                chrom_name=annotation.chrom_name,
-                ids=ids,
-                location=annotation.location,
-                strand=annotation.strand,
-                ref_genome=annotation.ref_genome,
-                ref_genome_patch=annotation.ref_genome_patch,
-            )
+        parent_ids.append(annotation.attributes["transcript_id"].split(".")[0])
+        assembly = FeatureAssembly(
+            chrom_name=annotation.chrom_name,
+            ids=ids,
+            location=annotation.location,
+            strand=annotation.strand,
+            ref_genome=annotation.ref_genome,
+            ref_genome_patch=annotation.ref_genome_patch,
+            feature_type="exon",
+            ensembl_id=exon_id,
+            misc={"number": int(annotation.attributes["exon_number"]), "gencode_id": annotation.id_attr},
+        )
+        assembly_buffer.append(assembly)
 
-            try:
-                exon = Feature.objects.get(ensembl_id=exon_id)
-            except ObjectDoesNotExist:
-                temp_transcript_id = annotation.attributes["transcript_id"].split(".")[0]
-                if transcript_id != temp_transcript_id:
-                    transcript_id = temp_transcript_id
-                transcript = Feature.objects.get(ensembl_id=transcript_id)
-
-                exon = Feature(
-                    feature_type="exon",
-                    ensembl_id=exon_id,
-                    misc={"number": int(annotation.attributes["exon_number"]), "gencode_id": annotation.id_attr},
-                    parent=transcript,
-                )
-                exon.save()
-
-            annotation.feature = exon
-            annotation.save()
-
-            assembly.feature = exon
-            assembly.save()
+    bulk_feature_save(assembly_buffer, parent_ids)
 
 
+@timer("Unloading Genome Annotations", level=1)
 def unload_genome_annotations():
     GencodeRegion.objects.all().delete()
     GencodeAnnotation.objects.all().delete()
-    Feature.objects.all().delete()
     FeatureAssembly.objects.all().delete()
 
 
@@ -298,7 +247,8 @@ def check_genome(ref_genome: str, ref_genome_patch: str):
         raise ValueError(f"reference genome patch '{ref_genome_patch}' must be either blank or a series of digits")
 
 
-def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str):
+@timer("Load Gencode Data")
+def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, version: str):
     check_filename(annotation_filename)
     check_genome(ref_genome, ref_genome_patch)
 
@@ -308,7 +258,7 @@ def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str):
     # unload_genome_annotations()
 
     with open(annotation_filename, "r") as annotation_file:
-        load_genome_annotations(annotation_file, ref_genome, ref_genome_patch)
+        load_genome_annotations(annotation_file, ref_genome, ref_genome_patch, version)
 
     create_genes(ref_genome, ref_genome_patch)
     create_transcripts(ref_genome, ref_genome_patch)
