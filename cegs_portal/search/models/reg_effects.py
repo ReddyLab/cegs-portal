@@ -45,15 +45,15 @@ class RegulatoryEffect(Searchable, FacetedModel):
 
     @property
     def effect_size(self):
-        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.EFFECT_SIZE.value).num_value
+        return self.facet_num_values[RegulatoryEffect.Facet.EFFECT_SIZE.value]
 
     @property
     def significance(self):
-        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.SIGNIFICANCE.value).num_value
+        return self.facet_num_values[RegulatoryEffect.Facet.SIGNIFICANCE.value]
 
     @property
     def raw_p_value(self):
-        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.RAW_P_VALUE.value).num_value
+        return self.facet_num_values[RegulatoryEffect.Facet.RAW_P_VALUE.value]
 
     def __str__(self):
         return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501

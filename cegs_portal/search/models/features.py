@@ -28,9 +28,6 @@ class FeatureAssembly(Searchable):
     strand = models.CharField(max_length=1, null=True)
     ref_genome = models.CharField(max_length=20)
     ref_genome_patch = models.CharField(max_length=10)
-    feature = models.ForeignKey(
-        "Feature", on_delete=models.CASCADE, related_name="assemblies", null=True
-    )  # remove this after feature data is migrated
 
     # gene, tanscript, etc.
     feature_type = models.CharField(max_length=50)
