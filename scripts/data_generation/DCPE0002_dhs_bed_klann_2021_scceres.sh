@@ -13,7 +13,7 @@ CCRE_BED_FILE=$2
 # cCREs from $CCRE_BED_FILE
 OUTPUT_FILE=$3
 
-python DCPE0002_dhs_bed_klann_2021_scceres.py ${TYLER_DATA_FILE} out.bed
+python scripts/data_generation/DCPE0002_dhs_bed_klann_2021_scceres.py ${TYLER_DATA_FILE} out.bed
 sort -k1,1 -k2,2n out.bed | uniq > a.bed
 sort -k1,1 -k2,2n ${CCRE_BED_FILE} > b.bed
 bedtools closest -t all -a a.bed -b b.bed > ${OUTPUT_FILE}

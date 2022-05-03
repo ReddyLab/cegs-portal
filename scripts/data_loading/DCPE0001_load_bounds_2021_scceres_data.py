@@ -5,14 +5,18 @@ from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     DNARegion,
-    EffectDirectionType,
     Experiment,
+    Facet,
+    FacetValue,
     FeatureAssembly,
     RegulatoryEffect,
 )
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
+
+DIR_FACET = Facet.objects.get(name="Direction")
+DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
 
 
 #
@@ -28,7 +32,7 @@ from . import get_closest_gene
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites, effects, target_assemblies):
+def bulk_save(sites, effects, effect_directions, target_assemblies):
     with transaction.atomic():
         print("Adding gRNA Regions")
         DNARegion.objects.bulk_create(sites, batch_size=1000)
@@ -37,12 +41,16 @@ def bulk_save(sites, effects, target_assemblies):
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
 
     with transaction.atomic():
+        print("Adding effect directions to effects")
+        for direction, effect in zip(effect_directions, effects):
+            effect.facet_values.add(direction)
+
+    with transaction.atomic():
         print("Adding sources to RegulatoryEffects")
         for site, effect in zip(sites, effects):
             effect.sources.add(site)
         for assembly, effect in zip(target_assemblies, effects):
             effect.target_assemblies.add(assembly)
-            effect.targets.add(assembly.feature)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -51,6 +59,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites = []
     effects = []
+    effect_directions = []
     target_assembiles = []
     for line in reader:
         grna_info = line["grna"].split("-")
@@ -68,14 +77,11 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         grna_end = int(grna_end_str)
         grna_location = NumericRange(grna_start, grna_end, "[]")
 
-        closest_gene, closest_assembly, distance, gene_name = get_closest_gene(
-            chrom_name, ref_genome, grna_start, grna_end
-        )
+        closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
         region = DNARegion(
             cell_line=cell_line,
             chrom_name=chrom_name,
-            closest_gene=closest_gene,
             closest_gene_assembly=closest_assembly,
             closest_gene_distance=distance,
             closest_gene_name=gene_name,
@@ -92,33 +98,30 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         significance = float(line["pval_fdr_corrected"])
         effect_size = float(line["avg_logFC"])
         if significance >= 0.01:
-            direction = EffectDirectionType.NON_SIGNIFICANT
+            direction = DIR_FACET_VALUES["Non-significant"]
         elif effect_size > 0:
-            direction = EffectDirectionType.ENRICHED
+            direction = DIR_FACET_VALUES["Enriched Only"]
         elif effect_size < 0:
-            direction = EffectDirectionType.DEPLETED
+            direction = DIR_FACET_VALUES["Depleted Only"]
         else:
-            direction = EffectDirectionType.NON_SIGNIFICANT
+            direction = DIR_FACET_VALUES["Non-significant"]
 
-        temp_target_assembly = FeatureAssembly.objects.filter(
+        target_assembly = FeatureAssembly.objects.get(
             ref_genome=ref_genome, ref_genome_patch=ref_genome_patch, name=line["gene_symbol"]
         )
-        if temp_target_assembly is None:
-            print(f"Gene Name: {line['gene_symbol']}")
-            assert temp_target_assembly is not None
-        assert temp_target_assembly.count() == 1
-        target_assembly = temp_target_assembly.first()
 
         effect = RegulatoryEffect(
-            direction=direction.value,
             experiment=experiment,
-            effect_size=effect_size,
-            significance=significance,
-            raw_p_value=line["p_val"],
+            facet_num_values={
+                RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
+                RegulatoryEffect.Facet.RAW_P_VALUE.value: line["p_val"],
+                RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
+            },
         )
         target_assembiles.append(target_assembly)
         effects.append(effect)
-    bulk_save(sites, effects, target_assembiles)
+        effect_directions.append(direction)
+    bulk_save(sites, effects, effect_directions, target_assembiles)
 
 
 def unload_reg_effects(experiment_metadata):
@@ -136,12 +139,13 @@ def run(experiment_filename):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
-    experiment = experiment_metadata.db_save()
 
     # Only run unload_reg_effects if you want to delete all the gencode data in the db.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
     # unload_reg_effects(experiment_metadata)
+
+    experiment = experiment_metadata.db_save()
 
     for ceres_file, file_info, delimiter in experiment_metadata.metadata():
         load_reg_effects(

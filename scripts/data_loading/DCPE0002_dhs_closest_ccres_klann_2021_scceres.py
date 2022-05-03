@@ -26,7 +26,6 @@ def run(closest_filename):
             ccre_start, ccre_end = int(row[4]), int(row[5]) + 1
 
             if current_dhs is None:
-                # print(dhs_chr, dhs_start, dhs_end)
                 current_dhs = DNARegion.objects.get(
                     chrom_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), region_type="dhs"
                 )
