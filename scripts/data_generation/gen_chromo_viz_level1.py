@@ -2,9 +2,10 @@ import json
 import time
 from collections import defaultdict
 
-from django.db.models import Max, Min
+from django.db.models import FloatField, Max, Min
+from django.db.models.functions import Cast
 
-from cegs_portal.search.models import Facet, FacetType, FacetValue, RegulatoryEffect
+from cegs_portal.search.models import Facet, FacetType, RegulatoryEffect
 
 #  Output json format:
 #  {
@@ -122,7 +123,7 @@ def run(output_file, bucket_size=5_000_000):
     print("Initialized...")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
-        .filter(experiment_id=20)
+        .filter(experiment__accession_id="DCPE0002")
         .prefetch_related("target_assemblies", "sources", "sources__facet_values")
     )
     print("Query built...")
@@ -133,10 +134,14 @@ def run(output_file, bucket_size=5_000_000):
         sources = reg_effect.sources.all()
         genes = reg_effect.target_assemblies.all()
         source_counter = defaultdict(set)
+        reg_disc_facets = [reg_effect.direction_id]
+        source_disc_facets = []
+        target_disc_facets = []
         gene_counter = defaultdict(set)
 
         for source in sources:
             source_counter[bucket(source.location.lower)].add(source)
+            source_disc_facets.extend([*source.ccre_category_ids, source.ccre_overlap_id])
 
         for gene in genes:
             chrom = gene.chrom_name[3:]
@@ -150,7 +155,7 @@ def run(output_file, bucket_size=5_000_000):
             gene_counter[bucket(gene_start)].add(gene)
 
             gene_dict = gene_buckets[chrom][bucket(gene_start)].get(gene.name, [[2], set()])
-            disc_facets = [reg_effect.direction_id]
+            disc_facets = [*reg_disc_facets, *source_disc_facets]
             gene_dict[0].extend(
                 [
                     len(disc_facets),
@@ -169,7 +174,7 @@ def run(output_file, bucket_size=5_000_000):
             ccre_dict = ccre_buckets[chrom][bucket(source.location.lower)].get(
                 coords, [[2], set()]
             )  # 2 is the number of continuous facets
-            disc_facets = [reg_effect.direction_id, *source.ccre_category_ids, source.ccre_overlap_id]
+            disc_facets = [*reg_disc_facets, *source.ccre_category_ids, source.ccre_overlap_id, *target_disc_facets]
             ccre_dict[0].extend(
                 [
                     len(disc_facets),
@@ -223,8 +228,8 @@ def run(output_file, bucket_size=5_000_000):
     experiment_facets = {
         "Direction": ["gene", "ccre"],
         "Effect Size": ["gene", "ccre"],
-        "cCRE Category": ["ccre"],
-        "cCRE Overlap": ["ccre"],
+        "cCRE Category": ["gene", "ccre"],
+        "cCRE Overlap": ["gene", "ccre"],
         "Significance": ["gene", "ccre"],
     }
     experiment_facet_names = {name for name in experiment_facets.keys()}
@@ -242,18 +247,14 @@ def run(output_file, bucket_size=5_000_000):
 
         if facet.facet_type == str(FacetType.DISCRETE):
             facet_dict["values"] = {fv.id: fv.value for fv in facet.values.all()}
-        elif facet.facet_type == str(FacetType.CONTINUOUS):
-            min_val = (
-                FacetValue.objects.filter(facet=facet, regulatoryeffect__in=reg_effects)
-                .all()
-                .aggregate(Min("num_value"))
-            )
-            max_val = (
-                FacetValue.objects.filter(facet=facet, regulatoryeffect__in=reg_effects)
-                .all()
-                .aggregate(Max("num_value"))
-            )
-            facet_dict["range"] = [min_val["num_value__min"], max_val["num_value__max"]]
+        elif facet.name == "Effect Size":
+            min_val = reg_effects.aggregate(min=Min(Cast("facet_num_values__Effect Size", output_field=FloatField())))
+            max_val = reg_effects.aggregate(max=Max(Cast("facet_num_values__Effect Size", output_field=FloatField())))
+            facet_dict["range"] = [min_val["min"], max_val["max"]]
+        elif facet.name == "Significance":
+            min_val = reg_effects.aggregate(min=Min(Cast("facet_num_values__Significance", output_field=FloatField())))
+            max_val = reg_effects.aggregate(max=Max(Cast("facet_num_values__Significance", output_field=FloatField())))
+            facet_dict["range"] = [min_val["min"], max_val["max"]]
         facets.append(facet_dict)
 
     data = {
