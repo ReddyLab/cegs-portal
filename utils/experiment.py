@@ -48,8 +48,8 @@ class ExperimentMetadata:
     other_file_metadata: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
-        self.description = experiment_dict["description"]
-        self.experiment_type = experiment_dict["type"]
+        self.description = experiment_dict.get("description", None)
+        self.experiment_type = experiment_dict.get("type", None)
         self.name = experiment_dict["name"]
         self.accession_id = experiment_dict["accession_id"]
         self.filename = experiment_filename
@@ -57,7 +57,7 @@ class ExperimentMetadata:
         self.other_file_metadata = []
         for data in experiment_dict["data"]:
             self.data_file_metadata.append(ExperimentDatafileMetadata(data))
-        for file in experiment_dict["other_files"]:
+        for file in experiment_dict.get("other_files", []):
             self.other_file_metadata.append(FileMetadata(file, self.filename, self.experiment_type))
 
     def db_save(self):
