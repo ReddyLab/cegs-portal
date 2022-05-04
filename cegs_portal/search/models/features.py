@@ -41,21 +41,3 @@ class FeatureAssembly(Searchable):
 
     def __str__(self):
         return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
-
-
-class Feature(Searchable):
-    class Meta:
-        indexes = [
-            models.Index(fields=["ensembl_id"], name="sf_ensembl_id_index"),
-            models.Index(fields=["feature_type"], name="sf_feature_type_index"),
-        ]
-
-    ensembl_id = models.CharField(max_length=50, unique=True, default="No ID")
-    feature_type = models.CharField(max_length=50)  # gene, tanscript, etc.
-    # gene_type or transcript_type from gencodeannotation.attributes
-    feature_subtype = models.CharField(max_length=50, null=True)
-    misc = models.JSONField(null=True)  # exon number, for instance
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children")
-
-    def __str__(self):
-        return f"{self.ensembl_id}: {self.feature_type}"

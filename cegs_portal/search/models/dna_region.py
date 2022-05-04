@@ -5,7 +5,7 @@ from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
 from cegs_portal.search.models.facets import FacetedModel
-from cegs_portal.search.models.features import Feature, FeatureAssembly
+from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.searchable import Searchable
 
@@ -24,7 +24,6 @@ class DNARegion(Searchable, FacetedModel):
 
     cell_line = models.CharField(max_length=50, null=True)
     chrom_name = models.CharField(max_length=10)
-    closest_gene = models.ForeignKey(Feature, null=True, on_delete=models.SET_NULL)
     closest_gene_assembly = models.ForeignKey(FeatureAssembly, null=True, on_delete=models.SET_NULL)
     closest_gene_distance = models.IntegerField()
     closest_gene_name = models.CharField(max_length=50)

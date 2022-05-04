@@ -1,7 +1,7 @@
 from .dna_region import DNARegion
 from .experiment import CellLine, Experiment, ExperimentDataFile, TissueType
 from .facets import Facet, FacetedModel, FacetType, FacetValue
-from .features import Feature, FeatureAssembly
+from .features import FeatureAssembly
 from .file import File
 from .gene_annotation import GencodeAnnotation, GencodeRegion
 from .reg_effects import EffectDirectionType, RegulatoryEffect

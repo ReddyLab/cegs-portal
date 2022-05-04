@@ -5,7 +5,7 @@ from django.db import models
 from cegs_portal.search.models.dna_region import DNARegion
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import FacetedModel
-from cegs_portal.search.models.features import Feature, FeatureAssembly
+from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
 
 
@@ -32,7 +32,6 @@ class RegulatoryEffect(Searchable, FacetedModel):
 
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
     sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
-    targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
     target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
 
     @property
