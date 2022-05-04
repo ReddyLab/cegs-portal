@@ -3,7 +3,7 @@ from typing import cast
 from django.core.paginator import Paginator
 
 from cegs_portal.search.json_templates.v1.feature_exact import feature_exact
-from cegs_portal.search.json_templates.v1.features import feature_assemblies, features
+from cegs_portal.search.json_templates.v1.features import feature_assemblies
 from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.view_models.v1 import FeatureSearch, IdType
 from cegs_portal.search.views.custom_views import TemplateJsonView
@@ -36,12 +36,11 @@ class FeatureEnsembl(TemplateJsonView):
         return super().get(request, options, {"feature": data, "feature_name": data.feature_type.capitalize()})
 
     def get_data(self, options, feature_id):
-        features = FeatureSearch.id_search(IdType.ENSEMBL.value, feature_id, options["search_type"])
-        return features.first()
+        return FeatureSearch.id_search(IdType.ENSEMBL.value, feature_id, options["search_type"])
 
 
 class Feature(TemplateJsonView):
-    json_renderer = features
+    json_renderer = feature_assemblies
     template = "search/v1/features.html"
 
     def request_options(self, request):
@@ -65,10 +64,7 @@ class Feature(TemplateJsonView):
         return options
 
     def get(self, request, options, data, id_type, feature_id):
-        feature_dict = {f: list(f.assemblies.all()) for f in data}
-        return super().get(
-            request, options, {"feature_dict": feature_dict, "features": data, "feature_name": "Genome Features"}
-        )
+        return super().get(request, options, {"features": data, "feature_name": "Genome Features"})
 
     def get_data(self, options, id_type, feature_id):
         feature_results = FeatureSearch.id_search(id_type, feature_id, options["search_type"])
@@ -108,7 +104,7 @@ class FeatureLoc(TemplateJsonView):
     def get(self, request, options, data, chromo, start, end):
         data = cast(Pageable[FeatureAssembly], data)
 
-        feature_dict: dict[Feature, list[FeatureAssembly]] = {}
+        feature_dict: dict[FeatureAssembly, list[FeatureAssembly]] = {}
         for assembly in data:
             a_list = feature_dict.get(assembly.feature, [])
             a_list.append(assembly)

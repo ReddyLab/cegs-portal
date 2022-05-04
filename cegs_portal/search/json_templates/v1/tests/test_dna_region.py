@@ -5,14 +5,8 @@ import pytest
 from cegs_portal.search.json_templates.v1.dna_region import assembly as a_json
 from cegs_portal.search.json_templates.v1.dna_region import dnaregion as dr_json
 from cegs_portal.search.json_templates.v1.dna_region import dnaregions as drs_json
-from cegs_portal.search.json_templates.v1.dna_region import feature_exact as fe_json
 from cegs_portal.search.json_templates.v1.dna_region import regulatory_effect as re_json
-from cegs_portal.search.models import (
-    DNARegion,
-    Feature,
-    FeatureAssembly,
-    RegulatoryEffect,
-)
+from cegs_portal.search.models import DNARegion, FeatureAssembly, RegulatoryEffect
 from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
@@ -27,7 +21,6 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
-        "closest_gene_id": None,
         "closest_gene_ensembl_id": None,
         "closest_gene_assembly_id": None,
         "closest_gene_name": region.closest_gene_name,
@@ -38,12 +31,9 @@ def test_dna_region(region_tuple: tuple[DNARegion, Iterable]):
         "type": region.region_type,
     }
 
-    if region.closest_gene is not None:
-        result["closest_gene_id"] = region.closest_gene.id
-        result["closest_gene_ensembl_id"] = region.closest_gene.ensembl_id
-
     if region.closest_gene_assembly is not None:
         result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
+        result["closest_gene_ensembl_id"] = region.closest_gene_assembly.ensembl_id
 
     if hasattr(region, "label"):
         result["label"] = region.label  # type: ignore[attr-defined]
@@ -62,7 +52,6 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
-        "closest_gene_id": None,
         "closest_gene_ensembl_id": None,
         "closest_gene_assembly_id": None,
         "closest_gene_name": region.closest_gene_name,
@@ -73,12 +62,9 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "type": region.region_type,
     }
 
-    if region.closest_gene is not None:
-        result["closest_gene_id"] = region.closest_gene.id
-        result["closest_gene_ensembl_id"] = region.closest_gene.ensembl_id
-
     if region.closest_gene_assembly is not None:
         result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
+        result["closest_gene_ensembl_id"] = region.closest_gene_assembly.ensembl_id
 
     if hasattr(region, "label"):
         result["label"] = region.label  # type: ignore[attr-defined]
@@ -117,13 +103,11 @@ def test_regulatory_effect(reg_effect: RegulatoryEffect):
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
-        "targets": [fe_json(target) for target in reg_effect.targets.all()],
         "target_assemblies": [a_json(target) for target in reg_effect.target_assemblies.all()],
     }
 
     assert re_json(reg_effect) == result
 
-    result["targets"] = [fe_json(target, json_format="genoverse") for target in reg_effect.targets.all()]
     result["target_assemblies"] = [
         a_json(target, json_format="genoverse") for target in reg_effect.target_assemblies.all()
     ]
@@ -131,31 +115,23 @@ def test_regulatory_effect(reg_effect: RegulatoryEffect):
     assert re_json(reg_effect, json_format="genoverse") == result
 
 
-def test_feature_exact(feature: Feature):
-    result = {
-        "id": feature.id,
-        "ensembl_id": feature.ensembl_id,
-        "type": feature.feature_type,
-        "subtype": feature.feature_subtype,
-        "parent_id": feature.parent.ensembl_id if feature.parent is not None else None,
-        "misc": feature.misc,
-    }
-    assert fe_json(feature) == result
-
-    result["id"] = str(feature.id)
-    assert fe_json(feature, json_format="genoverse") == result
-
-
 def test_assembly(assembly: FeatureAssembly):
     result = {
+        "id": assembly.id,
+        "ensembl_id": assembly.ensembl_id,
         "chr": assembly.chrom_name,
         "name": assembly.name,
         "start": assembly.location.lower,
         "end": assembly.location.upper,
         "strand": assembly.strand,
         "assembly": f"{assembly.ref_genome}.{assembly.ref_genome_patch or '0'}",
+        "type": assembly.feature_type,
+        "subtype": assembly.feature_subtype,
+        "parent_id": assembly.parent.ensembl_id if assembly.parent is not None else None,
+        "misc": assembly.misc,
     }
     assert a_json(assembly) == result
 
+    result["id"] = str(assembly.id)
     result["chr"] = assembly.chrom_name.removeprefix("chr")
     assert a_json(assembly, json_format="genoverse") == result

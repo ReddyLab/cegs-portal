@@ -2,7 +2,7 @@ from enum import Enum
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import Feature, FeatureAssembly
+from cegs_portal.search.models import FeatureAssembly
 from cegs_portal.search.view_models.errors import ViewModelError
 
 
@@ -39,11 +39,11 @@ class FeatureSearch:
         if id_type == IdType.ENSEMBL.value:
             field = "ensembl_id"
         elif id_type == IdType.HAVANA.value:
-            field = "assemblies__ids__havana"
+            field = "ids__havana"
         elif id_type == IdType.HGNC.value:
-            field = "assemblies__ids__hgnc"
+            field = "ids__hgnc"
         elif id_type == IdType.NAME.value:
-            field = "assemblies__name"
+            field = "name"
         elif id_type == IdType.DB.value:
             field = "id"
         else:
@@ -61,10 +61,8 @@ class FeatureSearch:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         field_lookup = join_fields(field, lookup)
-        features = Feature.objects.filter(**{field_lookup: feature_id}).prefetch_related(
-            "assemblies",
+        features = FeatureAssembly.objects.filter(**{field_lookup: feature_id}).prefetch_related(
             "children",
-            "children__assemblies",
             "dnaregion_set",
             "dnaregion_set__regulatory_effects",
             "regulatory_effects",
@@ -78,7 +76,7 @@ class FeatureSearch:
 
     @classmethod
     def loc_search(cls, chromo, start, end, assembly, feature_types, search_type):
-        query = {"chrom_name": chromo, "feature__feature_type__in": feature_types}
+        query = {"chrom_name": chromo, "feature_type__in": feature_types}
         field = "location"
         if search_type == LocSearchType.EXACT.value or search_type is None:
             lookup = ""
@@ -92,5 +90,5 @@ class FeatureSearch:
 
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[]")
-        assemblies = FeatureAssembly.objects.filter(**query).select_related("feature", "feature__parent").distinct()
+        assemblies = FeatureAssembly.objects.filter(**query).select_related("parent").distinct()
         return assemblies

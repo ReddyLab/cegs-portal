@@ -1,50 +1,63 @@
-from cegs_portal.search.models import (
-    DNARegion,
-    Feature,
-    FeatureAssembly,
-    RegulatoryEffect,
-)
+from cegs_portal.search.models import DNARegion, FeatureAssembly, RegulatoryEffect
 
 
-def feature_exact(feature_obj: Feature, json_format: str = None):
+def feature_exact(assembly_obj: FeatureAssembly, json_format: str = None):
     result = {
-        "ensembl_id": feature_obj.ensembl_id,
-        "type": feature_obj.feature_type,
-        "subtype": feature_obj.feature_subtype,
-        "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
-        "misc": feature_obj.misc,
-        "assemblies": [assembly(a, json_format) for a in feature_obj.assemblies.all()],
-        "children": [children(c, json_format) for c in feature_obj.children.all()],
-        "closest_regions": [region(d, json_format) for d in feature_obj.dnaregion_set.all()],
-        "regulatory_effects": [reg_effect(r, json_format) for r in feature_obj.regulatory_effects.all()],
+        "ensembl_id": assembly_obj.ensembl_id,
+        "chr": assembly_obj.chrom_name,
+        "name": assembly_obj.name,
+        "start": assembly_obj.location.lower,
+        "end": assembly_obj.location.upper,
+        "strand": assembly_obj.strand,
+        "assembly": f"{assembly_obj.ref_genome}.{assembly_obj.ref_genome_patch or '0'}",
+        "type": assembly_obj.feature_type,
+        "subtype": assembly_obj.feature_subtype,
+        "parent_id": assembly_obj.parent.ensembl_id if assembly_obj.parent is not None else None,
+        "misc": assembly_obj.misc,
+        "children": [children(c, json_format) for c in assembly_obj.children.all()],
+        "closest_regions": [region(d, json_format) for d in assembly_obj.dnaregion_set.all()],
+        "regulatory_effects": [reg_effect(r, json_format) for r in assembly_obj.regulatory_effects.all()],
     }
 
     if json_format == "genoverse":
-        result["id"] = str(feature_obj.id)
+        result["id"] = str(assembly_obj.id)
+        result["chr"] = assembly_obj.chrom_name.removeprefix("chr")
     else:
-        result["id"] = feature_obj.id
+        result["id"] = assembly_obj.id
+        result["chr"] = assembly_obj.chrom_name
 
     return result
 
 
 def assembly(assembly_obj: FeatureAssembly, json_format: str = None):
     result = {
+        "ensembl_id": assembly_obj.ensembl_id,
+        "chr": assembly_obj.chrom_name,
         "name": assembly_obj.name,
         "start": assembly_obj.location.lower,
         "end": assembly_obj.location.upper,
         "strand": assembly_obj.strand,
         "assembly": f"{assembly_obj.ref_genome}.{assembly_obj.ref_genome_patch or '0'}",
+        "type": assembly_obj.feature_type,
+        "subtype": assembly_obj.feature_subtype,
+        "parent_id": assembly_obj.parent.ensembl_id if assembly_obj.parent is not None else None,
+        "misc": assembly_obj.misc,
+        "children": [children(c, json_format) for c in assembly_obj.children.all()],
+        "closest_regions": [region(d, json_format) for d in assembly_obj.dnaregion_set.all()],
+        "regulatory_effects": [reg_effect(r, json_format) for r in assembly_obj.regulatory_effects.all()],
     }
 
     if json_format == "genoverse":
+        result["id"] = str(assembly_obj.id)
         result["chr"] = assembly_obj.chrom_name.removeprefix("chr")
     else:
+        result["id"] = assembly_obj.id
         result["chr"] = assembly_obj.chrom_name
 
     return result
 
 
-def children(child_obj: Feature, json_format: str = None):
+def children(child_obj: FeatureAssembly, json_format: str = None):
     return {
         "ensembl_id": child_obj.ensembl_id,
         "assemblies": [assembly(a, json_format) for a in child_obj.assemblies.all()],

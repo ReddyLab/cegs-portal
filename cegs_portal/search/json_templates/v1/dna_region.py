@@ -1,11 +1,6 @@
 from typing import Iterable
 
-from cegs_portal.search.models import (
-    DNARegion,
-    Feature,
-    FeatureAssembly,
-    RegulatoryEffect,
-)
+from cegs_portal.search.models import DNARegion, FeatureAssembly, RegulatoryEffect
 from cegs_portal.utils.pagination_types import Pageable
 
 
@@ -30,7 +25,6 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "cell_line": region.cell_line,
         "start": region.location.lower,
         "end": region.location.upper,
-        "closest_gene_id": None,
         "closest_gene_ensembl_id": None,
         "closest_gene_assembly_id": None,
         "closest_gene_name": region.closest_gene_name,
@@ -41,11 +35,8 @@ def _dnaregion(region: DNARegion, reg_effects: Iterable[RegulatoryEffect], json_
         "type": region.region_type,
     }
 
-    if region.closest_gene is not None:
-        result["closest_gene_id"] = region.closest_gene.id
-        result["closest_gene_ensembl_id"] = region.closest_gene.ensembl_id
-
     if region.closest_gene_assembly is not None:
+        result["closest_gene_ensembl_id"] = region.closest_gene_assembly.ensembl_id
         result["closest_gene_assembly_id"] = region.closest_gene_assembly.id
 
     if hasattr(region, "label"):
@@ -69,40 +60,29 @@ def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None):
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
-        "targets": [feature_exact(target, json_format) for target in reg_effect.targets.all()],
         "target_assemblies": [assembly(target, json_format) for target in reg_effect.target_assemblies.all()],
     }
 
 
-def feature_exact(feature_obj: Feature, json_format: str = None):
-    result = {
-        "ensembl_id": feature_obj.ensembl_id,
-        "type": feature_obj.feature_type,
-        "subtype": feature_obj.feature_subtype,
-        "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
-        "misc": feature_obj.misc,
-    }
-
-    if json_format == "genoverse":
-        result["id"] = str(feature_obj.id)
-    else:
-        result["id"] = feature_obj.id
-
-    return result
-
-
 def assembly(assembly_obj: FeatureAssembly, json_format: str = None):
     result = {
+        "ensembl_id": assembly_obj.ensembl_id,
         "name": assembly_obj.name,
         "start": assembly_obj.location.lower,
         "end": assembly_obj.location.upper,
         "strand": assembly_obj.strand,
         "assembly": f"{assembly_obj.ref_genome}.{assembly_obj.ref_genome_patch or '0'}",
+        "type": assembly_obj.feature_type,
+        "subtype": assembly_obj.feature_subtype,
+        "parent_id": assembly_obj.parent.ensembl_id if assembly_obj.parent is not None else None,
+        "misc": assembly_obj.misc,
     }
 
     if json_format == "genoverse":
+        result["id"] = str(assembly_obj.id)
         result["chr"] = assembly_obj.chrom_name.removeprefix("chr")
     else:
+        result["id"] = assembly_obj.id
         result["chr"] = assembly_obj.chrom_name
 
     return result

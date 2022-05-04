@@ -8,8 +8,6 @@ from cegs_portal.search.models import (
     Experiment,
     ExperimentDataFile,
     Facet,
-    FacetType,
-    Feature,
     FeatureAssembly,
     File,
     RegulatoryEffect,
@@ -26,10 +24,7 @@ from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
     FacetValueFactory,
 )
-from cegs_portal.search.models.tests.features_factory import (
-    FeatureAssemblyFactory,
-    FeatureFactory,
-)
+from cegs_portal.search.models.tests.features_factory import FeatureAssemblyFactory
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 from cegs_portal.utils.pagination_types import MockPaginator, Pageable
@@ -102,61 +97,24 @@ def region_tuple() -> tuple[DNARegion, Iterable]:
 
 @pytest.fixture
 def feature_assemblies() -> Iterable[FeatureAssembly]:
-    f1 = FeatureFactory(parent=None)
-    f2 = FeatureFactory(parent=None)
-    f3 = FeatureFactory(parent=None)
-    fa1a = FeatureAssemblyFactory(feature=f1)
-    fa1b = FeatureAssemblyFactory(feature=f1)
-    fa2a = FeatureAssemblyFactory(feature=f2)
-    fa3a = FeatureAssemblyFactory(feature=f3)
-    fa3b = FeatureAssemblyFactory(feature=f3)
-    return [fa1a, fa1b, fa2a, fa3a, fa3b]
-
-
-@pytest.fixture
-def features() -> list[Feature]:
-    f1 = FeatureFactory(parent=None)
-    f2 = FeatureFactory(parent=None)
-    f3 = FeatureFactory(parent=None)
-    _ = [FeatureAssemblyFactory(feature=f1), FeatureAssemblyFactory(feature=f1)]
-    _ = [FeatureAssemblyFactory(feature=f2)]
-    _ = [FeatureAssemblyFactory(feature=f3), FeatureAssemblyFactory(feature=f3)]
-    return [f1, f2, f3]
-
-
-@pytest.fixture
-def feature() -> Feature:
-    parent = FeatureFactory(parent=None)
-    f1 = FeatureFactory(parent=parent)
-    _ = [FeatureAssemblyFactory(feature=f1), FeatureAssemblyFactory(feature=f1)]
-    return f1
+    f1 = FeatureAssemblyFactory(parent=None)
+    f2 = FeatureAssemblyFactory(parent=None)
+    f3 = FeatureAssemblyFactory(parent=None)
+    f4 = FeatureAssemblyFactory(parent=None)
+    f5 = FeatureAssemblyFactory(parent=None)
+    return [f1, f2, f3, f4, f5]
 
 
 @pytest.fixture
 def assembly() -> FeatureAssembly:
-    f1 = FeatureFactory(parent=None)
-    return FeatureAssemblyFactory(feature=f1)
+    return FeatureAssemblyFactory(parent=None)
 
 
 @pytest.fixture
 def reg_effect() -> RegulatoryEffect:
     direction_facet = FacetFactory(description="", name=RegulatoryEffect.Facet.DIRECTION.value)
-    p_val_facet = FacetFactory(
-        description="", name=RegulatoryEffect.Facet.RAW_P_VALUE.value, facet_type=FacetType.CONTINUOUS
-    )
-    sig_facet = FacetFactory(
-        description="", name=RegulatoryEffect.Facet.SIGNIFICANCE.value, facet_type=FacetType.CONTINUOUS
-    )
-    effect_size_facet = FacetFactory(
-        description="", name=RegulatoryEffect.Facet.EFFECT_SIZE.value, facet_type=FacetType.CONTINUOUS
-    )
     direction = FacetValueFactory(facet=direction_facet, value=EffectDirectionType.ENRICHED)
-    p_val = FacetValueFactory(facet=p_val_facet)
-    sig = FacetValueFactory(facet=sig_facet)
-    effect_size = FacetValueFactory(facet=effect_size_facet)
-    effect = RegEffectFactory(
-        sources=(DNARegionFactory(), DNARegionFactory()), facet_values=(direction, p_val, sig, effect_size)
-    )
+    effect = RegEffectFactory(sources=(DNARegionFactory(), DNARegionFactory()), facet_values=(direction,))
     effect.experiment.data_files.add(
         ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
     )

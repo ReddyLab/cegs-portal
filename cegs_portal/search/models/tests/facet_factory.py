@@ -1,5 +1,3 @@
-from random import random
-
 import factory
 from factory import Faker
 from factory.django import DjangoModelFactory
@@ -21,5 +19,4 @@ class FacetValueFactory(DjangoModelFactory):
         model = FacetValue
 
     value = Faker("text", max_nb_chars=30)
-    num_value = random() * 5
     facet = factory.SubFactory(FacetFactory)

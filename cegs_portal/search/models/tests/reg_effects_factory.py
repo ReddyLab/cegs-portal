@@ -11,6 +11,11 @@ class RegEffectFactory(DjangoModelFactory):
         model = RegulatoryEffect
 
     experiment = factory.SubFactory(ExperimentFactory)
+    facet_num_values = {
+        RegulatoryEffect.Facet.EFFECT_SIZE.value: -0.0660384670056446,
+        RegulatoryEffect.Facet.RAW_P_VALUE.value: 3.19229500470051e-06,
+        RegulatoryEffect.Facet.SIGNIFICANCE.value: 0.000427767530629869,
+    }
 
     @post_generation
     def sources(self, create, extracted, **kwargs):
@@ -22,17 +27,6 @@ class RegEffectFactory(DjangoModelFactory):
             # A list of groups were passed in, use them
             for region in extracted:
                 self.sources.add(region)  # pylint: disable=no-member
-
-    @post_generation
-    def targets(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of groups were passed in, use them
-            for feature in extracted:
-                self.targets.add(feature)  # pylint: disable=no-member
 
     @post_generation
     def target_assemblies(self, create, extracted, **kwargs):
