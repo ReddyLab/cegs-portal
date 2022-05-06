@@ -12,7 +12,6 @@ class IdType(Enum):
     NAME = "name"
     HAVANA = "havana"
     HGNC = "hgnc"
-    DB = "db"
 
 
 class IdSearchType(Enum):
@@ -44,8 +43,6 @@ class FeatureSearch:
             field = "ids__hgnc"
         elif id_type == IdType.NAME.value:
             field = "name"
-        elif id_type == IdType.DB.value:
-            field = "id"
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 
