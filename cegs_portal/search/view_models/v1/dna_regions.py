@@ -31,7 +31,7 @@ class LocSearchType(Enum):
 class DNARegionSearch:
     @classmethod
     def id_search(cls, region_id: str):
-        region = DNARegion.objects.filter(id=int(region_id)).prefetch_related("closest_gene").first()
+        region = DNARegion.objects.filter(id=int(region_id)).prefetch_related("closest_gene_assembly").first()
 
         if region is None:
             return None, None
@@ -40,9 +40,9 @@ class DNARegionSearch:
             RegulatoryEffect.objects.with_facet_values()
             .filter(sources__in=[region.id])
             .prefetch_related(
-                "targets",
-                "targets__regulatory_effects",
-                "targets__regulatory_effects__sources",
+                "target_assemblies",
+                "target_assemblies__regulatory_effects",
+                "target_assemblies__regulatory_effects__sources",
                 "experiment",
                 "sources",
             )
@@ -82,21 +82,15 @@ class DNARegionSearch:
             RegulatoryEffect.objects.with_facet_values()
             .exclude(facet_values__value__in=["Non-significant"])
             .prefetch_related(
-                "targets",
-                "targets__parent",
                 "target_assemblies",
-                "target_assemblies__feature",
-                "target_assemblies__feature__parent",
+                "target_assemblies__parent",
             )
         )
         dna_regions = (
             DNARegion.objects.filter(**query)
             .select_related(
-                "closest_gene",
-                "closest_gene__parent",
                 "closest_gene_assembly",
-                "closest_gene_assembly__feature",
-                "closest_gene_assembly__feature__parent",
+                "closest_gene_assembly__parent",
             )
             .prefetch_related(
                 Prefetch("regulatory_effects", queryset=sig_effects),

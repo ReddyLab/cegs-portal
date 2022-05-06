@@ -1,32 +1,36 @@
 from cegs_portal.search.models import DNARegion, FeatureAssembly, RegulatoryEffect
 
 
-def feature_exact(assembly_obj: FeatureAssembly, json_format: str = None):
-    result = {
-        "ensembl_id": assembly_obj.ensembl_id,
-        "chr": assembly_obj.chrom_name,
-        "name": assembly_obj.name,
-        "start": assembly_obj.location.lower,
-        "end": assembly_obj.location.upper,
-        "strand": assembly_obj.strand,
-        "assembly": f"{assembly_obj.ref_genome}.{assembly_obj.ref_genome_patch or '0'}",
-        "type": assembly_obj.feature_type,
-        "subtype": assembly_obj.feature_subtype,
-        "parent_id": assembly_obj.parent.ensembl_id if assembly_obj.parent is not None else None,
-        "misc": assembly_obj.misc,
-        "children": [children(c, json_format) for c in assembly_obj.children.all()],
-        "closest_regions": [region(d, json_format) for d in assembly_obj.dnaregion_set.all()],
-        "regulatory_effects": [reg_effect(r, json_format) for r in assembly_obj.regulatory_effects.all()],
-    }
+def feature_exact(assembly_objs: FeatureAssembly, json_format: str = None):
+    results = []
+    for assembly_obj in assembly_objs:
+        result = {
+            "ensembl_id": assembly_obj.ensembl_id,
+            "chr": assembly_obj.chrom_name,
+            "name": assembly_obj.name,
+            "start": assembly_obj.location.lower,
+            "end": assembly_obj.location.upper,
+            "strand": assembly_obj.strand,
+            "assembly": f"{assembly_obj.ref_genome}.{assembly_obj.ref_genome_patch or '0'}",
+            "type": assembly_obj.feature_type,
+            "subtype": assembly_obj.feature_subtype,
+            "parent_id": assembly_obj.parent.ensembl_id if assembly_obj.parent is not None else None,
+            "misc": assembly_obj.misc,
+            "children": [children(c, json_format) for c in assembly_obj.children.all()],
+            "closest_regions": [region(d, json_format) for d in assembly_obj.dnaregion_set.all()],
+            "regulatory_effects": [reg_effect(r, json_format) for r in assembly_obj.regulatory_effects.all()],
+        }
 
-    if json_format == "genoverse":
-        result["id"] = str(assembly_obj.id)
-        result["chr"] = assembly_obj.chrom_name.removeprefix("chr")
-    else:
-        result["id"] = assembly_obj.id
-        result["chr"] = assembly_obj.chrom_name
+        if json_format == "genoverse":
+            result["id"] = str(assembly_obj.id)
+            result["chr"] = assembly_obj.chrom_name.removeprefix("chr")
+        else:
+            result["id"] = assembly_obj.id
+            result["chr"] = assembly_obj.chrom_name
 
-    return result
+        results.append(result)
+
+    return results
 
 
 def assembly(assembly_obj: FeatureAssembly, json_format: str = None):

@@ -18,7 +18,7 @@
                 <td>{{ region.cell_line }}</td>
                 <td><span>{{ region.chrom_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper }}</span></td>
                 <td>{{ region.strand }}</td>
-                <td><a href="{% url 'search:features' 'ensembl' region.closest_gene.ensembl_id %}">{{ region.closest_gene_name }}</a></td>
+                <td><a href="{% url 'search:features' 'ensembl' region.closest_gene_assembly.ensembl_id %}">{{ region.closest_gene_name }}</a></td>
                 <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
                 <td><a href="{% url 'search:region' region.id %}">More...</a></td>
             </tr>
@@ -34,7 +34,7 @@
         <table id="regeffect" class="data-table">
             <tr><th>Direction</th><th>Effect Size</th><th>Significance</th><th>Target Gene</th><th>Experiment</th><th>Co-regulating DHSs</th><th>Co-Sources</th><th></th></tr>
             {% for reg_effect in reg_effects %}
-                {% for target in reg_effect.targets.all %}
+                {% for target in reg_effect.target_assemblies.all %}
                 <tr>
                     <td>{{ reg_effect.direction }}</td>
                     <td>{{ reg_effect.effect_size }}</td>

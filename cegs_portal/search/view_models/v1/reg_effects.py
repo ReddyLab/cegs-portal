@@ -13,8 +13,7 @@ class RegEffectSearch:
                 "experiment__data_files__cell_lines",
                 "experiment__data_files__tissue_types",
                 "sources",
-                "targets",
-                "targets__assemblies",
+                "target_assemblies",
             )
             .first()
         )
@@ -29,7 +28,7 @@ class RegEffectSearch:
                 "experiment__data_files__cell_lines",
                 "experiment__data_files__tissue_types",
                 "sources__regulatory_effects",
-                "targets__regulatory_effects__sources",
+                "target_assemblies__regulatory_effects__sources",
             )
         )
 

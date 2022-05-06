@@ -37,7 +37,10 @@ class SearchView(TemplateJsonView):
 
         search_results["query"] = options["search_query"]
 
-        dhs_paginator = Paginator(search_results["dhss"], 20)
-        search_results["dhss"] = dhs_paginator.get_page(options["dhs_page"])
+        if search_results["dhss"] is not None:
+            dhs_paginator = Paginator(search_results["dhss"], 20)
+            search_results["dhss"] = dhs_paginator.get_page(options["dhs_page"])
+        else:
+            search_results["dhss"] = []
 
         return search_results

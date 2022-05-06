@@ -68,7 +68,7 @@ class DNARegion(TemplateJsonView):
             )
             # Other DHSs associated with the same target as this Reg Effect
             co_sources = set()
-            for target in reg_effect.targets.all():
+            for target in reg_effect.target_assemblies.all():
                 for tre in target.regulatory_effects.all():
                     co_sources.update([source for source in tre.sources.all() if source.id != region.id])
             setattr(reg_effect, "co_sources", co_sources)

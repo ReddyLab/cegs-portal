@@ -33,7 +33,7 @@ class FeatureEnsembl(TemplateJsonView):
         return options
 
     def get(self, request, options, data, feature_id):
-        return super().get(request, options, {"feature": data, "feature_name": data.feature_type.capitalize()})
+        return super().get(request, options, {"features": data})
 
     def get_data(self, options, feature_id):
         return FeatureSearch.id_search(IdType.ENSEMBL.value, feature_id, options["search_type"])
@@ -102,17 +102,10 @@ class FeatureLoc(TemplateJsonView):
         return options
 
     def get(self, request, options, data, chromo, start, end):
-        data = cast(Pageable[FeatureAssembly], data)
-
-        feature_dict: dict[FeatureAssembly, list[FeatureAssembly]] = {}
-        for assembly in data:
-            a_list = feature_dict.get(assembly.feature, [])
-            a_list.append(assembly)
-            feature_dict[assembly.feature] = a_list
         return super().get(
             request,
             options,
-            {"feature_dict": feature_dict, "features": data, "feature_name": "Genome Features"},
+            {"features": data, "feature_name": "Genome Features"},
             chromo,
             start,
             end,
