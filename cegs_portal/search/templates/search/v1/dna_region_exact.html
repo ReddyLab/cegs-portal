@@ -40,7 +40,7 @@
                     <td>{{ reg_effect.effect_size }}</td>
                     <td>{{ reg_effect.significance }}</td>
                     <td><a href="{% url 'search:features' 'ensembl' target.ensembl_id %}">{{ target.ensembl_id }}</a></td>
-                    <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
+                    <td><a href="{% url 'search:experiment' reg_effect.experiment.accession_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
                         {% for coreg in reg_effect.co_regulators %}
                         <a href="{% url 'search:region' coreg.id %}">DHS:{{ coreg.id }} </a>
@@ -63,7 +63,7 @@
                     <td>{{ reg_effect.effect_size }}</td>
                     <td>{{ reg_effect.significance }}</td>
                     <td>Unknown</td>
-                    <td><a href="{% url 'search:experiment' reg_effect.experiment_id %}">{{ reg_effect.experiment.name }}</a></td>
+                    <td><a href="{% url 'search:experiment' reg_effect.experiment.accession_id %}">{{ reg_effect.experiment.name }}</a></td>
                     <td>
                         {% for coreg in reg_effect.co_regulators %}
                         <a href="{% url 'search:region' coreg.id %}">DHS:{{ coreg.id }} </a>
