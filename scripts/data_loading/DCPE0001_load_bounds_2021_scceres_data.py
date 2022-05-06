@@ -114,7 +114,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             experiment=experiment,
             facet_num_values={
                 RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffect.Facet.RAW_P_VALUE.value: line["p_val"],
+                RegulatoryEffect.Facet.RAW_P_VALUE.value: float(line["p_val"]),
                 RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
             },
         )
