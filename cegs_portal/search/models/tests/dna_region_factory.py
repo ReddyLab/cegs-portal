@@ -29,7 +29,7 @@ class DNARegionFactory(DjangoModelFactory):
     strand = random.choice(["+", "-", None])
 
     @post_generation
-    def closest_gene_assembly(self, create, extracted, **kwargs):
+    def closest_gene_assembly(self, create, _extracted, **kwargs):
         if not create:
             # Simple build, do nothing.
             return
