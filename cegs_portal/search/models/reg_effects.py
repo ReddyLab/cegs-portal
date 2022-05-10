@@ -2,9 +2,10 @@ from enum import Enum
 
 from django.db import models
 
+from cegs_portal.search.models.accession import Accessioned
 from cegs_portal.search.models.dna_region import DNARegion
 from cegs_portal.search.models.experiment import Experiment
-from cegs_portal.search.models.facets import FacetedModel
+from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
 
@@ -21,7 +22,7 @@ class RegulatoryEffectSet(models.QuerySet):
         return self.prefetch_related("facet_values")
 
 
-class RegulatoryEffect(Searchable, FacetedModel):
+class RegulatoryEffect(Accessioned, Searchable, Faceted):
     class Facet(Enum):
         DIRECTION = "Direction"  # EffectDirectionType
         RAW_P_VALUE = "Raw p value"  # float

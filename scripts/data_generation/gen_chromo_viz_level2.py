@@ -130,7 +130,7 @@ def run(output_dir, chrom, bucket_size=100_000):
     feature_assemblies = FeatureAssembly.objects.filter(chrom_name=f"chr{chrom}")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
-        .filter(experiment__accession_id="DCPE0002")
+        .filter(experiment__accession_id="DCPE00000002")
         .prefetch_related(
             Prefetch("target_assemblies", queryset=feature_assemblies), Prefetch("sources", queryset=dna_regions)
         )

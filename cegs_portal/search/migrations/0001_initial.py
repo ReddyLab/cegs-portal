@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=4096, null=True)),
                 ('experiment_type', models.CharField(max_length=100, null=True)),
                 ('name', models.CharField(max_length=512)),
-                ('accession_id', models.CharField(max_length=8, null=True, unique=True, validators=[cegs_portal.search.models.experiment.validate_accession_id])),
+                ('accession_id', models.CharField(max_length=8, null=True, unique=True, validators=[cegs_portal.search.models.accession.validate_accession_id])),
             ],
             options={
                 'abstract': False,

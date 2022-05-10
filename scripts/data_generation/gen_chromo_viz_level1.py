@@ -123,7 +123,7 @@ def run(output_file, bucket_size=5_000_000):
     print("Initialized...")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
-        .filter(experiment__accession_id="DCPE0002")
+        .filter(experiment__accession_id="DCPE00000002")
         .prefetch_related("target_assemblies", "sources", "sources__facet_values")
     )
     print("Query built...")

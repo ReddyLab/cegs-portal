@@ -1,10 +1,9 @@
 from enum import Enum
-from re import fullmatch
 
-from django.core.exceptions import ValidationError
 from django.db import models
 
-from cegs_portal.search.models.facets import FacetedModel
+from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
 
 
@@ -22,12 +21,7 @@ class TissueType(models.Model):
         return self.tissue_type
 
 
-def validate_accession_id(value):
-    if value is not None and fullmatch("DCPE[0-9A-Z]{4}", value) is None:
-        raise ValidationError(f'{value} is not of the form "DCPEXXXX", where X is a number or capital letter')
-
-
-class Experiment(FacetedModel):
+class Experiment(Accessioned, Faceted):
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
 
@@ -36,7 +30,6 @@ class Experiment(FacetedModel):
     experiment_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=512)
     other_files = models.ManyToManyField(File, related_name="experiments")
-    accession_id = models.CharField(max_length=8, validators=[validate_accession_id], null=True, unique=True)
 
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value

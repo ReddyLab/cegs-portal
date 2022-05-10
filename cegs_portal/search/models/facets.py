@@ -32,7 +32,7 @@ class FacetValue(models.Model):
     facet = models.ForeignKey(Facet, on_delete=models.CASCADE, related_name="values")
 
 
-class FacetedModel(models.Model):
+class Faceted(models.Model):
     class Meta:
         abstract = True
 

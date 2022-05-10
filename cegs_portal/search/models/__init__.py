@@ -1,6 +1,7 @@
+from .accession import Accessioned
 from .dna_region import DNARegion
 from .experiment import CellLine, Experiment, ExperimentDataFile, TissueType
-from .facets import Facet, FacetedModel, FacetType, FacetValue
+from .facets import Facet, Faceted, FacetType, FacetValue
 from .features import FeatureAssembly
 from .file import File
 from .gene_annotation import GencodeAnnotation, GencodeRegion

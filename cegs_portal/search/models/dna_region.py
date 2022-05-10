@@ -4,16 +4,16 @@ from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
-from cegs_portal.search.models.facets import FacetedModel
+from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.searchable import Searchable
 
 
-class DNARegion(Searchable, FacetedModel):
+class DNARegion(Accessioned, Searchable, Faceted):
     class Meta(Searchable.Meta):
         indexes = [
-            models.Index(fields=["searchable"], name="%(class)s_srchbl_idx"),
             GistIndex(fields=["location"], name="search_region_location_index"),
         ]
 

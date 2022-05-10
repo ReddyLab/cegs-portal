@@ -15,13 +15,13 @@ DATA_DIR=$1
 ./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg38.json GRCh38 13
 
 # Load experiment data
-./scripts/data_loading/DCPE0001_load_bounds_2021_scceres_data.sh ${DATA_DIR}/DCPE0001_bounds_scCERES_iPSC_2021/experiment.json
-./scripts/data_loading/DCPE0003_load_klann_2021_wgceres_data.sh ${DATA_DIR}/DCPE0003_klann_wgCERES_K562_2021/experiment.json
-./scripts/data_loading/DCPE0002_load_klann_2021_scceres_data.sh ${DATA_DIR}/DCPE0002_klann_scCERES_K562_2021/experiment.json
+./scripts/data_loading/DCPE00000001_load_bounds_2021_scceres_data.sh ${DATA_DIR}/DCPE00000001_bounds_scCERES_iPSC_2021/experiment.json
+./scripts/data_loading/DCPE00000003_load_klann_2021_wgceres_data.sh ${DATA_DIR}/DCPE00000003_klann_wgCERES_K562_2021/experiment.json
+./scripts/data_loading/DCPE00000002_load_klann_2021_scceres_data.sh ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/experiment.json
 
 # Apply SCREEN cCRE categories to DHSs from DCPE0002
-./scripts/data_generation/DCPE0002_dhs_bed_klann_2021_scceres.sh \
-    ${DATA_DIR}/DCPE0002_klann_scCERES_K562_2021/supplementary_table_17_grna.de.markers.all.filtered.empirical_pvals.w_gene_info.csv \
+./scripts/data_generation/DCPE00000002_dhs_bed_klann_2021_scceres.sh \
+    ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/supplementary_table_17_grna.de.markers.all.filtered.empirical_pvals.w_gene_info.csv \
     ${DATA_DIR}/screen_ccres/GRCh19-cCREs.bed \
-    ${DATA_DIR}/DCPE0002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
-./scripts/data_loading/DCPE0002_dhs_closest_ccres_klann_2021_scceres.sh ${DATA_DIR}/DCPE0002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
+    ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
+./scripts/data_loading/DCPE00000002_dhs_closest_ccres_klann_2021_scceres.sh ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
