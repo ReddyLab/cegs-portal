@@ -154,8 +154,10 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
 
 
 def unload_reg_effects(experiment_metadata):
-    experiment = Experiment.objects.get(name=experiment_metadata.name)
+    experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     RegulatoryEffect.objects.filter(experiment=experiment).delete()
+    for file in experiment.other_files.all():
+        DNARegion.objects.filter(source=file).delete()
     experiment_metadata.db_del()
 
 
