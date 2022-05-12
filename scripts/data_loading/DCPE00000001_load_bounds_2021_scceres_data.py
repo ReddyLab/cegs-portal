@@ -32,10 +32,10 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites, effects, effect_directions, target_assemblies):
+def bulk_save(grnas, effects, effect_directions, sources, targets):
     with transaction.atomic():
         print("Adding gRNA Regions")
-        DNARegion.objects.bulk_create(sites, batch_size=1000)
+        DNARegion.objects.bulk_create(grnas, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -47,10 +47,11 @@ def bulk_save(sites, effects, effect_directions, target_assemblies):
 
     with transaction.atomic():
         print("Adding sources to RegulatoryEffects")
-        for site, effect in zip(sites, effects):
-            effect.sources.add(site)
-        for assembly, effect in zip(target_assemblies, effects):
-            effect.target_assemblies.add(assembly)
+        for source, effect in zip(sources, effects):
+            effect.sources.add(source)
+        print("Adding targets to RegulatoryEffects")
+        for target, effect in zip(targets, effects):
+            effect.target_assemblies.add(target)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -61,38 +62,44 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
     effects = []
     effect_directions = []
     target_assembiles = []
+    grnas = {}
     for line in reader:
-        grna_info = line["grna"].split("-")
+        grna = line["grna"]
+        if grna in grnas:
+            region = grnas[grna]
+        else:
+            grna_info = grna.split("-")
 
-        if not grna_info[0].startswith("chr"):
-            continue
+            if not grna_info[0].startswith("chr"):
+                continue
 
-        if len(grna_info) == 5:
-            chrom_name, grna_start_str, grna_end_str, strand, _grna_seq = grna_info
-        elif len(grna_info) == 6:
-            chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
-            strand = "-"
+            if len(grna_info) == 5:
+                chrom_name, grna_start_str, grna_end_str, strand, _grna_seq = grna_info
+            elif len(grna_info) == 6:
+                chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
+                strand = "-"
 
-        grna_start = int(grna_start_str)
-        grna_end = int(grna_end_str)
-        grna_location = NumericRange(grna_start, grna_end, "[]")
+            grna_start = int(grna_start_str)
+            grna_end = int(grna_end_str)
+            grna_location = NumericRange(grna_start, grna_end, "[]")
 
-        closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
+            closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
-        region = DNARegion(
-            cell_line=cell_line,
-            chrom_name=chrom_name,
-            closest_gene_assembly=closest_assembly,
-            closest_gene_distance=distance,
-            closest_gene_name=gene_name,
-            location=grna_location,
-            misc={"grna": line["grna"]},
-            ref_genome=ref_genome,
-            ref_genome_patch=ref_genome_patch,
-            region_type="grna",
-            source=region_source,
-            strand=strand,
-        )
+            region = DNARegion(
+                cell_line=cell_line,
+                chrom_name=chrom_name,
+                closest_gene_assembly=closest_assembly,
+                closest_gene_distance=distance,
+                closest_gene_name=gene_name,
+                location=grna_location,
+                misc={"grna": grna},
+                ref_genome=ref_genome,
+                ref_genome_patch=ref_genome_patch,
+                region_type="grna",
+                source=region_source,
+                strand=strand,
+            )
+            grnas[grna] = region
         sites.append(region)
 
         significance = float(line["pval_fdr_corrected"])
@@ -121,7 +128,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         target_assembiles.append(target_assembly)
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(sites, effects, effect_directions, target_assembiles)
+    bulk_save(grnas.values(), effects, effect_directions, sites, target_assembiles)
 
 
 def unload_reg_effects(experiment_metadata):
@@ -149,11 +156,12 @@ def run(experiment_filename):
 
     experiment = experiment_metadata.db_save()
 
-    for ceres_file, file_info, delimiter in experiment_metadata.metadata():
+    for i, meta in enumerate(experiment_metadata.metadata()):
+        ceres_file, file_info, delimiter = meta
         load_reg_effects(
             ceres_file,
             experiment,
-            experiment.other_files.all()[0],
+            experiment.other_files.all()[i],
             file_info.cell_line,
             file_info.ref_genome,
             file_info.ref_genome_patch,

@@ -37,15 +37,15 @@ CORRECT_FEATURES = ["ENSG00000272333"]
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
-    sites: list[DNARegion],
-    new_sites: list[DNARegion],
+    sources: list[DNARegion],
+    dhss: list[DNARegion],
     effects: list[RegulatoryEffect],
     effect_directions: list[RegulatoryEffect],
     target_assemblies: list[FeatureAssembly],
 ):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNARegion.objects.bulk_create(new_sites, batch_size=1000)
+        DNARegion.objects.bulk_create(dhss, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -57,8 +57,9 @@ def bulk_save(
 
     with transaction.atomic():
         print("Adding sources to RegulatoryEffects")
-        for site, effect in zip(sites, effects):
-            effect.sources.add(site)
+        for source, effect in zip(sources, effects):
+            effect.sources.add(source)
+        print("Adding targets to RegulatoryEffects")
         for assembly, effect in zip(target_assemblies, effects):
             effect.target_assemblies.add(assembly)
 

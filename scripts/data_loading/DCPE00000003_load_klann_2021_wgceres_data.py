@@ -1,5 +1,6 @@
 import csv
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
@@ -31,10 +32,15 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(sites: list[DNARegion], effects: list[RegulatoryEffect], effect_directions: list[FacetValue]):
+def bulk_save(
+    sources: list[DNARegion],
+    dhss: list[DNARegion],
+    effects: list[RegulatoryEffect],
+    effect_directions: list[RegulatoryEffect],
+):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNARegion.objects.bulk_create(sites, batch_size=1000)
+        DNARegion.objects.bulk_create(dhss, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -46,8 +52,8 @@ def bulk_save(sites: list[DNARegion], effects: list[RegulatoryEffect], effect_di
 
     with transaction.atomic():
         print("Adding sources to RegulatoryEffects")
-        for site, effect in zip(sites, effects):
-            effect.sources.add(site)
+        for source, effect in zip(sources, effects):
+            effect.sources.add(source)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -55,6 +61,7 @@ def bulk_save(sites: list[DNARegion], effects: list[RegulatoryEffect], effect_di
 def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites: list[DNARegion] = []
+    new_sites: list[DNARegion] = []
     effects: list[RegulatoryEffect] = []
     effect_directions: list[FacetValue] = []
     for line in reader:
@@ -66,18 +73,24 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
 
         closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
 
-        dhs = DNARegion(
-            cell_line=cell_line,
-            chrom_name=chrom_name,
-            closest_gene_assembly=closest_assembly,
-            closest_gene_distance=distance,
-            closest_gene_name=gene_name,
-            location=dhs_location,
-            ref_genome=ref_genome,
-            ref_genome_patch=ref_genome_patch,
-            region_type="dhs",
-            source=region_source,
-        )
+        try:
+            dhs = DNARegion.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
+        except ObjectDoesNotExist:
+            closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
+            dhs = DNARegion(
+                cell_line=cell_line,
+                chrom_name=chrom_name,
+                closest_gene_assembly=closest_assembly,
+                closest_gene_distance=distance,
+                closest_gene_name=gene_name,
+                location=dhs_location,
+                ref_genome=ref_genome,
+                ref_genome_patch=ref_genome_patch,
+                region_type="dhs",
+                source=region_source,
+            )
+            new_sites.append(dhs)
+
         sites.append(dhs)
 
         effect_size_field = line["wgCERES_score_top3_wg"].strip()
@@ -108,7 +121,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         )
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(sites, effects, effect_directions)
+    bulk_save(sites, new_sites, effects, effect_directions)
 
 
 def unload_reg_effects(experiment_metadata):
