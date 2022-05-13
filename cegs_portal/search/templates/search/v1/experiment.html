@@ -609,10 +609,13 @@
 
             for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
                 if (geneFacetsWithSelections.length > 0) {
-                    for (let iIdx = 0; iIdx < data.chromosomes[cIdx].gene_intervals.length; iIdx++) {
+                    const gene_intervals_len = data.chromosomes[cIdx].gene_intervals.length;
+                    for (let iIdx = 0; iIdx < gene_intervals_len; iIdx++) {
+                        const genes = data.chromosomes[cIdx].gene_intervals[iIdx].genes;
+                        const genes_len = genes.length;
                         let newGenes = [];
-                        for (let gIdx = 0; gIdx < data.chromosomes[cIdx].gene_intervals[iIdx].genes.length; gIdx++) {
-                            let regEffects = data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][0];
+                        for (let gIdx = 0; gIdx < genes_len; gIdx++) {
+                            let regEffects = genes[gIdx][0];
                             const contFacetCount = regEffects[0];
                             let newRegEffects = [contFacetCount];
                             for (let rIdx = 1; rIdx < regEffects.length;) {
@@ -627,7 +630,7 @@
                             }
 
                             if (newRegEffects.length > 0) {
-                                newGenes.push([newRegEffects, data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][1]]);
+                                newGenes.push([newRegEffects, genes[gIdx][1]]);
                             }
                         }
                         data.chromosomes[cIdx].gene_intervals[iIdx].genes = newGenes;
@@ -635,10 +638,14 @@
                 }
 
                 if (cCREFacetsWithSelections.length > 0) {
-                    for (let iIdx = 0; iIdx < data.chromosomes[cIdx].ccre_intervals.length; iIdx++) {
+                    const ccre_intervals_len = data.chromosomes[cIdx].ccre_intervals.length;
+                    for (let iIdx = 0; iIdx < ccre_intervals_len; iIdx++) {
+                        const ccres = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres
+                        const ccres_len = ccres.length;
+
                         let newcCREs = [];
-                        for (let gIdx = 0; gIdx < data.chromosomes[cIdx].ccre_intervals[iIdx].ccres.length; gIdx++) {
-                            const regEffects = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][0];
+                        for (let gIdx = 0; gIdx < ccres_len; gIdx++) {
+                            const regEffects = ccres[gIdx][0];
                             const contFacetCount = regEffects[0];
                             let newRegEffects = [contFacetCount];
                             for (let rIdx = 1; rIdx < regEffects.length;) {
@@ -653,7 +660,7 @@
                             }
 
                             if (newRegEffects.length > 1) {
-                                newcCREs.push([newRegEffects, data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][1]]);
+                                newcCREs.push([newRegEffects, ccres[gIdx][1]]);
                             }
                         }
                         data.chromosomes[cIdx].ccre_intervals[iIdx].ccres = newcCREs;
@@ -737,10 +744,12 @@
             const sigRange = continuousFilters[1];
 
             for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-                for (let iIdx = 0; iIdx < data.chromosomes[cIdx].gene_intervals.length; iIdx++) {
+                const gene_intervals = data.chromosomes[cIdx].gene_intervals;
+                for (let iIdx = 0; iIdx < gene_intervals.length; iIdx++) {
+                    const genes = gene_intervals[iIdx].genes;
                     let newGenes = [];
-                    for (let gIdx = 0; gIdx < data.chromosomes[cIdx].gene_intervals[iIdx].genes.length; gIdx++) {
-                        let regEffects = data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][0];
+                    for (let gIdx = 0; gIdx < genes.length; gIdx++) {
+                        let regEffects = genes[gIdx][0];
                         let contFacetCount = regEffects[0];
                         let newRegEffects = [contFacetCount];
                         for (let rIdx = 1; rIdx < regEffects.length;) {
@@ -758,16 +767,18 @@
                         }
 
                         if (newRegEffects.length > 1) {
-                            newGenes.push([newRegEffects, data.chromosomes[cIdx].gene_intervals[iIdx].genes[gIdx][1]]);
+                            newGenes.push([newRegEffects, genes[gIdx][1]]);
                         }
                     }
                     data.chromosomes[cIdx].gene_intervals[iIdx].genes = newGenes;
                 }
 
-                for (let iIdx = 0; iIdx < data.chromosomes[cIdx].ccre_intervals.length; iIdx++) {
+                const ccre_intervals = data.chromosomes[cIdx].ccre_intervals;
+                for (let iIdx = 0; iIdx < ccre_intervals.length; iIdx++) {
+                    const ccres = ccre_intervals[iIdx].ccres;
                     let newcCREs = [];
-                    for (let gIdx = 0; gIdx < data.chromosomes[cIdx].ccre_intervals[iIdx].ccres.length; gIdx++) {
-                        let regEffects = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][0];
+                    for (let gIdx = 0; gIdx < ccres.length; gIdx++) {
+                        let regEffects = ccres[gIdx][0];
                         let contFacetCount = regEffects[0];
                         let newRegEffects = [contFacetCount];
                         for (let rIdx = 1; rIdx < regEffects.length;) {
@@ -785,7 +796,7 @@
                         }
 
                         if (newRegEffects.length > 1) {
-                            newcCREs.push([newRegEffects, data.chromosomes[cIdx].ccre_intervals[iIdx].ccres[gIdx][1]]);
+                            newcCREs.push([newRegEffects, ccres[gIdx][1]]);
                         }
                     }
                     data.chromosomes[cIdx].ccre_intervals[iIdx].ccres = newcCREs;
