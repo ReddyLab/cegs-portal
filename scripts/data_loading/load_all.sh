@@ -25,3 +25,5 @@ DATA_DIR=$1
     ${DATA_DIR}/screen_ccres/GRCh19-cCREs.bed \
     ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
 ./scripts/data_loading/DCPE00000002_dhs_closest_ccres_klann_2021_scceres.sh ${DATA_DIR}/DCPE00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
+
+./scripts/data_loading/DCPE00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPE00000004_bounds_scCERES_mhc_2021/experiment.json
