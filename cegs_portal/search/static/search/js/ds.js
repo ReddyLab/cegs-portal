@@ -82,8 +82,14 @@ function RangeTree() {
                 // A3: Move left
                 pNext = p.left;
                 if (pNext === null) {
+                    // Inserts are always at leaves
                     pNext = new RangeTreeNode(data); // A5: Insert
+                    let newNode = new RangeTreeNode(p.data)
                     p.left = pNext;
+                    p.right = newNode;
+                    p.key = data.key;
+                    p.data = data;
+                    p.balanceFactor = 0;
                     break;
                 } else {
                     if (pNext.balanceFactor != 0) {
@@ -96,8 +102,11 @@ function RangeTree() {
                 // A4: Move right
                 pNext = p.right;
                 if (pNext === null) {
+                    // Inserts are always at leaves
                     pNext = new RangeTreeNode(data); // A5: Insert
+                    let newNode = new RangeTreeNode(p.data)
                     p.right = pNext;
+                    p.left = newNode;
                     break;
                 } else {
                     if (pNext.balanceFactor != 0) {
@@ -107,22 +116,19 @@ function RangeTree() {
                     p = pNext;
                 }
             } else {
-                break;
                 // A5: Insert, kinda
-                // if (p.isLeaf()) {
-                //     console.log("Update leaf")
-                //     // Update leaf
-                //     return;
-                //     pNext = p;
-                // } else {
-                //     // Go left to find the leaf
-                //     let pNext = p.left;
-                //     if (pNext.balanceFactor != 0) {
-                //         rebalancePointParent = p;
-                //         rebalancePoint = pNext;
-                //     }
-                //     p = pNext;
-                // }
+                if (p.isLeaf()) {
+                    // Update leaf, terminate algorithm
+                    return;
+                } else {
+                    pNext = p.left;
+                    // Go left to find the leaf
+                    if (pNext.balanceFactor != 0) {
+                        rebalancePointParent = p;
+                        rebalancePoint = pNext;
+                    }
+                    p = pNext;
+                }
             }
         }
 
@@ -130,6 +136,14 @@ function RangeTree() {
         // p = parent of the new node
 
         // A6: Adjust balance factors
+
+        if (p === rebalancePoint) {
+            // No rebalancing needed
+            return;
+        }
+        // 'a' is the "kind" of unbalancing that happened.
+        // -1 -- left-unbalanced
+        // +1 -- right-unbalanced
         let a = key < rebalancePoint.key ? -1 : 1;
         p = rebalancePoint.link(a);
         let r = p;
@@ -137,19 +151,19 @@ function RangeTree() {
         // p, r are the potentially unbalancing child of rebalancePoint
         // pNext is the newly inserted node
 
-        // Every point between p and pNext is marked as balanced. Now that a new node has been added
-        // that shouldn't be true anymore, so we update all those nodes.
-        while (p != pNext) {
+        // Every point between p and pNext is marked as balanced. Now that a new node (raelly two) has been added
+        // that shouldn't be true anymore, except for pNext's parent. pNext's parent should now have two children,
+        // pNext and a copy of itself, so it is balanced.
+        while (p.left != pNext && p.right != pNext) {
             if(key < p.key) {
                 p.balanceFactor = -1;
                 p = p.left;
             } else if (key > p.key) {
                 p.balanceFactor = 1;
                 p = p.right;
+            } else {
+                p = p.left;
             }
-            // } else {
-            //     p = p.left;
-            // }
         }
 
         // A7: Balancing act (rotate the nodes)
@@ -244,7 +258,7 @@ function RangeTree() {
             while(toPrint.length != 0) {
                 let node = toPrint.shift();
                 if (node) {
-                    levelString += `${node.key}(${node.balanceFactor}) `;
+                    levelString += `${node.key}(${node.balanceFactor})${node.isLeaf() ? '*' : ''} `;
                     nextLevel.push(node.left);
                     nextLevel.push(node.right);
                 } else {
