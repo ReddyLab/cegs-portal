@@ -59,18 +59,28 @@ test("Insert an object", () => {
 
 test("Insert several objects", () => {
     let tree = new RangeTree();
-    let keys = [6, 7, 9, 3, 2, 1, 0, 4, 8, 5];
-    for (k of keys) {
+    for (k of [6, 7, 9, 3, 2, 1, 0, 4, 8, 5]) {
         tree.insert({key: k});
     }
     expect(tree.count()).toEqual(19);
     expect(tree.root.key).toEqual(2);
 
     tree = new RangeTree();
-    keys = [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14];
-    for (k of keys) {
+    for (k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
         tree.insert({key: k});
     }
     expect(tree.count()).toEqual(39);
     expect(tree.root.key).toEqual(8);
 });
+
+test("Search for items in range", () => {
+    let tree = new RangeTree();
+    for (k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
+        tree.insert({key: k});
+    }
+    expect(tree.search(1.5, 7.5).map(n => n.key)).toEqual([2, 3, 4, 5, 6, 7]);
+    expect(tree.search(11.5, 17.5).map(n => n.key)).toEqual([12, 13, 14, 15, 16, 17]);
+    expect(tree.search(1.5, 17.5).map(n => n.key)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+    expect(tree.search(-5, 5).map(n => n.key)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(tree.search(15, 25).map(n => n.key)).toEqual([15, 16, 17, 18, 19]);
+})

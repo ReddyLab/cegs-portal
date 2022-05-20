@@ -276,37 +276,33 @@ function RangeTree() {
         let vSplit = this._findSplitNode(x, y);
         let values = []
         if (vSplit.isLeaf()) {
-            let vSplitKey = vSplit.data.key;
-            if (vSplitKey >= x || vSplitKey < y) {
+            let vSplitKey = vSplit.key;
+            if (vSplitKey >= x || vSplitKey <= y) {
                 values.push(vSplit.data)
             }
         } else {
             let node = vSplit.left;
             while (!node.isLeaf()) {
-                let nodeKey = node.data.key
-                if (x <= nodeKey) {
-                    values.push(...this._subtreeLeafData(node.right))
+                if (x <= node.key) {
+                    values.unshift(...this._subtreeLeafData(node.right))
                     node = node.left;
                 } else {
                     node = node.right;
                 }
             }
-            let nodeKey = node.data.key;
-            if (nodeKey >= x && nodeKey <= y) {
+            if (node.key >= x && node.key <= y) {
                 values.unshift(node.data)
             }
             node = vSplit.right;
             while (!node.isLeaf()) {
-                let nodeKey = node.data.key
-                if (y >= nodeKey) {
+                if (y >= node.key) {
                     values.push(...this._subtreeLeafData(node.left))
                     node = node.right;
                 } else {
                     node = node.left;
                 }
             }
-            nodeKey = node.data.key;
-            if (nodeKey >= x && nodeKey <= y) {
+            if (node.key >= x && node.key <= y) {
                 values.push(node.data)
             }
         }
@@ -315,8 +311,8 @@ function RangeTree() {
     }
 
     this._findSplitNode = function(x, y) {
-        let node = this;
-        let nodeKey = node.data.key;
+        let node = this.root;
+        let nodeKey = node.key;
         while (!node.isLeaf() && (x > nodeKey || y <= nodeKey)) {
             if (y <= nodeKey) {
                 node = node.left;
@@ -341,14 +337,16 @@ function RangeTree() {
             if (check.isLeaf()) {
                 leaves.push(check.data);
             } else {
-                if (check.left) {
-                    toCheck.unshift(check.left);
-                }
                 if (check.right) {
                     toCheck.unshift(check.right);
                 }
+                if (check.left) {
+                    toCheck.unshift(check.left);
+                }
             }
         }
+
+        return leaves;
     }
 }
 
