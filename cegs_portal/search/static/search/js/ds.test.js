@@ -63,6 +63,14 @@ test("Insert several objects", () => {
     for (k of keys) {
         tree.insert({key: k});
     }
-    expect(tree.count()).toEqual(10);
-    expect(tree.root.key).toEqual(3);
+    expect(tree.count()).toEqual(19);
+    expect(tree.root.key).toEqual(2);
+
+    tree = new RangeTree();
+    keys = [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14];
+    for (k of keys) {
+        tree.insert({key: k});
+    }
+    expect(tree.count()).toEqual(39);
+    expect(tree.root.key).toEqual(8);
 });
