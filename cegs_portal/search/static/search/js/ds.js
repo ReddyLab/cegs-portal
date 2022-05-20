@@ -58,7 +58,7 @@ function RangeTree() {
     this.root;
 
 
-    // Based on Knuth's AoCP Vol. 3 §6.2.3
+    // AVL insert based on Knuth's AoCP Vol. 3 §6.2.3
     this.insert = function(data) {
         if (data.key === undefined || data.key === null) {
             throw "Data doesn't have a key";
@@ -70,19 +70,19 @@ function RangeTree() {
             return;
         }
 
-        // A1
+        // A1: Initialize
         let rebalancePointParent = this;
         let rebalancePoint = this.root;
         let p = this.root;
         let pNext;
 
+        // A2: Compare key values
         while (true) {
-            // A2
             if (key < p.key) {
-                // A3
+                // A3: Move left
                 pNext = p.left;
                 if (pNext === null) {
-                    pNext = new RangeTreeNode(data); // A5
+                    pNext = new RangeTreeNode(data); // A5: Insert
                     p.left = pNext;
                     break;
                 } else {
@@ -93,10 +93,10 @@ function RangeTree() {
                     p = pNext;
                 }
             } else if (key > p.key) {
-                // A4
+                // A4: Move right
                 pNext = p.right;
                 if (pNext === null) {
-                    pNext = new RangeTreeNode(data); // A5
+                    pNext = new RangeTreeNode(data); // A5: Insert
                     p.right = pNext;
                     break;
                 } else {
@@ -108,7 +108,7 @@ function RangeTree() {
                 }
             } else {
                 break;
-                // A5, kinda
+                // A5: Insert, kinda
                 // if (p.isLeaf()) {
                 //     console.log("Update leaf")
                 //     // Update leaf
@@ -126,14 +126,19 @@ function RangeTree() {
             }
         }
 
-        // A6
-        let a = 1;
-        if (key < rebalancePoint.key) {
-            a = -1;
-        }
+        // rebalancePoint is either root or the lowest unbalanced node along the insertion path
+        // p = parent of the new node
+
+        // A6: Adjust balance factors
+        let a = key < rebalancePoint.key ? -1 : 1;
         p = rebalancePoint.link(a);
         let r = p;
 
+        // p, r are the potentially unbalancing child of rebalancePoint
+        // pNext is the newly inserted node
+
+        // Every point between p and pNext is marked as balanced. Now that a new node has been added
+        // that shouldn't be true anymore, so we update all those nodes.
         while (p != pNext) {
             if(key < p.key) {
                 p.balanceFactor = -1;
@@ -147,20 +152,26 @@ function RangeTree() {
             // }
         }
 
-        // A7
+        // A7: Balancing act (rotate the nodes)
         if (rebalancePoint.balanceFactor == 0) {
-            // The tree grew higher
+            // The tree was balanced, so it just grew 1 higher. No need to rotate anything.
             rebalancePoint.balanceFactor = a;
             this.height++;
             return;
         } else if (rebalancePoint.balanceFactor == -a) {
-            // The tree got more balanced
+            // The tree was imbalanced to side "-a". The new node was added to side "a", so
+            // the tree got more balanced. No need to rotate anything.
             rebalancePoint.balanceFactor = 0;
             return;
         } else if (rebalancePoint.balanceFactor == a) {
+            // The tree was already imbalanced to side "a" and then the new node was added also to side "a".
+            // The tree is definitely imbalanced, so a rotation is needed.
+            // 'r' is the child of rebalancePoint the new node is under.
             if (r.balanceFactor == a) {
                 // A8
                 // Single rotation
+                // The new node is on the same side of 'r' as 'r' is of rebalancePoint, corresponding to Case I
+                // in AoCP
                 p = r;
                 rebalancePoint.setLink(a, r.link(-a));
                 r.setLink(-a, rebalancePoint);
@@ -169,6 +180,8 @@ function RangeTree() {
             } else if (r.balanceFactor == -a) {
                 // A9
                 // Double rotation
+                // The new node is on the side of 'r' different than the side 'r' is of rebalancePoint,
+                // corresponding to Case II in AoCP
                 p = r.link(-a);
                 r.setLink(-a, p.link(a));
                 p.setLink(a, r);
@@ -188,8 +201,10 @@ function RangeTree() {
             }
         }
 
-        // A10
+        // A10: Finishing touch
+        // Change rotation point parent to point at the new root of the rotated subtree
         if (rebalancePointParent === this){
+            // Handle the case where the rotation point parent is the root of the tree
             this.root = p;
         } else if (rebalancePoint === rebalancePointParent.right) {
             rebalancePointParent.right = p;
