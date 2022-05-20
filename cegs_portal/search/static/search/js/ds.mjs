@@ -1,6 +1,6 @@
 
 // Implement insert and range search in an AVL tree https://en.wikipedia.org/wiki/AVL_tree
-function RangeTreeNode(data) {
+export function RangeTreeNode(data) {
     if (!data) {
         throw "Node must contain data";
     }
@@ -41,7 +41,7 @@ function RangeTreeNode(data) {
     }
 }
 
-function RangeTree() {
+export function RangeTree() {
     this.height = 0;
     this.root;
 
@@ -337,5 +337,3 @@ function RangeTree() {
         return leaves;
     }
 }
-
-module.exports = { RangeTree, RangeTreeNode }

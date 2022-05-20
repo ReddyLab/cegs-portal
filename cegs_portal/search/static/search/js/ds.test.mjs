@@ -1,4 +1,4 @@
-const { RangeTree, RangeTreeNode } = require('./ds');
+import { RangeTree, RangeTreeNode } from './ds.mjs';
 
 test("Create new RangeTreeNode", () => {
     expect(new RangeTreeNode({key: 1})).toBeTruthy();
@@ -59,14 +59,14 @@ test("Insert an object", () => {
 
 test("Insert several objects", () => {
     let tree = new RangeTree();
-    for (k of [6, 7, 9, 3, 2, 1, 0, 4, 8, 5]) {
+    for (let k of [6, 7, 9, 3, 2, 1, 0, 4, 8, 5]) {
         tree.insert({key: k});
     }
     expect(tree.count()).toEqual(19);
     expect(tree.root.key).toEqual(2);
 
     tree = new RangeTree();
-    for (k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
+    for (let k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
         tree.insert({key: k});
     }
     expect(tree.count()).toEqual(39);
@@ -75,7 +75,7 @@ test("Insert several objects", () => {
 
 test("Search for items in range", () => {
     let tree = new RangeTree();
-    for (k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
+    for (let k of [6, 13, 12, 17, 19, 7, 15, 0, 8, 5, 9, 11, 1, 10, 18, 16, 4, 2, 3, 14]) {
         tree.insert({key: k});
     }
     expect(tree.search(1.5, 7.5).map(n => n.key)).toEqual([2, 3, 4, 5, 6, 7]);
