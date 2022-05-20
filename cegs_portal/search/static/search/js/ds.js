@@ -36,18 +36,6 @@ function RangeTreeNode(data) {
         }
     }
 
-    this._calcBalanceFactors = function(node) {
-        if (!node) {
-            return 0;
-        }
-
-        let rightHeight = this._calcBalanceFactors(node.right);
-        let leftHeight = this._calcBalanceFactors(node.left);
-        node.balanceFactor = rightHeight - leftHeight;
-
-        return 1 + max(rightHeight, leftHeight);
-    }
-
     this.isLeaf = function() {
         return this.left === null && this.right === null;
     }
