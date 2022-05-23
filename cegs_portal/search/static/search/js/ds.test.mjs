@@ -71,6 +71,30 @@ test("Insert several objects", () => {
     }
     expect(tree.count()).toEqual(39);
     expect(tree.root.key).toEqual(8);
+
+    tree = new RangeTree();
+    for (let k of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]) {
+        tree.insert({key: k});
+    }
+    expect(tree.count()).toEqual(39);
+    expect(tree.root.key).toEqual(7);
+
+    tree = new RangeTree();
+    for (let k of [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]) {
+        tree.insert({key: k});
+    }
+    expect(tree.count()).toEqual(39);
+    expect(tree.root.key).toEqual(11);
+});
+
+let bigTree;
+test("Insert lots of objects", () => {
+    bigTree = new RangeTree();
+    for (let k = 0; k < 1000000; k++) {
+        bigTree.insert({key: k});
+    }
+    expect(bigTree.count()).toEqual(1999999);
+    expect(bigTree.root.key).toEqual(524287);
 });
 
 test("Search for items in range", () => {
@@ -84,3 +108,12 @@ test("Search for items in range", () => {
     expect(tree.search(-5, 5).map(n => n.key)).toEqual([0, 1, 2, 3, 4, 5]);
     expect(tree.search(15, 25).map(n => n.key)).toEqual([15, 16, 17, 18, 19]);
 })
+
+let bigTreeSearchResult = []
+for (let r = 100001; r <= 200007; r++) {
+    bigTreeSearchResult.push(r);
+}
+
+test("Search lots of objects", () => {
+    expect(bigTree.search(100000.5, 200007.5).map(n => n.key)).toEqual(bigTreeSearchResult);
+});

@@ -220,18 +220,14 @@ export function RangeTree() {
 
         let toCheck = [this.root];
         while (toCheck.length != 0) {
-            let node = toCheck.shift();
-            if (node.isLeaf()) {
-                count += 1;
-            } else {
-                count += 1;
-                if (node.left) {
-                    toCheck.push(node.left);
-                }
-                if (node.right) {
-                    toCheck.push(node.right);
-                }
+            let node = toCheck.pop();
+            if (node.right) {
+                toCheck.push(node.right);
             }
+            if (node.left) {
+                toCheck.push(node.left);
+            }
+            count += 1;
         }
 
         return count;
