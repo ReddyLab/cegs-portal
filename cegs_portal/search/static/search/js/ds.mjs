@@ -41,10 +41,10 @@ export function RangeTreeNode(data) {
     }
 }
 
-export function RangeTree() {
+export function RangeTree(updateFn) {
     this.height = 0;
     this.root;
-
+    this.updateFn = updateFn ? updateFn : (_newData, oldData) => oldData;
 
     // AVL insert based on Knuth's AoCP Vol. 3 §6.2.3
     this.insert = function(data) {
@@ -106,7 +106,7 @@ export function RangeTree() {
             } else {
                 // A5: Insert, kinda
                 if (p.isLeaf()) {
-                    // Update leaf, terminate algorithm
+                    p.data = this.updateFn(data, p.data)
                     return;
                 } else {
                     pNext = p.left;
