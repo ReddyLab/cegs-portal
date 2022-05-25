@@ -141,8 +141,8 @@
             // If the files can't be loaded we don't want to even try to show the visualization.
         }
 
-        const ccreColors = d3.interpolateCool;
-        const geneColors = d3.interpolateWarm;
+        const sourceColors = d3.interpolateCool;
+        const targetColors = d3.interpolateWarm;
         const xInset = 60;
         const yInset = 100;
         const chromHeight = 98;
@@ -182,8 +182,8 @@
         const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
         const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 
-        let cCRECountInterval = levelCountInterval(level1, "ccre_intervals", "ccres");
-        let geneCountInterval = levelCountInterval(level1, "gene_intervals", "genes");
+        let sourceCountInterval = levelCountInterval(level1, "source_intervals", "sources");
+        let targetCountInterval = levelCountInterval(level1, "target_intervals", "targets");
         let effectSizeInterval = regEffectDataInterval(level1, 1)
         let sigInterval = regEffectDataInterval(level1, 2)
         let state = new State({
@@ -195,13 +195,13 @@
             [STATE_VIEWBOX]: [0, 0, viewWidth, viewHeight],
             [STATE_DISCRETE_FACET_VALUES]: [],
             [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
-            [STATE_COUNT_FILTER_VALUES]: [cCRECountInterval, geneCountInterval],
+            [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
             [STATE_NON_FILTERED]: level1,
             [STATE_DISCRETE_FILTERED]: level1,
             [STATE_CONTINUOUS_FILTERED]: level1,
             [STATE_ALL_FILTERED]: level1,
             [STATE_CONTINUOUS_FILTER_INTERVALS]: {effectSize: effectSizeInterval, significance: sigInterval},
-            [STATE_COUNT_FILTER_INTERVALS]: {ccre: cCRECountInterval, gene: geneCountInterval}
+            [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval}
         });
 
         let discreteFacetWorker;
@@ -260,7 +260,7 @@
                 let scaleY = state.g(STATE_SCALE_Y);
                 this.node.removeAttribute("display");
                 this.node.setAttribute("transform", `translate(${xInset + toPx(d.start) * scaleX}, ${yInset + (chomIdx * (chromHeight + chromSpacing) * scaleY)}) scale(2)`);
-                this._count.textContent = `Ct: ${(d.ccres || d.genes).length}`;
+                this._count.textContent = `Ct: ${(d.sources || d.targets).length}`;
                 this._range.textContent = `Loc: (${d.start}, ${d.end})`;
             }
 
@@ -275,10 +275,10 @@
 
         render();
 
-        function renderSVG(currentLevel, cCRECountInterval, geneCountInterval, viewBox, scaleX, scaleY, zoomed) {
+        function renderSVG(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scaleX, scaleY, zoomed) {
             const bucketHeight = 44 * scaleY;
-            const cCRECountRange = cCRECountInterval[1] - cCRECountInterval[0];
-            const geneCountRange = geneCountInterval[1] - geneCountInterval[0];
+            const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
+            const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
 
             const svg = d3.create("svg")
                 .attr("stroke", "black")
@@ -320,34 +320,34 @@
                 const bucketWidth = toPx(bucketSize) * scaleX;
 
                 const frame = chromGroups[i];
-                const ccreOverlay = frame.append("g");
-                ccreOverlay.attr("stroke", "none");
+                const sourceOverlay = frame.append("g");
+                sourceOverlay.attr("stroke", "none");
 
-                let ccreRects = ccreOverlay.selectAll("rect")
-                .data(currentLevel.chromosomes[i].ccre_intervals.filter(ccre => ccre.ccres.length > 0))
+                let sourceRects = sourceOverlay.selectAll("rect")
+                .data(currentLevel.chromosomes[i].source_intervals.filter(source => source.sources.length > 0))
                 .join("rect")
-                    .attr("fill", ccre => ccreColors((ccre.ccres.length - cCRECountInterval[0]) / cCRECountRange))
-                    .attr("x", ccre => xInset + toPx(ccre.start) * scaleX)
+                    .attr("fill", source => sourceColors((source.sources.length - sourceCountInterval[0]) / sourceCountRange))
+                    .attr("x", source => xInset + toPx(source.start) * scaleX)
                     .attr("y", yInset + (chromSpacing + chromHeight) * i * scaleY)
                     .attr("width", bucketWidth)
                     .attr("height", bucketHeight);
 
-                const geneOverlay = frame.append("g");
-                geneOverlay.attr("stroke", "none");
-                let geneRects = geneOverlay.selectAll("rect")
-                    .data(currentLevel.chromosomes[i].gene_intervals.filter(gene => gene.genes.length > 0))
+                const targetOverlay = frame.append("g");
+                targetOverlay.attr("stroke", "none");
+                let targetRects = targetOverlay.selectAll("rect")
+                    .data(currentLevel.chromosomes[i].target_intervals.filter(target => target.targets.length > 0))
                     .join("rect")
-                    .attr("fill", gene => geneColors((gene.genes.length - geneCountInterval[0]) / geneCountRange))
-                    .attr("x", gene => xInset + toPx(gene.start) * scaleX)
+                    .attr("fill", target => targetColors((target.targets.length - targetCountInterval[0]) / targetCountRange))
+                    .attr("x", target => xInset + toPx(target.start) * scaleX)
                     .attr("y", yInset + (54 + (chromSpacing + chromHeight) * i) * scaleY)
                     .attr("width", bucketWidth)
                     .attr("height", bucketHeight);
 
                 let mouseLeave = () => {
-                    ccreRects.attr("stroke", null);
-                    ccreRects.attr("stroke-width", null);
-                    geneRects.attr("stroke", null);
-                    geneRects.attr("stroke-width", null);
+                    sourceRects.attr("stroke", null);
+                    sourceRects.attr("stroke-width", null);
+                    targetRects.attr("stroke", null);
+                    targetRects.attr("stroke-width", null);
                     tooltip.hide();
                 }
 
@@ -366,25 +366,25 @@
                     state.u(STATE_ZOOMED, !zoomed);
                 }
 
-                ccreRects.on("mouseenter", (event, rect) => {
-                    ccreRects.attr("stroke", node => node.start == rect.start ? "red" : null);
-                    ccreRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
+                sourceRects.on("mouseenter", (event, rect) => {
+                    sourceRects.attr("stroke", node => node.start == rect.start ? "red" : null);
+                    sourceRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let gene_buckets = new Set()
-                    for(const ccre of rect.ccres) {
-                        for (const gene_bucket of ccre[1]){
-                            gene_buckets.add(gene_bucket);
+                    let target_buckets = new Set()
+                    for(const source of rect.sources) {
+                        for (const target_bucket of source[1]){
+                            target_buckets.add(target_bucket);
                         }
                     }
 
-                    geneRects.attr("stroke", function(node) {
-                        if(gene_buckets.has((node.start - 1) / bucketSize)) {
+                    targetRects.attr("stroke", function(node) {
+                        if(target_buckets.has((node.start - 1) / bucketSize)) {
                             return "yellow";
                         }
                         return null
                     });
-                    geneRects.attr("stroke-width", function(node) {
-                        if(gene_buckets.has((node.start - 1) / bucketSize)) {
+                    targetRects.attr("stroke-width", function(node) {
+                        if(target_buckets.has((node.start - 1) / bucketSize)) {
                             return 8;
                         }
                         return null
@@ -399,25 +399,25 @@
                     click(i, rect.start);
                 });
 
-                geneRects.on("mouseenter", (event, rect) => {
-                    geneRects.attr("stroke", node => node.start == rect.start ? "red" : null);
-                    geneRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
+                targetRects.on("mouseenter", (event, rect) => {
+                    targetRects.attr("stroke", node => node.start == rect.start ? "red" : null);
+                    targetRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let ccre_buckets = new Set()
-                    for(const gene of rect.genes) {
-                        for (const ccre_bucket of gene[1]){
-                            ccre_buckets.add(ccre_bucket);
+                    let source_buckets = new Set()
+                    for(const target of rect.targets) {
+                        for (const source_bucket of target[1]){
+                            source_buckets.add(source_bucket);
                         }
                     }
 
-                    ccreRects.attr("stroke", function(node) {
-                        if(ccre_buckets.has((node.start - 1) / bucketSize)) {
+                    sourceRects.attr("stroke", function(node) {
+                        if(source_buckets.has((node.start - 1) / bucketSize)) {
                             return "yellow";
                         }
                         return null
                     });
-                    ccreRects.attr("stroke-width", function(node) {
-                        if(ccre_buckets.has((node.start - 1) / bucketSize)) {
+                    sourceRects.attr("stroke-width", function(node) {
+                        if(source_buckets.has((node.start - 1) / bucketSize)) {
                             return 8;
                         }
                         return null
@@ -552,24 +552,24 @@
             let max = Number.NEGATIVE_INFINITY;
             let min = Number.POSITIVE_INFINITY;
             for (const chrom of chroms) {
-                for (const geneInterval of chrom.gene_intervals) {
-                    for (const gene of geneInterval.genes) {
-                        let contFacetCount = gene[0][0];
-                        for (let i = 1; i < gene[0].length;) {
-                            let discreteFacetCount = gene[0][i]
-                            max = Math.max(max, gene[0][i + discreteFacetCount + dataOffset]);
-                            min = Math.min(min, gene[0][i + discreteFacetCount + dataOffset]);
+                for (const targetInterval of chrom.target_intervals) {
+                    for (const target of targetInterval.targets) {
+                        let contFacetCount = target[0][0];
+                        for (let i = 1; i < target[0].length;) {
+                            let discreteFacetCount = target[0][i]
+                            max = Math.max(max, target[0][i + discreteFacetCount + dataOffset]);
+                            min = Math.min(min, target[0][i + discreteFacetCount + dataOffset]);
                             i += discreteFacetCount + contFacetCount + 1;
                         }
                     }
                 }
-                for (const ccreInterval of chrom.ccre_intervals) {
-                    for (const ccre of ccreInterval.ccres) {
-                        let contFacetCount = ccre[0][0];
-                        for (let i = 1; i < ccre[0].length;) {
-                            let discreteFacetCount = ccre[0][i]
-                            max = Math.max(max, ccre[0][i + discreteFacetCount + dataOffset]);
-                            min = Math.min(min, ccre[0][i + discreteFacetCount + dataOffset]);
+                for (const sourceInterval of chrom.source_intervals) {
+                    for (const source of sourceInterval.sources) {
+                        let contFacetCount = source[0][0];
+                        for (let i = 1; i < source[0].length;) {
+                            let discreteFacetCount = source[0][i]
+                            max = Math.max(max, source[0][i + discreteFacetCount + dataOffset]);
+                            min = Math.min(min, source[0][i + discreteFacetCount + dataOffset]);
                             i += discreteFacetCount + contFacetCount + 1;
                         }
                     }
@@ -690,7 +690,7 @@
             let filterNodes = [];
             let intervals = state.g(STATE_COUNT_FILTER_INTERVALS);
 
-            let range = intervals.ccre;
+            let range = intervals.source;
 
             for (let i = 0; i < 2; i++) {
                 let sliderNode = sliderNodes[i];
@@ -699,11 +699,11 @@
                 let name;
 
                 if (i == 0) {
-                    range = intervals.ccre;
-                    name = "cCRE Count";
+                    range = intervals.source;
+                    name = "Source Count";
                 } else if (i == 1) {
-                    range = intervals.gene;
-                    name = "Gene count";
+                    range = intervals.target;
+                    name = "Target count";
                 } else {
                     continue;
                 }
@@ -759,15 +759,15 @@
             const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
             let currentLevel = state.g(STATE_ALL_FILTERED);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-            let cCRECountInterval = countIntervals.ccre;
-            let geneCountInterval = countIntervals.gene;
+            let sourceCountInterval = countIntervals.source;
+            let targetCountInterval = countIntervals.target;
 
-            rc(g("chrom-data"), renderSVG(currentLevel, cCRECountInterval, geneCountInterval, viewBox, scaleX, scaleY, zoomed));
-            rc(g("chrom-data-legend"), Legend(d3.scaleSequential(cCRECountInterval, ccreColors), {
-                title: "cCRE Count"
+            rc(g("chrom-data"), renderSVG(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scaleX, scaleY, zoomed));
+            rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
+                title: "Source Count"
             }));
-            a(g("chrom-data-legend"), Legend(d3.scaleSequential(geneCountInterval, geneColors), {
-                title: "Gene Count"
+            a(g("chrom-data-legend"), Legend(d3.scaleSequential(targetCountInterval, targetColors), {
+                title: "Target Count"
             }));
         }
 
@@ -807,12 +807,12 @@
             let chromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
 
             const countIntervals = {
-                ccre: levelCountInterval(continuousFilteredLevel, "ccre_intervals", "ccres", chromoIndex),
-                gene: levelCountInterval(continuousFilteredLevel, "gene_intervals", "genes", chromoIndex)
+                source: levelCountInterval(continuousFilteredLevel, "source_intervals", "sources", chromoIndex),
+                target: levelCountInterval(continuousFilteredLevel, "target_intervals", "targets", chromoIndex)
             };
 
             state.u(STATE_COUNT_FILTER_INTERVALS, countIntervals);
-            state.u(STATE_COUNT_FILTER_VALUES, [countIntervals.ccre, countIntervals.gene]);
+            state.u(STATE_COUNT_FILTER_VALUES, [countIntervals.source, countIntervals.target]);
         });
 
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {

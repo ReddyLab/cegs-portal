@@ -8,12 +8,12 @@ onmessage = function(e) {
     let newData = shallowClone(data);
 
     for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-        const gene_intervals = data.chromosomes[cIdx].gene_intervals;
-        for (let iIdx = 0; iIdx < gene_intervals.length; iIdx++) {
-            const genes = gene_intervals[iIdx].genes;
-            let newGenes = [];
-            for (let gIdx = 0; gIdx < genes.length; gIdx++) {
-                let regEffects = genes[gIdx][0];
+        const target_intervals = data.chromosomes[cIdx].target_intervals;
+        for (let iIdx = 0; iIdx < target_intervals.length; iIdx++) {
+            const targets = target_intervals[iIdx].targets;
+            let newTargets = [];
+            for (let gIdx = 0; gIdx < targets.length; gIdx++) {
+                let regEffects = targets[gIdx][0];
                 let contFacetCount = regEffects[0];
                 let newRegEffects = Array(regEffects.length)
                 newRegEffects[0] = contFacetCount;
@@ -37,21 +37,21 @@ onmessage = function(e) {
 
                 newRegEffects.length = newREIdx;
                 if (newRegEffects.length > 1) {
-                    newGenes.push([newRegEffects, genes[gIdx][1]]);
+                    newTargets.push([newRegEffects, targets[gIdx][1]]);
                 }
             }
-            newData.chromosomes[cIdx].gene_intervals[iIdx] = {
-                start: data.chromosomes[cIdx].gene_intervals[iIdx].start,
-                genes: newGenes
+            newData.chromosomes[cIdx].target_intervals[iIdx] = {
+                start: data.chromosomes[cIdx].target_intervals[iIdx].start,
+                targets: newTargets
             };
         }
 
-        const ccre_intervals = data.chromosomes[cIdx].ccre_intervals;
-        for (let iIdx = 0; iIdx < ccre_intervals.length; iIdx++) {
-            const ccres = ccre_intervals[iIdx].ccres;
-            let newcCREs = [];
-            for (let gIdx = 0; gIdx < ccres.length; gIdx++) {
-                let regEffects = ccres[gIdx][0];
+        const source_intervals = data.chromosomes[cIdx].source_intervals;
+        for (let iIdx = 0; iIdx < source_intervals.length; iIdx++) {
+            const sources = source_intervals[iIdx].sources;
+            let newSources = [];
+            for (let gIdx = 0; gIdx < sources.length; gIdx++) {
+                let regEffects = sources[gIdx][0];
                 let contFacetCount = regEffects[0];
                 let newRegEffects = Array(regEffects.length)
                 newRegEffects[0] = contFacetCount;
@@ -75,12 +75,12 @@ onmessage = function(e) {
 
                 newRegEffects.length = newREIdx;
                 if (newRegEffects.length > 1) {
-                    newcCREs.push([newRegEffects, ccres[gIdx][1]]);
+                    newSources.push([newRegEffects, sources[gIdx][1]]);
                 }
             }
-            newData.chromosomes[cIdx].ccre_intervals[iIdx] = {
-                start: data.chromosomes[cIdx].ccre_intervals[iIdx].start,
-                ccres: newcCREs
+            newData.chromosomes[cIdx].source_intervals[iIdx] = {
+                start: data.chromosomes[cIdx].source_intervals[iIdx].start,
+                sources: newSources
             };
         }
     }

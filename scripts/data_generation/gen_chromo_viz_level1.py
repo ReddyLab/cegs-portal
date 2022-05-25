@@ -13,26 +13,26 @@ from cegs_portal.search.models import Facet, FacetType, RegulatoryEffect
 #    "chromosomes": [
 #      {
 #        "chrom": <chromosome number>,
-#        "gene_intervals": [
+#        "target_intervals": [
 #          {
 #            "start": <start position, 1-indexed>,
-#            "genes": [
+#            "targets": [
 #              [
-#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
-#                [<bucket indexes containing reg-effect associated ccres>]
+#                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each gene in this bucket>], # noqa: E501
+#                [<bucket indexes containing reg-effect associated sources>]
 #              ],
 #              ...
 #            ],
 #          },
 #          ...
 #        ],
-#        "ccre_intervals": [
+#        "source_intervals": [
 #          {
 #            "start": <start position, 1-indexed>,
-#            "ccres": [
+#            "sources": [
 #              [
 #                [<number of continuous facet ids>, <continuous list of number of discrete facet ids, discrete facet ids, effect size, and significance for each ccre in this bucket>], # noqa: E501
-#                [<bucket indexes containing reg-effect associated genes>]
+#                [<bucket indexes containing reg-effect associated targets>]
 #              ],
 #              ...
 #            ]
@@ -110,20 +110,21 @@ GRCH37 = [
 ]
 
 
-def run(output_file, bucket_size=5_000_000):
+def run(output_file, experiment_accession_id, bucket_size=5_000_000):
     def bucket(start):
         return start // bucket_size
 
     chroms = GRCH37
-    gene_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
-    ccre_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
+    target_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
+    source_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
     chrom_dicts = [
-        {"chrom": chrom, "bucket_size": bucket_size, "gene_intervals": [], "ccre_intervals": []} for chrom, _ in chroms
+        {"chrom": chrom, "bucket_size": bucket_size, "target_intervals": [], "source_intervals": []}
+        for chrom, _ in chroms
     ]
     print("Initialized...")
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
-        .filter(experiment__accession_id="DCPE00000002")
+        .filter(experiment__accession_id=experiment_accession_id)
         .prefetch_related("target_assemblies", "sources", "sources__facet_values")
     )
     print("Query built...")
@@ -132,31 +133,31 @@ def run(output_file, bucket_size=5_000_000):
 
     for reg_effect in reg_effects.all():
         sources = reg_effect.sources.all()
-        genes = reg_effect.target_assemblies.all()
+        targets = reg_effect.target_assemblies.all()
         source_counter = defaultdict(set)
         reg_disc_facets = [reg_effect.direction_id]
         source_disc_facets = []
         target_disc_facets = []
-        gene_counter = defaultdict(set)
+        target_counter = defaultdict(set)
 
         for source in sources:
             source_counter[bucket(source.location.lower)].add(source)
             source_disc_facets.extend([*source.ccre_category_ids, source.ccre_overlap_id])
 
-        for gene in genes:
-            chrom = gene.chrom_name[3:]
+        for target in targets:
+            chrom = target.chrom_name[3:]
 
-            if gene.strand == "+":
-                gene_start = gene.location.lower
+            if target.strand == "+":
+                target_start = target.location.lower
 
-            if gene.strand == "-":
-                gene_start = gene.location.upper
+            if target.strand == "-":
+                target_start = target.location.upper
 
-            gene_counter[bucket(gene_start)].add(gene)
+            target_counter[bucket(target_start)].add(target)
 
-            gene_dict = gene_buckets[chrom][bucket(gene_start)].get(gene.name, [[2], set()])
+            target_dict = target_buckets[chrom][bucket(target_start)].get(target.name, [[2], set()])
             disc_facets = [*reg_disc_facets, *source_disc_facets]
-            gene_dict[0].extend(
+            target_dict[0].extend(
                 [
                     len(disc_facets),
                     *disc_facets,
@@ -164,18 +165,18 @@ def run(output_file, bucket_size=5_000_000):
                     reg_effect.significance,
                 ]
             )
-            gene_dict[1].update(source_counter.keys())
-            gene_buckets[chrom][bucket(gene_start)][gene.name] = gene_dict
+            target_dict[1].update(source_counter.keys())
+            target_buckets[chrom][bucket(target_start)][target.name] = target_dict
 
         for source in sources:
             chrom = source.chrom_name[3:]
             coords = (source.location.lower, source.location.upper)
 
-            ccre_dict = ccre_buckets[chrom][bucket(source.location.lower)].get(
+            source_dict = source_buckets[chrom][bucket(source.location.lower)].get(
                 coords, [[2], set()]
             )  # 2 is the number of continuous facets
             disc_facets = [*reg_disc_facets, *source.ccre_category_ids, source.ccre_overlap_id, *target_disc_facets]
-            ccre_dict[0].extend(
+            source_dict[0].extend(
                 [
                     len(disc_facets),
                     *disc_facets,
@@ -183,42 +184,42 @@ def run(output_file, bucket_size=5_000_000):
                     reg_effect.significance,
                 ]
             )
-            ccre_dict[1].update(gene_counter.keys())
-            ccre_buckets[chrom][bucket(source.location.lower)][coords] = ccre_dict
+            source_dict[1].update(target_counter.keys())
+            source_buckets[chrom][bucket(source.location.lower)][coords] = source_dict
 
     print(f"Buckets filled... {time.perf_counter() - fbt} s")
     for i, chrom_info in enumerate(chroms):
         chrom, _ = chrom_info
         cd = chrom_dicts[i]
-        for j, gene_bucket in enumerate(gene_buckets[chrom]):
-            if len(gene_bucket) == 0:
+        for j, target_bucket in enumerate(target_buckets[chrom]):
+            if len(target_bucket) == 0:
                 continue
 
-            cd["gene_intervals"].append(
+            cd["target_intervals"].append(
                 {
                     "start": bucket_size * j + 1,
-                    "genes": [
+                    "targets": [
                         [
                             info[0],
                             list(info[1]),
                         ]
-                        for _, info in gene_bucket.items()
+                        for _, info in target_bucket.items()
                     ],
                 }
             )
-        for j, ccre_bucket in enumerate(ccre_buckets[chrom]):
-            if len(ccre_bucket) == 0:
+        for j, source_bucket in enumerate(source_buckets[chrom]):
+            if len(source_bucket) == 0:
                 continue
 
-            cd["ccre_intervals"].append(
+            cd["source_intervals"].append(
                 {
                     "start": bucket_size * j + 1,
-                    "ccres": [
+                    "sources": [
                         [
                             info[0],
                             list(info[1]),
                         ]
-                        for _, info in ccre_bucket.items()
+                        for _, info in source_bucket.items()
                     ],
                 }
             )
@@ -226,11 +227,11 @@ def run(output_file, bucket_size=5_000_000):
     facets = []
     # These are the facets we use for this data
     experiment_facets = {
-        "Direction": ["gene", "ccre"],
-        "Effect Size": ["gene", "ccre"],
-        "cCRE Category": ["gene", "ccre"],
-        "cCRE Overlap": ["gene", "ccre"],
-        "Significance": ["gene", "ccre"],
+        "Direction": ["target", "source"],
+        "Effect Size": ["target", "source"],
+        "cCRE Category": ["target", "source"],
+        "cCRE Overlap": ["target", "source"],
+        "Significance": ["target", "source"],
     }
     experiment_facet_names = {name for name in experiment_facets.keys()}
 

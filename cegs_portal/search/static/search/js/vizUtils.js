@@ -5,8 +5,8 @@ function shallowClone(data) {
         newData.chromosomes.push({
             chrom: chromosome.chrom,
             bucket_size: chromosome.bucket_size,
-            gene_intervals: Array(chromosome.gene_intervals.length),
-            ccre_intervals: Array(chromosome.ccre_intervals.length)
+            target_intervals: Array(chromosome.target_intervals.length),
+            source_intervals: Array(chromosome.source_intervals.length)
         })
     }
     newData.facets = data.facets;
