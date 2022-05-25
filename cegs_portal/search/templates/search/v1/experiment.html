@@ -36,6 +36,7 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/vizUtils.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 {% endblock %}
 
@@ -102,6 +103,7 @@
         import { State } from "{% static 'search/js/state.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
+
         let genome;
         let level1;
         let level2;
@@ -201,6 +203,34 @@
             [STATE_CONTINUOUS_FILTER_INTERVALS]: {effectSize: effectSizeInterval, significance: sigInterval},
             [STATE_COUNT_FILTER_INTERVALS]: {ccre: cCRECountInterval, gene: geneCountInterval}
         });
+
+        let discreteFacetWorker;
+        let continuousFacetWorker;
+        let countFacetWorker;
+        if (window.Worker) {
+            discreteFacetWorker = new Worker("{% static 'search/js/discreteFacetFilterWorker.js' %}");
+            discreteFacetWorker.onmessage = (df) => {
+                state.u(STATE_DISCRETE_FILTERED, df.data.data);
+                const continuousIntervals = {
+                    effectSize: df.data.effectSizeInterval,
+                    significance: df.data.sigInterval
+                };
+
+                state.u(STATE_CONTINUOUS_FILTER_INTERVALS, continuousIntervals);
+                state.u(STATE_CONTINUOUS_FACET_VALUES, [continuousIntervals.effectSize, continuousIntervals.significance]);
+            }
+
+            continuousFacetWorker = new Worker("{% static 'search/js/continuousFacetFilterWorker.js' %}");
+            continuousFacetWorker.onmessage = (cf) => {
+                state.u(STATE_CONTINUOUS_FILTERED, cf.data);
+            }
+
+            countFacetWorker = new Worker("{% static 'search/js/countFacetFilterWorker.js' %}")
+            countFacetWorker.onmessage = (cf) => {
+                state.u(STATE_ALL_FILTERED, cf.data);
+                render();
+            }
+        }
 
         class Tooltip {
             constructor() {
@@ -587,162 +617,6 @@
             });
         });
 
-        function shallowClone(data) {
-            let newData = {};
-            newData.chromosomes = [];
-            for (let chromosome of data.chromosomes) {
-                newData.chromosomes.push({
-                    chrom: chromosome.chrom,
-                    bucket_size: chromosome.bucket_size,
-                    gene_intervals: Array(chromosome.gene_intervals.length),
-                    ccre_intervals: Array(chromosome.ccre_intervals.length)
-                })
-            }
-            newData.facets = data.facets;
-            return newData;
-        }
-
-        function contains(x, y) {
-            for(let xItem of x) {
-                for (let yItem of y) {
-                    if (xItem === yItem) {
-                        return true
-                    }
-                }
-            }
-            return false;
-        }
-
-        function discreteFacetFilter(data, discreteFacetIds) {
-            if (discreteFacetIds.length == 0) {
-                return {data, effectSizeInterval, sigInterval};
-            }
-
-            let newData = shallowClone(data);
-
-            let facets = new Set(discreteFacetIds);
-            let geneFacets = level1.facets
-                .filter(f => f.type == "FacetType.DISCRETE" && f.coverage.includes("gene"))
-                .map(f => Object.keys(f.values).map(k => Number.parseInt(k)));
-
-            let cCREFacets = level1.facets
-                .filter(f => f.type == "FacetType.DISCRETE" && f.coverage.includes("ccre"))
-                .map(f => Object.keys(f.values).map(k => Number.parseInt(k)));
-
-            let geneFacetsWithSelections = geneFacets.filter(gf => contains(gf, discreteFacetIds));
-            let cCREFacetsWithSelections = cCREFacets.filter(cf => contains(cf, discreteFacetIds));
-
-            let selectedGeneFacets = geneFacets.map(gf => _.intersection(gf, discreteFacetIds)).filter(gf => contains(gf, discreteFacetIds));
-            let selectedcCREFacets = cCREFacets.map(cf => _.intersection(cf, discreteFacetIds)).filter(cf => contains(cf, discreteFacetIds));
-
-            let minEffect = Number.POSITIVE_INFINITY;
-            let maxEffect = Number.NEGATIVE_INFINITY;
-
-            let minSig = Number.POSITIVE_INFINITY;
-            let maxSig = Number.NEGATIVE_INFINITY;
-
-            for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-                if (geneFacetsWithSelections.length > 0) {
-                    const gene_intervals_len = data.chromosomes[cIdx].gene_intervals.length;
-                    for (let iIdx = 0; iIdx < gene_intervals_len; iIdx++) {
-                        const genes = data.chromosomes[cIdx].gene_intervals[iIdx].genes;
-                        const genes_len = genes.length;
-                        let newGenes = [];
-                        for (let gIdx = 0; gIdx < genes_len; gIdx++) {
-                            let regEffects = genes[gIdx][0];
-                            const contFacetCount = regEffects[0];
-                            let newRegEffects = Array(regEffects.length)
-                            newRegEffects[0] = contFacetCount;
-                            let newREIdx = 1;
-                            for (let rIdx = 1; rIdx < regEffects.length;) {
-                                const discFacetCount = regEffects[rIdx];
-                                const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
-                                const effectSize = regEffects[rIdx + 1 + discFacetCount];
-                                const significance = regEffects[rIdx + 1 + discFacetCount + 1];
-
-                                if (selectedGeneFacets.every(gf => contains(gf, discFacets))) {
-                                    maxEffect = maxEffect > effectSize ? maxEffect : effectSize;
-                                    minEffect = minEffect < effectSize ? minEffect : effectSize;
-                                    maxSig = maxSig > significance ? maxSig : significance;
-                                    minSig = minSig < significance ? minSig : significance;
-
-                                    newRegEffects[newREIdx++] = discFacetCount;
-                                    for (let dIdx = 0; dIdx < discFacetCount; dIdx++, newREIdx++) {
-                                        newRegEffects[newREIdx] = discFacets[dIdx];
-                                    }
-                                    newRegEffects[newREIdx++] = effectSize;
-                                    newRegEffects[newREIdx++] = significance;
-                                }
-                                rIdx += 1 + discFacetCount + contFacetCount;
-                            }
-
-                            newRegEffects.length = newREIdx;
-                            if (newRegEffects.length > 1) {
-                                newGenes.push([newRegEffects, genes[gIdx][1]]);
-                            }
-                        }
-                        newData.chromosomes[cIdx].gene_intervals[iIdx] = {
-                            start: data.chromosomes[cIdx].gene_intervals[iIdx].start,
-                            genes: newGenes
-                        };
-                    }
-                }
-
-                if (cCREFacetsWithSelections.length > 0) {
-                    const ccre_intervals_len = data.chromosomes[cIdx].ccre_intervals.length;
-                    for (let iIdx = 0; iIdx < ccre_intervals_len; iIdx++) {
-                        const ccres = data.chromosomes[cIdx].ccre_intervals[iIdx].ccres
-                        const ccres_len = ccres.length;
-
-                        let newcCREs = [];
-                        for (let gIdx = 0; gIdx < ccres_len; gIdx++) {
-                            const regEffects = ccres[gIdx][0];
-                            const contFacetCount = regEffects[0];
-                            let newRegEffects = Array(regEffects.length)
-                            newRegEffects[0] = contFacetCount;
-                            let newREIdx = 1;
-                            for (let rIdx = 1; rIdx < regEffects.length;) {
-                                const discFacetCount = regEffects[rIdx];
-                                const discFacets = regEffects.slice(rIdx + 1, rIdx + 1 + discFacetCount);
-                                const effectSize = regEffects[rIdx + 1 + discFacetCount];
-                                const significance = regEffects[rIdx + 1 + discFacetCount + 1];
-
-                                if (selectedcCREFacets.every(cf => contains(cf, discFacets))) {
-                                    maxEffect = maxEffect > effectSize ? maxEffect : effectSize;
-                                    minEffect = minEffect < effectSize ? minEffect : effectSize;
-                                    maxSig = maxSig > significance ? maxSig : significance;
-                                    minSig = minSig < significance ? minSig : significance;
-
-                                    newRegEffects[newREIdx++] = discFacetCount;
-                                    for (let dIdx = 0; dIdx < discFacetCount; dIdx++, newREIdx++) {
-                                        newRegEffects[newREIdx] = discFacets[dIdx];
-                                    }
-                                    newRegEffects[newREIdx++] = effectSize;
-                                    newRegEffects[newREIdx++] = significance;
-                                }
-                                rIdx += 1 + discFacetCount + contFacetCount;
-                            }
-
-                            newRegEffects.length = newREIdx;
-                            if (newRegEffects.length > 1) {
-                                newcCREs.push([newRegEffects, ccres[gIdx][1]]);
-                            }
-                        }
-                        newData.chromosomes[cIdx].ccre_intervals[iIdx] = {
-                            start: data.chromosomes[cIdx].ccre_intervals[iIdx].start,
-                            ccres: newcCREs
-                        };
-                    }
-                }
-            }
-            minEffect = minEffect === Number.POSITIVE_INFINITY ? effectSizeInterval[0] : minEffect;
-            maxEffect = maxEffect === Number.NEGATIVE_INFINITY ? effectSizeInterval[1] : maxEffect;
-            minSig = minSig === Number.POSITIVE_INFINITY ? sigInterval[0] : minSig;
-            maxSig = maxSig === Number.NEGATIVE_INFINITY ? sigInterval[1] : maxSig;
-
-            return {data: newData, effectSizeInterval: [minEffect, maxEffect], sigInterval: [minSig, maxSig]}
-        }
-
         function continuousFilterControls() {
             const contFacets = level1.facets.filter(f => f.type == "FacetType.CONTINUOUS");
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
@@ -811,93 +685,6 @@
             a(g("chrom-data-continuous-facets"), element)
         });
 
-        function continuousFacetFilter(data, continuousFilters) {
-            const effectSizeRange = continuousFilters[0];
-            const sigRange = continuousFilters[1];
-
-            let newData = shallowClone(data);
-
-            for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-                const gene_intervals = data.chromosomes[cIdx].gene_intervals;
-                for (let iIdx = 0; iIdx < gene_intervals.length; iIdx++) {
-                    const genes = gene_intervals[iIdx].genes;
-                    let newGenes = [];
-                    for (let gIdx = 0; gIdx < genes.length; gIdx++) {
-                        let regEffects = genes[gIdx][0];
-                        let contFacetCount = regEffects[0];
-                        let newRegEffects = Array(regEffects.length)
-                        newRegEffects[0] = contFacetCount;
-                        let newREIdx = 1;
-                        for (let rIdx = 1; rIdx < regEffects.length;) {
-                            const discFacetCount = regEffects[rIdx];
-                            const effectSize = regEffects[rIdx + 1 + discFacetCount];
-                            const significance = regEffects[rIdx + 1 + discFacetCount + 1];
-
-                            if ((effectSize >= effectSizeRange[0] && effectSize <= effectSizeRange[1]) &&
-                                (significance >= sigRange[0] && significance <= sigRange[1])) {
-                                    newRegEffects[newREIdx++] = discFacetCount;
-                                    for (let dIdx = 0; dIdx < discFacetCount; dIdx++, newREIdx++) {
-                                        newRegEffects[newREIdx] = regEffects[rIdx + 1 + dIdx];
-                                    }
-                                    newRegEffects[newREIdx++] = effectSize;
-                                    newRegEffects[newREIdx++] = significance;
-                            }
-                            rIdx += 1 + discFacetCount + contFacetCount;
-                        }
-
-                        newRegEffects.length = newREIdx;
-                        if (newRegEffects.length > 1) {
-                            newGenes.push([newRegEffects, genes[gIdx][1]]);
-                        }
-                    }
-                    newData.chromosomes[cIdx].gene_intervals[iIdx] = {
-                        start: data.chromosomes[cIdx].gene_intervals[iIdx].start,
-                        genes: newGenes
-                    };
-                }
-
-                const ccre_intervals = data.chromosomes[cIdx].ccre_intervals;
-                for (let iIdx = 0; iIdx < ccre_intervals.length; iIdx++) {
-                    const ccres = ccre_intervals[iIdx].ccres;
-                    let newcCREs = [];
-                    for (let gIdx = 0; gIdx < ccres.length; gIdx++) {
-                        let regEffects = ccres[gIdx][0];
-                        let contFacetCount = regEffects[0];
-                        let newRegEffects = Array(regEffects.length)
-                        newRegEffects[0] = contFacetCount;
-                        let newREIdx = 1;
-                        for (let rIdx = 1; rIdx < regEffects.length;) {
-                            const discFacetCount = regEffects[rIdx];
-                            const effectSize = regEffects[rIdx + 1 + discFacetCount];
-                            const significance = regEffects[rIdx + 1 + discFacetCount + 1];
-
-                            if ((effectSize >= effectSizeRange[0] && effectSize <= effectSizeRange[1]) &&
-                                (significance >= sigRange[0] && significance <= sigRange[1])) {
-                                    newRegEffects[newREIdx++] = discFacetCount;
-                                    for (let dIdx = 0; dIdx < discFacetCount; dIdx++, newREIdx++) {
-                                        newRegEffects[newREIdx] = regEffects[rIdx + 1 + dIdx];
-                                    }
-                                    newRegEffects[newREIdx++] = effectSize;
-                                    newRegEffects[newREIdx++] = significance;
-                            }
-                            rIdx += 1 + discFacetCount + contFacetCount;
-                        }
-
-                        newRegEffects.length = newREIdx;
-                        if (newRegEffects.length > 1) {
-                            newcCREs.push([newRegEffects, ccres[gIdx][1]]);
-                        }
-                    }
-                    newData.chromosomes[cIdx].ccre_intervals[iIdx] = {
-                        start: data.chromosomes[cIdx].ccre_intervals[iIdx].start,
-                        ccres: newcCREs
-                    };
-                }
-            }
-
-            return newData;
-        }
-
         function countFilterControls() {
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
             let filterNodes = [];
@@ -963,23 +750,6 @@
             a(g("chrom-data-counts"), element)
         });
 
-        function countFacetFilter(data, countFilters) {
-            let ccreFilter = countFilters[0];
-            let geneFilter = countFilters[1];
-            let newData = shallowClone(data);
-
-            for (let cIdx = 0; cIdx < data.chromosomes.length; cIdx++) {
-                newData.chromosomes[cIdx].gene_intervals = data.chromosomes[cIdx].gene_intervals.filter(inter => {
-                    return inter.genes.length >= geneFilter[0] && inter.genes.length <= geneFilter[1];
-                });
-                newData.chromosomes[cIdx].ccre_intervals = data.chromosomes[cIdx].ccre_intervals.filter(inter => {
-                    return inter.ccres.length >= ccreFilter[0] && inter.ccres.length <= ccreFilter[1];
-                });
-            }
-
-            return newData;
-        }
-
         function render() {
             const scale = state.g(STATE_SCALE);
             const scaleX = state.g(STATE_SCALE_X);
@@ -1025,21 +795,12 @@
         });
 
         state.ac([STATE_NON_FILTERED, STATE_DISCRETE_FACET_VALUES], (s, key) => {
-            const currentLevel = state.g(STATE_NON_FILTERED);
-            let df = discreteFacetFilter(currentLevel, state.g(STATE_DISCRETE_FACET_VALUES))
-            state.u(STATE_DISCRETE_FILTERED, df.data);
-            const continuousIntervals = {
-                effectSize: df.effectSizeInterval,
-                significance: df.sigInterval
-            };
-
-            state.u(STATE_CONTINUOUS_FILTER_INTERVALS, continuousIntervals);
-            state.u(STATE_CONTINUOUS_FACET_VALUES, [continuousIntervals.effectSize, continuousIntervals.significance]);
+            discreteFacetWorker.postMessage({data: state.g(STATE_NON_FILTERED), facetValues: state.g(STATE_DISCRETE_FACET_VALUES), effectSizeInterval, sigInterval})
         });
 
-        state.ac(STATE_CONTINUOUS_FACET_VALUES, (s, key) => {
-            state.u(STATE_CONTINUOUS_FILTERED, continuousFacetFilter(state.g(STATE_DISCRETE_FILTERED), state.g(STATE_CONTINUOUS_FACET_VALUES)));
-        });
+        state.ac(STATE_CONTINUOUS_FACET_VALUES, _.debounce((s, key) => {
+            continuousFacetWorker.postMessage({data: state.g(STATE_DISCRETE_FILTERED), continuousFilters: state.g(STATE_CONTINUOUS_FACET_VALUES)});
+        }, 75));
 
         state.ac(STATE_CONTINUOUS_FILTERED, (s, key) => {
             let continuousFilteredLevel = state.g(STATE_CONTINUOUS_FILTERED);
@@ -1054,10 +815,9 @@
             state.u(STATE_COUNT_FILTER_VALUES, [countIntervals.ccre, countIntervals.gene]);
         });
 
-        state.ac(STATE_COUNT_FILTER_VALUES, (s, key) => {
-            state.u(STATE_ALL_FILTERED, countFacetFilter(state.g(STATE_CONTINUOUS_FILTERED), state.g(STATE_COUNT_FILTER_VALUES)));
-            render();
-        });
+        state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
+            countFacetWorker.postMessage({data: state.g(STATE_CONTINUOUS_FILTERED), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
+        }, 75));
 
         state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-continuous-facets"));
