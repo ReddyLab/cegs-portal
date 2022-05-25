@@ -150,7 +150,10 @@ def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
 
         for source in sources:
             source_counter[bucket(source.location.lower)].add(source)
-            source_disc_facets.extend([*source.ccre_category_ids, source.ccre_overlap_id])
+            source_disc_facets.extend(source.ccre_category_ids)
+            ccre_overlap_id = source.ccre_overlap_id
+            if ccre_overlap_id is not None:
+                source_disc_facets.append(ccre_overlap_id)
 
         for target in targets:
             if target.strand == "+":
@@ -180,7 +183,10 @@ def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
             source_dict = source_buckets[bucket(source.location.lower)].get(
                 coords, [[2], set()]
             )  # 2 is the number of continuous facets
-            disc_facets = [*reg_disc_facets, *source.ccre_category_ids, source.ccre_overlap_id, *target_disc_facets]
+            disc_facets = [*reg_disc_facets, *source.ccre_category_ids, *target_disc_facets]
+            ccre_overlap_id = source.ccre_overlap_id
+            if ccre_overlap_id is not None:
+                disc_facets.append(ccre_overlap_id)
             source_dict[0].extend(
                 [
                     len(disc_facets),

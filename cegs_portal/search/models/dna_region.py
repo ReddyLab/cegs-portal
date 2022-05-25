@@ -5,7 +5,7 @@ from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
 from cegs_portal.search.models.accession import Accessioned
-from cegs_portal.search.models.facets import Faceted
+from cegs_portal.search.models.facets import Faceted, FacetValue
 from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.searchable import Searchable
@@ -45,7 +45,10 @@ class DNARegion(Accessioned, Searchable, Faceted):
 
     @property
     def ccre_overlap_id(self):
-        return self.facet_values.get(facet__name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
+        try:
+            return self.facet_values.get(facet__name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
+        except FacetValue.DoesNotExist:
+            return None
 
     def __str__(self):
         return f"{self.chrom_name}: {self.location.lower}-{self.location.upper} ({self.cell_line or 'No Cell Line'})"
