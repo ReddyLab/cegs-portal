@@ -31,6 +31,9 @@ class FacetValue(models.Model):
     value = models.CharField(max_length=30, null=True)
     facet = models.ForeignKey(Facet, on_delete=models.CASCADE, related_name="values")
 
+    def __str__(self):
+        return f"{self.value} (Facet {self.facet_id})"
+
 
 class Faceted(models.Model):
     class Meta:

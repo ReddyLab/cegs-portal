@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.db.models import FloatField, Max, Min
 from django.db.models.functions import Cast
 
-from cegs_portal.search.models import Facet, FacetType, RegulatoryEffect
+from cegs_portal.search.models import DNARegion, Facet, FacetType, RegulatoryEffect
 
 #  Output json format:
 #  {
@@ -125,73 +125,92 @@ def run(output_file, experiment_accession_id, bucket_size=5_000_000):
     reg_effects = (
         RegulatoryEffect.objects.with_facet_values()
         .filter(experiment__accession_id=experiment_accession_id)
-        .prefetch_related("target_assemblies", "sources", "sources__facet_values")
+        .order_by("id")
+        .prefetch_related("target_assemblies", "sources", "sources__facet_values", "sources__facet_values__facet")
     )
+    direction_facet_id = Facet.objects.get(name=RegulatoryEffect.Facet.DIRECTION.value).id
+    ccre_overlap_facet_id = Facet.objects.get(name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
+    ccre_category_facet_id = Facet.objects.get(name=DNARegion.Facet.CCRE_CATEGORIES.value).id
     print("Query built...")
     sources = set()
     fbt = time.perf_counter()
 
-    for reg_effect in reg_effects.all():
-        sources = reg_effect.sources.all()
-        targets = reg_effect.target_assemblies.all()
-        source_counter = defaultdict(set)
-        reg_disc_facets = [reg_effect.direction_id]
-        source_disc_facets = []
-        target_disc_facets = []
-        target_counter = defaultdict(set)
+    re_count = reg_effects.count()
+    print(f"Effect Count: {re_count}")
+    SKIP = 10000
+    five_pct_rc = re_count * 0.05
+    pct_rc = five_pct_rc
+    for start in range(0, re_count, SKIP):
+        stop = min(start + SKIP, re_count)
+        if start > pct_rc:
+            print(f"Percent complete: {(start / re_count) * 100:.0f}% ({time.perf_counter() - fbt:.0f} s)")
+            pct_rc = start + five_pct_rc
+        for reg_effect in reg_effects.all()[start:stop]:
+            sources = reg_effect.sources.all()
+            targets = reg_effect.target_assemblies.all()
+            source_counter = defaultdict(set)
+            reg_disc_facets = [v.id for v in reg_effect.facet_values.all() if v.facet_id == direction_facet_id]
+            source_disc_facets = []
+            target_disc_facets = []
+            target_counter = defaultdict(set)
 
-        for source in sources:
-            source_counter[bucket(source.location.lower)].add(source)
-            source_disc_facets.extend(source.ccre_category_ids)
-            ccre_overlap_id = source.ccre_overlap_id
-            if ccre_overlap_id is not None:
-                source_disc_facets.append(ccre_overlap_id)
+            for source in sources:
+                source_counter[bucket(source.location.lower)].add(source)
+                source_disc_facets.extend(
+                    [v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id]
+                )
+                source_disc_facets.extend(
+                    [v.id for v in source.facet_values.all() if v.facet_id == ccre_overlap_facet_id]
+                )
 
-        for target in targets:
-            chrom = target.chrom_name[3:]
+            for target in targets:
+                chrom = target.chrom_name[3:]
 
-            if target.strand == "+":
-                target_start = target.location.lower
+                if target.strand == "+":
+                    target_start = target.location.lower
 
-            if target.strand == "-":
-                target_start = target.location.upper
+                if target.strand == "-":
+                    target_start = target.location.upper
 
-            target_counter[bucket(target_start)].add(target)
+                target_counter[bucket(target_start)].add(target)
 
-            target_dict = target_buckets[chrom][bucket(target_start)].get(target.name, [[2], set()])
-            disc_facets = [*reg_disc_facets, *source_disc_facets]
-            target_dict[0].extend(
-                [
-                    len(disc_facets),
-                    *disc_facets,
-                    reg_effect.effect_size,
-                    reg_effect.significance,
-                ]
-            )
-            target_dict[1].update(source_counter.keys())
-            target_buckets[chrom][bucket(target_start)][target.name] = target_dict
+                target_dict = target_buckets[chrom][bucket(target_start)].get(target.name, [[2], set()])
+                disc_facets = [*reg_disc_facets, *source_disc_facets]
+                target_dict[0].extend(
+                    [
+                        len(disc_facets),
+                        *disc_facets,
+                        reg_effect.effect_size,
+                        reg_effect.significance,
+                    ]
+                )
+                target_dict[1].update(source_counter.keys())
+                target_buckets[chrom][bucket(target_start)][target.name] = target_dict
 
-        for source in sources:
-            chrom = source.chrom_name[3:]
-            coords = (source.location.lower, source.location.upper)
+            for source in sources:
+                chrom = source.chrom_name[3:]
+                coords = (source.location.lower, source.location.upper)
 
-            source_dict = source_buckets[chrom][bucket(source.location.lower)].get(
-                coords, [[2], set()]
-            )  # 2 is the number of continuous facets
-            disc_facets = [*reg_disc_facets, *source.ccre_category_ids, *target_disc_facets]
-            ccre_overlap_id = source.ccre_overlap_id
-            if ccre_overlap_id is not None:
-                disc_facets.append(ccre_overlap_id)
-            source_dict[0].extend(
-                [
-                    len(disc_facets),
-                    *disc_facets,
-                    reg_effect.effect_size,
-                    reg_effect.significance,
-                ]
-            )
-            source_dict[1].update(target_counter.keys())
-            source_buckets[chrom][bucket(source.location.lower)][coords] = source_dict
+                source_dict = source_buckets[chrom][bucket(source.location.lower)].get(
+                    coords, [[2], set()]
+                )  # 2 is the number of continuous facets
+                disc_facets = [*reg_disc_facets, *target_disc_facets]
+                source_disc_facets.extend(
+                    [v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id]
+                )
+                source_disc_facets.extend(
+                    [v.id for v in source.facet_values.all() if v.facet_id == ccre_overlap_facet_id]
+                )
+                source_dict[0].extend(
+                    [
+                        len(disc_facets),
+                        *disc_facets,
+                        reg_effect.effect_size,
+                        reg_effect.significance,
+                    ]
+                )
+                source_dict[1].update(target_counter.keys())
+                source_buckets[chrom][bucket(source.location.lower)][coords] = source_dict
 
     print(f"Buckets filled... {time.perf_counter() - fbt} s")
     for i, chrom_info in enumerate(chroms):
