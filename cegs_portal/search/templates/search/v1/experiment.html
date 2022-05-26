@@ -108,35 +108,13 @@
         let level1;
         let level2;
         try {
-            genome = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/grch37.json");
-            level1 = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/level1_data.json");
-            level2 = [
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_1.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_2.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_3.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_4.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_5.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_6.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_7.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_8.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_9.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_10.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_11.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_12.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_13.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_14.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_15.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_16.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_17.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_18.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_19.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_20.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_21.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_22.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_X.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_Y.json"),
-                await getJson("{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/level2_MT.json"),
-            ]
+            let manifest = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/coverage_manifest.json");
+            genome = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome}`);
+            level1 = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.level1}`);
+            level2 = [];
+            for (let json of manifest.level2) {
+                level2.push(await getJson(`{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/${json}`))
+            }
         } catch (error) {
             // If the files can't be loaded we don't want to even try to show the visualization.
         }
