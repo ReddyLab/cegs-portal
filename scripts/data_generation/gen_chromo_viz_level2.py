@@ -146,6 +146,7 @@ def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
     sources = set()
     fbt = time.perf_counter()
 
+    facet_ids = set()
     re_count = reg_effects.count()
     print(f"Effect Count: {re_count}")
     SKIP = 10000
@@ -217,6 +218,10 @@ def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
                 source_dict[1].update(target_counter.keys())
                 source_buckets[bucket(source.location.lower)][coords] = source_dict
 
+            facet_ids.update(reg_disc_facets)
+            facet_ids.update(source_disc_facets)
+            facet_ids.update(target_disc_facets)
+
     print(f"Buckets filled... {time.perf_counter() - fbt} s")
     for j, target_bucket in enumerate(target_buckets):
         if len(target_bucket) == 0:
@@ -274,7 +279,10 @@ def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
         }
 
         if facet.facet_type == str(FacetType.DISCRETE):
-            facet_dict["values"] = {fv.id: fv.value for fv in facet.values.all()}
+            facet_values = {fv.id: fv.value for fv in facet.values.all() if fv.id in facet_ids}
+            if len(facet_values) == 0:
+                continue
+            facet_dict["values"] = facet_values
         elif facet.name == "Effect Size":
             min_val = reg_effects.aggregate(min=Min(Cast("facet_num_values__Effect Size", output_field=FloatField())))
             max_val = reg_effects.aggregate(max=Max(Cast("facet_num_values__Effect Size", output_field=FloatField())))
