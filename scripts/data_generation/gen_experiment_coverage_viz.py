@@ -1,11 +1,18 @@
 import json
 import time
 from collections import defaultdict
+from os.path import join
 
-from django.db.models import FloatField, Max, Min
+from django.db.models import FloatField, Max, Min, Prefetch
 from django.db.models.functions import Cast
 
-from cegs_portal.search.models import DNARegion, Facet, FacetType, RegulatoryEffect
+from cegs_portal.search.models import (
+    DNARegion,
+    Facet,
+    FacetType,
+    FeatureAssembly,
+    RegulatoryEffect,
+)
 
 #  Output json format:
 #  {
@@ -120,7 +127,7 @@ def flatten(list_):
     return result
 
 
-def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
+def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000, chrom=None):
     def bucket(start):
         return start // bucket_size
 
@@ -130,20 +137,41 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
         chroms = GRCH37
     else:
         raise Exception(f'Invalid genome {genome}. Must be "GRCH37" or "GRCH38"')
-    chrom_keys = {chrom[0]: i for i, chrom in enumerate(chroms)}
-    target_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
-    source_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
+
+    chrom_keys = {chrom_info[0]: i for i, chrom_info in enumerate(chroms)}
+
+    if chrom is None:
+        print("Initialized...")
+        reg_effects = (
+            RegulatoryEffect.objects.with_facet_values()
+            .filter(experiment__accession_id=experiment_accession_id)
+            .order_by("id")
+            .prefetch_related("target_assemblies", "sources", "sources__facet_values", "sources__facet_values__facet")
+        )
+    else:
+        long_chrom_name = f"chr{chrom}"
+        chroms = [chrom_info for chrom_info in chroms if chrom_info[0] == chrom]
+        print(f"chr{chrom} Initialized...")
+        dna_regions = DNARegion.objects.filter(chrom_name=f"chr{chrom}")
+        feature_assemblies = FeatureAssembly.objects.filter(chrom_name=f"chr{chrom}")
+        reg_effects = (
+            RegulatoryEffect.objects.with_facet_values()
+            .filter(experiment__accession_id=experiment_accession_id, target_assemblies__chrom_name=f"chr{chrom}")
+            .order_by("id")
+            .prefetch_related(
+                Prefetch("target_assemblies", queryset=feature_assemblies),
+                Prefetch("sources", queryset=dna_regions),
+                Prefetch("sources__facet_values"),
+                Prefetch("sources__facet_values__facet"),
+            )
+        )
+
+    target_buckets = {chrom_name: [dict() for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
+    source_buckets = {chrom_name: [dict() for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
     chrom_dicts = [
-        {"chrom": chrom, "bucket_size": bucket_size, "target_intervals": [], "source_intervals": []}
-        for chrom, _ in chroms
+        {"chrom": chrom_name, "bucket_size": bucket_size, "target_intervals": [], "source_intervals": []}
+        for chrom_name, _ in chroms
     ]
-    print("Initialized...")
-    reg_effects = (
-        RegulatoryEffect.objects.with_facet_values()
-        .filter(experiment__accession_id=experiment_accession_id)
-        .order_by("id")
-        .prefetch_related("target_assemblies", "sources", "sources__facet_values", "sources__facet_values__facet")
-    )
     direction_facet_id = Facet.objects.get(name=RegulatoryEffect.Facet.DIRECTION.value).id
     ccre_overlap_facet_id = Facet.objects.get(name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
     ccre_category_facet_id = Facet.objects.get(name=DNARegion.Facet.CCRE_CATEGORIES.value).id
@@ -165,6 +193,12 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
             pct_rc = start + five_pct_rc
         for reg_effect in reg_effects.all()[start:stop]:
             sources = reg_effect.sources.all()
+
+            # If we are targeting a specific chromosome filter out sources not in that chromosome.
+            # They won't be visible in the visualization and the bucket index will be wrong.
+            if chrom is not None:
+                sources = [source for source in sources if source.chrom_name == long_chrom_name]
+
             targets = reg_effect.target_assemblies.all()
             source_counter = defaultdict(set)
             reg_disc_facets = [v.id for v in reg_effect.facet_values.all() if v.facet_id == direction_facet_id]
@@ -183,7 +217,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                 source_disc_facets.update([v.id for v in source.facet_values.all() if v.facet_id == grna_type_facet_id])
 
             for target in targets:
-                chrom = target.chrom_name[3:]
+                chrom_name = target.chrom_name[3:]
 
                 if target.strand == "+":
                     target_start = target.location.lower
@@ -191,9 +225,9 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                 if target.strand == "-":
                     target_start = target.location.upper
 
-                target_counter[(chrom, bucket(target_start))].add(target)
+                target_counter[(chrom_name, bucket(target_start))].add(target)
 
-                target_dict = target_buckets[chrom][bucket(target_start)].get(target.name, [[2], set()])
+                target_dict = target_buckets[chrom_name][bucket(target_start)].get(target.name, [[2], set()])
                 disc_facets = [*reg_disc_facets, *source_disc_facets]
                 target_dict[0].extend(
                     [
@@ -204,13 +238,13 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     ]
                 )
                 target_dict[1].update(source_counter.keys())
-                target_buckets[chrom][bucket(target_start)][target.name] = target_dict
+                target_buckets[chrom_name][bucket(target_start)][target.name] = target_dict
 
             for source in sources:
-                chrom = source.chrom_name[3:]
+                chrom_name = source.chrom_name[3:]
                 coords = (source.location.lower, source.location.upper)
 
-                source_dict = source_buckets[chrom][bucket(source.location.lower)].get(
+                source_dict = source_buckets[chrom_name][bucket(source.location.lower)].get(
                     coords, [[2], set()]
                 )  # 2 is the number of continuous facets
                 disc_facets = [*reg_disc_facets, *target_disc_facets]
@@ -226,7 +260,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     ]
                 )
                 source_dict[1].update(target_counter.keys())
-                source_buckets[chrom][bucket(source.location.lower)][coords] = source_dict
+                source_buckets[chrom_name][bucket(source.location.lower)][coords] = source_dict
 
             facet_ids.update(reg_disc_facets)
             facet_ids.update(source_disc_facets)
@@ -234,9 +268,9 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
 
     print(f"Buckets filled... {time.perf_counter() - fbt} s")
     for i, chrom_info in enumerate(chroms):
-        chrom, _ = chrom_info
+        chrom_name, _ = chrom_info
         cd = chrom_dicts[i]
-        for j, target_bucket in enumerate(target_buckets[chrom]):
+        for j, target_bucket in enumerate(target_buckets[chrom_name]):
             if len(target_bucket) == 0:
                 continue
 
@@ -246,13 +280,13 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     "targets": [
                         [
                             info[0],
-                            flatten([[chrom_keys[chrom], bucket] for chrom, bucket in info[1]]),
+                            flatten([[chrom_keys[chrom_name], bucket] for chrom_name, bucket in info[1]]),
                         ]
                         for _, info in target_bucket.items()
                     ],
                 }
             )
-        for j, source_bucket in enumerate(source_buckets[chrom]):
+        for j, source_bucket in enumerate(source_buckets[chrom_name]):
             if len(source_bucket) == 0:
                 continue
 
@@ -262,7 +296,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     "sources": [
                         [
                             info[0],
-                            flatten([[chrom_keys[chrom], bucket] for chrom, bucket in info[1]]),
+                            flatten([[chrom_keys[chrom_name], bucket] for chrom_name, bucket in info[1]]),
                         ]
                         for _, info in source_bucket.items()
                     ],
@@ -311,5 +345,10 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
         "chromosomes": chrom_dicts,
         "facets": facets,
     }
-    with open(output_file, "w") as out:
-        out.write(json.dumps(data))
+
+    if chrom is None:
+        with open(output_location, "w") as out:
+            out.write(json.dumps(data))
+    else:
+        with open(join(output_location, f"level2_{chrom}.json"), "w") as out:
+            out.write(json.dumps(data))
