@@ -147,6 +147,7 @@ def run(output_dir, experiment_accession_id, chrom, genome, bucket_size=100_000)
     direction_facet_id = Facet.objects.get(name=RegulatoryEffect.Facet.DIRECTION.value).id
     ccre_overlap_facet_id = Facet.objects.get(name=DNARegion.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value).id
     ccre_category_facet_id = Facet.objects.get(name=DNARegion.Facet.CCRE_CATEGORIES.value).id
+    grna_type_facet_id = Facet.objects.get(name=DNARegion.Facet.GRNA_TYPE.value).id
     print("Query built...")
     sources = set()
     fbt = time.perf_counter()
@@ -167,18 +168,19 @@ def run(output_dir, experiment_accession_id, chrom, genome, bucket_size=100_000)
             targets = reg_effect.target_assemblies.all()
             source_counter = defaultdict(set)
             reg_disc_facets = [v.id for v in reg_effect.facet_values.all() if v.facet_id == direction_facet_id]
-            source_disc_facets = []
-            target_disc_facets = []
+            source_disc_facets = set()
+            target_disc_facets = set()
             target_counter = defaultdict(set)
 
             for source in sources:
                 source_counter[bucket(source.location.lower)].add(source)
-                source_disc_facets.extend(
+                source_disc_facets.update(
                     [v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id]
                 )
-                source_disc_facets.extend(
+                source_disc_facets.update(
                     [v.id for v in source.facet_values.all() if v.facet_id == ccre_overlap_facet_id]
                 )
+                source_disc_facets.update([v.id for v in source.facet_values.all() if v.facet_id == grna_type_facet_id])
 
             for target in targets:
                 if target.strand == "+":
@@ -211,6 +213,7 @@ def run(output_dir, experiment_accession_id, chrom, genome, bucket_size=100_000)
                 disc_facets = [*reg_disc_facets, *target_disc_facets]
                 disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id])
                 disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == ccre_overlap_facet_id])
+                disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == grna_type_facet_id])
 
                 source_dict[0].extend(
                     [
@@ -269,8 +272,9 @@ def run(output_dir, experiment_accession_id, chrom, genome, bucket_size=100_000)
         "Source Category": ["target", "source"],
         "Source Overlap": ["target", "source"],
         "Significance": ["target", "source"],
+        "gRNA Type": ["target", "source"],
     }
-    experiment_facet_names = {name for name in experiment_facets.keys()}
+    experiment_facet_names = {name for name in experiment_facets}
 
     for facet in Facet.objects.all():
         if facet.name not in experiment_facet_names:
