@@ -116,11 +116,16 @@ GRCH37 = [
 ]
 
 
-def run(output_dir, experiment_accession_id, chrom, bucket_size=100_000):
+def run(output_dir, experiment_accession_id, chrom, genome, bucket_size=100_000):
     def bucket(start):
         return start // bucket_size
 
-    chroms = GRCH37
+    if genome == "GRCH38":
+        chroms = GRCH38
+    elif genome == "GRCH37":
+        chroms = GRCH37
+    else:
+        raise Exception(f'Invalid genome {genome}. Must be "GRCH37" or "GRCH38"')
     chrom_size = [c for c in chroms if c[0] == chrom][0][1]
     target_buckets = [dict() for _ in range(bucket(chrom_size) + 1)]
     source_buckets = [dict() for _ in range(bucket(chrom_size) + 1)]
