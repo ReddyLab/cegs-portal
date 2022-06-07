@@ -293,6 +293,9 @@
                 .attr("font-size", Math.max(Math.ceil(14 * (scaleY * 0.3)), 32))
                 .text(chromo => chromo.chrom)
 
+            let allSourceRects = {};
+            let allTargetRects = {};
+
             for (let i = 0; i < currentLevel.chromosomes.length; i++) {
                 const bucketSize = currentLevel.chromosomes[i].bucket_size;
                 const bucketWidth = toPx(bucketSize) * scaleX;
@@ -310,6 +313,8 @@
                     .attr("width", bucketWidth)
                     .attr("height", bucketHeight);
 
+                allSourceRects[i] = sourceRects;
+
                 const targetOverlay = frame.append("g");
                 targetOverlay.attr("stroke", "none");
                 let targetRects = targetOverlay.selectAll("rect")
@@ -321,11 +326,17 @@
                     .attr("width", bucketWidth)
                     .attr("height", bucketHeight);
 
+                allTargetRects[i] = targetRects;
+
                 let mouseLeave = () => {
-                    sourceRects.attr("stroke", null);
-                    sourceRects.attr("stroke-width", null);
-                    targetRects.attr("stroke", null);
-                    targetRects.attr("stroke-width", null);
+                    for (const k of Object.keys(allSourceRects)) {
+                        allSourceRects[k].attr("stroke", null);
+                        allSourceRects[k].attr("stroke-width", null);
+                    }
+                    for (const k of Object.keys(allTargetRects)) {
+                        allTargetRects[k].attr("stroke", null);
+                        allTargetRects[k].attr("stroke-width", null);
+                    }
                     tooltip.hide();
                 }
 
@@ -348,25 +359,37 @@
                     sourceRects.attr("stroke", node => node.start == rect.start ? "red" : null);
                     sourceRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let target_buckets = new Set()
+                    let target_buckets = new Array(currentLevel.chromosomes.length);
+                    for (let i = 0; i < target_buckets.length; i++) {
+                        target_buckets[i] = new Set()
+                    }
+
                     for(const source of rect.sources) {
-                        for (const target_bucket of source[1]){
-                            target_buckets.add(target_bucket);
+                        let targetList = source[1];
+                        for(let i = 0; i < targetList.length; i += 2) {
+                            target_buckets[targetList[i]].add(targetList[i+1]);
                         }
                     }
 
-                    targetRects.attr("stroke", function(node) {
-                        if(target_buckets.has((node.start - 1) / bucketSize)) {
-                            return "yellow";
+                    for (let i = 0; i < target_buckets.length; i++) {
+                        let target_bucket = target_buckets[i];
+                        for (let j = 0; j < target_bucket.size; j += 2) {
+                            let targetRects = allTargetRects[i];
+                            targetRects.attr("stroke", function(node) {
+                                if(target_bucket.has((node.start - 1) / bucketSize)) {
+                                    return "yellow";
+                                }
+                                return null
+                            });
+                            targetRects.attr("stroke-width", function(node) {
+                                if(target_bucket.has((node.start - 1) / bucketSize)) {
+                                    return 8;
+                                }
+                                return null
+                            });
                         }
-                        return null
-                    });
-                    targetRects.attr("stroke-width", function(node) {
-                        if(target_buckets.has((node.start - 1) / bucketSize)) {
-                            return 8;
-                        }
-                        return null
-                    });
+                    }
+
                     rect.end = rect.start + bucketSize;
                     tooltip.show(i, rect);
                 })
@@ -381,25 +404,37 @@
                     targetRects.attr("stroke", node => node.start == rect.start ? "red" : null);
                     targetRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let source_buckets = new Set()
+                    let source_buckets = new Array(currentLevel.chromosomes.length)
+                    for (let i = 0; i < source_buckets.length; i++) {
+                        source_buckets[i] = new Set()
+                    }
+
                     for(const target of rect.targets) {
-                        for (const source_bucket of target[1]){
-                            source_buckets.add(source_bucket);
+                        let sourceList = target[1];
+                        for(let i = 0; i < sourceList.length; i += 2) {
+                            source_buckets[sourceList[i]].add(sourceList[i+1]);
                         }
                     }
 
-                    sourceRects.attr("stroke", function(node) {
-                        if(source_buckets.has((node.start - 1) / bucketSize)) {
-                            return "yellow";
+                    for (let i = 0; i < source_buckets.length; i++) {
+                        let source_bucket = source_buckets[i];
+                        for (let j = 0; j < source_bucket.size; j += 2) {
+                            let sourceRects = allSourceRects[i];
+                            sourceRects.attr("stroke", function(node) {
+                                if(source_bucket.has((node.start - 1) / bucketSize)) {
+                                    return "yellow";
+                                }
+                                return null
+                            });
+                            sourceRects.attr("stroke-width", function(node) {
+                                if(source_bucket.has((node.start - 1) / bucketSize)) {
+                                    return 8;
+                                }
+                                return null
+                            });
                         }
-                        return null
-                    });
-                    sourceRects.attr("stroke-width", function(node) {
-                        if(source_buckets.has((node.start - 1) / bucketSize)) {
-                            return 8;
-                        }
-                        return null
-                    });
+                    }
+
                     rect.end = rect.start + bucketSize;
                     tooltip.show(i, rect);
                 })
@@ -778,7 +813,7 @@
 
         state.ac(STATE_CONTINUOUS_FACET_VALUES, _.debounce((s, key) => {
             continuousFacetWorker.postMessage({data: state.g(STATE_DISCRETE_FILTERED), continuousFilters: state.g(STATE_CONTINUOUS_FACET_VALUES)});
-        }, 75));
+        }, 10));
 
         state.ac(STATE_CONTINUOUS_FILTERED, (s, key) => {
             let continuousFilteredLevel = state.g(STATE_CONTINUOUS_FILTERED);
@@ -795,7 +830,7 @@
 
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
             countFacetWorker.postMessage({data: state.g(STATE_CONTINUOUS_FILTERED), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
-        }, 75));
+        }, 10));
 
         state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-continuous-facets"));

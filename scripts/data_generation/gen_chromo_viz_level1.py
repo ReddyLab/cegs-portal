@@ -110,6 +110,16 @@ GRCH37 = [
 ]
 
 
+def flatten(list_):
+    result = []
+    for item in list_:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+
+
 def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
     def bucket(start):
         return start // bucket_size
@@ -120,6 +130,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
         chroms = GRCH37
     else:
         raise Exception(f'Invalid genome {genome}. Must be "GRCH37" or "GRCH38"')
+    chrom_keys = {chrom[0]: i for i, chrom in enumerate(chroms)}
     target_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
     source_buckets = {chrom: [dict() for _ in range(bucket(size) + 1)] for chrom, size in chroms}
     chrom_dicts = [
@@ -162,7 +173,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
             target_counter = defaultdict(set)
 
             for source in sources:
-                source_counter[bucket(source.location.lower)].add(source)
+                source_counter[(source.chrom_name[3:], bucket(source.location.lower))].add(source)
                 source_disc_facets.update(
                     [v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id]
                 )
@@ -180,7 +191,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                 if target.strand == "-":
                     target_start = target.location.upper
 
-                target_counter[bucket(target_start)].add(target)
+                target_counter[(chrom, bucket(target_start))].add(target)
 
                 target_dict = target_buckets[chrom][bucket(target_start)].get(target.name, [[2], set()])
                 disc_facets = [*reg_disc_facets, *source_disc_facets]
@@ -235,7 +246,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     "targets": [
                         [
                             info[0],
-                            list(info[1]),
+                            flatten([[chrom_keys[chrom], bucket] for chrom, bucket in info[1]]),
                         ]
                         for _, info in target_bucket.items()
                     ],
@@ -251,7 +262,7 @@ def run(output_file, experiment_accession_id, genome, bucket_size=2_000_000):
                     "sources": [
                         [
                             info[0],
-                            list(info[1]),
+                            flatten([[chrom_keys[chrom], bucket] for chrom, bucket in info[1]]),
                         ]
                         for _, info in source_bucket.items()
                     ],
