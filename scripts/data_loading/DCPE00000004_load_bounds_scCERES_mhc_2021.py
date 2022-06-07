@@ -18,6 +18,9 @@ from . import get_closest_gene
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
 
+GRNA_FACET = Facet.objects.get(name="gRNA Type")
+GRNA_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_FACET.id).all()}
+
 
 #
 # The following lines should work as expected when using postgres. See
@@ -32,13 +35,18 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(grnas, effects, effect_directions, sources, targets):
+def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets):
     with transaction.atomic():
         print("Adding gRNA Regions")
         DNARegion.objects.bulk_create(grnas, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
+
+    with transaction.atomic():
+        print("Adding gRNA type facets to gRNA regions")
+        for facets, source in zip(source_facets, sources):
+            source.facet_values.add(*facets)
 
     with transaction.atomic():
         print("Adding effect directions to effects")
@@ -59,6 +67,7 @@ def bulk_save(grnas, effects, effect_directions, sources, targets):
 def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites = []
+    site_facets = []
     effects = []
     effect_directions = []
     target_assembiles = []
@@ -105,6 +114,26 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             grnas[grna] = region
         sites.append(region)
 
+        grna_type = line["type"]
+        grna_facets = []
+        if grna_type == "targeting":
+            grna_facets.append(GRNA_FACET_VALUES["Targeting"])
+        elif grna_type == "nontargeting":
+            grna_facets.append(GRNA_FACET_VALUES["Non-targeting"])
+        elif grna_type == "positive_control_ipsc":
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control (iPSC)"])
+        elif grna_type == "positive_control_k562":
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control (k562)"])
+        elif grna_type == "positive_control_npc":
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control (NPC)"])
+        elif grna_type == "positive_control_other":
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.append(GRNA_FACET_VALUES["Positive Control (other)"])
+        site_facets.append(grna_facets)
+
         significance = float(line["pval_fdr_corrected"])
         effect_size = float(line["avg_logFC"])
         if significance >= 0.01:
@@ -133,7 +162,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         target_assembiles.append(target_assembly)
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(grnas.values(), effects, effect_directions, sites, target_assembiles)
+    bulk_save(grnas.values(), effects, effect_directions, sites, site_facets, target_assembiles)
 
 
 def unload_reg_effects(experiment_metadata):
@@ -157,7 +186,7 @@ def run(experiment_filename):
     # Only run unload_reg_effects if you want to delete all the gencode data in the db.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    unload_reg_effects(experiment_metadata)
 
     experiment = experiment_metadata.db_save()
 

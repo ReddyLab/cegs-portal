@@ -21,6 +21,7 @@ class DNARegion(Accessioned, Searchable, Faceted):
         ASSAYS = "Experiment Assays"
         CCRE_CATEGORIES = "cCRE Category"
         DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
+        GRNA_TYPE = "gRNA Type"
 
     cell_line = models.CharField(max_length=50, null=True)
     chrom_name = models.CharField(max_length=10)
