@@ -207,8 +207,9 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             return deferred;
         },
     parseData: function (data, chr) {
-        for (var i = 0; i < data.length; i++) {
-            var feature = data[i];
+        for (var i = 0; i < data.objects.length; i++) {
+            var feature = data.objects[i];
+
             if (feature.closest_gene) {
                 feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
             }
@@ -221,20 +222,9 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=gene",
     dataRequestLimit: 5000000,
     parseData: function (data, chr) {
-        for (var i = 0; i < data.length; i++) {
-            var feature = data[i].feature;
-            var assembly = data[i].assemblies[0];
-
+        for (let feature of data) {
             feature.label =
-                feature.strand === "+" ? `${assembly.name} (${feature.ensembl_id}) >` : `< ${assembly.name} (${feature.ensembl_id})`;
-            feature.name = assembly.name;
-            feature.chr = assembly.chr;
-            feature.start = assembly.start;
-            feature.end = assembly.end;
-            feature.strand = assembly.strand;
-            feature.ref_genome = assembly.ref_genome;
-            feature.ref_genome_patch = assembly.ref_genome_patch;
-
+                feature.strand === "+" ? `${feature.name} (${feature.ensembl_id}) >` : `< ${feature.name} (${feature.ensembl_id})`;
             this.insertFeature(feature);
         }
     },

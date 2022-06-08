@@ -27,7 +27,7 @@ def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[Chro
         terms.append(QueryToken.ENSEMBL_ID.associate(result.group(1)))
     query = re.sub(ENSEMBL_RE, " ", query)
 
-    assembly = "GRCh38"  # Default
+    assembly = None  # Default
     for result in re.finditer(ASSEMBLY_RE, query):
         token = result.group(1).lower()
 

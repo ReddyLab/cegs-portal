@@ -19,7 +19,6 @@ svg > g > text {
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'search/js/state.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
@@ -29,7 +28,7 @@ svg > g > text {
         <div id="filter-bar" class="grid grid-cols-1">
             <div id="facets" class="w-60">
                 {% for facet in facets.all %}
-                    <fieldset id="facetfield">
+                    <fieldset name="facetfield">
                         <legend>{{ facet.name }}</legend>
                         <div class="flex flex-row flex-wrap gap-1">
                             {% for value in facet.values.all %}
@@ -104,12 +103,12 @@ svg > g > text {
         const STATE_LOCATION = "location";
         const STATE_FACETS = "facets"
         let state = new State({
-            STATE_LOCATION : {
+            [STATE_LOCATION]: {
                 chr: "{{ loc_search.location.chromo }}",
                 start: {{ loc_search.location.range.lower }},
                 end: {{ loc_search.location.range.upper }}
             },
-            STATE_FACETS: []
+            [STATE_FACETS]: []
         });
 
         // Update the chromosome location at the top of the page
@@ -172,8 +171,7 @@ svg > g > text {
         pageLink("dhs_last_link", {{ dhss.paginator.num_pages }}, getPages);
         {% endif %}
 
-        const fieldSet = g("facetfield");
-        const facetCheckboxes = fieldSet.querySelectorAll("input[type=checkbox]");
+        const facetCheckboxes = document.querySelectorAll("[name=faceetfield] input[type=checkbox]");
 
         facetCheckboxes.forEach(checkbox => {
             checkbox.addEventListener("change", _ => {
@@ -262,7 +260,7 @@ svg > g > text {
         }
         {% endswitch %}
 
-        {% if loc_search.location %}
+        {% if loc_search.location and loc_search.assembly %}
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
