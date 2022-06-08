@@ -9,6 +9,7 @@ hiredis==2.0.0  # https://github.com/redis/hiredis-py
 uvicorn[standard]==0.14.0  # https://github.com/encode/uvicorn
 channels==3.0.4  # https://github.com/django/channels
 requests==2.26.0  # https://docs.python-requests.org/en/master/
+maturin==0.12.18 # https://maturin.rs
 
 # Django
 # ------------------------------------------------------------------------------
