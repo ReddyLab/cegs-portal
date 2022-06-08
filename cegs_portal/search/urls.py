@@ -15,6 +15,7 @@ urlpatterns = [
     path("regionloc/<str:chromo>/<int:start>/<int:end>", views.v1.DNARegionLoc.as_view(), name="region_loc"),
     path("experiment", views.v1.ExperimentListView.as_view(), name="experiments"),
     path("experiment/<str:exp_id>", views.v1.ExperimentView.as_view(), name="experiment"),
+    path("experiment_coverage/<str:exp_id>", views.v1.ExperimentCoverageView.as_view(), name="experiment_coverage"),
     path("regeffect/region/<int:region_id>", views.v1.RegionEffectsView.as_view(), name="region_effects"),
     path("regeffect/<int:re_id>", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("v1/results/", views.v1.SearchView.as_view()),
@@ -25,6 +26,7 @@ urlpatterns = [
     path("v1/regionloc/<str:chromo>/<int:start>/<int:end>", views.v1.DNARegionLoc.as_view()),
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
     path("v1/experiment/<str:exp_id>", views.v1.ExperimentView.as_view()),
+    path("v1/experiment_coverage/<str:exp_id>", views.v1.ExperimentCoverageView.as_view(), name="experiment_coverage"),
     path("v1/regeffect/region/<int:region_id>", views.v1.RegionEffectsView.as_view()),
     path("v1/regeffect/<int:re_id>", views.v1.RegEffectView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))
