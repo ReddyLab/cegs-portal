@@ -1,15 +1,13 @@
 function shallowClone(data) {
-    let newData = {};
-    newData.chromosomes = [];
-    for (let chromosome of data.chromosomes) {
-        newData.chromosomes.push({
+    let newData = [];
+    for (let chromosome of data) {
+        newData.push({
             chrom: chromosome.chrom,
             bucket_size: chromosome.bucket_size,
             target_intervals: Array(chromosome.target_intervals.length),
             source_intervals: Array(chromosome.source_intervals.length)
         })
     }
-    newData.facets = data.facets;
     return newData;
 }
 
