@@ -105,16 +105,13 @@
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
 
         let genome;
-        let level1;
-        let level2;
+        let coverageData;
+        let facets;
         try {
             let manifest = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/coverage_manifest.json");
             genome = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome}`);
-            level1 = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.level1}`);
-            level2 = [];
-            for (let json of manifest.level2) {
-                level2.push(await getJson(`{% get_static_prefix %}search/experiments/{{experiment.accession_id}}/${json}`))
-            }
+            coverageData = manifest["chromosomes"];
+            facets = manifest["facets"];
         } catch (error) {
             // If the files can't be loaded we don't want to even try to show the visualization.
         }
@@ -153,17 +150,15 @@
         const STATE_DISCRETE_FACET_VALUES = "state-discrete-facets"
         const STATE_CONTINUOUS_FACET_VALUES = "state-continuous-facets";
         const STATE_COUNT_FILTER_VALUES = "state-count-filter";
-        const STATE_NON_FILTERED = "state-no-filtered";
-        const STATE_DISCRETE_FILTERED = "state-discrete-filtered";
-        const STATE_CONTINUOUS_FILTERED = "state-continuous-filtered"
+        const STATE_COVERAGE_DATA = "state-coverage-data";
         const STATE_ALL_FILTERED = "state-all-filtered";
         const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
         const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 
-        let sourceCountInterval = levelCountInterval(level1, "source_intervals", "sources");
-        let targetCountInterval = levelCountInterval(level1, "target_intervals", "targets");
-        let effectSizeInterval = regEffectDataInterval(level1, 1)
-        let sigInterval = regEffectDataInterval(level1, 2)
+        let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
+        let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
+        let effectSizeInterval = facets.filter(f => f.name === "Effect Size")[0].range
+        let sigInterval = facets.filter(f => f.name === "Significance")[0].range
         let state = new State({
             [STATE_ZOOMED]: false,
             [STATE_ZOOM_CHROMO_INDEX]: undefined,
@@ -174,39 +169,17 @@
             [STATE_DISCRETE_FACET_VALUES]: [],
             [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
             [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
-            [STATE_NON_FILTERED]: level1,
-            [STATE_DISCRETE_FILTERED]: level1,
-            [STATE_CONTINUOUS_FILTERED]: level1,
-            [STATE_ALL_FILTERED]: level1,
+            [STATE_COVERAGE_DATA]: coverageData,
+            [STATE_ALL_FILTERED]: coverageData,
             [STATE_CONTINUOUS_FILTER_INTERVALS]: {effectSize: effectSizeInterval, significance: sigInterval},
             [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval}
         });
 
-        let discreteFacetWorker;
-        let continuousFacetWorker;
         let countFacetWorker;
         if (window.Worker) {
-            discreteFacetWorker = new Worker("{% static 'search/js/discreteFacetFilterWorker.js' %}");
-            discreteFacetWorker.onmessage = (df) => {
-                state.u(STATE_DISCRETE_FILTERED, df.data.data);
-                const continuousIntervals = {
-                    effectSize: df.data.effectSizeInterval,
-                    significance: df.data.sigInterval
-                };
-
-                state.u(STATE_CONTINUOUS_FILTER_INTERVALS, continuousIntervals);
-                state.u(STATE_CONTINUOUS_FACET_VALUES, [continuousIntervals.effectSize, continuousIntervals.significance]);
-            }
-
-            continuousFacetWorker = new Worker("{% static 'search/js/continuousFacetFilterWorker.js' %}");
-            continuousFacetWorker.onmessage = (cf) => {
-                state.u(STATE_CONTINUOUS_FILTERED, cf.data);
-            }
-
             countFacetWorker = new Worker("{% static 'search/js/countFacetFilterWorker.js' %}")
             countFacetWorker.onmessage = (cf) => {
                 state.u(STATE_ALL_FILTERED, cf.data);
-                render();
             }
         }
 
@@ -238,7 +211,7 @@
                 let scaleY = state.g(STATE_SCALE_Y);
                 this.node.removeAttribute("display");
                 this.node.setAttribute("transform", `translate(${xInset + toPx(d.start) * scaleX}, ${yInset + (chomIdx * (chromHeight + chromSpacing) * scaleY)}) scale(2)`);
-                this._count.textContent = `Ct: ${(d.sources || d.targets).length}`;
+                this._count.textContent = `Ct: ${d.count}`;
                 this._range.textContent = `Loc: (${d.start}, ${d.end})`;
             }
 
@@ -253,7 +226,7 @@
 
         render();
 
-        function renderSVG(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scaleX, scaleY, zoomed) {
+        function renderSVG(coverageData, sourceCountInterval, targetCountInterval, viewBox, scaleX, scaleY, zoomed) {
             const bucketHeight = 44 * scaleY;
             const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
             const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
@@ -286,7 +259,7 @@
 
             let nameGroup = svg.append("g")
             nameGroup.selectAll("text")
-            .data(currentLevel.chromosomes)
+            .data(coverageData)
             .join("text")
                 .attr("x", 0)
                 .attr("y", (chromo, i) => yInset  + ((chromHeight / 2) + (chromSpacing + chromHeight) * i) * scaleY)
@@ -296,8 +269,8 @@
             let allSourceRects = {};
             let allTargetRects = {};
 
-            for (let i = 0; i < currentLevel.chromosomes.length; i++) {
-                const bucketSize = currentLevel.chromosomes[i].bucket_size;
+            for (let i = 0; i < coverageData.length; i++) {
+                const bucketSize = coverageData[i].bucket_size;
                 const bucketWidth = toPx(bucketSize) * scaleX;
 
                 const frame = chromGroups[i];
@@ -305,9 +278,9 @@
                 sourceOverlay.attr("stroke", "none");
 
                 let sourceRects = sourceOverlay.selectAll("rect")
-                .data(currentLevel.chromosomes[i].source_intervals.filter(source => source.sources.length > 0))
+                .data(coverageData[i].source_intervals)
                 .join("rect")
-                    .attr("fill", source => sourceColors((source.sources.length - sourceCountInterval[0]) / sourceCountRange))
+                    .attr("fill", source => sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange))
                     .attr("x", source => xInset + toPx(source.start) * scaleX)
                     .attr("y", yInset + (chromSpacing + chromHeight) * i * scaleY)
                     .attr("width", bucketWidth)
@@ -318,9 +291,9 @@
                 const targetOverlay = frame.append("g");
                 targetOverlay.attr("stroke", "none");
                 let targetRects = targetOverlay.selectAll("rect")
-                    .data(currentLevel.chromosomes[i].target_intervals.filter(target => target.targets.length > 0))
+                    .data(coverageData[i].target_intervals)
                     .join("rect")
-                    .attr("fill", target => targetColors((target.targets.length - targetCountInterval[0]) / targetCountRange))
+                    .attr("fill", target => targetColors((target.count - targetCountInterval[0]) / targetCountRange))
                     .attr("x", target => xInset + toPx(target.start) * scaleX)
                     .attr("y", yInset + (54 + (chromSpacing + chromHeight) * i) * scaleY)
                     .attr("width", bucketWidth)
@@ -359,16 +332,13 @@
                     sourceRects.attr("stroke", node => node.start == rect.start ? "red" : null);
                     sourceRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let target_buckets = new Array(currentLevel.chromosomes.length);
+                    let target_buckets = new Array(coverageData.length);
                     for (let i = 0; i < target_buckets.length; i++) {
                         target_buckets[i] = new Set()
                     }
 
-                    for(const source of rect.sources) {
-                        let targetList = source[1];
-                        for(let i = 0; i < targetList.length; i += 2) {
-                            target_buckets[targetList[i]].add(targetList[i+1]);
-                        }
+                    for(let i = 0; i < rect.assoc_targets.length; i += 2) {
+                        target_buckets[rect.assoc_targets[i]].add(rect.assoc_targets[i+1]);
                     }
 
                     for (let i = 0; i < target_buckets.length; i++) {
@@ -404,16 +374,13 @@
                     targetRects.attr("stroke", node => node.start == rect.start ? "red" : null);
                     targetRects.attr("stroke-width", node => node.start == rect.start ? 8 : null);
 
-                    let source_buckets = new Array(currentLevel.chromosomes.length)
+                    let source_buckets = new Array(coverageData.length)
                     for (let i = 0; i < source_buckets.length; i++) {
                         source_buckets[i] = new Set()
                     }
 
-                    for(const target of rect.targets) {
-                        let sourceList = target[1];
-                        for(let i = 0; i < sourceList.length; i += 2) {
-                            source_buckets[sourceList[i]].add(sourceList[i+1]);
-                        }
+                    for(let i = 0; i < rect.assoc_sources.length; i += 2) {
+                        source_buckets[rect.assoc_sources[i]].add(rect.assoc_sources[i+1]);
                     }
 
                     for (let i = 0; i < source_buckets.length; i++) {
@@ -537,56 +504,16 @@
             return maxPxChromWidth * (size / maxChromSize);
         }
 
-        function levelCountInterval(data, interval, item, chromoIndex) {
-            let chroms = data.chromosomes;
+        function levelCountInterval(chroms, interval, chromoIndex) {
             if (chromoIndex) {
                 chroms = [chroms[chromoIndex]];
             }
             let max = Number.NEGATIVE_INFINITY;
             let min = Number.POSITIVE_INFINITY;
             for (const chrom of chroms) {
-                const count = chrom[interval].map(d => d[item].length);
+                const count = chrom[interval].map(d => d.count);
                 max = Math.max(max, Math.max(...count));
                 min = Math.min(min, Math.min(...count));
-            }
-
-            if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
-                return [0, 0];
-            }
-
-            return [min, max];
-        }
-
-        function regEffectDataInterval(data, dataOffset, chromoIndex) {
-            let chroms = data.chromosomes;
-            if (chromoIndex) {
-                chroms = [chroms[chromoIndex]];
-            }
-            let max = Number.NEGATIVE_INFINITY;
-            let min = Number.POSITIVE_INFINITY;
-            for (const chrom of chroms) {
-                for (const targetInterval of chrom.target_intervals) {
-                    for (const target of targetInterval.targets) {
-                        let contFacetCount = target[0][0];
-                        for (let i = 1; i < target[0].length;) {
-                            let discreteFacetCount = target[0][i]
-                            max = Math.max(max, target[0][i + discreteFacetCount + dataOffset]);
-                            min = Math.min(min, target[0][i + discreteFacetCount + dataOffset]);
-                            i += discreteFacetCount + contFacetCount + 1;
-                        }
-                    }
-                }
-                for (const sourceInterval of chrom.source_intervals) {
-                    for (const source of sourceInterval.sources) {
-                        let contFacetCount = source[0][0];
-                        for (let i = 1; i < source[0].length;) {
-                            let discreteFacetCount = source[0][i]
-                            max = Math.max(max, source[0][i + discreteFacetCount + dataOffset]);
-                            min = Math.min(min, source[0][i + discreteFacetCount + dataOffset]);
-                            i += discreteFacetCount + contFacetCount + 1;
-                        }
-                    }
-                }
             }
 
             if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
@@ -614,7 +541,7 @@
             });
         }
 
-        discreteFilterControls(level1.facets).forEach(element => {
+        discreteFilterControls(facets).forEach(element => {
             a(g("chrom-data-discrete-facets"), element)
         });
 
@@ -631,7 +558,7 @@
         });
 
         function continuousFilterControls() {
-            const contFacets = level1.facets.filter(f => f.type == "FacetType.CONTINUOUS");
+            const contFacets = facets.filter(f => f.type == "FacetType.CONTINUOUS");
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
             let filterNodes = [];
             let intervals = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);
@@ -770,7 +697,7 @@
             const viewBox = state.g(STATE_VIEWBOX);
             const zoomed = state.g(STATE_ZOOMED);
             const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-            let currentLevel = state.g(STATE_ALL_FILTERED);
+            let currentLevel = state.g(STATE_COVERAGE_DATA);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
             let sourceCountInterval = countIntervals.source;
             let targetCountInterval = countIntervals.target;
@@ -795,47 +722,29 @@
 
             if (zoomed) {
                 let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-                let zoomedLevel = shallowClone(level1);
-                for (let i = 0; i < level1.chromosomes.length; i++) {
-                    zoomedLevel.chromosomes[i] = level1.chromosomes[i];
-                }
-                zoomedLevel.chromosomes[zoomChromoIndex] = level2[zoomChromoIndex].chromosomes[0];
-                state.u(STATE_NON_FILTERED, zoomedLevel);
+                let zoomedLevel = coverageData;
+                state.u(STATE_COVERAGE_DATA, zoomedLevel);
             } else {
                 state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
-                state.u(STATE_NON_FILTERED, level1);
+                state.u(STATE_COVERAGE_DATA, coverageData);
             }
         });
 
-        state.ac([STATE_NON_FILTERED, STATE_DISCRETE_FACET_VALUES], (s, key) => {
-            discreteFacetWorker.postMessage({data: state.g(STATE_NON_FILTERED), facetValues: state.g(STATE_DISCRETE_FACET_VALUES), effectSizeInterval, sigInterval})
+        state.ac(STATE_ALL_FILTERED, (s, key) => {
+            render()
         });
 
-        state.ac(STATE_CONTINUOUS_FACET_VALUES, _.debounce((s, key) => {
-            continuousFacetWorker.postMessage({data: state.g(STATE_DISCRETE_FILTERED), continuousFilters: state.g(STATE_CONTINUOUS_FACET_VALUES)});
+        state.ac([STATE_DISCRETE_FACET_VALUES, STATE_CONTINUOUS_FACET_VALUES], _.debounce((s, key) => {
+            // Send facet data to server to get filtered data and updated continuous facets
+            // server_response = // get data
+            // state.u(STATE_COVERAGE_DATA, server_response.chromosomes)
+            // state.u(STATE_COUNT_FILTER_INTERVALS, server_response.countIntervals);
+            // state.u(STATE_COUNT_FILTER_VALUES, [server_response.countIntervals.source, server_response.countIntervals.target]);
         }, 10));
-
-        state.ac(STATE_CONTINUOUS_FILTERED, (s, key) => {
-            let continuousFilteredLevel = state.g(STATE_CONTINUOUS_FILTERED);
-            let chromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-
-            const countIntervals = {
-                source: levelCountInterval(continuousFilteredLevel, "source_intervals", "sources", chromoIndex),
-                target: levelCountInterval(continuousFilteredLevel, "target_intervals", "targets", chromoIndex)
-            };
-
-            state.u(STATE_COUNT_FILTER_INTERVALS, countIntervals);
-            state.u(STATE_COUNT_FILTER_VALUES, [countIntervals.source, countIntervals.target]);
-        });
 
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
-            countFacetWorker.postMessage({data: state.g(STATE_CONTINUOUS_FILTERED), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
+            countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
         }, 10));
-
-        state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
-            cc(g("chrom-data-continuous-facets"));
-            continuousFilterControls().forEach(element => a(g("chrom-data-continuous-facets"), element));
-        })
 
         state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-counts"));
