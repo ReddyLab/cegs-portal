@@ -72,6 +72,22 @@ class TemplateJsonView(View):
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options.get("json_format", None)), safe=False)
 
+    def post(self, request, options, data, *args, **kwargs):
+        if self.__class__.template_data_name is not None:
+            data = {self.__class__.template_data_name: data}
+
+        if self.template is not None:
+            return render(
+                request,
+                self.template,
+                data,
+            )
+
+        return self.http_internal_error(request, "No template found")
+
+    def post_json(self, _request, options, data, *args, **kwargs):
+        return JsonResponse(self.__class__.json_renderer(data, options.get("json_format", None)), safe=False)
+
     def http_page_not_found(self, request, err, *args, **kwargs):
         logger.warning(
             "404 Response Not Found (%s): %s",
