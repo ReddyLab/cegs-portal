@@ -1,4 +1,10 @@
+import json
+from os.path import join
+
+from django.contrib.staticfiles import finders
+
 from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_coverage
+from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http500
@@ -22,10 +28,19 @@ class ExperimentCoverageView(TemplateJsonView):
                 * in
         """
         options = super().request_options(request)
-        options["re_page"] = int(request.GET.get("re_page", 1))
+        try:
+            body = json.loads(request.body)
+        except Exception as e:
+            raise Http500(f"Invalid request body:\n{request.body}\n\nError:\n{e}")
+
+        try:
+            options["filters"] = body["filters"]
+        except Exception as e:
+            raise Http500(f'Invalid request body, no "filters" object:\n{request.body}\n\nError:\n{e}')
+
         return options
 
-    def get(self, request, options, data):
+    def post(self, request, options, data, exp_id):
         raise Http500(
             (
                 f'This is a JSON-only API. Please request using "Accept: {JSON_MIME}" header or '
@@ -33,8 +48,10 @@ class ExperimentCoverageView(TemplateJsonView):
             )
         )
 
-    def get_json(self, request, options, data):
-        return
+    def post_data(self, options, exp_id):
+        validate_accession_id(exp_id)
+        level1_filename = finders.find(join("search", "experiments", exp_id, "level1.json"))
+        with open(level1_filename, "r") as level1_file:
+            level1 = json.load(level1_file)
 
-    def get_data(self, options):
-        return
+        return level1
