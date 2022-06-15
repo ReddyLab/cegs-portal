@@ -1,4 +1,4 @@
-import json
+import pickle
 import time
 from collections import defaultdict
 from os.path import join
@@ -347,8 +347,8 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
     }
 
     if chrom is None:
-        with open(output_location, "w") as out:
-            out.write(json.dumps(data))
+        with open(output_location, "wb") as out:
+            pickle.dump(data, out)
     else:
-        with open(join(output_location, f"level2_{chrom}.json"), "w") as out:
-            out.write(json.dumps(data))
+        with open(join(output_location, f"level2_{chrom}.pkl"), "wb") as out:
+            pickle.dump(data, out)
