@@ -101,7 +101,7 @@
     <script type="module">
         import { a, cc, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
-        import { getJson } from "{% static 'search/js/files.js' %}";
+        import { getJson, postJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
 
         let genome;
@@ -736,10 +736,13 @@
 
         state.ac([STATE_DISCRETE_FACET_VALUES, STATE_CONTINUOUS_FACET_VALUES], _.debounce((s, key) => {
             // Send facet data to server to get filtered data and updated continuous facets
-            // server_response = // get data
-            // state.u(STATE_COVERAGE_DATA, server_response.chromosomes)
-            // state.u(STATE_COUNT_FILTER_INTERVALS, server_response.countIntervals);
-            // state.u(STATE_COUNT_FILTER_VALUES, [server_response.countIntervals.source, server_response.countIntervals.target]);
+            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", "{\"filters\":[]}").then(response_json => {
+                state.u(STATE_COVERAGE_DATA, response_json.chromosomes);
+                render();
+
+                // state.u(STATE_COUNT_FILTER_INTERVALS, server_response.countIntervals);
+                // state.u(STATE_COUNT_FILTER_VALUES, [server_response.countIntervals.source, server_response.countIntervals.target]);
+            });
         }, 10));
 
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
