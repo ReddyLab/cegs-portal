@@ -17,7 +17,7 @@ urlpatterns = [
     path("experiment", views.v1.ExperimentListView.as_view(), name="experiments"),
     path("experiment/<str:exp_id>", views.v1.ExperimentView.as_view(), name="experiment"),
     path(
-        "experiment_coverage/<str:exp_id>",
+        "experiment_coverage/<str:exp_acc_id>",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
         name="experiment_coverage",
     ),
@@ -32,7 +32,7 @@ urlpatterns = [
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
     path("v1/experiment/<str:exp_id>", views.v1.ExperimentView.as_view()),
     path(
-        "v1/experiment_coverage/<str:exp_id>",
+        "v1/experiment_coverage/<str:exp_acc_id>",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
         name="experiment_coverage",
     ),
