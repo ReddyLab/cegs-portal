@@ -14,7 +14,7 @@ from cegs_portal.search.models import (
     RegulatoryEffect,
 )
 
-#  Output json format:
+#  Output object format:
 #  {
 #    "bucket_size": <bucket_size parameter value>,
 #    "chromosomes": [
@@ -201,7 +201,7 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
 
             targets = reg_effect.target_assemblies.all()
             source_counter = defaultdict(set)
-            reg_disc_facets = [v.id for v in reg_effect.facet_values.all() if v.facet_id == direction_facet_id]
+            reg_disc_facets = {v.id for v in reg_effect.facet_values.all() if v.facet_id == direction_facet_id}
             source_disc_facets = set()
             target_disc_facets = set()
             target_counter = defaultdict(set)
@@ -227,40 +227,29 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
 
                 target_counter[(chrom_name, bucket(target_start))].add(target)
 
-                target_dict = target_buckets[chrom_name][bucket(target_start)].get(target.name, [[2], set()])
-                disc_facets = [*reg_disc_facets, *source_disc_facets]
-                target_dict[0].extend(
-                    [
-                        len(disc_facets),
-                        *disc_facets,
-                        reg_effect.effect_size,
-                        reg_effect.significance,
-                    ]
+                target_info = target_buckets[chrom_name][bucket(target_start)].get(target.name, ([], set()))
+                target_info[0].append(
+                    (reg_disc_facets | source_disc_facets, reg_effect.effect_size, reg_effect.significance)
                 )
-                target_dict[1].update(source_counter.keys())
-                target_buckets[chrom_name][bucket(target_start)][target.name] = target_dict
+                target_info[1].update(source_counter.keys())
+                target_buckets[chrom_name][bucket(target_start)][target.name] = target_info
 
             for source in sources:
                 chrom_name = source.chrom_name[3:]
                 coords = (source.location.lower, source.location.upper)
 
-                source_dict = source_buckets[chrom_name][bucket(source.location.lower)].get(
-                    coords, [[2], set()]
-                )  # 2 is the number of continuous facets
-                disc_facets = [*reg_disc_facets, *target_disc_facets]
-                disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == ccre_category_facet_id])
-                disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == ccre_overlap_facet_id])
-                disc_facets.extend([v.id for v in source.facet_values.all() if v.facet_id == grna_type_facet_id])
-                source_dict[0].extend(
-                    [
-                        len(disc_facets),
-                        *disc_facets,
-                        reg_effect.effect_size,
-                        reg_effect.significance,
-                    ]
-                )
-                source_dict[1].update(target_counter.keys())
-                source_buckets[chrom_name][bucket(source.location.lower)][coords] = source_dict
+                source_info = source_buckets[chrom_name][bucket(source.location.lower)].get(coords, ([], set()))
+                disc_facets = reg_disc_facets | target_disc_facets
+                disc_facets |= {
+                    v.id
+                    for v in source.facet_values.all()
+                    if v.facet_id == ccre_category_facet_id
+                    or v.facet_id == ccre_overlap_facet_id
+                    or v.facet_id == grna_type_facet_id
+                }
+                source_info[0].append((disc_facets, reg_effect.effect_size, reg_effect.significance))
+                source_info[1].update(target_counter.keys())
+                source_buckets[chrom_name][bucket(source.location.lower)][coords] = source_info
 
             facet_ids.update(reg_disc_facets)
             facet_ids.update(source_disc_facets)
@@ -278,10 +267,10 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
                 {
                     "start": bucket_size * j + 1,
                     "targets": [
-                        [
+                        (
                             info[0],
-                            flatten([[chrom_keys[chrom_name], bucket] for chrom_name, bucket in info[1]]),
-                        ]
+                            [(chrom_keys[chrom_name], bucket) for chrom_name, bucket in info[1]],
+                        )
                         for _, info in target_bucket.items()
                     ],
                 }
@@ -294,10 +283,10 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
                 {
                     "start": bucket_size * j + 1,
                     "sources": [
-                        [
+                        (
                             info[0],
-                            flatten([[chrom_keys[chrom_name], bucket] for chrom_name, bucket in info[1]]),
-                        ]
+                            [(chrom_keys[chrom_name], bucket) for chrom_name, bucket in info[1]],
+                        )
                         for _, info in source_bucket.items()
                     ],
                 }
