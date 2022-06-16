@@ -97,8 +97,8 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000)
         .prefetch_related("target_assemblies", "sources", "sources__facet_values", "sources__facet_values__facet")
     )
 
-    target_buckets = {chrom_name: [[set(), set()] for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
-    source_buckets = {chrom_name: [[set(), set()] for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
+    target_buckets = {chrom_name: [(set(), set()) for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
+    source_buckets = {chrom_name: [(set(), set()) for _ in range(bucket(size) + 1)] for chrom_name, size in chroms}
     chrom_dicts = [
         {"chrom": chrom_name, "bucket_size": bucket_size, "target_intervals": [], "source_intervals": []}
         for chrom_name, _ in chroms

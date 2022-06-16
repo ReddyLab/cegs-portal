@@ -736,12 +736,15 @@
 
         state.ac([STATE_DISCRETE_FACET_VALUES, STATE_CONTINUOUS_FACET_VALUES], _.debounce((s, key) => {
             // Send facet data to server to get filtered data and updated continuous facets
-            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", "{\"filters\":[]}").then(response_json => {
+            let filters = { filters: [
+                state.g(STATE_DISCRETE_FACET_VALUES),
+                state.g(STATE_CONTINUOUS_FACET_VALUES)
+            ]}
+            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, response_json.chromosomes);
+                state.u(STATE_COUNT_FILTER_INTERVALS, response_json.count_intervals);
+                state.u(STATE_COUNT_FILTER_VALUES, [response_json.count_intervals.source, response_json.count_intervals.target]);
                 render();
-
-                // state.u(STATE_COUNT_FILTER_INTERVALS, server_response.countIntervals);
-                // state.u(STATE_COUNT_FILTER_VALUES, [server_response.countIntervals.source, server_response.countIntervals.target]);
             });
         }, 10));
 
