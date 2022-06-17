@@ -171,7 +171,7 @@
             [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
             [STATE_COVERAGE_DATA]: coverageData,
             [STATE_ALL_FILTERED]: coverageData,
-            [STATE_CONTINUOUS_FILTER_INTERVALS]: {effectSize: effectSizeInterval, significance: sigInterval},
+            [STATE_CONTINUOUS_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
             [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval}
         });
 
@@ -570,9 +570,9 @@
                 let range;
 
                 if (facet.name === "Effect Size") {
-                    range = intervals.effectSize;
+                    range = intervals.effect;
                 } else if (facet.name === "Significance") {
-                    range = intervals.significance;
+                    range = intervals.sig;
                 } else {
                     continue;
                 }
@@ -742,15 +742,26 @@
             ]}
             postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, response_json.chromosomes);
+                let oldCI = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);
+                let newCI = response_json.continuous_intervals;
+                if (oldCI.effect[0] != newCI.effect[0] || oldCI.effect[1] != newCI.effect[1] || oldCI.sig[0] != newCI.sig[0] || oldCI.sig[1] != newCI.sig[1]) {
+                    state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
+                    state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig]);
+                }
                 state.u(STATE_COUNT_FILTER_INTERVALS, response_json.count_intervals);
                 state.u(STATE_COUNT_FILTER_VALUES, [response_json.count_intervals.source, response_json.count_intervals.target]);
                 render();
             });
-        }, 10));
+        }, 60));
+
+        state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
+            cc(g("chrom-data-continuous-facets"));
+            continuousFilterControls().forEach(element => a(g("chrom-data-continuous-facets"), element));
+        })
 
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
             countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
-        }, 10));
+        }, 60));
 
         state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-counts"));

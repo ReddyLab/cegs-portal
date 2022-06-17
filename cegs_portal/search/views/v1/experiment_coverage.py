@@ -56,9 +56,6 @@ def filter_data(filters, data):
     sf_with_selections = [f for f in source_facets if not discrete_facets.isdisjoint(f)]
     tf_with_selections = [f for f in target_facets if not discrete_facets.isdisjoint(f)]
 
-    print(source_facets)
-    print(sf_with_selections)
-
     selected_sf = [f & discrete_facets for f in sf_with_selections]
     len_selected_sf = len(selected_sf)
     selected_tf = [f & discrete_facets for f in tf_with_selections]
@@ -82,7 +79,13 @@ def filter_data(filters, data):
                             min_effect, max_effect = min(min_effect, effect_size), max(max_effect, effect_size)
                             min_sig, max_sig = min(min_sig, sig), max(max_sig, sig)
 
-                            new_regeffects.append((disc_facets, effect_size, sig))
+                            if (
+                                effect_size >= effect_size_interval[0]
+                                and effect_size <= effect_size_interval[1]
+                                and sig >= sig_interval[0]
+                                and sig <= sig_interval[1]
+                            ):
+                                new_regeffects.append((disc_facets, effect_size, sig))
 
                     if len(new_regeffects) > 0:
                         new_sources.append((new_regeffects, target_buckets))
@@ -105,7 +108,13 @@ def filter_data(filters, data):
                             min_effect, max_effect = min(min_effect, effect_size), max(max_effect, effect_size)
                             min_sig, max_sig = min(min_sig, sig), max(max_sig, sig)
 
-                            new_regeffects.append((disc_facets, effect_size, sig))
+                            if (
+                                effect_size >= effect_size_interval[0]
+                                and effect_size <= effect_size_interval[1]
+                                and sig >= sig_interval[0]
+                                and sig <= sig_interval[1]
+                            ):
+                                new_regeffects.append((disc_facets, effect_size, sig))
 
                     if len(new_regeffects) > 0:
                         new_targets.append((new_regeffects, source_buckets))
@@ -122,8 +131,6 @@ def filter_data(filters, data):
 
     min_sig = sig_interval[0] if min_sig == float("Infinity") else min_sig
     max_sig = sig_interval[1] if max_sig == float("-Infinity") else max_sig
-
-    # postMessage({data: newData, effectSizeInterval: [minEffect, maxEffect], sigInterval: [minSig, maxSig]});
 
     return new_data, (min_effect, max_effect), (min_sig, max_sig)
 
@@ -228,4 +235,8 @@ class ExperimentCoverageView(TemplateJsonView):
         filters = options["filters"]
         new_data, effect_interval, sig_interval = filter_data(filters, level1)
         display_data = display_transform(new_data)
+        display_data["continuous_intervals"] = {
+            "effect": effect_interval,
+            "sig": sig_interval,
+        }
         return display_data
