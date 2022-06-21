@@ -11,6 +11,9 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http500
 
+INFINITY = float("Infinity")
+NEG_INFINITY = float("-Infinity")
+
 
 def shallow_clone(data):
     return {
@@ -39,8 +42,19 @@ def flatten(list_):
 def filter_data(filters, data):
     new_data = shallow_clone(data)
     discrete_facets = set(filters[0])
-    effect_size_interval = filters[1][0]
-    sig_interval = filters[1][1]
+
+    if len(discrete_facets) == 0:
+        skip_disc_facets = True
+    else:
+        skip_disc_facets = False
+
+    if len(filters) > 1:
+        effect_size_interval, sig_interval = filters[1]
+        skip_cont_facets = False
+    else:
+        effect_size_interval = [f["range"] for f in data["facets"] if f["name"] == "Effect Size"][0]
+        sig_interval = [f["range"] for f in data["facets"] if f["name"] == "Significance"][0]
+        skip_cont_facets = True
 
     source_facets = [
         set(f["values"].keys())
@@ -61,25 +75,27 @@ def filter_data(filters, data):
     selected_tf = [f & discrete_facets for f in tf_with_selections]
     len_selected_tf = len(selected_tf)
 
-    min_effect = float("Infinity")
-    max_effect = float("-Infinity")
+    min_effect = INFINITY
+    max_effect = NEG_INFINITY
 
-    min_sig = float("Infinity")
-    max_sig = float("-Infinity")
+    min_sig = INFINITY
+    max_sig = NEG_INFINITY
 
     for c, chromosome in enumerate(data["chromosomes"]):
         if len(sf_with_selections) > 0:
-            for i, interval in enumerate(chromosome["source_intervals"]):
+            for interval in chromosome["source_intervals"]:
                 sources = interval["sources"]
                 new_sources = []
                 for effects, target_buckets in sources:
                     new_regeffects = []
                     for disc_facets, effect_size, sig in effects:
-                        if len([sf for sf in selected_sf if not sf.isdisjoint(disc_facets)]) == len_selected_sf:
+                        if skip_disc_facets or (
+                            len([sf for sf in selected_sf if not sf.isdisjoint(disc_facets)]) == len_selected_sf
+                        ):
                             min_effect, max_effect = min(min_effect, effect_size), max(max_effect, effect_size)
                             min_sig, max_sig = min(min_sig, sig), max(max_sig, sig)
 
-                            if (
+                            if skip_cont_facets or (
                                 effect_size >= effect_size_interval[0]
                                 and effect_size <= effect_size_interval[1]
                                 and sig >= sig_interval[0]
@@ -98,17 +114,19 @@ def filter_data(filters, data):
             new_data["chromosomes"][c]["source_intervals"] = chromosome["source_intervals"]
 
         if len(tf_with_selections) > 0:
-            for i, interval in enumerate(chromosome["target_intervals"]):
+            for interval in chromosome["target_intervals"]:
                 targets = interval["targets"]
                 new_targets = []
                 for effects, source_buckets in targets:
                     new_regeffects = []
                     for disc_facets, effect_size, sig in effects:
-                        if len([tf for tf in selected_tf if not tf.isdisjoint(disc_facets)]) == len_selected_tf:
+                        if skip_disc_facets or (
+                            len([tf for tf in selected_tf if not tf.isdisjoint(disc_facets)]) == len_selected_tf
+                        ):
                             min_effect, max_effect = min(min_effect, effect_size), max(max_effect, effect_size)
                             min_sig, max_sig = min(min_sig, sig), max(max_sig, sig)
 
-                            if (
+                            if skip_cont_facets or (
                                 effect_size >= effect_size_interval[0]
                                 and effect_size <= effect_size_interval[1]
                                 and sig >= sig_interval[0]
@@ -126,21 +144,17 @@ def filter_data(filters, data):
         else:
             new_data["chromosomes"][c]["target_intervals"] = chromosome["target_intervals"]
 
-    min_effect = effect_size_interval[0] if min_effect == float("Infinity") else min_effect
-    max_effect = effect_size_interval[1] if max_effect == float("-Infinity") else max_effect
+    min_effect = effect_size_interval[0] if min_effect == INFINITY else min_effect
+    max_effect = effect_size_interval[1] if max_effect == NEG_INFINITY else max_effect
 
-    min_sig = sig_interval[0] if min_sig == float("Infinity") else min_sig
-    max_sig = sig_interval[1] if max_sig == float("-Infinity") else max_sig
+    min_sig = sig_interval[0] if min_sig == INFINITY else min_sig
+    max_sig = sig_interval[1] if max_sig == NEG_INFINITY else max_sig
 
     return new_data, (min_effect, max_effect), (min_sig, max_sig)
 
 
 def display_transform(data):
     result = {"chromosomes": []}
-    min_source_count = float("Infinity")
-    max_source_count = 0
-    min_target_count = float("Infinity")
-    max_target_count = 0
     for chromosome in data["chromosomes"]:
         chrom_data = {
             "chrom": chromosome["chrom"],
@@ -150,10 +164,7 @@ def display_transform(data):
         }
 
         for interval in chromosome["source_intervals"]:
-            source_count = len(interval["sources"])
-            min_source_count = min(min_source_count, source_count)
-            max_source_count = max(max_source_count, source_count)
-            new_interval = {"start": interval["start"], "count": source_count}
+            new_interval = {"start": interval["start"], "count": len(interval["sources"])}
 
             targets = set()
             for source in interval["sources"]:
@@ -163,10 +174,7 @@ def display_transform(data):
             chrom_data["source_intervals"].append(new_interval)
 
         for interval in chromosome["target_intervals"]:
-            target_count = len(interval["targets"])
-            min_target_count = min(min_target_count, target_count)
-            max_target_count = max(max_target_count, target_count)
-            new_interval = {"start": interval["start"], "count": target_count}
+            new_interval = {"start": interval["start"], "count": len(interval["targets"])}
 
             sources = set()
             for target in interval["targets"]:
@@ -176,10 +184,7 @@ def display_transform(data):
             chrom_data["target_intervals"].append(new_interval)
 
         result["chromosomes"].append(chrom_data)
-        result["count_intervals"] = {
-            "source": (min_source_count, max_source_count),
-            "target": (min_target_count, max_target_count),
-        }
+
     return result
 
 

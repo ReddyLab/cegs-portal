@@ -21,10 +21,13 @@ export function State(initialState) {
 
     this.g = this.getSharedState;
 
-    this.updateSharedState = function (key, value) {
+    this.updateSharedState = function (key, value, fire = true) {
         this._checkSharedStateKey(key);
 
         this._sharedState[key] = value;
+
+        if (!fire) return;
+
         for (const callback of this._callbacks[key]) {
             callback(this._sharedState, key);
         }
