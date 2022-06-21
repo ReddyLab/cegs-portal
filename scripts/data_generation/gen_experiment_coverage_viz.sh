@@ -5,8 +5,8 @@ EXPERIMENT=$1
 GENOME=$2
 OUTPUT_DIR=$3
 
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_manifest; gen_experiment_coverage_manifest.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\")"
 python manage.py shell -c "from os.path import join; from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(join(\"$OUTPUT_DIR\", \"level1.pkl\"), \"$EXPERIMENT\", \"$GENOME\")"
+python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_manifest; gen_experiment_coverage_manifest.run(\"$OUTPUT_DIR\", \"$GENOME\")"
 python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"1\")"
 python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"2\")"
 python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"3\")"

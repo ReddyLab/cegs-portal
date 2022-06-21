@@ -10,6 +10,7 @@ from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http500
+from utils import flatten
 
 INFINITY = float("Infinity")
 NEG_INFINITY = float("-Infinity")
@@ -27,16 +28,6 @@ def shallow_clone(data):
             for chrom in data["chromosomes"]
         ]
     }
-
-
-def flatten(list_):
-    result = []
-    for item in list_:
-        if isinstance(item, list) or isinstance(item, tuple):
-            result.extend(flatten(item))
-        else:
-            result.append(item)
-    return result
 
 
 def filter_data(filters, data):
