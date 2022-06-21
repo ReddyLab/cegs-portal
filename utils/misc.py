@@ -9,3 +9,13 @@ def get_delimiter(filename: str) -> str:
         return "\t"
 
     return ","
+
+
+def flatten(list_):
+    result = []
+    for item in list_:
+        if isinstance(item, list) or isinstance(item, tuple):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
