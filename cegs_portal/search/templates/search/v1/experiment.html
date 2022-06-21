@@ -167,12 +167,12 @@
             [STATE_SCALE_Y]: 1,
             [STATE_VIEWBOX]: [0, 0, viewWidth, viewHeight],
             [STATE_DISCRETE_FACET_VALUES]: [],
-            [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
-            [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
             [STATE_COVERAGE_DATA]: coverageData,
             [STATE_ALL_FILTERED]: coverageData,
             [STATE_CONTINUOUS_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
-            [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval}
+            [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
+            [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
+            [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval]
         });
 
         let countFacetWorker;
@@ -697,7 +697,7 @@
             const viewBox = state.g(STATE_VIEWBOX);
             const zoomed = state.g(STATE_ZOOMED);
             const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-            let currentLevel = state.g(STATE_COVERAGE_DATA);
+            let currentLevel = state.g(STATE_ALL_FILTERED);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
             let sourceCountInterval = countIntervals.source;
             let targetCountInterval = countIntervals.target;
@@ -734,7 +734,23 @@
             render()
         });
 
-        state.ac([STATE_DISCRETE_FACET_VALUES, STATE_CONTINUOUS_FACET_VALUES], _.debounce((s, key) => {
+        state.ac(STATE_DISCRETE_FACET_VALUES, _.debounce((s, key) => {
+            // Send facet data to server to get filtered data and updated continuous facets
+            let filters = { filters: [
+                state.g(STATE_DISCRETE_FACET_VALUES)
+            ]}
+            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
+                state.u(STATE_COVERAGE_DATA, response_json.chromosomes);
+                state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
+                state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig], false);
+                let sourceCountInterval = levelCountInterval(response_json.chromosomes, "source_intervals");
+                let targetCountInterval = levelCountInterval(response_json.chromosomes, "target_intervals");
+                state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
+                state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
+            });
+        }, 300));
+
+        state.ac(STATE_CONTINUOUS_FACET_VALUES, _.debounce((s, key) => {
             // Send facet data to server to get filtered data and updated continuous facets
             let filters = { filters: [
                 state.g(STATE_DISCRETE_FACET_VALUES),
@@ -742,30 +758,25 @@
             ]}
             postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, response_json.chromosomes);
-                let oldCI = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);
-                let newCI = response_json.continuous_intervals;
-                if (oldCI.effect[0] != newCI.effect[0] || oldCI.effect[1] != newCI.effect[1] || oldCI.sig[0] != newCI.sig[0] || oldCI.sig[1] != newCI.sig[1]) {
-                    state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
-                    state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig]);
-                }
-                state.u(STATE_COUNT_FILTER_INTERVALS, response_json.count_intervals);
-                state.u(STATE_COUNT_FILTER_VALUES, [response_json.count_intervals.source, response_json.count_intervals.target]);
-                render();
+                let sourceCountInterval = levelCountInterval(response_json.chromosomes, "source_intervals");
+                let targetCountInterval = levelCountInterval(response_json.chromosomes, "target_intervals");
+                state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
+                state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
             });
-        }, 60));
+        }, 300));
 
         state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-continuous-facets"));
             continuousFilterControls().forEach(element => a(g("chrom-data-continuous-facets"), element));
         })
 
-        state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
-            countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
-        }, 60));
-
         state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-counts"));
             countFilterControls().forEach(element => a(g("chrom-data-counts"), element));
         })
+
+        state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
+            countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
+        }, 60));
     </script>
 {% endblock %}
