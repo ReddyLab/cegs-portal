@@ -171,9 +171,8 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
     facet_ids = set()
     re_count = reg_effects.count()
     print(f"Effect Count: {re_count}")
-    SKIP = 10000
-    five_pct_rc = re_count * 0.05
-    pct_rc = five_pct_rc
+    SKIP = 500000
+    pct_rc = five_pct_rc = re_count * 0.05
     for start in range(0, re_count, SKIP):
         stop = min(start + SKIP, re_count)
         if start > pct_rc:
