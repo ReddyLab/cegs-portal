@@ -66,14 +66,22 @@ def filter_data(filters, data):
     selected_tf = [f & discrete_facets for f in tf_with_selections]
     len_selected_tf = len(selected_tf)
 
-    min_effect = INFINITY
-    max_effect = NEG_INFINITY
-
-    min_sig = INFINITY
-    max_sig = NEG_INFINITY
+    min_effect, max_effect = INFINITY, NEG_INFINITY
+    min_sig, max_sig = INFINITY, NEG_INFINITY
 
     for c, chromosome in enumerate(data["chromosomes"]):
-        if len(sf_with_selections) > 0:
+        if skip_cont_facets and len(sf_with_selections) == 0:  # do no filtering
+            new_data["chromosomes"][c]["source_intervals"] = [
+                {
+                    "start": interval["start"],
+                    "count": len(interval["sources"]),
+                    "assoc_targets": flatten(
+                        list(reduce(lambda x, source: x | set(source[1]), interval["sources"], set()))
+                    ),
+                }
+                for interval in chromosome["source_intervals"]
+            ]
+        else:
             for interval in chromosome["source_intervals"]:
                 sources = interval["sources"]
                 new_sources = 0
@@ -107,19 +115,19 @@ def filter_data(filters, data):
                             "assoc_targets": flatten(list(new_target_buckets)),
                         }
                     )
-        else:
-            new_data["chromosomes"][c]["source_intervals"] = [
+
+        if skip_cont_facets and len(tf_with_selections) == 0:  # do no filtering
+            new_data["chromosomes"][c]["target_intervals"] = [
                 {
                     "start": interval["start"],
-                    "count": len(interval["sources"]),
-                    "assoc_targets": flatten(
-                        list(reduce(lambda x, source: x | set(source[1]), interval["sources"], set()))
+                    "count": len(interval["targets"]),
+                    "assoc_sources": flatten(
+                        list(reduce(lambda x, target: x | set(target[1]), interval["targets"], set()))
                     ),
                 }
-                for interval in chromosome["source_intervals"]
+                for interval in chromosome["target_intervals"]
             ]
-
-        if len(tf_with_selections) > 0:
+        else:
             for interval in chromosome["target_intervals"]:
                 targets = interval["targets"]
                 new_targets = 0
@@ -153,17 +161,6 @@ def filter_data(filters, data):
                             "assoc_sources": flatten(list(new_source_buckets)),
                         }
                     )
-        else:
-            new_data["chromosomes"][c]["target_intervals"] = [
-                {
-                    "start": interval["start"],
-                    "count": len(interval["targets"]),
-                    "assoc_sources": flatten(
-                        list(reduce(lambda x, target: x | set(target[1]), interval["targets"], set()))
-                    ),
-                }
-                for interval in chromosome["target_intervals"]
-            ]
 
     min_effect = effect_size_interval[0] if min_effect == INFINITY else min_effect
     max_effect = effect_size_interval[1] if max_effect == NEG_INFINITY else max_effect
