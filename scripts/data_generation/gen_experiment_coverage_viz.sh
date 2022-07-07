@@ -5,30 +5,34 @@ EXPERIMENT=$1
 GENOME=$2
 OUTPUT_DIR=$3
 
-python manage.py shell -c "from os.path import join; from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(join(\"$OUTPUT_DIR\", \"level1.pkl\"), \"$EXPERIMENT\", \"$GENOME\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_manifest; gen_experiment_coverage_manifest.run(\"$OUTPUT_DIR\", \"$GENOME\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"1\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"2\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"3\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"4\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"5\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"6\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"7\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"8\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"9\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"10\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"11\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"12\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"13\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"14\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"15\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"16\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"17\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"18\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"19\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"20\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"21\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"22\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"X\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"Y\")"
-python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_viz; gen_experiment_coverage_viz.run(\"$OUTPUT_DIR\", \"$EXPERIMENT\", \"$GENOME\", 100_000, \"MT\")"
+# Install cov_viz from github: https://github.com/ReddyLab/cov_viz
+# cov_viz requires rust, which can be downloaded/installed from https://www.rust-lang.org
+
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME}
+# I think gen_experiment_coverage_manifest needs to be rewritten in rust as well
+# python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_manifest; gen_experiment_coverage_manifest.run(\"$OUTPUT_DIR\", \"$GENOME\")"
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr1
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr2
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr3
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr4
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr5
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr6
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr7
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr8
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr9
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr10
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr11
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr12
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr13
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr14
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr15
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr16
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr17
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr18
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr19
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr20
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr21
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr22
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrX
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrY
+cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrMT
