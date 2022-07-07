@@ -220,7 +220,7 @@ fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult<Fil
                 .source_intervals
                 .iter()
                 .map(|i| {
-                    let interval = &i.values.lock().unwrap();
+                    let interval = &i.values;
                     FilteredBucket {
                         start: i.start,
                         count: interval.len(),
@@ -245,7 +245,7 @@ fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult<Fil
                 .collect();
         } else {
             for interval in &chromosome.source_intervals {
-                let sources = interval.values.lock().unwrap();
+                let sources = &interval.values;
                 let mut new_source_count: usize = 0;
                 let mut new_target_buckets: HashSet<Bucket> = HashSet::new();
 
@@ -304,7 +304,7 @@ fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult<Fil
                 .target_intervals
                 .iter()
                 .map(|i| {
-                    let interval = &i.values.lock().unwrap();
+                    let interval = &i.values;
                     FilteredBucket {
                         start: i.start,
                         count: interval.len(),
@@ -329,7 +329,7 @@ fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult<Fil
                 .collect();
         } else {
             for interval in &chromosome.target_intervals {
-                let targets = interval.values.lock().unwrap();
+                let targets = &interval.values;
                 let mut new_target_count: usize = 0;
                 let mut new_source_buckets: HashSet<Bucket> = HashSet::new();
 
