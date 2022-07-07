@@ -337,8 +337,8 @@
                         target_buckets[i] = new Set()
                     }
 
-                    for(let i = 0; i < rect.assoc_targets.length; i += 2) {
-                        target_buckets[rect.assoc_targets[i]].add(rect.assoc_targets[i+1]);
+                    for(let i = 0; i < rect.associated_buckets.length; i += 2) {
+                        target_buckets[rect.associated_buckets[i]].add(rect.associated_buckets[i+1]);
                     }
 
                     for (let i = 0; i < target_buckets.length; i++) {
@@ -379,8 +379,8 @@
                         source_buckets[i] = new Set()
                     }
 
-                    for(let i = 0; i < rect.assoc_sources.length; i += 2) {
-                        source_buckets[rect.assoc_sources[i]].add(rect.assoc_sources[i+1]);
+                    for(let i = 0; i < rect.associated_buckets.length; i += 2) {
+                        source_buckets[rect.associated_buckets[i]].add(rect.associated_buckets[i+1]);
                     }
 
                     for (let i = 0; i < source_buckets.length; i++) {
