@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use data_structures::{Bucket, CoverageData, FacetCoverage, FacetRange};
 
-type DbID = i64;
+use data_structures::DbID;
 
 /// Wraps the coverage data type so it can be passed to Python
 #[pyclass(name = "CoverageData")]
