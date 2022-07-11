@@ -62,7 +62,6 @@ impl FilterIntervals {
 }
 
 #[derive(Serialize, Deserialize)]
-#[pyclass]
 pub struct FilteredBucket {
     pub start: u32,
     pub count: usize,
@@ -70,7 +69,6 @@ pub struct FilteredBucket {
 }
 
 #[derive(Serialize, Deserialize)]
-#[pyclass]
 pub struct FilteredChromosome {
     pub chrom: String,
     pub bucket_size: u32,
