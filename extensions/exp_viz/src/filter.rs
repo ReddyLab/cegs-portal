@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use std::time::Instant;
 
 use pyo3::prelude::*;
+use rustc_hash::FxHashSet;
 
 use crate::data_structures::{Bucket, DbID, FacetCoverage, FacetRange};
 use crate::filter_data_structures::*;
@@ -37,7 +37,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
             .unwrap(),
     };
 
-    let mut source_facets: Vec<HashSet<DbID>> = Vec::new();
+    let mut source_facets: Vec<FxHashSet<DbID>> = Vec::new();
     for facet in data.facets.iter().filter(|f| {
         f.facet_type == "FacetType.DISCRETE"
             && f.coverage
@@ -45,12 +45,12 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 .unwrap()
                 .contains(&FacetCoverage::Source)
     }) {
-        source_facets.push(HashSet::from_iter(
+        source_facets.push(FxHashSet::from_iter(
             facet.values.as_ref().unwrap().keys().map(|k| *k),
         ));
     }
 
-    let mut target_facets: Vec<HashSet<DbID>> = Vec::new();
+    let mut target_facets: Vec<FxHashSet<DbID>> = Vec::new();
     for facet in data.facets.iter().filter(|f| {
         f.facet_type == "FacetType.DISCRETE"
             && f.coverage
@@ -58,25 +58,25 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 .unwrap()
                 .contains(&FacetCoverage::Target)
     }) {
-        target_facets.push(HashSet::from_iter(
+        target_facets.push(FxHashSet::from_iter(
             facet.values.as_ref().unwrap().keys().map(|k| *k),
         ));
     }
 
-    let sf_with_selections: Vec<&HashSet<DbID>> = source_facets
+    let sf_with_selections: Vec<&FxHashSet<DbID>> = source_facets
         .iter()
         .filter(|f| !f.is_disjoint(&filters.discrete_facets))
         .collect();
-    let tf_with_selections: Vec<&HashSet<DbID>> = target_facets
+    let tf_with_selections: Vec<&FxHashSet<DbID>> = target_facets
         .iter()
         .filter(|f| !f.is_disjoint(&filters.discrete_facets))
         .collect();
 
-    let selected_sf: Vec<HashSet<DbID>> = sf_with_selections
+    let selected_sf: Vec<FxHashSet<DbID>> = sf_with_selections
         .iter()
         .map(|f| *f & &filters.discrete_facets)
         .collect();
-    let selected_tf: Vec<HashSet<DbID>> = tf_with_selections
+    let selected_tf: Vec<FxHashSet<DbID>> = tf_with_selections
         .iter()
         .map(|f| *f & &filters.discrete_facets)
         .collect();
@@ -101,7 +101,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                         count: interval.len(),
                         associated_buckets: interval
                             .values()
-                            .fold(HashSet::new(), |mut acc, f| {
+                            .fold(FxHashSet::default(), |mut acc, f| {
                                 for bucket in &f.associated_buckets {
                                     acc.insert(*bucket);
                                 }
@@ -122,7 +122,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
             for interval in &chromosome.source_intervals {
                 let sources = &interval.values;
                 let mut new_source_count: usize = 0;
-                let mut new_target_buckets: HashSet<Bucket> = HashSet::new();
+                let mut new_target_buckets: FxHashSet<Bucket> = FxHashSet::default();
 
                 for source in sources.values() {
                     let mut new_regeffects: u32 = 0;
@@ -185,7 +185,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                         count: interval.len(),
                         associated_buckets: interval
                             .values()
-                            .fold(HashSet::new(), |mut acc, f| {
+                            .fold(FxHashSet::default(), |mut acc, f| {
                                 for bucket in &f.associated_buckets {
                                     acc.insert(*bucket);
                                 }
@@ -206,7 +206,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
             for interval in &chromosome.target_intervals {
                 let targets = &interval.values;
                 let mut new_target_count: usize = 0;
-                let mut new_source_buckets: HashSet<Bucket> = HashSet::new();
+                let mut new_source_buckets: FxHashSet<Bucket> = FxHashSet::default();
 
                 for target in targets.values() {
                     let mut new_regeffects: u32 = 0;

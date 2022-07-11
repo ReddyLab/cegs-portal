@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 use crate::data_structures::{CoverageData, DbID};
 use pyo3::exceptions::PyRuntimeError;
@@ -14,7 +14,7 @@ pub struct PyCoverageData {
 #[pyclass]
 pub struct Filter {
     #[pyo3(get, set)]
-    pub discrete_facets: HashSet<DbID>,
+    pub discrete_facets: FxHashSet<DbID>,
     #[pyo3(get, set)]
     pub continuous_intervals: Option<FilterIntervals>,
 }
@@ -24,7 +24,7 @@ impl Filter {
     #[new]
     pub fn new() -> Self {
         Filter {
-            discrete_facets: HashSet::new(),
+            discrete_facets: FxHashSet::default(),
             continuous_intervals: None,
         }
     }
