@@ -101,7 +101,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                         start: i.start,
                         count: interval.len(),
                         associated_buckets: interval
-                            .values()
+                            .iter()
                             .fold(FxHashSet::default(), |mut acc, f| {
                                 for bucket in &f.associated_buckets {
                                     acc.insert(*bucket);
@@ -125,7 +125,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 let mut new_source_count: usize = 0;
                 let mut new_target_buckets = bucket_list.clone();
 
-                for source in sources.values() {
+                for source in sources {
                     let mut new_regeffects: u32 = 0;
                     for facet in &source.facets {
                         if skip_disc_facet_check
@@ -173,7 +173,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                         start: i.start,
                         count: interval.len(),
                         associated_buckets: interval
-                            .values()
+                            .iter()
                             .fold(FxHashSet::default(), |mut acc, f| {
                                 for bucket in &f.associated_buckets {
                                     acc.insert(*bucket);
@@ -197,7 +197,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 let mut new_target_count: usize = 0;
                 let mut new_source_buckets = bucket_list.clone();
 
-                for target in targets.values() {
+                for target in targets {
                     let mut new_regeffects: u32 = 0;
                     for facet in &target.facets {
                         if skip_disc_facet_check
