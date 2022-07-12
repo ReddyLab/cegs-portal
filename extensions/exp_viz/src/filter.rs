@@ -6,6 +6,18 @@ use rustc_hash::FxHashSet;
 use crate::data_structures::{DbID, FacetCoverage, FacetRange};
 use crate::filter_data_structures::*;
 
+fn is_disjoint(a: &Vec<DbID>, b: &Vec<DbID>) -> bool {
+    for val_a in a {
+        for val_b in b {
+            if val_a == val_b {
+                return false
+            }
+        }
+    }
+
+    true
+}
+
 #[pyfunction]
 pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult<FilteredData> {
     let now = Instant::now();
@@ -72,13 +84,13 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
         .filter(|f| !f.is_disjoint(&filters.discrete_facets))
         .collect();
 
-    let selected_sf: Vec<FxHashSet<DbID>> = sf_with_selections
+    let selected_sf: Vec<Vec<DbID>> = sf_with_selections
         .iter()
-        .map(|f| *f & &filters.discrete_facets)
+        .map(|f| (*f & &filters.discrete_facets).into_iter().collect())
         .collect();
-    let selected_tf: Vec<FxHashSet<DbID>> = tf_with_selections
+    let selected_tf: Vec<Vec<DbID>> = tf_with_selections
         .iter()
-        .map(|f| *f & &filters.discrete_facets)
+        .map(|f| (*f & &filters.discrete_facets).into_iter().collect())
         .collect();
 
     let mut min_effect = f32::INFINITY;
@@ -129,7 +141,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     let mut new_regeffects: u32 = 0;
                     for facet in &source.facets {
                         if skip_disc_facet_check
-                            || selected_sf.iter().all(|sf| !sf.is_disjoint(&facet.0))
+                            || selected_sf.iter().all(|sf| !is_disjoint(&facet.0, sf))
                         {
                             min_effect = facet.1.min(min_effect);
                             max_effect = facet.1.max(max_effect);
@@ -201,7 +213,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     let mut new_regeffects: u32 = 0;
                     for facet in &target.facets {
                         if skip_disc_facet_check
-                            || selected_tf.iter().all(|tf| !tf.is_disjoint(&facet.0))
+                            || selected_tf.iter().all(|tf| !is_disjoint(&facet.0, tf))
                         {
                             min_effect = facet.1.min(min_effect);
                             max_effect = facet.1.max(max_effect);
