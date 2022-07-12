@@ -128,11 +128,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     let mut new_regeffects: u32 = 0;
                     for facet in &source.facets {
                         if skip_disc_facet_check
-                            || selected_sf.len()
-                                == selected_sf
-                                    .iter()
-                                    .filter(|sf| !sf.is_disjoint(&facet.0))
-                                    .count()
+                            || selected_sf.iter().all(|sf| !sf.is_disjoint(&facet.0))
                         {
                             min_effect = facet.1.min(min_effect);
                             max_effect = facet.1.max(max_effect);
@@ -212,11 +208,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     let mut new_regeffects: u32 = 0;
                     for facet in &target.facets {
                         if skip_disc_facet_check
-                            || selected_tf.len()
-                                == selected_tf
-                                    .iter()
-                                    .filter(|tf| !tf.is_disjoint(&facet.0))
-                                    .count()
+                            || selected_tf.iter().all(|tf| !tf.is_disjoint(&facet.0))
                         {
                             min_effect = facet.1.min(min_effect);
                             max_effect = facet.1.max(max_effect);
