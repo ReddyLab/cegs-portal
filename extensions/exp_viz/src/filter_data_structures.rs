@@ -1,6 +1,6 @@
 use rustc_hash::FxHashSet;
 
-use crate::data_structures::{CoverageData, DbID};
+use crate::data_structures::{Bucket, CoverageData, DbID};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -105,5 +105,47 @@ impl FilteredData {
 impl FilteredData {
     pub fn to_json(&self) -> PyResult<String> {
         serde_json::to_string(self).map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    }
+}
+
+#[derive(Clone)]
+pub struct BucketList {
+    pub buckets: Vec<Vec<u32>>,
+}
+
+impl BucketList {
+    pub fn new(chroms: &Vec<usize>, bucket_size: usize) -> Self {
+        BucketList {
+            buckets: chroms
+                .iter()
+                .map(|c| vec![0; (c / bucket_size) + 1])
+                .collect(),
+        }
+    }
+
+    pub fn insert(&mut self, chrom: usize, bucket: usize) {
+        self.buckets[chrom][bucket] = 1;
+    }
+
+    pub fn insert_from<'a, I>(&mut self, from: I)
+    where
+        I: IntoIterator<Item = &'a Bucket>,
+    {
+        for bucket in from {
+            self.insert(bucket.0, bucket.1 as usize);
+        }
+    }
+
+    pub fn flat_list(&self) -> Vec<u32> {
+        let mut new_list: Vec<u32> = Vec::new();
+        for (i, chrom) in self.buckets.iter().enumerate() {
+            for (j, bucket) in chrom.iter().enumerate() {
+                if *bucket == 1 {
+                    new_list.push(i as u32);
+                    new_list.push(j as u32);
+                }
+            }
+        }
+        new_list
     }
 }

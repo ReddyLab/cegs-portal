@@ -3,7 +3,7 @@ use std::time::Instant;
 use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
-use crate::data_structures::{Bucket, DbID, FacetCoverage, FacetRange};
+use crate::data_structures::{DbID, FacetCoverage, FacetRange};
 use crate::filter_data_structures::*;
 
 #[pyfunction]
@@ -89,6 +89,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
 
     for (c, chromosome) in data.chromosomes.iter().enumerate() {
         let mut chrom_data = new_data.chromosomes.get_mut(c).unwrap();
+        let bucket_list = BucketList::new(&data.chrom_lengths, chromosome.bucket_size as usize);
         if skip_cont_facet_check && sf_with_selections.is_empty() {
             // do no filtering
             chrom_data.source_intervals = chromosome
@@ -122,7 +123,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
             for interval in &chromosome.source_intervals {
                 let sources = &interval.values;
                 let mut new_source_count: usize = 0;
-                let mut new_target_buckets: FxHashSet<Bucket> = FxHashSet::default();
+                let mut new_target_buckets = bucket_list.clone();
 
                 for source in sources.values() {
                     let mut new_regeffects: u32 = 0;
@@ -142,7 +143,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                                     && facet.2 <= sig_interval.1)
                             {
                                 new_regeffects += 1;
-                                new_target_buckets.extend(source.associated_buckets.iter());
+                                new_target_buckets.insert_from(&source.associated_buckets);
                             }
                         }
                     }
@@ -155,15 +156,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     chrom_data.source_intervals.push(FilteredBucket {
                         start: interval.start,
                         count: new_source_count,
-                        associated_buckets: new_target_buckets.iter().fold(
-                            Vec::new(),
-                            |mut acc, b| {
-                                acc.push(b.0 as u32);
-                                acc.push(b.1);
-
-                                acc
-                            },
-                        ),
+                        associated_buckets: new_target_buckets.flat_list(),
                     })
                 }
             }
@@ -202,7 +195,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
             for interval in &chromosome.target_intervals {
                 let targets = &interval.values;
                 let mut new_target_count: usize = 0;
-                let mut new_source_buckets: FxHashSet<Bucket> = FxHashSet::default();
+                let mut new_source_buckets = bucket_list.clone();
 
                 for target in targets.values() {
                     let mut new_regeffects: u32 = 0;
@@ -222,7 +215,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                                     && facet.2 <= sig_interval.1)
                             {
                                 new_regeffects += 1;
-                                new_source_buckets.extend(target.associated_buckets.iter());
+                                new_source_buckets.insert_from(&target.associated_buckets);
                             }
                         }
                     }
@@ -235,15 +228,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                     chrom_data.target_intervals.push(FilteredBucket {
                         start: interval.start,
                         count: new_target_count,
-                        associated_buckets: new_source_buckets.iter().fold(
-                            Vec::new(),
-                            |mut acc, b| {
-                                acc.push(b.0 as u32);
-                                acc.push(b.1);
-
-                                acc
-                            },
-                        ),
+                        associated_buckets: new_source_buckets.flat_list(),
                     })
                 }
             }
