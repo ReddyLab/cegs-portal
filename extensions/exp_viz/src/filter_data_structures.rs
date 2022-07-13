@@ -1,6 +1,6 @@
 use rustc_hash::FxHashSet;
 
-use crate::data_structures::{Bucket, CoverageData, DbID};
+use cov_viz_ds::{Bucket, CoverageData, DbID};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};

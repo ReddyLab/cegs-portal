@@ -30,10 +30,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "cov_viz_ds"
+version = "0.1.0"
+source = "git+https://github.com/ReddyLab/cov_viz_ds?rev=7a5d7defece979fb9606bd334c0622dfb98df276#7a5d7defece979fb9606bd334c0622dfb98df276"
+dependencies = [
+ "bincode",
+ "rustc-hash",
+ "serde",
+]
+
+[[package]]
 name = "exp_viz"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "cov_viz_ds",
  "pyo3",
  "rustc-hash",
  "serde",

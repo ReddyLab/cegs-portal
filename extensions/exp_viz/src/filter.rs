@@ -3,7 +3,7 @@ use std::time::Instant;
 use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
-use crate::data_structures::{DbID, FacetCoverage, FacetRange};
+use cov_viz_ds::{DbID, FacetCoverage, FacetRange};
 use crate::filter_data_structures::*;
 
 fn is_disjoint(a: &Vec<DbID>, b: &Vec<DbID>) -> bool {

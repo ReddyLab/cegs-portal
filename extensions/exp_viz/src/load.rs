@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use std::time::Instant;
 
-use crate::data_structures::CoverageData;
+use cov_viz_ds::CoverageData;
 
 use crate::filter_data_structures::PyCoverageData;
 
