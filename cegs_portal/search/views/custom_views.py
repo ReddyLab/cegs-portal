@@ -1,14 +1,19 @@
 import logging
 from typing import Callable, Optional
 
-from django.http import Http404, HttpResponseNotFound, HttpResponseServerError
+from django.http import (
+    Http404,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    HttpResponseServerError,
+)
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
 from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
-from cegs_portal.utils.http_exceptions import Http500
+from cegs_portal.utils.http_exceptions import Http400, Http500
 
 logger = logging.getLogger("django.request")
 
@@ -37,6 +42,8 @@ class TemplateJsonView(View):
 
         try:
             response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
+        except Http400 as err:
+            response = self.http_bad_request(request, err)
         except Http404 as err:
             response = self.http_page_not_found(request, err)
         except Http500 as err:
@@ -87,6 +94,15 @@ class TemplateJsonView(View):
 
     def post_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options.get("json_format", None)), safe=False)
+
+    def http_bad_request(self, request, err, *args, **kwargs):
+        logger.warning(
+            "400 Bad Request (%s): %s",
+            request.method,
+            request.path,
+            extra={"status_code": 400, "request": request},
+        )
+        return HttpResponseBadRequest(str(err), *args, **kwargs)
 
     def http_page_not_found(self, request, err, *args, **kwargs):
         logger.warning(
