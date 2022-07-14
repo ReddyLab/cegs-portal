@@ -455,7 +455,7 @@
 
         function discreteFilterControls(facets) {
             return facets
-            .filter(f => f.type == "FacetType.DISCRETE")
+            .filter(f => f.facet_type == "FacetType.DISCRETE")
             .map(facet => {
                 return e("fieldset", {name: "facetfield", class:"my-4"}, [
                     e("legend", {class:"font-bold"}, facet.name),
@@ -488,7 +488,7 @@
         });
 
         function continuousFilterControls() {
-            const contFacets = facets.filter(f => f.type == "FacetType.CONTINUOUS");
+            const contFacets = facets.filter(f => f.facet_type == "FacetType.CONTINUOUS");
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
             let filterNodes = [];
             let intervals = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);

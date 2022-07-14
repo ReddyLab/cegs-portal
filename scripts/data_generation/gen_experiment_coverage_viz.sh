@@ -7,11 +7,11 @@ gen_data() {
     local OUTPUT_DIR=$3
 
     # Install cov_viz from github: https://github.com/ReddyLab/cov_viz
-    # cov_viz requires rust, which can be downloaded/installed from https://www.rust-lang.org
+    # Install cov_viz_manifest from github: https://github.com/ReddyLab/cov_viz_manifest
+    # cov_viz and cov_viz_manifest require rust, which can be downloaded/installed from https://www.rust-lang.org
 
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME}
-    # I think gen_experiment_coverage_manifest needs to be rewritten in rust as well
-    # python manage.py shell -c "from scripts.data_generation import gen_experiment_coverage_manifest; gen_experiment_coverage_manifest.run(\"$OUTPUT_DIR\", \"$GENOME\")"
+    cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.bin ${OUTPUT_DIR}
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr1
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr2
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr3
