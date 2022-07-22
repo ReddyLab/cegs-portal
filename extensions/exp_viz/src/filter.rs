@@ -138,7 +138,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 let mut new_target_buckets = bucket_list.clone();
 
                 for source in sources {
-                    let mut new_regeffects: u32 = 0;
+                    let mut new_regeffects = false;
                     for facet in &source.facets {
                         if skip_disc_facet_check
                             || selected_sf.iter().all(|sf| !is_disjoint(&facet.0, sf))
@@ -148,18 +148,18 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                             min_sig = facet.2.min(min_sig);
                             max_sig = facet.2.max(max_sig);
 
-                            if skip_cont_facet_check
+                            if !new_regeffects && (skip_cont_facet_check
                                 || (facet.1 >= effect_size_interval.0
                                     && facet.1 <= effect_size_interval.1
                                     && facet.2 >= sig_interval.0
-                                    && facet.2 <= sig_interval.1)
+                                    && facet.2 <= sig_interval.1))
                             {
-                                new_regeffects += 1;
-                                new_target_buckets.insert_from(&source.associated_buckets);
+                                new_regeffects = true;
                             }
                         }
                     }
-                    if new_regeffects > 0 {
+                    if new_regeffects {
+                        new_target_buckets.insert_from(&source.associated_buckets);
                         new_source_count += 1;
                     }
                 }
@@ -210,7 +210,7 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                 let mut new_source_buckets = bucket_list.clone();
 
                 for target in targets {
-                    let mut new_regeffects: u32 = 0;
+                    let mut new_regeffects = false;
                     for facet in &target.facets {
                         if skip_disc_facet_check
                             || selected_tf.iter().all(|tf| !is_disjoint(&facet.0, tf))
@@ -220,18 +220,18 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
                             min_sig = facet.2.min(min_sig);
                             max_sig = facet.2.max(max_sig);
 
-                            if skip_cont_facet_check
+                            if !new_regeffects && (skip_cont_facet_check
                                 || (facet.1 >= effect_size_interval.0
                                     && facet.1 <= effect_size_interval.1
                                     && facet.2 >= sig_interval.0
-                                    && facet.2 <= sig_interval.1)
+                                    && facet.2 <= sig_interval.1))
                             {
-                                new_regeffects += 1;
-                                new_source_buckets.insert_from(&target.associated_buckets);
+                                new_regeffects = true;
                             }
                         }
                     }
-                    if new_regeffects > 0 {
+                    if new_regeffects {
+                        new_source_buckets.insert_from(&target.associated_buckets);
                         new_target_count += 1;
                     }
                 }
