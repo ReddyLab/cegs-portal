@@ -1,4 +1,5 @@
 from .accession import Accessioned
+from .dna_feature import DNAFeature, DNAFeatureType
 from .dna_region import DNARegion
 from .experiment import CellLine, Experiment, ExperimentDataFile, TissueType
 from .facets import Facet, Faceted, FacetType, FacetValue

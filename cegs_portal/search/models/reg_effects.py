@@ -3,10 +3,9 @@ from enum import Enum
 from django.db import models
 
 from cegs_portal.search.models.accession import Accessioned
-from cegs_portal.search.models.dna_region import DNARegion
+from cegs_portal.search.models.dna_feature import DNAFeature
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import Faceted
-from cegs_portal.search.models.features import FeatureAssembly
 from cegs_portal.search.models.searchable import Searchable
 
 
@@ -32,8 +31,8 @@ class RegulatoryEffect(Accessioned, Searchable, Faceted):
     objects = RegulatoryEffectSet.as_manager()
 
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
-    target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
+    sources = models.ManyToManyField(DNAFeature, related_name="source_for")
+    target_assemblies = models.ManyToManyField(DNAFeature, related_name="target_of")
 
     @property
     def direction(self):
