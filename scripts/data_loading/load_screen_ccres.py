@@ -4,7 +4,7 @@ import time
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNARegion, Facet, FacetValue
+from cegs_portal.search.models import DNAFeature, DNAFeatureType, Facet, FacetValue
 from utils import FileMetadata, get_delimiter, timer
 
 from . import get_closest_gene
@@ -17,7 +17,7 @@ CCRE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(f
 
 def bulk_save(sites):
     with transaction.atomic():
-        DNARegion.objects.bulk_create(sites, batch_size=1000)
+        DNAFeature.objects.bulk_create(sites, batch_size=1000)
 
 
 @timer("Set Facets", unit="s")
@@ -35,7 +35,7 @@ def get_facets(facet_string):
 @timer("Load cCREs")
 def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_sites: list[DNARegion] = []
+    new_sites: list[DNAFeature] = []
     facets: list[list[FacetValue]] = []
     print("Starting line 0")
     start_time = time.perf_counter()
@@ -60,18 +60,18 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
         dhs_end = int(dhs_end_str)
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
-        closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
-        dhs = DNARegion(
+        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
+        dhs = DNAFeature(
             cell_line=cell_line,
             chrom_name=chrom_name,
-            closest_gene_assembly=closest_assembly,
+            closest_gene=closest_gene,
             closest_gene_distance=distance,
             closest_gene_name=gene_name,
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
             misc={"screen_accession_id": accession_id},
-            region_type="ccre",
+            feature_type=DNAFeatureType.CCRE,
             source=source_file,
         )
         new_sites.append(dhs)
@@ -81,6 +81,12 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
     set_facets(new_sites, facets)
     end_time = time.perf_counter()
     print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
+
+
+@timer("Unloading CCREs", level=1)
+def unload_ccres(file_metadata):
+    DNAFeature.objects.filter(source=file_metadata.file).delete()
+    file_metadata.db_del()
 
 
 def check_filename(ccre_data: str):
@@ -93,6 +99,12 @@ def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
         file_metadata = FileMetadata.json_load(file)
 
     check_filename(file_metadata.filename)
+
+    # Only run unload_ccres if you want to delete all the ccres loaded by ccre_data file.
+    # Please note that it won't reset DB id numbers, so running this script with
+    # unload_ccres() uncommented is not, strictly, idempotent.
+    # unload_ccres(file_metadata)
+
     source_file = file_metadata.db_save()
 
     with open(file_metadata.full_data_filepath) as ccres_file:

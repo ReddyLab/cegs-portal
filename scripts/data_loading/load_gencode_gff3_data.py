@@ -3,7 +3,12 @@ from urllib.parse import unquote
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import FeatureAssembly, GencodeAnnotation, GencodeRegion
+from cegs_portal.search.models import (
+    DNAFeature,
+    DNAFeatureType,
+    GencodeAnnotation,
+    GencodeRegion,
+)
 from utils import timer
 
 # Attributes that are saved in the annotation table rather than the attribute tabale
@@ -101,11 +106,11 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
 def bulk_feature_save(assemblies, parent_ids=[]):
     with transaction.atomic():
         if len(parent_ids) > 0:
-            parents = FeatureAssembly.objects.filter(ensembl_id__in=parent_ids)
+            parents = DNAFeature.objects.filter(ensembl_id__in=parent_ids)
             parents_dict = {p.ensembl_id: p for p in parents.all()}
             for a, pid in zip(assemblies, parent_ids):
                 a.parent = parents_dict[pid]
-        FeatureAssembly.objects.bulk_create(assemblies)
+        DNAFeature.objects.bulk_create(assemblies)
 
 
 @timer("Creating Genes", level=1)
@@ -132,7 +137,7 @@ def create_genes(ref_genome, ref_genome_patch):
         if value := annotation.attributes.get("havana_gene", False):
             ids["havana"] = value
 
-        assembly = FeatureAssembly(
+        assembly = DNAFeature(
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
@@ -140,7 +145,7 @@ def create_genes(ref_genome, ref_genome_patch):
             strand=annotation.strand,
             ref_genome=annotation.ref_genome,
             ref_genome_patch=annotation.ref_genome_patch,
-            feature_type="gene",
+            feature_type=DNAFeatureType.GENE,
             feature_subtype=annotation.gene_type,
             ensembl_id=ensembl_id,
         )
@@ -173,7 +178,7 @@ def create_transcripts(ref_genome, ref_genome_patch):
             ids["havana"] = value
 
         parent_ids.append(annotation.attributes["gene_id"].split(".")[0])
-        assembly = FeatureAssembly(
+        assembly = DNAFeature(
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
@@ -182,7 +187,7 @@ def create_transcripts(ref_genome, ref_genome_patch):
             ref_genome=annotation.ref_genome,
             ref_genome_patch=annotation.ref_genome_patch,
             ensembl_id=ensembl_id,
-            feature_type="transcript",
+            feature_type=DNAFeatureType.TRANSCRIPT,
             feature_subtype=annotation.attributes["transcript_type"],
         )
         assembly_buffer.append(assembly)
@@ -211,14 +216,14 @@ def create_exons(ref_genome, ref_genome_patch):
             exon_id = value
 
         parent_ids.append(annotation.attributes["transcript_id"].split(".")[0])
-        assembly = FeatureAssembly(
+        assembly = DNAFeature(
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
             strand=annotation.strand,
             ref_genome=annotation.ref_genome,
             ref_genome_patch=annotation.ref_genome_patch,
-            feature_type="exon",
+            feature_type=DNAFeatureType.EXON,
             ensembl_id=exon_id,
             misc={"number": int(annotation.attributes["exon_number"]), "gencode_id": annotation.id_attr},
         )
@@ -228,10 +233,16 @@ def create_exons(ref_genome, ref_genome_patch):
 
 
 @timer("Unloading Genome Annotations", level=1)
-def unload_genome_annotations():
-    GencodeRegion.objects.all().delete()
-    GencodeAnnotation.objects.all().delete()
-    FeatureAssembly.objects.all().delete()
+def unload_genome_annotations(ref_genome, ref_genome_patch):
+    annotations = GencodeAnnotation.objects.filter(ref_genome=ref_genome, ref_genome_patch=ref_genome_patch)
+    annotation_regions = annotations.values_list("region_id")
+    GencodeRegion.objects.filter(id__in=annotation_regions).delete()
+    annotations.delete()
+    DNAFeature.objects.filter(
+        feature_type__in=[DNAFeatureType.GENE, DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT],
+        ref_genome=ref_genome,
+        ref_genome_patch=ref_genome_patch,
+    ).delete()
 
 
 def check_filename(annotation_filename: str):
@@ -255,7 +266,7 @@ def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, versio
     # Only run unload_genome_annotations if you want to delete all the gencode data in the db.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_genome_annotations() uncommented is not, strictly, idempotent.
-    # unload_genome_annotations()
+    # unload_genome_annotations(ref_genome, ref_genome_patch)
 
     with open(annotation_filename, "r") as annotation_file:
         load_genome_annotations(annotation_file, ref_genome, ref_genome_patch, version)

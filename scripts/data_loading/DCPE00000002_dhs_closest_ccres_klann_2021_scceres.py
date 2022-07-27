@@ -2,7 +2,8 @@ import csv
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNARegion, Facet, FacetValue
+from cegs_portal.search.models import DNAFeature, Facet, FacetValue
+from cegs_portal.search.models.dna_feature import DNAFeatureType
 from utils import timer
 
 CCRE_FACET = Facet.objects.get(name="cCRE Category")
@@ -26,8 +27,8 @@ def run(closest_filename):
             ccre_start, ccre_end = int(row[4]), int(row[5]) + 1
 
             if current_dhs is None:
-                current_dhs = DNARegion.objects.get(
-                    chrom_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), region_type="dhs"
+                current_dhs = DNAFeature.objects.get(
+                    chrom_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), feature_type=DNAFeatureType.DHS
                 )
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
 
@@ -49,8 +50,8 @@ def run(closest_filename):
                 else:
                     overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
 
-                current_ccres = DNARegion.objects.filter(
-                    chrom_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
+                current_ccres = DNAFeature.objects.filter(
+                    chrom_name=current_chr, location__in=list(current_ccre_locations), feature_type=DNAFeatureType.CCRE
                 ).prefetch_related("facet_values")
                 ccre_category_set = set()
                 for ccre in current_ccres.all():
@@ -98,8 +99,10 @@ def run(closest_filename):
                 current_dhs.facet_values.add(*list(ccre_category_set))
 
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
-                current_dhs = DNARegion.objects.get(
-                    chrom_name=current_chr, location=NumericRange(current_start, current_end), region_type="dhs"
+                current_dhs = DNAFeature.objects.get(
+                    chrom_name=current_chr,
+                    location=NumericRange(current_start, current_end),
+                    feature_type=DNAFeatureType.DHS,
                 )
                 assert current_dhs is not None
                 current_ccre_locations = set()
@@ -118,8 +121,8 @@ def run(closest_filename):
         else:
             overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
 
-        current_ccres = DNARegion.objects.filter(
-            chrom_name=current_chr, location__in=list(current_ccre_locations), region_type="ccre"
+        current_ccres = DNAFeature.objects.filter(
+            chrom_name=current_chr, location__in=list(current_ccre_locations), feature_type=DNAFeatureType.CCRE
         ).prefetch_related("facet_values")
         ccre_category_set = set()
         for ccre in current_ccres.all():

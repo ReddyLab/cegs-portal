@@ -4,11 +4,11 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
-    DNARegion,
+    DNAFeature,
+    DNAFeatureType,
     Experiment,
     Facet,
     FacetValue,
-    FeatureAssembly,
     RegulatoryEffect,
 )
 from utils import ExperimentMetadata, timer
@@ -35,7 +35,7 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 def bulk_save(grnas, effects, effect_directions, sources, targets):
     with transaction.atomic():
         print("Adding gRNA Regions")
-        DNARegion.objects.bulk_create(grnas, batch_size=1000)
+        DNAFeature.objects.bulk_create(grnas, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -83,19 +83,19 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             grna_end = int(grna_end_str)
             grna_location = NumericRange(grna_start, grna_end, "[]")
 
-            closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
+            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
-            region = DNARegion(
+            region = DNAFeature(
                 cell_line=cell_line,
                 chrom_name=chrom_name,
-                closest_gene_assembly=closest_assembly,
+                closest_gene=closest_gene,
                 closest_gene_distance=distance,
                 closest_gene_name=gene_name,
                 location=grna_location,
                 misc={"grna": grna},
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
-                region_type="grna",
+                feature_type=DNAFeatureType.GRNA,
                 source=region_source,
                 strand=strand,
             )
@@ -113,7 +113,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         else:
             direction = DIR_FACET_VALUES["Non-significant"]
 
-        target_assembly = FeatureAssembly.objects.get(
+        target_assembly = DNAFeature.objects.get(
             ref_genome=ref_genome, ref_genome_patch=ref_genome_patch, name=line["gene_symbol"]
         )
 
@@ -135,7 +135,7 @@ def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     RegulatoryEffect.objects.filter(experiment=experiment).delete()
     for file in experiment.other_files.all():
-        DNARegion.objects.filter(source=file).delete()
+        DNAFeature.objects.filter(source=file).delete()
     experiment_metadata.db_del()
 
 
@@ -149,7 +149,8 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete all the gencode data in the db.
+    # Only run unload_reg_effects if you want to delete the experiment, all
+    # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
     # unload_reg_effects(experiment_metadata)

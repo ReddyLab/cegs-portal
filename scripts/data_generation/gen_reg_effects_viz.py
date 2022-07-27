@@ -5,7 +5,7 @@ from os.path import join
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import FeatureAssembly, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffect
 
 GRCH37 = [
     ("1", 249250621),
@@ -88,7 +88,7 @@ def run(output_dir, chrom, bucket_size=100_000):
         genes = set()
         assemblies = set()
         gene_dhs = defaultdict(set)
-        featureAssemblies = FeatureAssembly.objects.filter(
+        featureAssemblies = DNAFeature.objects.filter(
             chrom_name=chrom_name, location__overlap=NumericRange(int(start), int(end), "[)")
         )
         local_reg_effects = reg_effects.filter(target_assemblies__in=featureAssemblies)

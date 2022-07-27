@@ -33,6 +33,13 @@ class FileMetadata:
 
         return source_file
 
+    def db_del(self):
+        self.file.delete()
+
+    @property
+    def file(self):
+        return File.objects.get(filename=self.data_filename, description=self.description, url=self.url)
+
     @property
     def full_data_filepath(self):
         base_path = os.path.dirname(self.filename)

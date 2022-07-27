@@ -5,11 +5,11 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
-    DNARegion,
+    DNAFeature,
+    DNAFeatureType,
     Experiment,
     Facet,
     FacetValue,
-    FeatureAssembly,
     RegulatoryEffect,
 )
 from utils import ExperimentMetadata, timer
@@ -37,15 +37,15 @@ CORRECT_FEATURES = ["ENSG00000272333"]
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
-    sources: list[DNARegion],
-    dhss: list[DNARegion],
+    sources: list[DNAFeature],
+    dhss: list[DNAFeature],
     effects: list[RegulatoryEffect],
     effect_directions: list[RegulatoryEffect],
-    target_assemblies: list[FeatureAssembly],
+    target_assemblies: list[DNAFeature],
 ):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
-        DNARegion.objects.bulk_create(dhss, batch_size=1000)
+        DNAFeature.objects.bulk_create(dhss, batch_size=1000)
 
         print("Adding RegulatoryEffects")
         RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
@@ -68,11 +68,11 @@ def bulk_save(
 @timer("Load Reg Effects")
 def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites: list[DNARegion] = []
-    new_sites: list[DNARegion] = []
+    sites: list[DNAFeature] = []
+    new_sites: list[DNAFeature] = []
     effects: list[RegulatoryEffect] = []
     effect_directions: list[FacetValue] = []
-    target_assembiles: list[FeatureAssembly] = []
+    target_assemblies: list[DNAFeature] = []
 
     for line in reader:
         chrom_name = line["dhs_chrom"]
@@ -82,19 +82,19 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         try:
-            dhs = DNARegion.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
+            dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
         except ObjectDoesNotExist:
-            closest_assembly, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
-            dhs = DNARegion(
+            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
+            dhs = DNAFeature(
                 cell_line=cell_line,
                 chrom_name=chrom_name,
-                closest_gene_assembly=closest_assembly,
+                closest_gene=closest_gene,
                 closest_gene_distance=distance,
                 closest_gene_name=gene_name,
                 location=dhs_location,
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
-                region_type="dhs",
+                feature_type=DNAFeatureType.DHS,
                 source=region_source,
             )
             new_sites.append(dhs)
@@ -113,13 +113,13 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
             direction = DIR_FACET_VALUES["Non-significant"]
 
         try:
-            target_assembly = FeatureAssembly.objects.get(
+            target_assembly = DNAFeature.objects.get(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 name=line["gene_symbol"],
                 location=NumericRange(int(line["start"]), int(line["end"]), "[]"),
             )
-        except FeatureAssembly.MultipleObjectsReturned:
+        except DNAFeature.MultipleObjectsReturned:
             # There is ONE instance where there are two genes with the same name
             # in the exact same location. This handles that situation.
             # The two gene IDs are ENSG00000272333 and ENSG00000105663.
@@ -131,7 +131,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
                 line["gene_symbol"],
                 NumericRange(int(line["start"]), int(line["end"]), "[]"),
             )
-            target_assembly = FeatureAssembly.objects.get(
+            target_assembly = DNAFeature.objects.get(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 name=line["gene_symbol"],
@@ -147,18 +147,18 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
                 RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
             },
         )
-        target_assembiles.append(target_assembly)
+        target_assemblies.append(target_assembly)
         effects.append(effect)
         effect_directions.append(direction)
     print(f"New DHS Count: {len(new_sites)}")
-    bulk_save(sites, new_sites, effects, effect_directions, target_assembiles)
+    bulk_save(sites, new_sites, effects, effect_directions, target_assemblies)
 
 
 def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     RegulatoryEffect.objects.filter(experiment=experiment).delete()
     for file in experiment.other_files.all():
-        DNARegion.objects.filter(source=file).delete()
+        DNAFeature.objects.filter(source=file).delete()
     experiment_metadata.db_del()
 
 
@@ -172,7 +172,8 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete all the gencode data in the db.
+    # Only run unload_reg_effects if you want to delete the experiment, all
+    # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
     # unload_reg_effects(experiment_metadata)
