@@ -50,7 +50,7 @@ class DNAFeature(Accessioned, Searchable, Faceted):
     ensembl_id = models.CharField(max_length=50, null=True)
     ids = models.JSONField(null=True, validators=[validate_gene_ids])
 
-    closest_gene = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
+    closest_gene = models.ForeignKey("self", null=True, on_delete=models.SET_NULL, related_name="closest_features")
     closest_gene_distance = models.IntegerField(null=True)
     closest_gene_name = models.CharField(max_length=50, null=True)
 

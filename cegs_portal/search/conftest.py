@@ -4,16 +4,15 @@ import pytest
 from django.db.models import Manager
 
 from cegs_portal.search.models import (
+    DNAFeature,
     EffectDirectionType,
     Experiment,
     ExperimentDataFile,
     Facet,
-    FeatureAssembly,
     File,
     RegulatoryEffect,
 )
-from cegs_portal.search.models.dna_region import DNARegion
-from cegs_portal.search.models.tests.dna_region_factory import DNARegionFactory
+from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import (
     CellLineFactory,
     ExperimentDataFileFactory,
@@ -24,7 +23,6 @@ from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
     FacetValueFactory,
 )
-from cegs_portal.search.models.tests.features_factory import FeatureAssemblyFactory
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 from cegs_portal.utils.pagination_types import MockPaginator, Pageable
@@ -62,28 +60,23 @@ def of() -> File:
 
 
 @pytest.fixture
-def region() -> DNARegion:
-    return DNARegionFactory()
-
-
-@pytest.fixture
-def regions() -> Pageable[DNARegion]:
-    paginator: MockPaginator[DNARegion] = MockPaginator(
+def feature_pages() -> Pageable[DNAFeature]:
+    paginator: MockPaginator[DNAFeature] = MockPaginator(
         [
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
-            DNARegionFactory(),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(parent=None),
         ],
         3,
     )
@@ -91,30 +84,27 @@ def regions() -> Pageable[DNARegion]:
 
 
 @pytest.fixture
-def region_tuple() -> tuple[DNARegion, Iterable]:
-    return (DNARegionFactory(), [])
-
-
-@pytest.fixture
-def feature_assemblies() -> Iterable[FeatureAssembly]:
-    f1 = FeatureAssemblyFactory(parent=None)
-    f2 = FeatureAssemblyFactory(parent=None)
-    f3 = FeatureAssemblyFactory(parent=None)
-    f4 = FeatureAssemblyFactory(parent=None)
-    f5 = FeatureAssemblyFactory(parent=None)
+def features() -> Iterable[DNAFeature]:
+    f1 = DNAFeatureFactory(parent=None)
+    f2 = DNAFeatureFactory(parent=None)
+    f3 = DNAFeatureFactory(parent=None)
+    f4 = DNAFeatureFactory(parent=None)
+    f5 = DNAFeatureFactory(parent=None)
     return [f1, f2, f3, f4, f5]
 
 
 @pytest.fixture
-def assembly() -> FeatureAssembly:
-    return FeatureAssemblyFactory(parent=None)
+def feature() -> DNAFeature:
+    return DNAFeatureFactory(parent=None)
 
 
 @pytest.fixture
 def reg_effect() -> RegulatoryEffect:
     direction_facet = FacetFactory(description="", name=RegulatoryEffect.Facet.DIRECTION.value)
     direction = FacetValueFactory(facet=direction_facet, value=EffectDirectionType.ENRICHED)
-    effect = RegEffectFactory(sources=(DNARegionFactory(), DNARegionFactory()), facet_values=(direction,))
+    effect = RegEffectFactory(
+        sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)), facet_values=(direction,)
+    )
     effect.experiment.data_files.add(
         ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
     )

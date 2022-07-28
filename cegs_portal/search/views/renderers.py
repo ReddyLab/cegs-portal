@@ -3,11 +3,10 @@ from functools import singledispatch
 from django.db.models import QuerySet
 
 from cegs_portal.search.models import (
-    DNARegion,
+    DNAFeature,
     Experiment,
     Facet,
     FacetValue,
-    FeatureAssembly,
     RegulatoryEffect,
 )
 from cegs_portal.search.models.utils import ChromosomeLocation
@@ -46,32 +45,37 @@ def _facetvalue(val: FacetValue, json_format=None):
     return {"id": val.id, "value": val.value}
 
 
-@json.register(DNARegion)
-def _dnaregion(dnaregion: DNARegion, json_format=None):
+@json.register(DNAFeature)
+def _dnaregion(feature: DNAFeature, json_format=None):
     result = {
-        "cell_line": dnaregion.cell_line,
-        "start": dnaregion.location.lower,
-        "end": dnaregion.location.upper,
-        "closest_gene": json(dnaregion.closest_gene, json_format),
-        "closest_gene_assembly": json(dnaregion.closest_gene_assembly, json_format),
-        "closest_gene_id": dnaregion.closest_gene_id,
-        "closest_gene_name": dnaregion.closest_gene_name,
-        "ref_genome": dnaregion.ref_genome,
-        "ref_genome_patch": dnaregion.ref_genome_patch,
-        "effects": [json(effect, json_format) for effect in dnaregion.regulatory_effects.all()],
-        "facet_values": {value.id: value.value for value in dnaregion.facet_values.all()},
-        "type": dnaregion.region_type,
+        "id": feature.feature.ensembl_id,
+        "ids": feature.ids,
+        "name": feature.name,
+        "cell_line": feature.cell_line,
+        "start": feature.location.lower,
+        "end": feature.location.upper,
+        "strand": feature.strand,
+        "closest_gene": json(feature.closest_gene, json_format),
+        "closest_gene_name": feature.closest_gene_name,
+        "ref_genome": feature.ref_genome,
+        "ref_genome_patch": feature.ref_genome_patch,
+        "effects": [json(effect, json_format) for effect in feature.regulatory_effects.all()],
+        "facet_values": {value.id: value.value for value in feature.facet_values.all()},
+        "type": feature.feature_type,
+        "subtype": feature.feature_subtype,
+        "parent_id": feature.parent.ensembl_id if feature.parent is not None else None,
+        "misc": feature.misc,
     }
 
-    if hasattr(dnaregion, "label"):
-        result["label"] = dnaregion.label  # type: ignore[attr-defined]
+    if hasattr(feature, "label"):
+        result["label"] = feature.label  # type: ignore[attr-defined]
 
     if json_format == "genoverse":
-        result["id"] = str(dnaregion.id)
-        result["chr"] = dnaregion.chrom_name.removeprefix("chr")
+        result["id"] = str(feature.id)
+        result["chr"] = feature.chrom_name.removeprefix("chr")
     else:
-        result["id"] = dnaregion.id
-        result["chr"] = dnaregion.chrom_name
+        result["id"] = feature.id
+        result["chr"] = feature.chrom_name
 
     return result
 
@@ -86,31 +90,6 @@ def _regulatory_effect(reg_effect, json_format=None):
         "targets": [json(target, json_format) for target in reg_effect.targets.all()],
         "target_assemblies": [json(assembly, json_format) for assembly in reg_effect.target_assemblies.all()],
     }
-
-
-@json.register(FeatureAssembly)
-def _feature_assembly(feature_assembly, json_format=None):
-    result = {
-        "id": feature_assembly.feature.ensembl_id,
-        "name": feature_assembly.name,
-        "type": feature_assembly.feature_type,
-        "subtype": feature_assembly.feature_subtype,
-        "start": feature_assembly.location.lower,
-        "end": feature_assembly.location.upper - 1,
-        "strand": feature_assembly.strand,
-        "ids": feature_assembly.ids,
-        "ref_genome": feature_assembly.ref_genome,
-        "ref_genome_patch": feature_assembly.ref_genome_patch,
-        "parent_id": feature_assembly.parent.ensembl_id if feature_assembly.parent is not None else None,
-        "misc": feature_assembly.misc,
-    }
-
-    if json_format == "genoverse":
-        result["chr"] = feature_assembly.chrom_name.removeprefix("chr")
-    else:
-        result["chr"] = feature_assembly.chrom_name
-
-    return result
 
 
 @json.register(Experiment)
