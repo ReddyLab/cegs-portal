@@ -1,24 +1,27 @@
+from cegs_portal.search.json_templates import genoversify
 from cegs_portal.search.models import DNAFeature, RegulatoryEffect
 
 
 def features(feature_objs: DNAFeature, json_format: str = None):
-    results = [feature(f, json_format=json_format) for f in feature_objs]
-    return results
+    return [feature(f, json_format=json_format) for f in feature_objs]
 
 
 def feature(feature_obj: DNAFeature, json_format: str = None):
     result = {
+        "id": feature_obj.id,
         "ensembl_id": feature_obj.ensembl_id,
         "cell_line": feature_obj.cell_line,
-        "chr": feature_obj.chrom_name,
         "name": feature_obj.name,
+        "chr": feature_obj.chrom_name,
         "start": feature_obj.location.lower,
         "end": feature_obj.location.upper,
         "strand": feature_obj.strand,
-        "closest_gene_ensembl_id": None,
+        "closest_gene_ensembl_id": feature_obj.closest_gene.ensembl_id
+        if feature_obj.closest_gene is not None
+        else None,
         "closest_gene_name": feature_obj.closest_gene_name,
         "assembly": f"{feature_obj.ref_genome}.{feature_obj.ref_genome_patch or '0'}",
-        "type": feature_obj.feature_type,
+        "type": feature_obj.get_feature_type_display(),
         "subtype": feature_obj.feature_subtype,
         "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
         "misc": feature_obj.misc,
@@ -30,15 +33,8 @@ def feature(feature_obj: DNAFeature, json_format: str = None):
         "reg_effect_target_of": [reg_effect(r, json_format) for r in feature_obj.target_of.all()],
     }
 
-    if feature_obj.closest_gene is not None:
-        result["closest_gene_ensembl_id"] = feature_obj.closest_gene.ensembl_id
-
     if json_format == "genoverse":
-        result["id"] = str(feature_obj.id)
-        result["chr"] = feature_obj.chrom_name.removeprefix("chr")
-    else:
-        result["id"] = feature_obj.id
-        result["chr"] = feature_obj.chrom_name
+        genoversify(result)
 
     return result
 
@@ -52,6 +48,8 @@ def children(child_obj: DNAFeature, json_format: str = None):
 
 def region(region_obj: DNAFeature, json_format: str = None):
     result = {
+        "id": region_obj.id,
+        "chr": region_obj.chrom_name,
         "cell_line": region_obj.cell_line,
         "start": region_obj.location.lower,
         "end": region_obj.location.upper,
@@ -61,11 +59,7 @@ def region(region_obj: DNAFeature, json_format: str = None):
     }
 
     if json_format == "genoverse":
-        result["id"] = str(region_obj.id)
-        result["chr"] = region_obj.chrom_name.removeprefix("chr")
-    else:
-        result["id"] = region_obj.id
-        result["chr"] = region_obj.chrom_name
+        genoversify(result)
 
     return result
 
@@ -81,8 +75,6 @@ def reg_effect(re_obj: RegulatoryEffect, json_format: str = None):
     }
 
     if json_format == "genoverse":
-        result["id"] = str(re_obj.id)
-    else:
-        result["id"] = re_obj.id
+        genoversify(result)
 
     return result
