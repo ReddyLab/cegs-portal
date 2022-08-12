@@ -86,14 +86,14 @@
             <table class="data-table">
                 <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Target</th></tr>
                 {% for regeffect in feature.source_for.all %}
-                    {% for re_target in regeffect.target_assemblies.all %}
+                    {% for re_target in regeffect.targets.all %}
                     <tr>
                         {% if forloop.first %}
-                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
-                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
-                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
-                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                         {% endif %}
                         <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' re_target.id %}">{{ re_target.get_feature_type_display }}</a> #}</td>
                     </tr>

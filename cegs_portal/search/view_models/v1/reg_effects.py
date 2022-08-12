@@ -15,7 +15,7 @@ class RegEffectSearch:
                 "experiment__data_files__cell_lines",
                 "experiment__data_files__tissue_types",
                 "sources",
-                "target_assemblies",
+                "targets",
             )
             .first()
         )
@@ -30,7 +30,7 @@ class RegEffectSearch:
                 "experiment__data_files__cell_lines",
                 "experiment__data_files__tissue_types",
                 "sources__regulatory_effects",
-                "target_assemblies__regulatory_effects__sources",
+                "targets__regulatory_effects__sources",
             )
         )
 
@@ -40,11 +40,11 @@ class RegEffectSearch:
     def feature_search(cls, features: list[DNAFeature]):
         reg_effects = (
             RegulatoryEffect.objects.with_facet_values()
-            .filter(Q(sources__in=features) | Q(target_assemblies__in=features))
+            .filter(Q(sources__in=features) | Q(targets__in=features))
             .prefetch_related(
-                "target_assemblies",
-                "target_assemblies__regulatory_effects",
-                "target_assemblies__regulatory_effects__sources",
+                "targets",
+                "targets__regulatory_effects",
+                "targets__regulatory_effects__sources",
                 "experiment",
                 "sources",
                 "sources__regulatory_effects",

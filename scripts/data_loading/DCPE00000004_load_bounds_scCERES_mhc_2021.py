@@ -59,7 +59,7 @@ def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets
             effect.sources.add(source)
         print("Adding targets to RegulatoryEffects")
         for target, effect in zip(targets, effects):
-            effect.target_assemblies.add(target)
+            effect.targets.add(target)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations

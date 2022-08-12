@@ -91,12 +91,12 @@ def run(output_dir, chrom, bucket_size=100_000):
         featureAssemblies = DNAFeature.objects.filter(
             chrom_name=chrom_name, location__overlap=NumericRange(int(start), int(end), "[)")
         )
-        local_reg_effects = reg_effects.filter(target_assemblies__in=featureAssemblies)
+        local_reg_effects = reg_effects.filter(targets__in=featureAssemblies)
 
         for reg_effect in local_reg_effects.all():
             source_set = set(reg_effect.sources.all())
             gene_set = set(reg_effect.targets.all())
-            assemblies |= set(reg_effect.target_assemblies.all())
+            assemblies |= set(reg_effect.targets.all())
             sources |= source_set
             genes |= gene_set
             for gene in gene_set:

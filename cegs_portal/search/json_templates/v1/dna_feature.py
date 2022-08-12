@@ -27,7 +27,7 @@ def feature(feature_obj: DNAFeature, json_format: str = None):
         "misc": feature_obj.misc,
         "ids": feature_obj.ids,
         "facets": [value.value for value in feature_obj.facet_values.all()],
-        "children": [children(c, json_format) for c in feature_obj.children.all()],
+        "children": [feature(c, json_format) for c in feature_obj.children.all()],
         "closest_features": [region(d, json_format) for d in feature_obj.closest_features.all()],
         "reg_effect_source_for": [reg_effect(r, json_format) for r in feature_obj.source_for.all()],
         "reg_effect_target_of": [reg_effect(r, json_format) for r in feature_obj.target_of.all()],
@@ -37,13 +37,6 @@ def feature(feature_obj: DNAFeature, json_format: str = None):
         genoversify(result)
 
     return result
-
-
-def children(child_obj: DNAFeature, json_format: str = None):
-    return {
-        "ensembl_id": child_obj.ensembl_id,
-        "features": [feature(a, json_format) for a in child_obj.assemblies.all()],
-    }
 
 
 def region(region_obj: DNAFeature, json_format: str = None):

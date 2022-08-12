@@ -41,7 +41,7 @@ def bulk_save(
     dhss: list[DNAFeature],
     effects: list[RegulatoryEffect],
     effect_directions: list[RegulatoryEffect],
-    target_assemblies: list[DNAFeature],
+    targets: list[DNAFeature],
 ):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
@@ -60,8 +60,8 @@ def bulk_save(
         for source, effect in zip(sources, effects):
             effect.sources.add(source)
         print("Adding targets to RegulatoryEffects")
-        for assembly, effect in zip(target_assemblies, effects):
-            effect.target_assemblies.add(assembly)
+        for assembly, effect in zip(targets, effects):
+            effect.targets.add(assembly)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -72,7 +72,7 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
     new_sites: list[DNAFeature] = []
     effects: list[RegulatoryEffect] = []
     effect_directions: list[FacetValue] = []
-    target_assemblies: list[DNAFeature] = []
+    targets: list[DNAFeature] = []
 
     for line in reader:
         chrom_name = line["dhs_chrom"]
@@ -147,11 +147,11 @@ def load_reg_effects(ceres_file, experiment, cell_line, ref_genome, ref_genome_p
                 RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
             },
         )
-        target_assemblies.append(target_assembly)
+        targets.append(target_assembly)
         effects.append(effect)
         effect_directions.append(direction)
     print(f"New DHS Count: {len(new_sites)}")
-    bulk_save(sites, new_sites, effects, effect_directions, target_assemblies)
+    bulk_save(sites, new_sites, effects, effect_directions, targets)
 
 
 def unload_reg_effects(experiment_metadata):

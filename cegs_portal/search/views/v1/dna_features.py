@@ -101,7 +101,7 @@ class DNAFeatureLoc(TemplateJsonView):
         if chromo.isnumeric():
             chromo = f"chr{chromo}"
 
-        assemblies = DNAFeatureSearch.loc_search(
+        features = DNAFeatureSearch.loc_search(
             chromo,
             start,
             end,
@@ -111,7 +111,7 @@ class DNAFeatureLoc(TemplateJsonView):
             options["search_type"],
             options["facets"],
         )
-        features_paginator = Paginator(assemblies, 20)
+        features_paginator = Paginator(features, 20)
         feature_page = features_paginator.get_page(options["page"])
 
         return cast(Pageable[DNAFeature], feature_page)

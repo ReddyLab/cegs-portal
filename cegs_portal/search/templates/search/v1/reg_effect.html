@@ -16,10 +16,10 @@
         <tr><th>Tissue Types</th><td>{{ regulatory_effect.tissue_types|join:", " }}</td></tr>
     </table>
 
-    {% if regulatory_effect.target_assemblies.all|length > 0 %}
+    {% if regulatory_effect.targets.all|length > 0 %}
     <div>
         <div class="text-xl font-bold">Target Genes</div>
-        {% include "search/v1/partials/_features.html" with features=regulatory_effect.target_assemblies.all %}
+        {% include "search/v1/partials/_features.html" with features=regulatory_effect.targets.all %}
     </div>
     {% endif %}
 

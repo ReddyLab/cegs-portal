@@ -88,7 +88,6 @@ def _regulatory_effect(reg_effect, json_format=None):
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
         "targets": [json(target, json_format) for target in reg_effect.targets.all()],
-        "target_assemblies": [json(assembly, json_format) for assembly in reg_effect.target_assemblies.all()],
     }
 
 

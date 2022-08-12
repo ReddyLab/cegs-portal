@@ -135,7 +135,7 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
             RegulatoryEffect.objects.with_facet_values()
             .filter(experiment__accession_id=experiment_accession_id)
             .order_by("id")
-            .prefetch_related("target_assemblies", "sources", "sources__facet_values", "sources__facet_values__facet")
+            .prefetch_related("targets", "sources", "sources__facet_values", "sources__facet_values__facet")
         )
     else:
         long_chrom_name = f"chr{chrom}"
@@ -145,10 +145,10 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
         feature_assemblies = FeatureAssembly.objects.filter(chrom_name=long_chrom_name)
         reg_effects = (
             RegulatoryEffect.objects.with_facet_values()
-            .filter(experiment__accession_id=experiment_accession_id, target_assemblies__chrom_name=long_chrom_name)
+            .filter(experiment__accession_id=experiment_accession_id, targets__chrom_name=long_chrom_name)
             .order_by("id")
             .prefetch_related(
-                Prefetch("target_assemblies", queryset=feature_assemblies),
+                Prefetch("targets", queryset=feature_assemblies),
                 Prefetch("sources", queryset=dna_regions),
                 Prefetch("sources__facet_values"),
                 Prefetch("sources__facet_values__facet"),
@@ -180,7 +180,7 @@ def run(output_location, experiment_accession_id, genome, bucket_size=2_000_000,
             pct_rc = start + five_pct_rc
         for reg_effect in reg_effects.all()[start:stop]:
             sources = reg_effect.sources.all()
-            targets = reg_effect.target_assemblies.all()
+            targets = reg_effect.targets.all()
 
             # If we are targeting a specific chromosome filter out sources not in that chromosome.
             # They won't be visible in the visualization and the bucket index will be wrong.

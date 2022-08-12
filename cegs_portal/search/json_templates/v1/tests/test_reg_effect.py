@@ -29,7 +29,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffect):
         "cell_lines": [str(cl) for cl in reg_effect.cell_lines],  # type: ignore[attr-defined]
         "tissue_types": [str(tt) for tt in reg_effect.tissue_types],  # type: ignore[attr-defined]
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
-        "target_ids": [target.ensembl_id for target in reg_effect.target_assemblies.all()],
+        "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
         "experiment": {"id": reg_effect.experiment.id, "name": reg_effect.experiment.name},
         "co_regulators": None,
         "co_sources": None,
