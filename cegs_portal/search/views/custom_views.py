@@ -52,16 +52,10 @@ class TemplateJsonView(View):
         return response
 
     def request_options(self, request):
-        options = {
-            "is_json": False,
+        return {
+            "is_json": request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME,
+            "json_format": request.GET.get("format", None),
         }
-
-        if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-            options["is_json"] = True
-
-        options["json_format"] = request.GET.get("format", None)
-
-        return options
 
     def get(self, request, options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:

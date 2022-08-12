@@ -14,13 +14,6 @@ class IdType(Enum):
     HGNC = "hgnc"
 
 
-class IdSearchType(Enum):
-    EXACT = "exact"
-    LIKE = "like"
-    START = "start"
-    IN = "in"
-
-
 class LocSearchType(Enum):
     CLOSEST = "closest"
     EXACT = "exact"
@@ -34,7 +27,7 @@ def join_fields(*field_names):
 
 class FeatureSearch:
     @classmethod
-    def id_search(cls, id_type, feature_id, search_type="exact", distinct=True):
+    def id_search(cls, id_type, feature_id):
         if id_type == IdType.ENSEMBL.value:
             field = "ensembl_id"
         elif id_type == IdType.HAVANA.value:
@@ -46,30 +39,16 @@ class FeatureSearch:
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 
-        if search_type == IdSearchType.EXACT.value:
-            lookup = ""
-        elif search_type == IdSearchType.LIKE.value:
-            lookup = "icontains"
-        elif search_type == IdSearchType.START.value:
-            lookup = "istartswith"
-        elif search_type == IdSearchType.IN.value:
-            lookup = "in"
-        else:
-            raise ViewModelError(f"Invalid search type: {search_type}")
-
-        field_lookup = join_fields(field, lookup)
-        features = FeatureAssembly.objects.filter(**{field_lookup: feature_id}).prefetch_related(
+        features = FeatureAssembly.objects.filter(**{field: feature_id}).prefetch_related(
             "children",
-            "dnaregion_set",
-            "dnaregion_set__regulatory_effects",
+            "closest_features",
+            "closest_features__regulatory_effects",
             "regulatory_effects",
             "regulatory_effects__sources",
             "regulatory_effects__facet_values",
         )
-        if distinct:
-            features = features.distinct()
 
-        return features
+        return features.distinct()
 
     @classmethod
     def loc_search(cls, chromo, start, end, assembly, feature_types, search_type):

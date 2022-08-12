@@ -10,8 +10,8 @@ class FacetType(Enum):
 
 class Facet(models.Model):
     FACET_TYPE = [
-        (FacetType.DISCRETE, FacetType.DISCRETE.value),
-        (FacetType.CONTINUOUS, FacetType.CONTINUOUS.value),
+        (str(FacetType.DISCRETE), FacetType.DISCRETE.value),
+        (str(FacetType.CONTINUOUS), FacetType.CONTINUOUS.value),
     ]
     facet_type = models.CharField(
         max_length=30,

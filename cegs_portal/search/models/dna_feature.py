@@ -36,14 +36,14 @@ class DNAFeature(Accessioned, Searchable, Faceted):
         DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
         GRNA_TYPE = "gRNA Type"
 
-    FEATURE_TYPE = [
-        (DNAFeatureType.GENE, DNAFeatureType.GENE.value),
-        (DNAFeatureType.TRANSCRIPT, DNAFeatureType.TRANSCRIPT.value),
-        (DNAFeatureType.EXON, DNAFeatureType.EXON.value),
-        (DNAFeatureType.CCRE, DNAFeatureType.CCRE.value),
-        (DNAFeatureType.DHS, DNAFeatureType.DHS.value),
-        (DNAFeatureType.GRNA, DNAFeatureType.GRNA.value),
-    ]
+    FEATURE_TYPE = (
+        (str(DNAFeatureType.GENE), DNAFeatureType.GENE.value),
+        (str(DNAFeatureType.TRANSCRIPT), DNAFeatureType.TRANSCRIPT.value),
+        (str(DNAFeatureType.EXON), DNAFeatureType.EXON.value),
+        (str(DNAFeatureType.CCRE), DNAFeatureType.CCRE.value),
+        (str(DNAFeatureType.DHS), DNAFeatureType.DHS.value),
+        (str(DNAFeatureType.GRNA), DNAFeatureType.GRNA.value),
+    )
 
     cell_line = models.CharField(max_length=50, null=True)
     chrom_name = models.CharField(max_length=10)

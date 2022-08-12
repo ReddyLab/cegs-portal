@@ -31,7 +31,7 @@ def test_feature(feature: DNAFeature):
         "end": feature.location.upper - 1,
         "strand": feature.strand,
         "ids": feature.ids,
-        "type": feature.feature_type,
+        "type": feature.get_feature_type_display(),
         "subtype": feature.feature_subtype,
         "ref_genome": feature.ref_genome,
         "ref_genome_patch": feature.ref_genome_patch,

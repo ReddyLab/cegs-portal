@@ -36,11 +36,17 @@ class RegulatoryEffect(Accessioned, Searchable, Faceted):
 
     @property
     def direction(self):
-        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.DIRECTION.value).value
+        values = [
+            value for value in self.facet_values.all() if value.facet.name == RegulatoryEffect.Facet.DIRECTION.value
+        ]
+        return values[0].value if len(values) == 1 else None
 
     @property
     def direction_id(self):
-        return self.facet_values.get(facet__name=RegulatoryEffect.Facet.DIRECTION.value).id
+        values = [
+            value for value in self.facet_values.all() if value.facet.name == RegulatoryEffect.Facet.DIRECTION.value
+        ]
+        return values[0].id if len(values) == 1 else None
 
     @property
     def effect_size(self):

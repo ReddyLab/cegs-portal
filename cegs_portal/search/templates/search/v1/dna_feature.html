@@ -14,17 +14,19 @@
             <div>
                 <span class="text-2xl font-bold">{{ feature.name }} </span><span class="text-2xl">({{ feature.ensembl_id }})</span>
                 {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">{{ children_name }}</a></span>{% endif %}
-                {% if feature.dnaregion_set.all|length > 0 %}<span><a href="#regions-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Nearby Regions</a></span>{% endif %}
-                {% if feature.reg_effects.all|length > 0 %}<span><a href="#reg_effects-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Regulatory Effects</a></span>{% endif %}
+                {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Other Nearby Features</a></span>{% endif %}
+                {% if feature.source_for.all|length > 0 %}<span><a href="#source-for-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Source for Regulatory Effects</a></span>{% endif %}
+                {% if feature.target_of.all|length > 0 %}<span><a href="#target-of-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Targeting Regulatory Effects</a></span>{% endif %}
             </div>
             <div>Type: {{ feature.feature_subtype }}</div>
             <table class="data-table">
-                <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+                <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
                 <tr>
                     <td>{{ feature.name }}</td>
                     <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
                     <td>{{ feature.strand }}</td>
                     <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ feature.get_feature_type_display }}</td>
                 </tr>
             </table>
 
@@ -55,21 +57,20 @@
     {% endfor %}
 
     {% for feature in features %}
-        {% if feature.dnaregion_set.all|length > 0 %}
+        {% if feature.closest_features.all|length > 0 %}
         <div>
-            <a name="regions-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
-            <div class="text-xl font-bold">Nearby DNA Regions</div>
+            <a name="closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
+            <div class="text-xl font-bold">Nearby DNA Features</div>
             <table class="data-table">
-                <tr><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Reg. Effect Count</th><th></th></tr>
-                {% for region in feature.dnaregion_set.all %}
+                <tr><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th></th></tr>
+                {% for close_feature in feature.closest_features.all %}
                     <tr>
-                        <td>{{ region.region_type }}</td>
-                        <td>{{ region.cell_line }}</td>
-                        <td><span>{{ region.chrom_name }}</span>: <span>{{ region.location.lower }}-{{ region.location.upper|add:"-1" }}</span></td>
-                        <td>{{ region.strand }}</td>
-                        <td>{{ region.ref_genome }}.{{ region.ref_genome_patch|default:"0" }}</td>
-                        <td>{{ region.regulatory_effects.count }}</td>
-                        <td><a href="{% url 'search:region' region.id %}">More... </a></td>
+                        <td>{{ close_feature.get_feature_type_display }}</td>
+                        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
+                        <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower }}-{{ close_feature.location.upper|add:"-1" }}</span></td>
+                        <td>{{ close_feature.strand|default:"N/A" }}</td>
+                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
+                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' close_feature.id %}">More... </a> #}</td>
                     </tr>
                 {% endfor %}
             </table>
@@ -78,23 +79,55 @@
     {% endfor %}
 
     {% for feature in features %}
-        {% if feature.regulatory_effects.all|length > 0 %}
+        {% if feature.source_for.all|length > 0 %}
         <div>
-            <a name="reg_effects-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
-            <div class="text-xl font-bold">Regulatory Effects</div>
+            <a name="source-for-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
+            <div class="text-xl font-bold">Source for Regulatory Effects</div>
             <table class="data-table">
-                <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>DHS</th></tr>
-                {% for regeffect in feature.regulatory_effects.all %}
-                    {% for region in regeffect.sources.all %}
+                <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Target</th></tr>
+                {% for regeffect in feature.source_for.all %}
+                    {% for re_target in regeffect.target_assemblies.all %}
+                    <tr>
+                        {% if forloop.first %}
+                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
+                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
+                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
+                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
+                        <td rowspan="{% firstof regeffect.target_assemblies.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
+                        {% endif %}
+                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' re_target.id %}">{{ re_target.get_feature_type_display }}</a> #}</td>
+                    </tr>
+                    {% empty %}
+                        <tr>
+                            <td>RE:{{ regeffect.id }}</td>
+                            <td>{{ regeffect.effect_size }}</td>
+                            <td>{{ regeffect.direction }}</td>
+                            <td>{{ regeffect.significance }}</td>
+                            <td>{{ regeffect.experiment.accession_id }}</td>
+                            <td>-</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+        {% if feature.target_of.all|length > 0 %}
+        <div>
+            <a name="target-of-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
+            <div class="text-xl font-bold">Targeting Regulatory Effects</div>
+            <table class="data-table">
+                <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
+                {% for regeffect in feature.target_of.all %}
+                    {% for re_source in regeffect.sources.all %}
                     <tr>
                         {% if forloop.first %}
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment_id %}">{{ regeffect.experiment.name }}</a></td>
+                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                         {% endif %}
-                        <td><a href="{% url 'search:region' region.id %}">DNA Region:{{ region.id }}</a></td>
+                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' re_source.id %}">{{ re_source.get_feature_type_display }}</a> #}</td>
                     </tr>
                     {% empty %}
                         <tr>
@@ -146,7 +179,7 @@
             let fetches = assemblies.map(a => {
                 let search_start = Math.max(a.start - dist, 0);
                 let search_end = a.end + dist;
-                return fetch(`/search/regionloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
+                return fetch(`/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
                     .then(response => {
                         return response.json()
                     });
@@ -156,9 +189,9 @@
                     let regions = [];
                     console.log(data);
                     for (const d of data) {
-                        regions.push(...d.objects);
+                        regions.push(...d);
                     }
-                    g("dnaregion").replaceWith(regionTable(regions, "No nearby DNA Regions"))
+                    g("dnaregion").replaceWith(regionTable(regions, "No nearby DNA Features"))
                 });
         }
     </script>

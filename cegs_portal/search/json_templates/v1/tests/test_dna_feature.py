@@ -22,7 +22,7 @@ def test_feature(feature: DNAFeature):
         "closest_gene_ensembl_id": None,
         "closest_gene_name": feature.closest_gene_name,
         "assembly": f"{feature.ref_genome}.{feature.ref_genome_patch or '0'}",
-        "type": feature.feature_type,
+        "type": feature.get_feature_type_display(),
         "subtype": feature.feature_subtype,
         "parent_id": feature.parent.ensembl_id if feature.parent is not None else None,
         "misc": feature.misc,
