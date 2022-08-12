@@ -75,18 +75,14 @@ def run(output_dir, chrom, bucket_size=100_000):
     print("Initialized...")
     reg_effects = RegulatoryEffect.objects.filter(experiment_id=20).prefetch_related(
         "targets",
-        "targets__assemblies",
         "targets__children",
-        "targets__children__assemblies",
         "targets__children__children",
-        "targets__children__children__assemblies",
         "sources",
     )
     fbt = time.perf_counter()
     while start < chrom_end:
         sources = set()
-        genes = set()
-        assemblies = set()
+        targets = set()
         gene_dhs = defaultdict(set)
         featureAssemblies = DNAFeature.objects.filter(
             chrom_name=chrom_name, location__overlap=NumericRange(int(start), int(end), "[)")
@@ -95,12 +91,11 @@ def run(output_dir, chrom, bucket_size=100_000):
 
         for reg_effect in local_reg_effects.all():
             source_set = set(reg_effect.sources.all())
-            gene_set = set(reg_effect.targets.all())
-            assemblies |= set(reg_effect.targets.all())
+            target_set = set(reg_effect.targets.all())
             sources |= source_set
-            genes |= gene_set
-            for gene in gene_set:
-                gene_dhs[gene] |= source_set
+            targets |= target_set
+            for target in target_set:
+                gene_dhs[target] |= source_set
 
         data = {
             "chromosome": chrom,
@@ -109,44 +104,37 @@ def run(output_dir, chrom, bucket_size=100_000):
             "genes": [],
             "ccres": [[source.location.lower, source.location.upper] for source in sources],
         }
-        gene_list = []
-        for gene in genes:
-            gene_assembly = list(set(gene.assemblies.all()) & assemblies)[0]
-            gene_start = gene_assembly.location.lower if gene_assembly.strand == "+" else gene_assembly.location.upper
+        target_list = []
+        for target in targets:
+            gene_start = target.location.lower if target.strand == "+" else target.location.upper
 
             if gene_start < start or gene_start >= end:
                 continue
 
             tx_list = []
-            for tx in gene.children.all():
-                tx_assembly = tx.assemblies.first()
+            for tx in target.children.all():
                 exon_list = []
                 for exon in tx.children.all():
-                    exon_assembly = exon.assemblies.first()
-                    exon_list.append([exon_assembly.location.lower, exon_assembly.location.upper])
+                    exon_list.append([exon.location.lower, exon.location.upper])
                 tx_list.append(
                     {
-                        "strand": tx_assembly.strand,
-                        "start": tx_assembly.location.lower
-                        if tx_assembly.strand == "+"
-                        else tx_assembly.location.upper,
-                        "end": tx_assembly.location.upper if tx_assembly.strand == "+" else tx_assembly.location.lower,
+                        "strand": tx.strand,
+                        "start": tx.location.lower if tx.strand == "+" else tx.location.upper,
+                        "end": tx.location.upper if tx.strand == "+" else tx.location.lower,
                         "exons": exon_list,
                     }
                 )
-            gene_list.append(
+            target_list.append(
                 {
-                    "name": gene_assembly.name,
-                    "strand": gene_assembly.strand,
+                    "name": target.name,
+                    "strand": target.strand,
                     "start": gene_start,
-                    "end": gene_assembly.location.upper
-                    if gene_assembly.strand == "+"
-                    else gene_assembly.location.lower,
+                    "end": target.location.upper if target.strand == "+" else target.location.lower,
                     "tx": tx_list,
-                    "ccres": [[dhs.location.lower, dhs.location.upper] for dhs in gene_dhs[gene]],
+                    "ccres": [[dhs.location.lower, dhs.location.upper] for dhs in gene_dhs[target]],
                 }
             )
-        data["genes"] = gene_list
+        data["targets"] = target_list
 
         with open(join(output_dir, f"level3_{chrom_name}_{start}_{end}.json"), "w") as out:
             out.write(json.dumps(data))

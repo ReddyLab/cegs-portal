@@ -3,6 +3,40 @@ set -euo pipefail
 
 OUTPUT_DIR=$1
 
+make_dir() {
+    dir="${OUTPUT_DIR}/$1"
+
+    if ! ls ${dir} 2>1 > /dev/null; then
+      mkdir ${dir}
+    fi
+}
+
+make_dir level3_chr1
+make_dir level3_chr2
+make_dir level3_chr3
+make_dir level3_chr4
+make_dir level3_chr5
+make_dir level3_chr6
+make_dir level3_chr7
+make_dir level3_chr8
+make_dir level3_chr9
+make_dir level3_chr10
+make_dir level3_chr11
+make_dir level3_chr12
+make_dir level3_chr13
+make_dir level3_chr14
+make_dir level3_chr15
+make_dir level3_chr16
+make_dir level3_chr17
+make_dir level3_chr18
+make_dir level3_chr19
+make_dir level3_chr20
+make_dir level3_chr21
+make_dir level3_chr22
+make_dir level3_chrX
+make_dir level3_chrY
+make_dir level3_chrMT
+
 python manage.py shell -c "from scripts.data_generation import gen_reg_effects_viz; gen_reg_effects_viz.run(\"$OUTPUT_DIR/level3_chr1\", \"1\")"
 python manage.py shell -c "from scripts.data_generation import gen_reg_effects_viz; gen_reg_effects_viz.run(\"$OUTPUT_DIR/level3_chr2\", \"2\")"
 python manage.py shell -c "from scripts.data_generation import gen_reg_effects_viz; gen_reg_effects_viz.run(\"$OUTPUT_DIR/level3_chr3\", \"3\")"
