@@ -30,7 +30,6 @@ COPY ./requirements .
 RUN pip wheel --wheel-dir /usr/src/app/wheels  \
   -r ${BUILD_ENVIRONMENT}.txt
 
-
 # Python 'run' stage
 FROM python as python-run-stage
 
@@ -46,7 +45,6 @@ WORKDIR ${APP_HOME}
 RUN addgroup --system django \
     && adduser --system --ingroup django django
 
-
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
@@ -58,10 +56,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
+
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
-COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --from=maturin /exp_viz/target/wheels/exp_viz-0.1.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
+COPY --chown=django:django --from=python-build-stage /usr/src/app/wheels  /wheels/
+COPY --chown=django:django --from=maturin /exp_viz/target/wheels/exp_viz-0.1.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
@@ -75,7 +74,6 @@ RUN chmod +x /entrypoint
 COPY --chown=django:django ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
-
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
