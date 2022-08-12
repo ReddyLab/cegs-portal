@@ -3,13 +3,13 @@ from typing import Optional, TypedDict
 from django.db.models import Manager
 
 from cegs_portal.search.json_templates.v1.dna_features import features
-from cegs_portal.search.models import DNARegion, Facet
+from cegs_portal.search.models import DNAFeature, Facet
 from cegs_portal.search.models.utils import ChromosomeLocation
 from cegs_portal.utils.pagination_types import Pageable
 
 Location = TypedDict("Location", {"location": ChromosomeLocation, "assembly": str})
 SearchResults = TypedDict(
-    "SearchResults", {"loc_search": Location, "dhss": Pageable[DNARegion], "facets": Manager[Facet]}
+    "SearchResults", {"loc_search": Location, "dhss": Pageable[DNAFeature], "facets": Manager[Facet]}
 )
 
 

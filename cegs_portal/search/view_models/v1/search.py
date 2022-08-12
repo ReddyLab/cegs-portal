@@ -1,9 +1,9 @@
 import re
 from typing import Optional
 
-from cegs_portal.search.models import ChromosomeLocation, Facet
+from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType, Facet
 from cegs_portal.search.models.utils import QueryToken
-from cegs_portal.search.view_models.v1 import DNARegionSearch, LocSearchType
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
 CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"\b(ENS[0-9a-z]+)", re.IGNORECASE)
@@ -47,18 +47,18 @@ def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[Chro
 
 class Search:
     @classmethod
-    def _dnaregion_search(
+    def _dnafeature_search(
         cls, location: ChromosomeLocation, assembly: str, facets: list[int], region_type: Optional[list[str]] = None
     ):
-        regions = DNARegionSearch.loc_search(
+        regions = DNAFeatureSearch.loc_search(
             location.chromo,
             str(location.range.lower),
             str(location.range.upper),
             assembly,
-            LocSearchType.OVERLAP.value,
-            ["reg_effect"],
-            facets,
             region_type,
+            ["reg_effect"],
+            LocSearchType.OVERLAP.value,
+            facets,
         )
 
         return regions
@@ -68,7 +68,7 @@ class Search:
         _query_terms, location, assembly_name, gene_names = parse_query(query_string)
         sites = None
         if location is not None:
-            sites = cls._dnaregion_search(location, assembly_name, facets, region_type=["dhs"])
+            sites = cls._dnafeature_search(location, assembly_name, facets, region_type=[DNAFeatureType.DHS])
         facet_results = Facet.objects.all().prefetch_related("values")
 
         return {
