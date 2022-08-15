@@ -19,6 +19,23 @@ class DNAFeatureType(Enum):
     DHS = "dhs"
     GRNA = "gRNA"
 
+    @property
+    def accession_abbreviation(self):
+        if self is DNAFeatureType.GENE:
+            return "GENE"
+        elif self is DNAFeatureType.TRANSCRIPT:
+            return "T"
+        elif self is DNAFeatureType.EXON:
+            return "EXON"
+        elif self is DNAFeatureType.CCRE:
+            return "CCRE"
+        elif self is DNAFeatureType.DHS:
+            return "DHS"
+        elif self is DNAFeatureType.GRNA:
+            return "GRNA"
+        else:
+            raise Exception(f"No accession abbreviation defined for {self}")
+
 
 class DNAFeature(Accessioned, Searchable, Faceted):
     class Meta(Accessioned.Meta, Searchable.Meta):
