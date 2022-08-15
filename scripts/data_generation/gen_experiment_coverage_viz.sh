@@ -39,5 +39,5 @@ gen_data() {
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrMT
 }
 
-gen_data DCPE00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCPE00000002
-gen_data DCPE00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPE00000004
+gen_data DCPEXPR00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000002
+gen_data DCPEXPR00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000004
