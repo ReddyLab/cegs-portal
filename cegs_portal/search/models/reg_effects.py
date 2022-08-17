@@ -22,6 +22,11 @@ class RegulatoryEffectSet(models.QuerySet):
 
 
 class RegulatoryEffect(Accessioned, Searchable, Faceted):
+    class Meta(Accessioned.Meta, Searchable.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="re_accession_id_index"),
+        ]
+
     class Facet(Enum):
         DIRECTION = "Direction"  # EffectDirectionType
         RAW_P_VALUE = "Raw p value"  # float

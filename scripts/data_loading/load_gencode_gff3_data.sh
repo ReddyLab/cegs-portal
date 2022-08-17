@@ -1,7 +1,8 @@
 #!/bin/sh
 INPUT_FILE=$1
-GENOME=${2:-GRCh38}
-PATCH=${3:-}
-VERSION=${4:0}
+ACCESSION_FILE=$2
+GENOME=${3:-GRCh38}
+PATCH=${4:-}
+VERSION=${5:0}
 
-python manage.py shell -c "from scripts.data_loading import load_gencode_gff3_data; load_gencode_gff3_data.run(\"$INPUT_FILE\", \"${GENOME}\", \"${PATCH}\", \"${VERSION}\")"
+python manage.py shell -c "from scripts.data_loading import load_gencode_gff3_data; load_gencode_gff3_data.run(\"$INPUT_FILE\", \"${ACCESSION_FILE}\", \"${GENOME}\", \"${PATCH}\", \"${VERSION}\")"

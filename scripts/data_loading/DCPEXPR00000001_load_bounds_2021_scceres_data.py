@@ -14,6 +14,7 @@ from cegs_portal.search.models import (
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
+from .utils import AccessionIds, AccessionType
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -56,12 +57,14 @@ def bulk_save(grnas, effects, effect_directions, sources, targets):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","):
+def load_reg_effects(
+    ceres_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
+):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites = []
     effects = []
     effect_directions = []
-    target_assembiles = []
+    targets = []
     grnas = {}
     for line in reader:
         grna = line["grna"]
@@ -86,6 +89,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
             region = DNAFeature(
+                accession_id=accession_ids.incr(AccessionType.GRNA),
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -113,11 +117,12 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
         else:
             direction = DIR_FACET_VALUES["Non-significant"]
 
-        target_assembly = DNAFeature.objects.get(
+        target = DNAFeature.objects.get(
             ref_genome=ref_genome, ref_genome_patch=ref_genome_patch, name=line["gene_symbol"]
         )
 
         effect = RegulatoryEffect(
+            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT),
             experiment=experiment,
             facet_num_values={
                 RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
@@ -125,10 +130,10 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
                 RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
             },
         )
-        target_assembiles.append(target_assembly)
+        targets.append(target)
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(grnas.values(), effects, effect_directions, sites, target_assembiles)
+    bulk_save(grnas.values(), effects, effect_directions, sites, targets)
 
 
 def unload_reg_effects(experiment_metadata):
@@ -144,7 +149,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename):
+def run(experiment_filename, accession_file):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -157,14 +162,16 @@ def run(experiment_filename):
 
     experiment = experiment_metadata.db_save()
 
-    for i, meta in enumerate(experiment_metadata.metadata()):
-        ceres_file, file_info, delimiter = meta
-        load_reg_effects(
-            ceres_file,
-            experiment,
-            experiment.other_files.all()[i],
-            file_info.cell_line,
-            file_info.ref_genome,
-            file_info.ref_genome_patch,
-            delimiter,
-        )
+    with AccessionIds(accession_file) as accession_ids:
+        for i, meta in enumerate(experiment_metadata.metadata()):
+            ceres_file, file_info, delimiter = meta
+            load_reg_effects(
+                ceres_file,
+                accession_ids,
+                experiment,
+                experiment.other_files.all()[i],
+                file_info.cell_line,
+                file_info.ref_genome,
+                file_info.ref_genome_patch,
+                delimiter,
+            )

@@ -45,6 +45,7 @@ class DNAFeature(Accessioned, Searchable, Faceted):
             models.Index(fields=["feature_type"], name="sdf_feature_type_index"),
             GistIndex(fields=["location"], name="sdf_loc_index"),
             models.Index(fields=["ensembl_id"], name="sdf_ensembl_id_index"),
+            models.Index(fields=["accession_id"], name="sdf_accession_id_index"),
         ]
 
     class Facet(Enum):

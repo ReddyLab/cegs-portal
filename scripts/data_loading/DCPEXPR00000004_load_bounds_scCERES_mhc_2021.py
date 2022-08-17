@@ -14,6 +14,7 @@ from cegs_portal.search.models import (
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
+from .utils import AccessionIds, AccessionType
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -64,7 +65,9 @@ def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","):
+def load_reg_effects(
+    ceres_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
+):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites = []
     site_facets = []
@@ -98,6 +101,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
             region = DNAFeature(
+                accession_id=accession_ids.incr(AccessionType.GRNA),
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -152,6 +156,7 @@ def load_reg_effects(ceres_file, experiment, region_source, cell_line, ref_genom
             raise e
 
         effect = RegulatoryEffect(
+            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT),
             experiment=experiment,
             facet_num_values={
                 RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
@@ -178,7 +183,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename):
+def run(experiment_filename, accession_file):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -191,13 +196,15 @@ def run(experiment_filename):
 
     experiment = experiment_metadata.db_save()
 
-    for ceres_file, file_info, delimiter in experiment_metadata.metadata():
-        load_reg_effects(
-            ceres_file,
-            experiment,
-            experiment.other_files.all()[0],
-            file_info.cell_line,
-            file_info.ref_genome,
-            file_info.ref_genome_patch,
-            delimiter,
-        )
+    with AccessionIds(accession_file) as accession_ids:
+        for ceres_file, file_info, delimiter in experiment_metadata.metadata():
+            load_reg_effects(
+                ceres_file,
+                accession_ids,
+                experiment,
+                experiment.other_files.all()[0],
+                file_info.cell_line,
+                file_info.ref_genome,
+                file_info.ref_genome_patch,
+                delimiter,
+            )

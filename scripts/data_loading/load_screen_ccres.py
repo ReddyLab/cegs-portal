@@ -8,6 +8,7 @@ from cegs_portal.search.models import DNAFeature, DNAFeatureType, Facet, FacetVa
 from utils import FileMetadata, get_delimiter, timer
 
 from . import get_closest_gene
+from .utils import AccessionIds, AccessionType
 
 LOAD_BATCH_SIZE = 10_000
 
@@ -33,7 +34,7 @@ def get_facets(facet_string):
 
 # loading does buffered writes to the DB, with a buffer size of LOAD_BATCH_SIZE annotations
 @timer("Load cCREs")
-def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
+def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     new_sites: list[DNAFeature] = []
     facets: list[list[FacetValue]] = []
@@ -51,7 +52,7 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
             facets = []
             print(f"Starting line {i}")
 
-        chrom_name, dhs_start_str, dhs_end_str, _, accession_id, ccre_categories = line
+        chrom_name, dhs_start_str, dhs_end_str, _, screen_accession_id, ccre_categories = line
 
         if "_" in chrom_name:
             continue
@@ -62,6 +63,7 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
 
         closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
         dhs = DNAFeature(
+            accession_id=accession_ids.incr(AccessionType.CCRE),
             cell_line=cell_line,
             chrom_name=chrom_name,
             closest_gene=closest_gene,
@@ -70,7 +72,7 @@ def load_ccres(ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
-            misc={"screen_accession_id": accession_id},
+            misc={"screen_accession_id": screen_accession_id},
             feature_type=DNAFeatureType.CCRE,
             source=source_file,
         )
@@ -94,7 +96,7 @@ def check_filename(ccre_data: str):
         raise ValueError(f"cCRE data filename '{ccre_data}' must not be blank")
 
 
-def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
+def run(ccre_data: str, accession_file: str, ref_genome: str, ref_genome_patch: str):
     with open(ccre_data) as file:
         file_metadata = FileMetadata.json_load(file)
 
@@ -107,7 +109,12 @@ def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
 
     source_file = file_metadata.db_save()
 
-    with open(file_metadata.full_data_filepath) as ccres_file:
+    with open(file_metadata.full_data_filepath) as ccres_file, AccessionIds(accession_file) as accession_ids:
         load_ccres(
-            ccres_file, source_file, ref_genome, ref_genome_patch, delimiter=get_delimiter(file_metadata.data_filename)
+            ccres_file,
+            accession_ids,
+            source_file,
+            ref_genome,
+            ref_genome_patch,
+            delimiter=get_delimiter(file_metadata.data_filename),
         )

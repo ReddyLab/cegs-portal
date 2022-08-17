@@ -11,6 +11,8 @@ from cegs_portal.search.models import (
 )
 from utils import timer
 
+from .utils import AccessionIds, AccessionType
+
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
 
@@ -114,7 +116,7 @@ def bulk_feature_save(assemblies, parent_ids=[]):
 
 
 @timer("Creating Genes", level=1)
-def create_genes(ref_genome, ref_genome_patch):
+def create_genes(accession_ids, ref_genome, ref_genome_patch):
     gene_annotations = GencodeAnnotation.objects.filter(
         annotation_type="gene", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
@@ -138,6 +140,7 @@ def create_genes(ref_genome, ref_genome_patch):
             ids["havana"] = value
 
         assembly = DNAFeature(
+            accession_id=accession_ids.incr(AccessionType.GENE),
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
@@ -155,7 +158,7 @@ def create_genes(ref_genome, ref_genome_patch):
 
 
 @timer("Creating Transcripts", level=1)
-def create_transcripts(ref_genome, ref_genome_patch):
+def create_transcripts(accession_ids, ref_genome, ref_genome_patch):
     tx_annotations = GencodeAnnotation.objects.filter(
         annotation_type="transcript", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
@@ -179,6 +182,7 @@ def create_transcripts(ref_genome, ref_genome_patch):
 
         parent_ids.append(annotation.attributes["gene_id"].split(".")[0])
         assembly = DNAFeature(
+            accession_id=accession_ids.incr(AccessionType.TRANSCRIPT),
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
@@ -196,7 +200,7 @@ def create_transcripts(ref_genome, ref_genome_patch):
 
 
 @timer("Creating Exons", level=1)
-def create_exons(ref_genome, ref_genome_patch):
+def create_exons(accession_ids, ref_genome, ref_genome_patch):
     exon_annotations = GencodeAnnotation.objects.filter(
         annotation_type="exon", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     )
@@ -217,6 +221,7 @@ def create_exons(ref_genome, ref_genome_patch):
 
         parent_ids.append(annotation.attributes["transcript_id"].split(".")[0])
         assembly = DNAFeature(
+            accession_id=accession_ids.incr(AccessionType.EXON),
             chrom_name=annotation.chrom_name,
             ids=ids,
             location=annotation.location,
@@ -259,7 +264,7 @@ def check_genome(ref_genome: str, ref_genome_patch: str):
 
 
 @timer("Load Gencode Data")
-def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, version: str):
+def run(annotation_filename: str, accession_file: str, ref_genome: str, ref_genome_patch: str, version: str):
     check_filename(annotation_filename)
     check_genome(ref_genome, ref_genome_patch)
 
@@ -271,6 +276,7 @@ def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, versio
     with open(annotation_filename, "r") as annotation_file:
         load_genome_annotations(annotation_file, ref_genome, ref_genome_patch, version)
 
-    create_genes(ref_genome, ref_genome_patch)
-    create_transcripts(ref_genome, ref_genome_patch)
-    create_exons(ref_genome, ref_genome_patch)
+    with AccessionIds(accession_file) as accession_ids:
+        create_genes(accession_ids, ref_genome, ref_genome_patch)
+        create_transcripts(accession_ids, ref_genome, ref_genome_patch)
+        create_exons(accession_ids, ref_genome, ref_genome_patch)
