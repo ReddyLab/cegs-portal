@@ -13,6 +13,7 @@ class IdType(Enum):
     NAME = "name"
     HAVANA = "havana"
     HGNC = "hgnc"
+    ACCESSION = "accession"
 
 
 class IdSearchType(Enum):
@@ -44,6 +45,8 @@ class DNAFeatureSearch:
             field = "ids__hgnc"
         elif id_type == IdType.NAME.value:
             field = "name"
+        elif id_type == IdType.ACCESSION.value:
+            field = "accession_id"
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 

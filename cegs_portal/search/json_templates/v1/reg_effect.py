@@ -48,7 +48,7 @@ def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None) -> 
     return result
 
 
-def region_reg_effects(reg_effects: Pageable[RegulatoryEffect], json_format: str = None):
+def source_reg_effects(reg_effects: Pageable[RegulatoryEffect], json_format: str = None):
     results = {
         "objects": [regulatory_effect(re, json_format) for re in reg_effects.object_list],
         "page": reg_effects.number,

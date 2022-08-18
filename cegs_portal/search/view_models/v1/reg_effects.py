@@ -8,7 +8,7 @@ class RegEffectSearch:
     def id_search(cls, re_id: str):
         reg_effect = (
             RegulatoryEffect.objects.with_facet_values()
-            .filter(id=int(re_id))
+            .filter(accession_id=re_id)
             .prefetch_related(
                 "experiment",
                 "experiment__data_files",
@@ -22,15 +22,15 @@ class RegEffectSearch:
         return reg_effect
 
     @classmethod
-    def region_search(cls, region_id: str):
+    def source_search(cls, source_id: str):
         reg_effects = (
             RegulatoryEffect.objects.with_facet_values()
-            .filter(sources__in=[int(region_id)])
+            .filter(sources__accession_id=source_id)
             .prefetch_related(
                 "experiment__data_files__cell_lines",
                 "experiment__data_files__tissue_types",
-                "sources__regulatory_effects",
-                "targets__regulatory_effects__sources",
+                "sources__source_for",
+                "targets__target_of__sources",
             )
         )
 
@@ -43,11 +43,11 @@ class RegEffectSearch:
             .filter(Q(sources__in=features) | Q(targets__in=features))
             .prefetch_related(
                 "targets",
-                "targets__regulatory_effects",
-                "targets__regulatory_effects__sources",
+                "targets__target_of",
+                "targets__target_of__sources",
                 "experiment",
                 "sources",
-                "sources__regulatory_effects",
+                "sources__source_for",
             )
         )
 

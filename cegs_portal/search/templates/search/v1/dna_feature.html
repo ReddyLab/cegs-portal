@@ -62,15 +62,15 @@
             <a name="closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
             <div class="text-xl font-bold">Nearby DNA Features</div>
             <table class="data-table">
-                <tr><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th></th></tr>
+                <tr><th>ID</th><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
                 {% for close_feature in feature.closest_features.all %}
                     <tr>
+                        <td><a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a></td>
                         <td>{{ close_feature.get_feature_type_display }}</td>
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
                         <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower }}-{{ close_feature.location.upper|add:"-1" }}</span></td>
                         <td>{{ close_feature.strand|default:"N/A" }}</td>
                         <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
-                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' close_feature.id %}">More... </a> #}</td>
                     </tr>
                 {% endfor %}
             </table>
@@ -89,21 +89,21 @@
                     {% for re_target in regeffect.targets.all %}
                     <tr>
                         {% if forloop.first %}
-                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
+                        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
                         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
                         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
                         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                         {% endif %}
-                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' re_target.id %}">{{ re_target.get_feature_type_display }}</a> #}</td>
+                       <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.accession_id }}</a></td>
                     </tr>
                     {% empty %}
                         <tr>
-                            <td>RE:{{ regeffect.id }}</td>
+                            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                             <td>{{ regeffect.effect_size }}</td>
                             <td>{{ regeffect.direction }}</td>
                             <td>{{ regeffect.significance }}</td>
-                            <td>{{ regeffect.experiment.accession_id }}</td>
+                            <td><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                             <td>-</td>
                         </tr>
                     {% endfor %}
@@ -121,21 +121,21 @@
                     {% for re_source in regeffect.sources.all %}
                     <tr>
                         {% if forloop.first %}
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">RE:{{ regeffect.id }}</td>
+                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
                         <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                         {% endif %}
-                        <td>{# uncomment and update when we add accession IDs <a href="{% url 'search:dna_features' re_source.id %}">{{ re_source.get_feature_type_display }}</a> #}</td>
+                        <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
                     </tr>
                     {% empty %}
                         <tr>
-                            <td>RE:{{ regeffect.id }}</td>
+                            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                             <td>{{ regeffect.effect_size }}</td>
                             <td>{{ regeffect.direction }}</td>
                             <td>{{ regeffect.significance }}</td>
-                            <td>{{ regeffect.experiment_id }}</td>
+                            <td><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                             <td>-</td>
                         </tr>
                     {% endfor %}
