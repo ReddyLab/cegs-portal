@@ -1,6 +1,7 @@
 import factory
 from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
+from faker import Faker as F
 
 from cegs_portal.search.models import (
     CellLine,
@@ -29,10 +30,18 @@ class ExperimentFactory(DjangoModelFactory):
         model = Experiment
         django_get_or_create = ("name",)
 
+    _faker = F()
     archived = Faker("boolean", chance_of_getting_true=90)
     description = Faker("text", max_nb_chars=4096)
     experiment_type = Faker("text", max_nb_chars=100)
     name = Faker("text", max_nb_chars=512)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPE^^^^^^^^", upper=True)
+        obj.save()
+        return obj
 
     @post_generation
     def other_files(self, create, extracted, **kwargs):

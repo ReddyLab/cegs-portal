@@ -3,6 +3,7 @@ import random
 import factory
 from factory import Faker
 from factory.django import DjangoModelFactory
+from faker import Faker as F
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
@@ -14,6 +15,8 @@ class DNAFeatureFactory(DjangoModelFactory):
         model = DNAFeature
         django_get_or_create = ("name", "ensembl_id")
 
+    _faker = F()
+    accession_id = _faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
     ensembl_id = Faker("text", max_nb_chars=50)
     cell_line = Faker("text", max_nb_chars=50)
     chrom_name = Faker("text", max_nb_chars=10)
@@ -36,3 +39,10 @@ class DNAFeatureFactory(DjangoModelFactory):
     # there should always be a DNAFeatureFactory(parent=None) for each stack of DNAFeatureFactories
     # so pytest doesn't infinitely recurse
     parent = factory.SubFactory("cegs_portal.search.models.tests.dna_feature_factory.DNAFeatureFactory")
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
+        obj.save()
+        return obj
