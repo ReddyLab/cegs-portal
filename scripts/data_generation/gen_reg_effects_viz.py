@@ -5,7 +5,7 @@ from os.path import join
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 GRCH37 = [
     ("1", 249250621),
@@ -73,7 +73,7 @@ def run(output_dir, chrom, bucket_size=100_000):
             chrom_end = length
     chrom_name = f"chr{chrom}"
     print("Initialized...")
-    reg_effects = RegulatoryEffect.objects.filter(experiment_id=20).prefetch_related(
+    reg_effects = RegulatoryEffectObservation.objects.filter(experiment_id=20).prefetch_related(
         "targets",
         "targets__children",
         "targets__children__children",

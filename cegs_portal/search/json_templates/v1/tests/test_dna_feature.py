@@ -3,7 +3,7 @@ import pytest
 from cegs_portal.search.json_templates.v1.dna_feature import feature as f_json
 from cegs_portal.search.json_templates.v1.dna_feature import reg_effect as re_json
 from cegs_portal.search.json_templates.v1.dna_feature import region as r_json
-from cegs_portal.search.models import DNAFeature, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 pytestmark = pytest.mark.django_db
 
@@ -65,7 +65,7 @@ def test_region(feature: DNAFeature):
     assert r_json(feature, json_format="genoverse") == result
 
 
-def test_regulatory_effect(reg_effect: RegulatoryEffect):
+def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     result = {
         "id": reg_effect.id,
         "effect_size": reg_effect.effect_size,

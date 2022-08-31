@@ -1,5 +1,5 @@
 from cegs_portal.search.json_templates import genoversify
-from cegs_portal.search.models import DNAFeature, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 
 def features(feature_objs: DNAFeature, json_format: str = None):
@@ -57,7 +57,7 @@ def region(region_obj: DNAFeature, json_format: str = None):
     return result
 
 
-def reg_effect(re_obj: RegulatoryEffect, json_format: str = None):
+def reg_effect(re_obj: RegulatoryEffectObservation, json_format: str = None):
     result = {
         "id": re_obj.id,
         "effect_size": re_obj.effect_size,

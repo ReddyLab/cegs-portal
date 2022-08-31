@@ -10,7 +10,7 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     FacetValue,
-    RegulatoryEffect,
+    RegulatoryEffectObservation,
 )
 from utils import ExperimentMetadata, timer
 
@@ -37,15 +37,15 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 def bulk_save(
     sources: list[DNAFeature],
     dhss: list[DNAFeature],
-    effects: list[RegulatoryEffect],
-    effect_directions: list[RegulatoryEffect],
+    effects: list[RegulatoryEffectObservation],
+    effect_directions: list[RegulatoryEffectObservation],
 ):
     with transaction.atomic():
         print("Adding DNaseIHypersensitiveSites")
         DNAFeature.objects.bulk_create(dhss, batch_size=1000)
 
-        print("Adding RegulatoryEffects")
-        RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
+        print("Adding RegulatoryEffectObservations")
+        RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
 
     with transaction.atomic():
         print("Adding effect directions to effects")
@@ -53,7 +53,7 @@ def bulk_save(
             effect.facet_values.add(direction)
 
     with transaction.atomic():
-        print("Adding sources to RegulatoryEffects")
+        print("Adding sources to RegulatoryEffectObservations")
         for source, effect in zip(sources, effects):
             effect.sources.add(source)
 
@@ -66,7 +66,7 @@ def load_reg_effects(
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     sites: list[DNAFeature] = []
     new_sites: list[DNAFeature] = []
-    effects: list[RegulatoryEffect] = []
+    effects: list[RegulatoryEffectObservation] = []
     effect_directions: list[FacetValue] = []
     for line in reader:
         chrom_name = line["chrom"]
@@ -115,14 +115,14 @@ def load_reg_effects(
             direction = DIR_FACET_VALUES["Mixed"]
         else:
             direction = None
-        effect = RegulatoryEffect(
-            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT),
+        effect = RegulatoryEffectObservation(
+            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
             experiment=experiment,
             facet_num_values={
-                RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
+                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
-                RegulatoryEffect.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
-                RegulatoryEffect.Facet.SIGNIFICANCE.value: float(line["pValue"]),
+                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: float(line["pValue"]),
             },
         )
         effects.append(effect)
@@ -132,7 +132,7 @@ def load_reg_effects(
 
 def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    RegulatoryEffect.objects.filter(experiment=experiment).delete()
+    RegulatoryEffectObservation.objects.filter(experiment=experiment).delete()
     for file in experiment.other_files.all():
         DNAFeature.objects.filter(source=file).delete()
     experiment_metadata.db_del()

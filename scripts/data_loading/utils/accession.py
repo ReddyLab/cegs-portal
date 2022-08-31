@@ -33,7 +33,7 @@ class AccessionType(Enum):
     GENE = "gene"
     TRANSCRIPT = "transcript"
     EXON = "exon"
-    REGULATORY_EFFECT = "regulatory effect"
+    REGULATORY_EFFECT_OBS = "regulatory effect observation"
     GRNA = "grna"
     CCRE = "ccre"
     DHS = "dhs"

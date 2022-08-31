@@ -1,14 +1,16 @@
 import pytest
 
-from cegs_portal.search.json_templates.v1.reg_effect import RegulatoryEffectJson
+from cegs_portal.search.json_templates.v1.reg_effect import (
+    RegulatoryEffectObservationJson,
+)
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect as re_json
-from cegs_portal.search.models import RegulatoryEffect
+from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.experiment import CellLine, TissueType
 
 pytestmark = pytest.mark.django_db
 
 
-def test_regulatory_effect(reg_effect: RegulatoryEffect):
+def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     cell_lines: set[CellLine] = set()
     tissue_types: set[TissueType] = set()
 
@@ -20,7 +22,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffect):
     setattr(reg_effect, "cell_lines", cell_lines)
     setattr(reg_effect, "tissue_types", tissue_types)
 
-    result: RegulatoryEffectJson = {
+    result: RegulatoryEffectObservationJson = {
         "id": reg_effect.id,
         "direction": reg_effect.direction,
         "effect_size": reg_effect.effect_size,

@@ -5,12 +5,12 @@ from django.db.models import Manager
 
 from cegs_portal.search.models import (
     DNAFeature,
-    EffectDirectionType,
+    EffectObservationDirectionType,
     Experiment,
     ExperimentDataFile,
     Facet,
     File,
-    RegulatoryEffect,
+    RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import (
@@ -99,9 +99,9 @@ def feature() -> DNAFeature:
 
 
 @pytest.fixture
-def reg_effect() -> RegulatoryEffect:
-    direction_facet = FacetFactory(description="", name=RegulatoryEffect.Facet.DIRECTION.value)
-    direction = FacetValueFactory(facet=direction_facet, value=EffectDirectionType.ENRICHED)
+def reg_effect() -> RegulatoryEffectObservation:
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)), facet_values=(direction,)
     )

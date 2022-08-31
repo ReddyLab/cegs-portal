@@ -9,7 +9,7 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     FacetValue,
-    RegulatoryEffect,
+    RegulatoryEffectObservation,
 )
 from utils import ExperimentMetadata, timer
 
@@ -41,8 +41,8 @@ def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets
         print("Adding gRNA Regions")
         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
 
-        print("Adding RegulatoryEffects")
-        RegulatoryEffect.objects.bulk_create(effects, batch_size=1000)
+        print("Adding RegulatoryEffectObservations")
+        RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
 
     with transaction.atomic():
         print("Adding gRNA type facets to gRNA regions")
@@ -55,10 +55,10 @@ def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets
             effect.facet_values.add(direction)
 
     with transaction.atomic():
-        print("Adding sources to RegulatoryEffects")
+        print("Adding sources to RegulatoryEffectObservations")
         for source, effect in zip(sources, effects):
             effect.sources.add(source)
-        print("Adding targets to RegulatoryEffects")
+        print("Adding targets to RegulatoryEffectObservations")
         for target, effect in zip(targets, effects):
             effect.targets.add(target)
 
@@ -155,13 +155,13 @@ def load_reg_effects(
             print(f'"{ref_genome}", "{line["gene_stable_id"]}"')
             raise e
 
-        effect = RegulatoryEffect(
-            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT),
+        effect = RegulatoryEffectObservation(
+            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
             experiment=experiment,
             facet_num_values={
-                RegulatoryEffect.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffect.Facet.RAW_P_VALUE.value: float(line["p_val"]),
-                RegulatoryEffect.Facet.SIGNIFICANCE.value: significance,
+                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
+                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
             },
         )
         target_assembiles.append(target_assembly)
@@ -172,7 +172,7 @@ def load_reg_effects(
 
 def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    RegulatoryEffect.objects.filter(experiment=experiment).delete()
+    RegulatoryEffectObservation.objects.filter(experiment=experiment).delete()
     for file in experiment.other_files.all():
         DNAFeature.objects.filter(source=file).delete()
     experiment_metadata.db_del()

@@ -1,13 +1,13 @@
 from django.db.models import Q
 
-from cegs_portal.search.models import DNAFeature, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 
 class RegEffectSearch:
     @classmethod
     def id_search(cls, re_id: str):
         reg_effect = (
-            RegulatoryEffect.objects.with_facet_values()
+            RegulatoryEffectObservation.objects.with_facet_values()
             .filter(accession_id=re_id)
             .prefetch_related(
                 "experiment",
@@ -24,7 +24,7 @@ class RegEffectSearch:
     @classmethod
     def source_search(cls, source_id: str):
         reg_effects = (
-            RegulatoryEffect.objects.with_facet_values()
+            RegulatoryEffectObservation.objects.with_facet_values()
             .filter(sources__accession_id=source_id)
             .prefetch_related(
                 "experiment__data_files__cell_lines",
@@ -39,7 +39,7 @@ class RegEffectSearch:
     @classmethod
     def feature_search(cls, features: list[DNAFeature]):
         reg_effects = (
-            RegulatoryEffect.objects.with_facet_values()
+            RegulatoryEffectObservation.objects.with_facet_values()
             .filter(Q(sources__in=features) | Q(targets__in=features))
             .prefetch_related(
                 "targets",

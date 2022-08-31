@@ -3,26 +3,26 @@ from factory import post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from cegs_portal.search.models import RegulatoryEffect
+from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
 
 
 class RegEffectFactory(DjangoModelFactory):
     class Meta:
-        model = RegulatoryEffect
+        model = RegulatoryEffectObservation
 
     _faker = Faker()
     experiment = factory.SubFactory(ExperimentFactory)
     facet_num_values = {
-        RegulatoryEffect.Facet.EFFECT_SIZE.value: -0.0660384670056446,
-        RegulatoryEffect.Facet.RAW_P_VALUE.value: 3.19229500470051e-06,
-        RegulatoryEffect.Facet.SIGNIFICANCE.value: 0.000427767530629869,
+        RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: -0.0660384670056446,
+        RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 3.19229500470051e-06,
+        RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: 0.000427767530629869,
     }
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPRE^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPREO^^^^^^^^", upper=True)
         obj.save()
         return obj
 

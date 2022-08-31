@@ -1,11 +1,11 @@
 from typing import Optional, TypedDict
 
-from cegs_portal.search.models import RegulatoryEffect
+from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.utils.pagination_types import Pageable
 
 ExperimentJson = TypedDict("ExperimentJson", {"id": int, "name": str})
-RegulatoryEffectJson = TypedDict(
-    "RegulatoryEffectJson",
+RegulatoryEffectObservationJson = TypedDict(
+    "RegulatoryEffectObservationJson",
     {
         "id": int,
         "direction": str,
@@ -23,7 +23,9 @@ RegulatoryEffectJson = TypedDict(
 )
 
 
-def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None) -> RegulatoryEffectJson:
+def regulatory_effect(
+    reg_effect: RegulatoryEffectObservation, json_format: str = None
+) -> RegulatoryEffectObservationJson:
     result = {
         "id": reg_effect.id,
         "direction": reg_effect.direction,
@@ -48,7 +50,7 @@ def regulatory_effect(reg_effect: RegulatoryEffect, json_format: str = None) -> 
     return result
 
 
-def source_reg_effects(reg_effects: Pageable[RegulatoryEffect], json_format: str = None):
+def source_reg_effects(reg_effects: Pageable[RegulatoryEffectObservation], json_format: str = None):
     results = {
         "objects": [regulatory_effect(re, json_format) for re in reg_effects.object_list],
         "page": reg_effects.number,

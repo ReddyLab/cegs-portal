@@ -9,7 +9,7 @@ These are the current items with Accession IDs:
 | Type                     | Abbreviation |
 |-------------------------------|---------|
 | Experiment                       | EXPR |
-| Regulatory Effect                | RE   |
+| Regulatory Effect Observation    | REO  |
 | Gene                             | GENE |
 | Transcript                       | T    |
 | Exon                             | EXON |

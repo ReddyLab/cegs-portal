@@ -7,7 +7,7 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     FacetValue,
-    RegulatoryEffect,
+    RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.utils import ChromosomeLocation
 
@@ -80,7 +80,7 @@ def _dnaregion(feature: DNAFeature, json_format=None):
     return result
 
 
-@json.register(RegulatoryEffect)
+@json.register(RegulatoryEffectObservation)
 def _regulatory_effect(reg_effect, json_format=None):
     return {
         "id": reg_effect.id,

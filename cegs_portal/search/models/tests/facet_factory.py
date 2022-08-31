@@ -18,5 +18,5 @@ class FacetValueFactory(DjangoModelFactory):
     class Meta:
         model = FacetValue
 
-    value = Faker("text", max_nb_chars=30)
+    value = Faker("text", max_nb_chars=50)
     facet = factory.SubFactory(FacetFactory)

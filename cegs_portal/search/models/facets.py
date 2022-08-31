@@ -28,7 +28,7 @@ class FacetValue(models.Model):
             models.Index(fields=["value"], name="sfv_value_index"),
         ]
 
-    value = models.CharField(max_length=30, null=True)
+    value = models.CharField(max_length=50, null=True)
     facet = models.ForeignKey(Facet, on_delete=models.CASCADE, related_name="values")
 
     def __str__(self):
