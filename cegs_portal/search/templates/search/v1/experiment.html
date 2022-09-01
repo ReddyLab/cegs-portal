@@ -81,6 +81,13 @@
         {% endif %}
 
         <div id="experiment-coverage" class="mt-4">
+            <div>
+                <form name="regionUploadForm">
+                    <div>
+                      <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                    </div>
+                  </form>
+            </div>
             <div id="chrom-data-header" class="text-xl font-bold"></div>
             <div class="flex flex-row">
                 <div id="chrom-data-filters" class="basis-1/3">
@@ -101,6 +108,7 @@
     <script type="module">
         import { a, cc, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
+        import { getRegions } from "{% static 'search/js/bed.js' %}";
         import { getJson, postJson } from "{% static 'search/js/files.js' %}";
         import { Legend } from "{% static 'search/js/obsLegend.js' %}";
         import { chromosomeOutline, chromosomeBand } from "{% static 'search/js/chromosomeSvg.js' %}";
@@ -118,7 +126,11 @@
         }
 
         const sourceColors = d3.interpolateCool;
+        const fadedSourceColors = d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.50, 0.95));
+        // const sourceColors = fadedSourceColors;
         const targetColors = d3.interpolateWarm;
+        const fadedTargetColors = d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.50, 0.95));
+        // const targetColors = fadedTargetColors;
         const xInset = 60;
         const yInset = 100;
         const chromHeight = 98;
@@ -164,6 +176,7 @@
         const STATE_ALL_FILTERED = "state-all-filtered";
         const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
         const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
+        const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
 
         let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
         let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
@@ -182,7 +195,8 @@
             [STATE_CONTINUOUS_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
             [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
             [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
-            [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval]
+            [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
+            [STATE_HIGHLIGHT_REGIONS]: {}
         });
 
         let countFacetWorker;
@@ -236,7 +250,7 @@
 
         render();
 
-        function renderSVG(coverageData, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, zoomed) {
+        function renderSVG(coverageData, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, zoomed, highlightRegions) {
             const bucketHeight = 44 * scaleY;
             const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
             const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
@@ -282,6 +296,8 @@
 
             for (let i = 0; i < coverageData.length; i++) {
                 const bucketSize = coverageData[i].bucket_size;
+                const chromName = coverageData[i].chrom;
+                const r = highlightRegions[chromName];
                 const bucketWidth = toPx(bucketSize) * scaleX;
 
                 const frame = chromGroups[i];
@@ -291,7 +307,21 @@
                 let sourceRects = sourceOverlay.selectAll("rect")
                 .data(coverageData[i].source_intervals)
                 .join("rect")
-                    .attr("fill", source => sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange))
+                    .attr("fill", source => {
+                        if (Object.keys(highlightRegions).length == 0) {
+                            return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange)
+                        }
+
+                        if (r == undefined) {
+                            return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        }
+
+                        if (r.some(region => (region[0] >= source.start && region[0] < (source.start + bucketSize) || (region[1] >= source.start && region[1] < (source.start + bucketSize))))) {
+                            return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        } else {
+                            return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        }
+                    })
                     .attr("x", source => xInset + toPx(source.start) * scaleX)
                     .attr("y", yInset + (chromSpacing + chromHeight) * i * scaleY)
                     .attr("width", bucketWidth)
@@ -304,7 +334,21 @@
                 let targetRects = targetOverlay.selectAll("rect")
                     .data(coverageData[i].target_intervals)
                     .join("rect")
-                    .attr("fill", target => targetColors((target.count - targetCountInterval[0]) / targetCountRange))
+                    .attr("fill", target => {
+                        if (Object.keys(highlightRegions).length == 0) {
+                            return targetColors((target.count - targetCountInterval[0]) / targetCountRange)
+                        }
+
+                        if (r == undefined) {
+                            return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        }
+
+                        if (r.some(region => (region[0] >= target.start && region[0] < (target.start + bucketSize) || (region[1] >= target.start && region[1] < (target.start + bucketSize))))) {
+                            return targetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        } else {
+                            return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        }
+                    })
                     .attr("x", target => xInset + toPx(target.start) * scaleX)
                     .attr("y", yInset + (54 + (chromSpacing + chromHeight) * i) * scaleY)
                     .attr("width", bucketWidth)
@@ -627,12 +671,13 @@
             const viewBox = state.g(STATE_VIEWBOX);
             const zoomed = state.g(STATE_ZOOMED);
             const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
+            const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
             let currentLevel = state.g(STATE_ALL_FILTERED);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
             let sourceCountInterval = countIntervals.source;
             let targetCountInterval = countIntervals.target;
 
-            rc(g("chrom-data"), renderSVG(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, zoomed));
+            rc(g("chrom-data"), renderSVG(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, zoomed, highlightRegions));
             rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
                 title: "Source Count"
             }));
@@ -732,5 +777,23 @@
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
             countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
         }, 60));
+
+        state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
+            render()
+        });
+
+        let regionReader = new FileReader();
+        regionReader.addEventListener("load", () => {
+            state.u(STATE_HIGHLIGHT_REGIONS, getRegions(regionReader.result))
+        }, false);
+
+        function getHighlightRegions() {
+            if (this.files.length != 1) {
+                return;
+            }
+            regionReader.readAsText(this.files[0]);
+        }
+
+        g("regionUploadInput").addEventListener("change", getHighlightRegions, false);
     </script>
 {% endblock %}

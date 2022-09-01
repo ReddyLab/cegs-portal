@@ -635,16 +635,16 @@ input[type="submit"], input[type="button"], button {
   margin-bottom: 0.5rem;
 }
 
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
 
 .ml-1 {
   margin-left: 0.25rem;
-}
-
-.mb-8 {
-  margin-bottom: 2rem;
 }
 
 .block {
@@ -659,10 +659,6 @@ input[type="submit"], input[type="button"], button {
 
 .table {
   display: table;
-}
-
-.table-row {
-  display: table-row;
 }
 
 .grid {
@@ -826,10 +822,6 @@ input[type="submit"], input[type="button"], button {
 
 .p-2 {
   padding: 0.5rem;
-}
-
-.pt-8 {
-  padding-top: 2rem;
 }
 
 .align-baseline {
