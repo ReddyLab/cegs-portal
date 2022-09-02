@@ -7,9 +7,10 @@ from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
+from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
-from cegs_portal.utils.http_exceptions import Http500
+from cegs_portal.utils.http_exceptions import Http400, Http500
 
 
 class SearchView(TemplateJsonView):
@@ -34,6 +35,8 @@ class SearchView(TemplateJsonView):
             search_results = Search.search(unquoted_search_query, options["facets"])
         except SearchResultsException as e:
             raise Http500(e)
+        except ViewModelError as e:
+            raise Http400(e)
 
         search_results["query"] = options["search_query"]
 

@@ -41,9 +41,8 @@ svg > g > text {
                     </fieldset>
                 {% endfor %}
             </div>
-            <div class=""></div>
         </div>
-        <div id="main-content" class="flex-initial w-4/5">
+        <div id="main-content" class="flex-initial">
             <div class="flex search-wrapper">
                 <div class="text-2xl m-2 font-bold self-end align-baseline">Results</div>
                 <div class="flex-grow"></div>
@@ -61,8 +60,8 @@ svg > g > text {
             {% endswitch %}
             {% if dhss|length > 0 %}
             <div class="my-4">
-                <div class="text-xl font-bold">DNase I Hypersensitive Sites</div>
-                {% include "search/v1/partials/_dnaregion.html" with regions=dhss.object_list %}
+                <div class="text-xl font-bold">Genome Features</div>
+                {% include "search/v1/partials/_features.html" with features=dhss.object_list %}
             </div>
             <div id="dhs_pagination" class="pagination">
                 <span class="step-links">

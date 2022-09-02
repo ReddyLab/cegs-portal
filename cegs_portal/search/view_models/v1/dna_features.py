@@ -125,7 +125,4 @@ class DNAFeatureSearch:
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
 
-        if "reg_effect" in region_properties:
-            features = features.filter(re_count__gt=0)
-
         return features.distinct()

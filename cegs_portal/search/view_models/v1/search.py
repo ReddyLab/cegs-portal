@@ -3,6 +3,7 @@ from typing import Optional
 
 from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType, Facet
 from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
 CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
@@ -50,13 +51,19 @@ class Search:
     def _dnafeature_search(
         cls, location: ChromosomeLocation, assembly: str, facets: list[int], region_type: Optional[list[str]] = None
     ):
+        if location.range.lower >= location.range.upper:
+            raise ViewModelError(
+                f"Invalid location; lower bound ({location.range.lower}) "
+                f"larger than upper bound ({location.range.upper})"
+            )
+
         regions = DNAFeatureSearch.loc_search(
             location.chromo,
             str(location.range.lower),
             str(location.range.upper),
             assembly,
             region_type,
-            ["reg_effect"],
+            [],
             LocSearchType.OVERLAP.value,
             facets,
         )

@@ -689,10 +689,6 @@ input[type="submit"], input[type="button"], button {
   width: 15rem;
 }
 
-.w-4\/5 {
-  width: 80%;
-}
-
 .max-w-max {
   max-width: -webkit-max-content;
   max-width: -moz-max-content;
