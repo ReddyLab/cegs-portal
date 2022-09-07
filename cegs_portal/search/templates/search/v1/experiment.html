@@ -181,15 +181,27 @@
             state.u(STATE_ZOOMED, !zoomed);
         }
 
-        let countFacetWorker;
-        if (window.Worker) {
-            countFacetWorker = new Worker("{% static 'search/js/countFacetFilterWorker.js' %}")
-            countFacetWorker.onmessage = (cf) => {
-                state.u(STATE_ALL_FILTERED, cf.data);
-            }
-        }
-
         rc(g("chrom-data-header"), t("Experiment Coverage"));
+
+        function render() {
+            const viewBox = state.g(STATE_VIEWBOX);
+            const scale = state.g(STATE_SCALE);
+            const scaleX = state.g(STATE_SCALE_X);
+            const scaleY = state.g(STATE_SCALE_Y);
+            const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
+            let currentLevel = state.g(STATE_ALL_FILTERED);
+            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
+            let sourceCountInterval = countIntervals.source;
+            let targetCountInterval = countIntervals.target;
+
+            rc(g("chrom-data"), genomeRenderer.render(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
+            rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
+                title: "Source Count"
+            }));
+            a(g("chrom-data-legend"), Legend(d3.scaleSequential(targetCountInterval, targetColors), {
+                title: "Target Count"
+            }));
+        }
 
         render();
 
@@ -379,27 +391,6 @@
             a(g("chrom-data-counts"), element)
         });
 
-        function render() {
-            const scale = state.g(STATE_SCALE);
-            const scaleX = state.g(STATE_SCALE_X);
-            const scaleY = state.g(STATE_SCALE_Y);
-            const viewBox = state.g(STATE_VIEWBOX);
-            const zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-            const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
-            let currentLevel = state.g(STATE_ALL_FILTERED);
-            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-            let sourceCountInterval = countIntervals.source;
-            let targetCountInterval = countIntervals.target;
-
-            rc(g("chrom-data"), genomeRenderer.render(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
-            rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
-                title: "Source Count"
-            }));
-            a(g("chrom-data-legend"), Legend(d3.scaleSequential(targetCountInterval, targetColors), {
-                title: "Target Count"
-            }));
-        }
-
         function get_filters(filter_values) {
             let filters = {
                 filters: filter_values
@@ -488,8 +479,18 @@
             countFilterControls().forEach(element => a(g("chrom-data-counts"), element));
         })
 
+        let countFacetWorker;
+        if (window.Worker) {
+            countFacetWorker = new Worker("{% static 'search/js/countFacetFilterWorker.js' %}")
+            countFacetWorker.onmessage = (cf) => {
+                state.u(STATE_ALL_FILTERED, cf.data);
+            }
+        }
+
         state.ac(STATE_COUNT_FILTER_VALUES, _.debounce((s, key) => {
-            countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)})
+            if (countFacetWorker) {
+                countFacetWorker.postMessage({data: state.g(STATE_COVERAGE_DATA), countFilters: state.g(STATE_COUNT_FILTER_VALUES)});
+            }
         }, 60));
 
         state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
