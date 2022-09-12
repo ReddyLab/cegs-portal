@@ -36,7 +36,7 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'search/js/vizUtils.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/exp_viz/vizUtils.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 {% endblock %}
 
@@ -88,6 +88,10 @@
                     </div>
                   </form>
             </div>
+            <div>
+                {% include "search/v1/partials/_multi_select.html" with select_data=other_experiments %}
+                <button id="multi-exp-filter">Filter Combined Experiment Data</button>
+            </div>
             <div id="chrom-data-header" class="text-xl font-bold"></div>
             <div class="flex flex-row">
                 <div id="chrom-data-filters" class="basis-1/3">
@@ -110,8 +114,9 @@
         import { State } from "{% static 'search/js/state.js' %}";
         import { getRegions } from "{% static 'search/js/bed.js' %}";
         import { getJson, postJson } from "{% static 'search/js/files.js' %}";
-        import { Legend } from "{% static 'search/js/obsLegend.js' %}";
-        import { sourceColors, targetColors, GenomeRenderer } from "{% static 'search/js/chromosomeSvg.js' %}";
+        import { Legend } from "{% static 'search/js/exp_viz/obsLegend.js' %}";
+        import { sourceColors, targetColors, GenomeRenderer } from "{% static 'search/js/exp_viz/chromosomeSvg.js' %}";
+        import { mergeCoverageData, mergeFacets } from "{% static 'search/js/exp_viz/mergeDataStructures.js' %}";
 
         let genome;
         let coverageData;
@@ -119,8 +124,8 @@
         try {
             let manifest = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/coverage_manifest.json");
             genome = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome}`);
-            coverageData = manifest["chromosomes"];
-            facets = manifest["facets"];
+            coverageData = manifest.chromosomes;
+            facets = manifest.facets;
         } catch (error) {
             // If the files can't be loaded we don't want to even try to show the visualization.
         }
@@ -133,6 +138,7 @@
         const STATE_SCALE_X = "state-scale-x";
         const STATE_SCALE_Y = "state-scale-y";
         const STATE_VIEWBOX = "state-viewbox";
+        const STATE_FACETS = "state-facets";
         const STATE_DISCRETE_FACET_VALUES = "state-discrete-facets"
         const STATE_CONTINUOUS_FACET_VALUES = "state-continuous-facets";
         const STATE_COUNT_FILTER_VALUES = "state-count-filter";
@@ -141,6 +147,7 @@
         const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
         const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
         const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
+        const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
 
         let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
         let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
@@ -153,6 +160,7 @@
             [STATE_SCALE_X]: 1,
             [STATE_SCALE_Y]: 1,
             [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
+            [STATE_FACETS]: facets,
             [STATE_DISCRETE_FACET_VALUES]: [],
             [STATE_COVERAGE_DATA]: coverageData,
             [STATE_ALL_FILTERED]: coverageData,
@@ -160,9 +168,9 @@
             [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
             [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
             [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
-            [STATE_HIGHLIGHT_REGIONS]: {}
+            [STATE_HIGHLIGHT_REGIONS]: {},
+            [STATE_SELECTED_EXPERIMENTS]: ["{{ experiment.accession_id }}"]
         });
-
 
         genomeRenderer.onBucketClick = (i, start, renderer) => {
             let zoomed = state.g(STATE_ZOOMED);
@@ -224,6 +232,7 @@
             return [min, max];
         }
 
+        let discreteFacets = g("chrom-data-discrete-facets");
         function discreteFilterControls(facets) {
             return facets
             .filter(f => f.facet_type == "FacetType.DISCRETE")
@@ -242,23 +251,8 @@
             });
         }
 
-        discreteFilterControls(facets).forEach(element => {
-            a(g("chrom-data-discrete-facets"), element)
-        });
-
-        const discreteFacets = g("chrom-data-discrete-facets");
-        const facetCheckboxes = discreteFacets.querySelectorAll("input[type=checkbox]");
-
-        facetCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", _ => {
-                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-                                    .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                                    .map(i => Number(i.id))
-                state.updateSharedState(STATE_DISCRETE_FACET_VALUES, checkedFacets);
-            });
-        });
-
-        function continuousFilterControls() {
+        let continuousFacets = g("chrom-data-continuous-facets");
+        function continuousFilterControls(facets) {
             const contFacets = facets.filter(f => f.facet_type == "FacetType.CONTINUOUS");
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
             let filterNodes = [];
@@ -321,10 +315,6 @@
 
             return filterNodes;
         }
-
-        continuousFilterControls().forEach(element => {
-            a(g("chrom-data-continuous-facets"), element)
-        });
 
         function countFilterControls() {
             let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
@@ -427,10 +417,6 @@
 
             postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
-                let sourceCountInterval = levelCountInterval(response_json.chromosomes, "source_intervals");
-                let targetCountInterval = levelCountInterval(response_json.chromosomes, "target_intervals");
-                state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
-                state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
             });
         });
 
@@ -446,10 +432,6 @@
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
                 state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
                 state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig], false);
-                let sourceCountInterval = levelCountInterval(response_json.chromosomes, "source_intervals");
-                let targetCountInterval = levelCountInterval(response_json.chromosomes, "target_intervals");
-                state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
-                state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
             });
         }, 300));
 
@@ -462,16 +444,12 @@
 
             postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
-                let sourceCountInterval = levelCountInterval(response_json.chromosomes, "source_intervals");
-                let targetCountInterval = levelCountInterval(response_json.chromosomes, "target_intervals");
-                state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
-                state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
             });
         }, 300));
 
         state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
             cc(g("chrom-data-continuous-facets"));
-            continuousFilterControls().forEach(element => a(g("chrom-data-continuous-facets"), element));
+            continuousFilterControls(state.g(STATE_FACETS)).forEach(element => a(g("chrom-data-continuous-facets"), element));
         })
 
         state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
@@ -497,6 +475,43 @@
             render()
         });
 
+        function setFacetControls(facets) {
+            cc(discreteFacets);
+            discreteFilterControls(facets).forEach(element => {
+                a(discreteFacets, element)
+            });
+            let facetCheckboxes = discreteFacets.querySelectorAll("input[type=checkbox]");
+            facetCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", _ => {
+                    let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+                                        .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                                        .map(i => Number(i.id))
+                    state.u(STATE_DISCRETE_FACET_VALUES, checkedFacets);
+                });
+            });
+
+            let effectSizeInterval = facets.filter(f => f.name === "Effect Size")[0].range
+            let sigInterval = facets.filter(f => f.name === "Significance")[0].range
+            state.u(STATE_CONTINUOUS_FILTER_INTERVALS, {effect: effectSizeInterval, sig: sigInterval});
+        }
+
+        function setCountControls(coverageData) {
+            let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
+            let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
+            state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
+            state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
+        }
+
+        state.ac(STATE_FACETS, (s, key) => {
+            setFacetControls(s[key]);
+        })
+
+        state.ac(STATE_COVERAGE_DATA, (s, key) => {
+            setCountControls(s[key]);
+        })
+
+        setFacetControls(state.g(STATE_FACETS));
+
         let regionReader = new FileReader();
         regionReader.addEventListener("load", () => {
             state.u(STATE_HIGHLIGHT_REGIONS, getRegions(regionReader.result))
@@ -510,5 +525,25 @@
         }
 
         g("regionUploadInput").addEventListener("change", getHighlightRegions, false);
+
+        function selectMultipleExperiments() {
+            let exp_ids = new Array(...g("{{ other_experiments.id }}").selectedOptions).map(x => x.value);
+            if (exp_ids.length == 0) {
+                state.u(STATE_SELECTED_EXPERIMENTS, ["{{ experiment.accession_id }}"]);
+                state.u(STATE_FACETS, facets);
+                state.u(STATE_COVERAGE_DATA, coverageData)
+                return;
+            }
+            Promise.all(exp_ids.map(id => getJson(`{% get_static_prefix %}search/experiments/${id}/coverage_manifest.json`)))
+              .then((responses) => {
+                state.u(STATE_SELECTED_EXPERIMENTS, ["{{ experiment.accession_id }}", ...exp_ids]);
+                state.u(STATE_FACETS, mergeFacets([state.g(STATE_FACETS), ...responses.map(r => r.facets)], _.cloneDeep));
+                state.u(STATE_COVERAGE_DATA, mergeCoverageData([state.g(STATE_COVERAGE_DATA), ...responses.map(r => r.chromosomes)], genome, _.cloneDeep));
+              }).catch((error) => {
+                console.error(`Failed to fetch: ${error}`)
+              })
+        }
+
+        g("multi-exp-filter").addEventListener("click", selectMultipleExperiments, false)
     </script>
 {% endblock %}

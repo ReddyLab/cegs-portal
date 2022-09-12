@@ -9,10 +9,10 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 class ExperimentView(TemplateJsonView):
     json_renderer = experiment
     template = "search/v1/experiment.html"
-    template_data_name = "experiment"
 
     def get_data(self, options, exp_id):
         experi = ExperimentSearch.accession_search(exp_id)
+        other_experiments = ExperimentSearch.all_except(exp_id)
 
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
@@ -29,7 +29,15 @@ class ExperimentView(TemplateJsonView):
         setattr(experi, "tissue_types", experi_tissue_types)
         setattr(experi, "assemblies", experi_assemblies)
 
-        return experi
+        return {
+            "experiment": experi,
+            "other_experiments": {
+                "id": "other_experiments",
+                "options": [
+                    {"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in other_experiments
+                ],
+            },
+        }
 
 
 class ExperimentListView(TemplateJsonView):

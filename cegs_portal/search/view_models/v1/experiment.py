@@ -24,3 +24,7 @@ class ExperimentSearch:
             .all()
         )
         return experiments
+
+    @classmethod
+    def all_except(cls, accession_id):
+        return Experiment.objects.exclude(accession_id=accession_id).order_by("accession_id")
