@@ -397,12 +397,12 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
             title: `<a target="_blank" href="${url}">${type}: ${feature.id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
             Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
-            "Closest Gene": `<a target="_blank" href="/search/feature/db/${feature.closest_gene_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+            "Closest Gene": `<a target="_blank" href="/search/dnafeature/db/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
         var i = 1;
         for (effect of feature.effects) {
-            for (assembly of effect.target_assemblies) {
+            for (assembly of effect.targets) {
                 menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${assembly.id}">${
                     assembly.name
                 } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
