@@ -68,8 +68,17 @@ class ExperimentCoverageView(TemplateJsonView):
                 * like
                 * start
                 * in
+            exp (multiple)
+                * Experiment Accession ID
+        POST body:
+            filters:
         """
         options = super().request_options(request)
+        options["exp_acc_ids"] = request.GET.getlist("exp", [])
+
+        if len(options["exp_acc_ids"]) == 0:
+            raise Http400("Must query at least 1 experiment")
+
         try:
             body = json.loads(request.body)
         except Exception as e:
@@ -86,7 +95,7 @@ class ExperimentCoverageView(TemplateJsonView):
 
         return options
 
-    def post(self, request, options, data, exp_acc_id):
+    def post(self, request, options, data):
         raise Http500(
             (
                 f'This is a JSON-only API. Please request using "Accept: {JSON_MIME}" header or '
@@ -97,8 +106,9 @@ class ExperimentCoverageView(TemplateJsonView):
     def post_json(self, _request, options, data, *args, **kwargs):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
-    def post_data(self, options, exp_acc_id):
-        validate_accession_id(exp_acc_id)
+    def post_data(self, options):
+        for exp_acc_id in options["exp_acc_ids"]:
+            validate_accession_id(exp_acc_id)
 
         filters = options["filters"]
 
@@ -112,6 +122,7 @@ class ExperimentCoverageView(TemplateJsonView):
             data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
             data_filter.continuous_intervals = data_filter_intervals
 
-        loaded_data = load_coverage(exp_acc_id, options["zoom"])
+        for exp_acc_id in options["exp_acc_ids"]:
+            loaded_data = load_coverage(exp_acc_id, options["zoom"])
         filtered_data = exp_viz.filter_coverage_data(data_filter, loaded_data)
         return filtered_data

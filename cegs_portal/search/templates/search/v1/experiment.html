@@ -404,6 +404,11 @@
             });
         }
 
+        function experimentsQuery() {
+            let selectedExperiments = state.g(STATE_SELECTED_EXPERIMENTS)
+            return selectedExperiments.map(e => `exp=${e}`).join("&")
+        }
+
         state.ac(STATE_ZOOMED, (s, key) => {
             const zoomed = s[key];
             state.u(STATE_SCALE, zoomed ? 15 : 1);
@@ -415,7 +420,7 @@
                 state.g(STATE_CONTINUOUS_FACET_VALUES)
             ]);
 
-            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
             });
         });
@@ -428,7 +433,7 @@
             // Send facet data to server to get filtered data and updated continuous facets
             let filters = get_filters([state.g(STATE_DISCRETE_FACET_VALUES)]);
 
-            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
                 state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
                 state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig], false);
@@ -442,7 +447,7 @@
                 state.g(STATE_CONTINUOUS_FACET_VALUES)
             ]);
 
-            postJson("/search/experiment_coverage/{{ experiment.accession_id }}", JSON.stringify(filters)).then(response_json => {
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
                 state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
             });
         }, 300));
