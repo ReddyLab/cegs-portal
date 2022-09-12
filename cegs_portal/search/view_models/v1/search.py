@@ -7,6 +7,7 @@ from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
 CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
+ACCESSION_RE = re.compile(r"\b(DCP[a-z]{1,4}[0-9a-f]{8})", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"\b(ENS[0-9a-z]+)", re.IGNORECASE)
 # HAVANA_RE = re.compile(r"\b(OTT[0-9a-z]+)", re.IGNORECASE)
 # HUGO_RE = re.compile(r"\b(HGNC:[0-9a-z]+)", re.IGNORECASE)
@@ -27,6 +28,10 @@ def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[Chro
     for result in re.finditer(ENSEMBL_RE, query):
         terms.append(QueryToken.ENSEMBL_ID.associate(result.group(1)))
     query = re.sub(ENSEMBL_RE, " ", query)
+
+    for result in re.finditer(ACCESSION_RE, query):
+        terms.append(QueryToken.ACCESSION_ID.associate(result.group(1)))
+    query = re.sub(ACCESSION_RE, " ", query)
 
     assembly = None  # Default
     for result in re.finditer(ASSEMBLY_RE, query):

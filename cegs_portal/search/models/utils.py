@@ -7,6 +7,7 @@ from psycopg2.extras import NumericRange
 class QueryToken(Enum):
     LOCATION = auto()
     ENSEMBL_ID = auto()
+    ACCESSION_ID = auto()
 
     def associate(self, value: str) -> tuple["QueryToken", str]:
         return (self, value)
