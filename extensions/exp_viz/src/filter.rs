@@ -304,3 +304,8 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
     println!("Time to filter data: {}ms", now.elapsed().as_millis());
     Ok(new_data)
 }
+
+#[pyfunction]
+pub fn filter_coverage_data_allow_threads(py: Python<'_>, filters: &Filter, data: &PyCoverageData) -> PyResult<FilteredData> {
+    py.allow_threads(|| filter_coverage_data(filters, data))
+}
