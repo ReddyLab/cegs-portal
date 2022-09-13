@@ -3,14 +3,14 @@ use std::time::Instant;
 use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
-use cov_viz_ds::{DbID, FacetCoverage, FacetRange};
 use crate::filter_data_structures::*;
+use cov_viz_ds::{DbID, FacetCoverage, FacetRange};
 
 fn is_disjoint(a: &Vec<DbID>, b: &Vec<DbID>) -> bool {
     for val_a in a {
         for val_b in b {
             if val_a == val_b {
-                return false
+                return false;
             }
         }
     }
@@ -23,7 +23,22 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
     let now = Instant::now();
     let data = &data.wraps;
 
-    let skip_disc_facet_check = filters.discrete_facets.is_empty();
+    let mut coverage_data_disc_facets: FxHashSet<DbID> = FxHashSet::default();
+    for facet in data.facets.iter() {
+        match &facet.values {
+            Some(facets) => facets.keys().for_each(|key| {
+                coverage_data_disc_facets.insert(*key);
+            }),
+            None => (),
+        };
+    }
+
+    let coverage_data_disc_facets: FxHashSet<DbID> = coverage_data_disc_facets
+        .intersection(&filters.discrete_facets)
+        .cloned()
+        .collect();
+
+    let skip_disc_facet_check = coverage_data_disc_facets.is_empty();
     let skip_cont_facet_check = filters.continuous_intervals.is_none();
 
     let effect_size_interval = match &filters.continuous_intervals {
@@ -75,23 +90,23 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
 
     let sf_with_selections: Vec<&FxHashSet<DbID>> = source_facets
         .iter()
-        .filter(|f| !f.is_disjoint(&filters.discrete_facets))
+        .filter(|f| !f.is_disjoint(&coverage_data_disc_facets))
         .collect();
     let tf_with_selections: Vec<&FxHashSet<DbID>> = target_facets
         .iter()
-        .filter(|f| !f.is_disjoint(&filters.discrete_facets))
+        .filter(|f| !f.is_disjoint(&coverage_data_disc_facets))
         .collect();
 
     let selected_sf: Vec<Vec<DbID>> = sf_with_selections
         .iter()
-        .map(|f| (*f & &filters.discrete_facets).into_iter().collect())
+        .map(|f| (*f & &coverage_data_disc_facets).into_iter().collect())
         .collect();
     let selected_tf: Vec<Vec<DbID>> = tf_with_selections
         .iter()
-        .map(|f| (*f & &filters.discrete_facets).into_iter().collect())
+        .map(|f| (*f & &coverage_data_disc_facets).into_iter().collect())
         .collect();
 
-        let filtered_data: Vec<(FilteredChromosome, f32, f32, f32, f32)> = data
+    let filtered_data: Vec<(FilteredChromosome, f32, f32, f32, f32)> = data
         .chromosomes
         .iter()
         .map(|chromosome| -> (FilteredChromosome, f32, f32, f32, f32) {
@@ -306,6 +321,10 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
 }
 
 #[pyfunction]
-pub fn filter_coverage_data_allow_threads(py: Python<'_>, filters: &Filter, data: &PyCoverageData) -> PyResult<FilteredData> {
+pub fn filter_coverage_data_allow_threads(
+    py: Python<'_>,
+    filters: &Filter,
+    data: &PyCoverageData,
+) -> PyResult<FilteredData> {
     py.allow_threads(|| filter_coverage_data(filters, data))
 }

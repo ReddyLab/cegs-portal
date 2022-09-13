@@ -56,7 +56,7 @@ export function mergeCoverageData(coveragesList, genome, cloneFn) {
                 if (!chromsCovered.has(chromosome.chrom)) {
                     chromsCovered.add(chromosome.chrom);
                     newChromosome = cloneFn(chromosome);
-                    continue;
+                    break;
                 }
 
                 // Right chromosome; has been added already; need to merge

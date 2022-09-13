@@ -381,9 +381,10 @@
             a(g("chrom-data-counts"), element)
         });
 
-        function get_filters(filter_values) {
+        function getFilterBody(filter_values) {
             let filters = {
-                filters: filter_values
+                filters: filter_values,
+                chromosomes: genome.map(c => c.chrom)
             }
             if (state.g(STATE_ZOOMED)) {
                 let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
@@ -393,7 +394,7 @@
             return filters
         }
 
-        function merge_filtered_data(current_data, response_data) {
+        function mergeFilteredData(current_data, response_data) {
             let resp_obj = response_data.reduce((obj, chrom) => {
                 obj[chrom.chrom] = chrom;
                 return obj;
@@ -415,13 +416,13 @@
             state.u(STATE_SCALE_X, zoomed ? 30 : 1);
             state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
 
-            let filters = get_filters([
+            let body = getFilterBody([
                 state.g(STATE_DISCRETE_FACET_VALUES),
                 state.g(STATE_CONTINUOUS_FACET_VALUES)
             ]);
 
-            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
-                state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then(response_json => {
+                state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
             });
         });
 
@@ -431,10 +432,10 @@
 
         state.ac(STATE_DISCRETE_FACET_VALUES, _.debounce((s, key) => {
             // Send facet data to server to get filtered data and updated continuous facets
-            let filters = get_filters([state.g(STATE_DISCRETE_FACET_VALUES)]);
+            let body = getFilterBody([state.g(STATE_DISCRETE_FACET_VALUES)]);
 
-            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
-                state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then(response_json => {
+                state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
                 state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
                 state.u(STATE_CONTINUOUS_FACET_VALUES, [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig], false);
             });
@@ -442,13 +443,13 @@
 
         state.ac(STATE_CONTINUOUS_FACET_VALUES, _.debounce((s, key) => {
             // Send facet data to server to get filtered data and updated continuous facets
-            let filters = get_filters([
+            let body = getFilterBody([
                 state.g(STATE_DISCRETE_FACET_VALUES),
                 state.g(STATE_CONTINUOUS_FACET_VALUES)
             ]);
 
-            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(filters)).then(response_json => {
-                state.u(STATE_COVERAGE_DATA, merge_filtered_data(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then(response_json => {
+                state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
             });
         }, 300));
 

@@ -1,11 +1,17 @@
 import json
+from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 from functools import lru_cache
 from os.path import join
 
-import exp_viz
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse
-from exp_viz import Filter, FilterIntervals
+from exp_viz import (
+    Filter,
+    FilterIntervals,
+    filter_coverage_data_allow_threads,
+    load_coverage_data_allow_threads,
+    merge_filtered_data,
+)
 
 from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_coverage
 from cegs_portal.search.models.validators import validate_accession_id
@@ -49,7 +55,7 @@ def load_coverage(exp_acc_id, chrom):
     else:
         filename = finders.find(join("search", "experiments", exp_acc_id, f"level2_{chrom}.bin"))
 
-    return exp_viz.load_coverage_data(filename)
+    return load_coverage_data_allow_threads(filename)
 
 
 class ExperimentCoverageView(TemplateJsonView):
@@ -89,6 +95,11 @@ class ExperimentCoverageView(TemplateJsonView):
         except Exception as e:
             raise Http500(f'Invalid request body, no "filters" object:\n{request.body}\n\nError:\n{e}')
 
+        try:
+            options["chromosomes"] = body["chromosomes"]
+        except Exception as e:
+            raise Http500(f'Invalid request body, no "chromosomes" object:\n{request.body}\n\nError:\n{e}')
+
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
         options["zoom"] = zoom_chr
@@ -122,7 +133,16 @@ class ExperimentCoverageView(TemplateJsonView):
             data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
             data_filter.continuous_intervals = data_filter_intervals
 
-        for exp_acc_id in options["exp_acc_ids"]:
-            loaded_data = load_coverage(exp_acc_id, options["zoom"])
-        filtered_data = exp_viz.filter_coverage_data(data_filter, loaded_data)
-        return filtered_data
+        with ThreadPoolExecutor() as executor:
+            load_to_acc_id = {
+                executor.submit(load_coverage, exp_acc_id, options["zoom"]): exp_acc_id
+                for exp_acc_id in options["exp_acc_ids"]
+            }
+            loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
+            filter_to_acc_id = {
+                executor.submit(filter_coverage_data_allow_threads, data_filter, load_future.result())
+                for load_future in loaded_data.done
+            }
+            filtered_data = wait(filter_to_acc_id, return_when=ALL_COMPLETED)
+
+        return merge_filtered_data([d.result() for d in filtered_data.done], options["chromosomes"])

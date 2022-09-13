@@ -22,6 +22,9 @@ pub fn load_coverage_data(location: PathBuf) -> PyResult<PyCoverageData> {
 }
 
 #[pyfunction]
-pub fn load_coverage_data_allow_threads(py: Python<'_>, location: PathBuf) -> PyResult<PyCoverageData> {
+pub fn load_coverage_data_allow_threads(
+    py: Python<'_>,
+    location: PathBuf,
+) -> PyResult<PyCoverageData> {
     py.allow_threads(|| load_coverage_data(location))
 }

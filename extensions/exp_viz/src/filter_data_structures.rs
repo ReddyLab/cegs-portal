@@ -35,7 +35,7 @@ impl Filter {
 }
 
 #[pyclass]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct FilterIntervals {
     #[pyo3(get, set)]
     pub effect: (f32, f32),
@@ -61,14 +61,15 @@ impl FilterIntervals {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, FromPyObject)]
 pub struct FilteredBucket {
     pub start: u32,
     pub count: usize,
     pub associated_buckets: Vec<u32>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FilteredChromosome {
     pub chrom: String,
     pub bucket_size: u32,
@@ -76,10 +77,12 @@ pub struct FilteredChromosome {
     pub source_intervals: Vec<FilteredBucket>,
 }
 
-#[derive(Serialize, Deserialize)]
 #[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FilteredData {
+    #[pyo3(get, set)]
     pub chromosomes: Vec<FilteredChromosome>,
+    #[pyo3(get, set)]
     pub continuous_intervals: FilterIntervals,
 }
 
