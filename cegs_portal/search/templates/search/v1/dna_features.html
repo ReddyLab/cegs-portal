@@ -43,7 +43,7 @@
 {% block inline_javascript %}
     <script type="module">
         import { State } from "{% static 'search/js/state.js' %}";
-        import { dataPages, regionTable, emptyRegionTable, pageLink } from "{% static 'search/js/tables.js' %}"
+        import { dataPages, featureTable, emptyFeatureTable, pageLink } from "{% static 'search/js/tables.js' %}"
 
         const STATE_LOCATION = "location";
         let state = new State({
@@ -67,19 +67,19 @@
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
-        let regionURL = function(chromosome, start, end) {
-            return `/search/regionloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs`;
+        let featureURL = function(chromosome, start, end) {
+            return `/search/featureloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs`;
         }
 
         let genDataPages = function(chromo, start, end, page) {
             return dataPages(
                 page,
-                _ => regionURL(chromo, start, end),
-                regionTable,
-                emptyRegionTable,
-                region => true,
-                "No DHSs Found",
-                "dnaregion",
+                _ => featureURL(chromo, start, end),
+                featureTable,
+                emptyFeatureTable,
+                feature => true,
+                "No DNA Features Found",
+                "dnafeature",
                 "dhs_pagination",
                 "dhs",
                 "page"

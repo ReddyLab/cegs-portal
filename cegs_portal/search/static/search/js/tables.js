@@ -1,35 +1,35 @@
 import { e, g, t } from "./dom.js";
 
-function emptyRegionTable(emptyString, regionID="dnaregion") {
+function emptyFeatureTable(emptyString, regionID="dnafeature") {
     return e("div", {id: regionID}, t(emptyString));
 }
 
-function regionTable(regions, regionID="dnaregion") {
+function featureTable(features, regionID="dnafeature") {
     let newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
-            e("th", "Region Type"),
+            e("th", "ID"),
+            e("th", "Feature Type"),
             e("th", "Cell Line"),
             e("th", "Location"),
             e("th", "Strand"),
             e("th", "Closest Gene"),
-            e("th", "Reference Genome"),
-            e("th"),
+            e("th", "Reference Genome")
         ])
     ])
-    for(const region of regions) {
+    for(const feature of features) {
         newTable.append(
             e("tr", [
-                e("td", region.type),
-                e("td", region.cell_line || "None"),
+                e("td", e("a", {href: `/search/feature/accession/${feature.accession_id}`}, feature.accession_id)),
+                e("td", feature.type),
+                e("td", feature.cell_line || "None"),
                 e("td", [
-                    e("span", region.chr),
+                    e("span", feature.chr),
                     ": ",
-                    e("span", `${region.start}-${region.end}`)
+                    e("span", `${feature.start}-${feature.end}`)
                 ]),
-                e("td", region.strand || "None"),
-                e("td", e("a", {href: `/search/feature/ensembl/${region.closest_gene_ensembl_id}`}, `${region.closest_gene_name} (${region.closest_gene_ensembl_id})`)),
-                e("td", `${region.ref_genome}.${region.ref_genome_patch || 0}`),
-                e("td", e("a", {href: `/search/region/${region.id}`}, "More...")),
+                e("td", feature.strand || "None"),
+                e("td", feature.closest_gene_ensembl_id ? e("a", {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`}, `${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})`) : "N/A"),
+                e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`)
             ])
         )
     }
@@ -138,7 +138,7 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
                     return;
                 }
 
-                let filtered_data = data.objects.filter(dataFilter);
+                let filtered_data = data.filter(dataFilter);
                 g(dataTableID).replaceWith(dataTableFunction(filtered_data, dataTableID));
                 g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
 
@@ -160,4 +160,4 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
     return pageFunc.bind(pageFunc);
 }
 
-export { pageLink, dataPages, newPagination, regionTable, emptyRegionTable, emptyRETable, reTable };
+export { pageLink, dataPages, newPagination, featureTable, emptyFeatureTable, emptyRETable, reTable };

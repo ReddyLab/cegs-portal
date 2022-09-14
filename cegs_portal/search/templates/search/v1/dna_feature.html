@@ -154,14 +154,14 @@
             <input type="text" id="region-dist" value="1000"/>
             <input type="button" id="region-dist-submit" value="Find Regions" class="search-button self-end"/>
         </form>
-        <table id="dnaregion" style="display:none;"></table>
+        <table id="dnafeature" style="display:none;"></table>
     </div>
 {% endblock content %}
 
 {% block inline_javascript %}
     <script type="module">
         import { g } from "{% static 'search/js/dom.js' %}";
-        import { regionTable } from "{% static 'search/js/tables.js' %}"
+        import { featureTable } from "{% static 'search/js/tables.js' %}"
 
         let assemblies = [
             {% for feature in features %}
@@ -191,7 +191,7 @@
                     for (const d of data) {
                         regions.push(...d);
                     }
-                    g("dnaregion").replaceWith(regionTable(regions, "No nearby DNA Features"))
+                    g("dnafeature").replaceWith(featureTable(regions, "No nearby DNA Features"))
                 });
         }
     </script>

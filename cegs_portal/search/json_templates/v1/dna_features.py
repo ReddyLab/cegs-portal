@@ -7,6 +7,7 @@ FeatureJson = TypedDict(
     "FeatureJson",
     {
         "id": Union[int, str],
+        "accession_id": str,
         "ensembl_id": str,
         "cell_line": str,
         "type": str,
@@ -33,11 +34,13 @@ def features(feature_objs: Iterable[DNAFeature], json_format: str = None) -> lis
 def feature(feature_obj: DNAFeature, json_format: str = None) -> FeatureJson:
     result = {
         "id": feature_obj.id,
+        "accession_id": feature_obj.accession_id,
         "chr": feature_obj.chrom_name,
         "start": feature_obj.location.lower,
         "end": feature_obj.location.upper - 1,
         "strand": feature_obj.strand,
         "ensembl_id": feature_obj.ensembl_id,
+        "closest_gene_name": feature_obj.closest_gene_name,
         "closest_gene_ensembl_id": feature_obj.closest_gene.ensembl_id
         if feature_obj.closest_gene is not None
         else None,

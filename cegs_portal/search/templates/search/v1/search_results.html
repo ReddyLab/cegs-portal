@@ -53,6 +53,8 @@ svg > g > text {
             </div>
             {% if loc_search.location %}
             <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}: {{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
+            {% endif %}
+            {% if loc_search.location and loc_search.assembly %}
             <div class="p-2" id="genoverse"></div>
             {% endif %}
             {% switch "effect_plot" %}
@@ -81,7 +83,7 @@ svg > g > text {
                 </span>
             </div>
             {% else %}
-                <div id="dnaregion">No DHSs Found</div>
+                <div id="dnafeature">No DNA Features Found</div>
                 <div id="dhs_pagination" style="display:none;"></div>
             {% endif %}
         </div>
@@ -91,7 +93,7 @@ svg > g > text {
     <script type="module">
         import { e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
-        import { dataPages, regionTable, emptyRegionTable, pageLink } from "{% static 'search/js/tables.js' %}"
+        import { dataPages, featureTable, emptyFeatureTable, pageLink } from "{% static 'search/js/tables.js' %}"
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -138,21 +140,21 @@ svg > g > text {
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
-        let regionURL = function(chromosome, start, end, facets=[]) {
+        let featureURL = function(chromosome, start, end, facets=[]) {
             let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&');
-            return `/search/regionloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&accept=application/json&region_type=dhs${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
         let genDataPages = function(chromo, start, end, page, facets = []) {
             return dataPages(
                 page,
-                _ => regionURL(chromo, start, end, facets),
-                regionTable,
-                emptyRegionTable,
-                region => true,
-                "No DHSs Found",
-                "dnaregion",
+                _ => featureURL(chromo, start, end, facets),
+                featureTable,
+                emptyFeatureTable,
+                feature => true,
+                "No DNA Features Found",
+                "dnafeature",
                 "dhs_pagination",
                 "dhs",
                 "page"

@@ -22,7 +22,9 @@ def test_features(features: Iterable[DNAFeature]):
 def test_feature(feature: DNAFeature):
     result = {
         "id": feature.id,
+        "accession_id": feature.accession_id,
         "ensembl_id": feature.ensembl_id,
+        "closest_gene_name": feature.closest_gene_name,
         "closest_gene_ensembl_id": None,
         "cell_line": feature.cell_line,
         "chr": feature.chrom_name,
