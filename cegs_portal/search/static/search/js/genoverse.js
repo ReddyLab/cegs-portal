@@ -379,9 +379,8 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     view: Genoverse.Track.View.DHS,
     legend: true,
     populateMenu: function (feature) {
-        console.log(feature);
         var url = `/search/feature/accession/${feature.accession_id}`;
-        var type = feature.feature_type.toUpperCase();
+        var type = feature.type.toUpperCase();
         var menu = {
             title: `<a target="_blank" href="${url}">${type}: ${feature.id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
@@ -421,7 +420,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         name: "Results Legend"
     }),
     populateMenu: function (feature) {
-        if (["gene", "exon", "transcript"].includes(feature_type)) {
+        if (["gene", "exon", "transcript"].includes(feature.type)) {
             var url = `/search/feature/ensembl/${feature.ensembl_id}`;
             var menu = {
                 title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
