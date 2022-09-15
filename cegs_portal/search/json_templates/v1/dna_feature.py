@@ -1,12 +1,14 @@
+from typing import Any, Optional
+
 from cegs_portal.search.json_templates import genoversify
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 
-def features(feature_objs: DNAFeature, json_format: str = None):
-    return [feature(f, json_format=json_format) for f in feature_objs]
+def features(feature_objs: DNAFeature, options: Optional[dict[str, Any]] = None):
+    return [feature(f, options=options) for f in feature_objs]
 
 
-def feature(feature_obj: DNAFeature, json_format: str = None):
+def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
     result = {
         "id": feature_obj.id,
         "ensembl_id": feature_obj.ensembl_id,
@@ -27,19 +29,19 @@ def feature(feature_obj: DNAFeature, json_format: str = None):
         "misc": feature_obj.misc,
         "ids": feature_obj.ids,
         "facets": [value.value for value in feature_obj.facet_values.all()],
-        "children": [feature(c, json_format) for c in feature_obj.children.all()],
-        "closest_features": [region(d, json_format) for d in feature_obj.closest_features.all()],
-        "reg_effect_source_for": [reg_effect(r, json_format) for r in feature_obj.source_for.all()],
-        "reg_effect_target_of": [reg_effect(r, json_format) for r in feature_obj.target_of.all()],
+        "children": [feature(c, options) for c in feature_obj.children.all()],
+        "closest_features": [region(d, options) for d in feature_obj.closest_features.all()],
+        "reg_effect_source_for": [reg_effect(r, options) for r in feature_obj.source_for.all()],
+        "reg_effect_target_of": [reg_effect(r, options) for r in feature_obj.target_of.all()],
     }
 
-    if json_format == "genoverse":
+    if options is not None and options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return result
 
 
-def region(region_obj: DNAFeature, json_format: str = None):
+def region(region_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
     result = {
         "id": region_obj.id,
         "chr": region_obj.chrom_name,
@@ -51,13 +53,13 @@ def region(region_obj: DNAFeature, json_format: str = None):
         "reg_effect_count": region_obj.source_for.count() + region_obj.target_of.count(),
     }
 
-    if json_format == "genoverse":
+    if options is not None and options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return result
 
 
-def reg_effect(re_obj: RegulatoryEffectObservation, json_format: str = None):
+def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
     result = {
         "id": re_obj.id,
         "effect_size": re_obj.effect_size,
@@ -67,7 +69,7 @@ def reg_effect(re_obj: RegulatoryEffectObservation, json_format: str = None):
         "source_ids": [dhs.id for dhs in re_obj.sources.all()],
     }
 
-    if json_format == "genoverse":
+    if options is not None and options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return result

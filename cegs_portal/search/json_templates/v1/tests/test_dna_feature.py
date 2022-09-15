@@ -37,12 +37,12 @@ def test_feature(feature: DNAFeature):
 
     result["id"] = str(feature.id)
     result["chr"] = feature.chrom_name.removeprefix("chr")
-    result["children"] = [f_json(c, json_format="genoverse") for c in feature.children.all()]
-    result["closest_features"] = [r_json(d, json_format="genoverse") for d in feature.closest_features.all()]
-    result["reg_effect_source_for"] = [re_json(r, json_format="genoverse") for r in feature.source_for.all()]
-    result["reg_effect_target_of"] = [re_json(r, json_format="genoverse") for r in feature.target_of.all()]
+    result["children"] = [f_json(c, {"json_format": "genoverse"}) for c in feature.children.all()]
+    result["closest_features"] = [r_json(d, {"json_format": "genoverse"}) for d in feature.closest_features.all()]
+    result["reg_effect_source_for"] = [re_json(r, {"json_format": "genoverse"}) for r in feature.source_for.all()]
+    result["reg_effect_target_of"] = [re_json(r, {"json_format": "genoverse"}) for r in feature.target_of.all()]
 
-    assert f_json(feature, json_format="genoverse") == result
+    assert f_json(feature, {"json_format": "genoverse"}) == result
 
 
 def test_region(feature: DNAFeature):
@@ -62,7 +62,7 @@ def test_region(feature: DNAFeature):
     result["id"] = str(feature.id)
     result["chr"] = feature.chrom_name.removeprefix("chr")
 
-    assert r_json(feature, json_format="genoverse") == result
+    assert r_json(feature, {"json_format": "genoverse"}) == result
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
@@ -79,4 +79,4 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
 
     result["id"] = str(reg_effect.id)
 
-    assert re_json(reg_effect, json_format="genoverse") == result
+    assert re_json(reg_effect, {"json_format": "genoverse"}) == result

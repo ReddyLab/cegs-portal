@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import Any, Optional, TypedDict
 
 from django.db.models import Manager
 
@@ -13,7 +13,7 @@ SearchResults = TypedDict(
 )
 
 
-def search_results(results: SearchResults, json_format: Optional[str] = None):
+def search_results(results: SearchResults, options: Optional[dict[str, Any]] = None):
     return {
         "location": {
             "assembly": results["loc_search"]["assembly"],
@@ -21,7 +21,7 @@ def search_results(results: SearchResults, json_format: Optional[str] = None):
             "start": results["loc_search"]["location"].range.lower,
             "end": results["loc_search"]["location"].range.upper,
         },
-        "features": features(results["dhss"], json_format),
+        "features": features(results["dhss"], options),
         "facets": [
             {"name": f.name, "description": f.description, "values": [value.value for value in f.values.all()]}
             for f in results["facets"].all()

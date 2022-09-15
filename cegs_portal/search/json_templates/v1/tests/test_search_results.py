@@ -37,14 +37,14 @@ def test_search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Fac
         ],
     }
 
-    assert sr_json(search_results, json_format="genoverse") == {
+    assert sr_json(search_results, {"json_format": "genoverse"}) == {
         "location": {
             "assembly": search_results["loc_search"]["assembly"],
             "chromosome": search_results["loc_search"]["location"].chromo,
             "start": search_results["loc_search"]["location"].range.lower,
             "end": search_results["loc_search"]["location"].range.upper,
         },
-        "features": features(search_results["dhss"], json_format="genoverse"),
+        "features": features(search_results["dhss"], {"json_format": "genoverse"}),
         "facets": [
             {"name": f.name, "description": f.description, "values": [value.value for value in f.values.all()]}
             for f in search_results["facets"].all()

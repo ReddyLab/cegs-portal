@@ -14,9 +14,9 @@ def test_features(features: Iterable[DNAFeature]):
 
     assert fs_json(features) == result
 
-    result = [f_json(a, json_format="genoverse") for a in features]
+    result = [f_json(a, {"json_format": "genoverse"}) for a in features]
 
-    assert fs_json(features, json_format="genoverse") == result
+    assert fs_json(features, {"json_format": "genoverse"}) == result
 
 
 def test_feature(feature: DNAFeature):
@@ -47,4 +47,4 @@ def test_feature(feature: DNAFeature):
 
     result["id"] = str(feature.id)
     result["chr"] = feature.chrom_name.removeprefix("chr")
-    assert f_json(feature, json_format="genoverse") == result
+    assert f_json(feature, {"json_format": "genoverse"}) == result

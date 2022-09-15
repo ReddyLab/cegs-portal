@@ -138,7 +138,7 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
                     return;
                 }
 
-                let filtered_data = data.filter(dataFilter);
+                let filtered_data = data.objects.filter(dataFilter);
                 g(dataTableID).replaceWith(dataTableFunction(filtered_data, dataTableID));
                 g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
 

@@ -1,7 +1,7 @@
-from typing import Iterable, Optional, TypedDict, Union, cast
+from typing import Any, Iterable, Optional, TypedDict, Union, cast
 
 from cegs_portal.search.json_templates import genoversify
-from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 
 FeatureJson = TypedDict(
     "FeatureJson",
@@ -27,11 +27,20 @@ FeatureJson = TypedDict(
 )
 
 
-def features(feature_objs: Iterable[DNAFeature], json_format: str = None) -> list[FeatureJson]:
-    return [feature(a, json_format) for a in feature_objs]
+def features(feature_objs: Iterable[DNAFeature], options: Optional[dict[str, Any]] = None) -> list[FeatureJson]:
+    if options is not None and options.get("paginate", False):
+        return {
+            "objects": [feature(a, options) for a in feature_objs],
+            "page": feature_objs.number,
+            "has_next_page": feature_objs.has_next(),
+            "has_prev_page": feature_objs.has_previous(),
+            "num_pages": feature_objs.paginator.num_pages,
+        }
+    else:
+        return [feature(a, options) for a in feature_objs]
 
 
-def feature(feature_obj: DNAFeature, json_format: str = None) -> FeatureJson:
+def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -> FeatureJson:
     result = {
         "id": feature_obj.id,
         "accession_id": feature_obj.accession_id,
@@ -55,7 +64,27 @@ def feature(feature_obj: DNAFeature, json_format: str = None) -> FeatureJson:
         "ref_genome_patch": feature_obj.ref_genome_patch,
     }
 
-    if json_format == "genoverse":
+    if options is not None and "regeffects" in options.get("region_properties", []):
+        result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
+        result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
+
+    if options is not None and options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return cast(FeatureJson, result)
+
+
+def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
+    result = {
+        "id": re_obj.id,
+        "effect_size": re_obj.effect_size,
+        "direction": re_obj.direction,
+        "significance": re_obj.significance,
+        "experiment_id": re_obj.experiment_id,
+        "targets": [{"name": regeffect.name, "ensembl_id": regeffect.ensembl_id} for regeffect in re_obj.targets.all()],
+    }
+
+    if options is not None and options.get("json_format", None) == "genoverse":
+        genoversify(result)
+
+    return result

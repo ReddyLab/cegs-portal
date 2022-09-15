@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Any, Iterable, Optional
 
 from cegs_portal.search.models import Experiment, ExperimentDataFile, File
 
@@ -25,7 +25,7 @@ def experiments(experiments_obj: Iterable[Experiment]):
     return results
 
 
-def experiment(experiment_obj: Experiment, json_format: str = None):
+def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = None):
     result = {
         "id": experiment_obj.id,
         "name": experiment_obj.name,

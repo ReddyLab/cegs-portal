@@ -3,7 +3,7 @@ from typing import cast
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.models import DNAFeature, DNAFeatureType
 from cegs_portal.search.view_models.errors import ViewModelError
 
 
@@ -98,7 +98,8 @@ class DNAFeatureSearch:
         query = {"chrom_name": chromo}
 
         if len(feature_types) > 0:
-            query["feature_type__in"] = feature_types
+            feature_type_db_values = [str(DNAFeatureType(f)) for f in feature_types]
+            query["feature_type__in"] = feature_type_db_values
 
         field = "location"
         if search_type == LocSearchType.EXACT.value or search_type is None:
@@ -114,12 +115,20 @@ class DNAFeatureSearch:
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[)")
 
+        prefetch_values = ["facet_values"]
+        if "regeffects" in region_properties:
+            prefetch_values.extend(
+                [
+                    "source_for",
+                    "source_for__targets",
+                    "target_of",
+                ]
+            )
+
         features = (
             DNAFeature.objects.filter(**query)
             .select_related("parent", "closest_gene", "closest_gene__parent")
-            .prefetch_related(
-                "facet_values",
-            )
+            .prefetch_related(*prefetch_values)
         )
 
         if len(facets) > 0:

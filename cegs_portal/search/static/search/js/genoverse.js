@@ -34,7 +34,7 @@ CEGSGenoverse = Genoverse.extend({
 });
 
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/regionloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&region_type=dhs&region_type=ccre&property=effect_label",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=dhs&feature_type=ccre&property=regeffects",
     dataRequestLimit: 5000000,
 });
 
@@ -52,12 +52,12 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
         feature.color = this.dhsColor;
         feature.legend = "DHS w/o Reg Effect";
 
-        if (feature.effects.length > 0) {
+        if (feature.source_for.length > 0) {
             feature.color = this.withEffectColor;
             feature.legend = "DHS w/ Untargeted Reg Effect";
         }
 
-        for (effect of feature.effects) {
+        for (effect of feature.source_for) {
             if (effect.targets.length > 0) {
                 feature.color = this.withEffectAndTargetColor;
                 feature.legend = "DHS w/ Targeted Reg Effect";
@@ -80,7 +80,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     },
     setData: function (data) {
         let oldEffectfulDHSs = this.browser.getSharedState("dhs-effect-data");
-        let newEffectfulDHSs = data.objects.filter((dhs) => dhs.effects.length > 0);
+        let newEffectfulDHSs = data.filter((feature) => feature.source_for.length > 0);
         let allEffectfulDHSs = oldEffectfulDHSs ? oldEffectfulDHSs.concat(newEffectfulDHSs) : newEffectfulDHSs;
 
         // Sort DHSs with effects
@@ -207,12 +207,10 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             return deferred;
         },
     parseData: function (data, chr) {
-        for (var i = 0; i < data.objects.length; i++) {
-            var feature = data.objects[i];
+        for (var i = 0; i < data.length; i++) {
+            var feature = data[i];
+            feature.label = feature.accession_id;
 
-            if (feature.closest_gene) {
-                feature.closest_gene_ensembl_id = feature.closest_gene.ensembl_id;
-            }
             this.insertFeature(feature);
         }
     },
@@ -292,44 +290,34 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
         var ids = [];
 
         data.filter(function (d) {
-            return d.feature.type === "transcript";
+            return d.type === "transcript";
         }).forEach(function (transcript, i) {
-            for (assembly of transcript.assemblies) {
-                assembly.id = transcript.feature.id;
-                assembly.parent_id = transcript.feature.parent_id;
-                assembly.type = transcript.feature.type;
-                assembly.subtype = transcript.feature.subtype;
-                assembly.ensembl_id = transcript.feature.ensembl_id;
-                if (!featuresById[assembly.id]) {
-                    model.geneIds[assembly.parent_id] =
-                        model.geneIds[assembly.parent_id] || ++model.seenGenes;
+            if (!featuresById[transcript.id]) {
+                model.geneIds[transcript.parent_id] =
+                    model.geneIds[transcript.parent_id] || ++model.seenGenes;
 
-                        assembly.chr = assembly.chr || chr;
-                        assembly.label =
-                        parseInt(assembly.strand, 10) === 1
-                            ? (assembly.name || assembly.ensembl_id) + " >"
-                            : "< " + (assembly.name || assembly.ensembl_id);
-                            assembly.sort =
-                        model.geneIds[assembly.parent_id] * 1e10 +
-                        (assembly.subtype === "protein_coding" ? 0 : 1e9) +
-                        assembly.start +
-                        i;
-                        assembly.exons = {};
-                        assembly.subFeatures = [];
+                    transcript.label =
+                    parseInt(transcript.strand, 10) === 1
+                        ? (transcript.name || transcript.ensembl_id) + " >"
+                        : "< " + (transcript.name || transcript.ensembl_id);
+                        transcript.sort =
+                    model.geneIds[transcript.parent_id] * 1e10 +
+                    (transcript.subtype === "protein_coding" ? 0 : 1e9) +
+                    transcript.start +
+                    i;
+                    transcript.exons = {};
+                    transcript.subFeatures = [];
 
-                    model.insertFeature(assembly);
-                }
-
-                ids.push(assembly.id);
+                model.insertFeature(transcript);
             }
+
+            ids.push(transcript.id);
         });
 
         data.filter(function (d) {
-            return d.feature.type === "exon" && featuresById[d.feature.parent_id];
+            return d.type === "exon" && featuresById[d.parent_id];
         }).forEach(function (exon) {
-            for (assembly of exon.assemblies) {
-                featuresById[exon.feature.parent_id].subFeatures.push(assembly);
-            }
+                featuresById[exon.parent_id].subFeatures.push(exon);
         });
 
         ids.forEach(function (id) {
@@ -391,20 +379,21 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     view: Genoverse.Track.View.DHS,
     legend: true,
     populateMenu: function (feature) {
-        var url = `/search/region/${feature.id}`;
-        var type = feature.type.toUpperCase();
+        console.log(feature);
+        var url = `/search/feature/accession/${feature.accession_id}`;
+        var type = feature.feature_type.toUpperCase();
         var menu = {
             title: `<a target="_blank" href="${url}">${type}: ${feature.id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
             Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
-            "Closest Gene": `<a target="_blank" href="/search/dnafeature/db/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+            "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
         var i = 1;
-        for (effect of feature.effects) {
-            for (assembly of effect.targets) {
-                menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${assembly.id}">${
-                    assembly.name
+        for (effect of feature.source_for) {
+            for (target of effect.targets) {
+                menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${target.ensembl_id}">${
+                    target.name
                 } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
                 i++;
             }
@@ -432,7 +421,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         name: "Results Legend"
     }),
     populateMenu: function (feature) {
-        if (["gene", "exon", "transcript"].includes(feature.type)) {
+        if (["gene", "exon", "transcript"].includes(feature_type)) {
             var url = `/search/feature/ensembl/${feature.ensembl_id}`;
             var menu = {
                 title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
