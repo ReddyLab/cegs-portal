@@ -99,7 +99,7 @@ class DNAFeatureLoc(TemplateJsonView):
             {
                 "features": feature_page,
                 "feature_name": "Genome Features",
-                "loc": {"chr": chromo, "start": start, "end": end},
+                "loc": {"chr": chromo, "start": int(start), "end": int(end)},
             },
         )
 
@@ -115,6 +115,8 @@ class DNAFeatureLoc(TemplateJsonView):
         )
 
     def get_data(self, options, chromo, start, end) -> QuerySet[DNAFeature]:
+        start = int(start)
+        end = int(end)
         if chromo.isnumeric():
             chromo = f"chr{chromo}"
         try:
