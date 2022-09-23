@@ -32,20 +32,12 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
         "description": experiment_obj.description,
         "assay": experiment_obj.experiment_type,
         "cell_lines": None,
-        "tissue_types": None,
-        "assemblies": None,
         "data_files": [data_file(f) for f in experiment_obj.data_files.all()],
         "other_files": [other_file(f) for f in experiment_obj.other_files.all()],
     }
 
     if hasattr(experiment_obj, "cell_lines"):
-        result["cell_lines"] = [str(line) for line in experiment_obj.cell_lines]  # type: ignore[attr-defined]
-
-    if hasattr(experiment_obj, "tissue_types"):
-        result["tissue_types"] = [str(tt) for tt in experiment_obj.tissue_types]  # type: ignore[attr-defined]
-
-    if hasattr(experiment_obj, "assemblies"):
-        result["assemblies"] = list(experiment_obj.assemblies)  # type: ignore[attr-defined]
+        result["cell_lines"] = experiment_obj.cell_lines  # type: ignore[attr-defined]
 
     return result
 

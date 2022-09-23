@@ -38,26 +38,18 @@ def test_experiments_json(experiments: Iterable[Experiment]):
 
 
 def test_experiment_json(experiment: Experiment):
-    experi_cell_lines: list[CellLine] = []
-    experi_tissue_types: list[TissueType] = []
-    experi_assemblies: list[str] = []
+    experi_cell_lines: list[str] = []
     for f in experiment.data_files.all():
-        experi_cell_lines.extend(f.cell_lines.all())
-        experi_tissue_types.extend(f.tissue_types.all())
-        experi_assemblies.append(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
+        experi_cell_lines.append(f.cell_line)
 
-    setattr(experiment, "cell_lines", experi_cell_lines)
-    setattr(experiment, "tissue_types", experi_tissue_types)
-    setattr(experiment, "assemblies", experi_assemblies)
+    setattr(experiment, "cell_lines", ", ".join(experi_cell_lines))
 
     assert exp_json(experiment) == {
         "id": experiment.id,
         "name": experiment.name,
         "description": experiment.description,
         "assay": experiment.experiment_type,
-        "cell_lines": [str(line) for line in experi_cell_lines],
-        "tissue_types": [str(tt) for tt in experi_tissue_types],
-        "assemblies": [str(a) for a in experi_assemblies],
+        "cell_lines": ", ".join(experi_cell_lines),
         "data_files": [df_json(file) for file in experiment.data_files.all()],
         "other_files": [of_json(file) for file in experiment.other_files.all()],
     }
