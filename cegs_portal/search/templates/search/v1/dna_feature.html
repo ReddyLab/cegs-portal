@@ -12,17 +12,17 @@
     {% for feature in features %}
         <div class="mb-8">
             <div>
-                <span class="text-2xl font-bold">{{ feature.name }} </span><span class="text-2xl">({{ feature.ensembl_id }})</span>
+                <span class="text-2xl font-bold">{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span class="text-2xl">({{ feature.ensembl_id }})</span>{% endif %}
                 {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">{{ children_name }}</a></span>{% endif %}
                 {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Other Nearby Features</a></span>{% endif %}
                 {% if feature.source_for.all|length > 0 %}<span><a href="#source-for-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Source for Regulatory Effect Observations</a></span>{% endif %}
                 {% if feature.target_of.all|length > 0 %}<span><a href="#target-of-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Targeting Regulatory Effect Observations</a></span>{% endif %}
             </div>
-            <div>Type: {{ feature.feature_subtype }}</div>
+            {% if feature.feature_subtype %}<div>Type: {{ feature.feature_subtype }}</div>{% endif %}
             <table class="data-table">
                 <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
                 <tr>
-                    <td>{{ feature.name }}</td>
+                    <td>{{ feature.name|default:feature.accession_id }}</td>
                     <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
                     <td>{{ feature.strand }}</td>
                     <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
