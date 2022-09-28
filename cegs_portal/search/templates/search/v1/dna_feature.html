@@ -146,13 +146,13 @@
     {% endfor %}
 
     <div>
-        <a name="near_regions"></a>
-        <div class="text-xl font-bold">More Nearby DNA Regions</div>
+        <a name="near_features"></a>
+        <div class="text-xl font-bold">More Nearby DNA Features</div>
         <div class="text-s font-bold">Measured from each end of the gene</div>
         <form>
-            <label for="region-dist">Feature Distance:</label>
-            <input type="text" id="region-dist" value="1000"/>
-            <input type="button" id="region-dist-submit" value="Find Regions" class="search-button self-end"/>
+            <label for="feature-dist">Feature Distance:</label>
+            <input type="text" id="feature-dist" value="1000"/>
+            <input type="button" id="feature-dist-submit" value="Find Features" class="search-button self-end"/>
         </form>
         <table id="dnafeature" style="display:none;"></table>
     </div>
@@ -174,8 +174,8 @@
             {% endfor %}
         ];
 
-        g("region-dist-submit").onclick = function() {
-            let dist = Number(g("region-dist").value);
+        g("feature-dist-submit").onclick = function() {
+            let dist = Number(g("feature-dist").value);
             let fetches = assemblies.map(a => {
                 let search_start = Math.max(a.start - dist, 0);
                 let search_end = a.end + dist;
@@ -186,12 +186,12 @@
             })
             Promise.all(fetches)
                 .then(data => {
-                    let regions = [];
+                    let features = [];
                     console.log(data);
                     for (const d of data) {
-                        regions.push(...d);
+                        features.push(...d);
                     }
-                    g("dnafeature").replaceWith(featureTable(regions, "No nearby DNA Features"))
+                    g("dnafeature").replaceWith(featureTable(features, "No nearby DNA Features"))
                 });
         }
     </script>
