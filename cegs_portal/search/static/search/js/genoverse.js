@@ -382,7 +382,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         var url = `/search/feature/accession/${feature.accession_id}`;
         var type = feature.type.toUpperCase();
         var menu = {
-            title: `<a target="_blank" href="${url}">${type}: ${feature.id}</a>`,
+            title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
             Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
