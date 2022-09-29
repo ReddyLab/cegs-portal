@@ -61,10 +61,14 @@ svg > g > text {
             <div id="plot"></div>
             {% endswitch %}
             {% if dhss|length > 0 %}
-            <div class="my-4">
+            <div id="dnafeature" class="my-4">
                 <div class="text-xl font-bold">Genome Features</div>
                 {% include "search/v1/partials/_features.html" with features=dhss.object_list %}
             </div>
+            {% else %}
+            <div id="dnafeature">No DNA Features Found</div>
+            {% endif %}
+            {% if dhss|length > 0 %}
             <div id="dhs_pagination" class="pagination">
                 <span class="step-links">
                     {% if dhss.has_previous %}
@@ -83,8 +87,7 @@ svg > g > text {
                 </span>
             </div>
             {% else %}
-                <div id="dnafeature">No DNA Features Found</div>
-                <div id="dhs_pagination" style="display:none;"></div>
+            <div id="dhs_pagination" style="display:none;"></div>
             {% endif %}
         </div>
     </div>
