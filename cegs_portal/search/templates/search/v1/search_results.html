@@ -175,7 +175,7 @@ svg > g > text {
         pageLink("dhs_last_link", {{ dhss.paginator.num_pages }}, getPages);
         {% endif %}
 
-        const facetCheckboxes = document.querySelectorAll("[name=faceetfield] input[type=checkbox]");
+        const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 
         facetCheckboxes.forEach(checkbox => {
             checkbox.addEventListener("change", _ => {
