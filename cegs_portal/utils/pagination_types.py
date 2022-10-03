@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator
 from math import ceil
-from typing import Protocol, TypeVar
+from typing import Protocol, TypedDict, TypeVar
 
 T = TypeVar("T")
 
@@ -147,3 +147,8 @@ class MockPage(Pageable[T]):
     def __iter__(self) -> Iterator[T]:
         for o in self.object_list:
             yield o
+
+
+PageableJson = TypedDict(
+    "PageableJson", {"object_list": list, "page": int, "has_next_page": bool, "has_prev_page": bool, "num_pages": int}
+)

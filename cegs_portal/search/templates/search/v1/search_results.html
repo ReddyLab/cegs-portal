@@ -60,35 +60,7 @@ svg > g > text {
             {% switch "effect_plot" %}
             <div id="plot"></div>
             {% endswitch %}
-            {% if dhss|length > 0 %}
-            <div id="dnafeature" class="my-4">
-                <div class="text-xl font-bold">Genome Features</div>
-                {% include "search/v1/partials/_features.html" with features=dhss.object_list %}
-            </div>
-            {% else %}
-            <div id="dnafeature">No DNA Features Found</div>
-            {% endif %}
-            {% if dhss|length > 0 %}
-            <div id="dhs_pagination" class="pagination">
-                <span class="step-links">
-                    {% if dhss.has_previous %}
-                        <a id="dhs_first_link" href="?dhs_page=1">&laquo; first</a>
-                        <a id="dhs_prev_link" href="?dhs_page={{ dhss.previous_page_number }}">previous</a>
-                    {% endif %}
-
-                    <span class="current">
-                        Page {{ dhss.number }} of {{ dhss.paginator.num_pages }}
-                    </span>
-
-                    {% if dhss.has_next %}
-                        <a id="dhs_next_link" href="?dhs_page={{ dhss.next_page_number }}">next</a>
-                        <a id="dhs_last_link" href="?dhs_page={{ dhss.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </span>
-            </div>
-            {% else %}
-            <div id="dhs_pagination" style="display:none;"></div>
-            {% endif %}
+            {% include "search/v1/partials/_paged_nav.html" with data=dhss name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="dhs" page_query="page" table="search/v1/partials/_features.html" %}
         </div>
     </div>
 {% endblock %}
@@ -121,7 +93,7 @@ svg > g > text {
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`));
 
-            genDataPages(location.chr, location.start, location.end, 1)();
+            __genDataPages(location.chr, location.start, location.end, 1)();
         });
 
         state.addCallback(STATE_FACETS, _.throttle(
@@ -130,7 +102,7 @@ svg > g > text {
 
                 let location = state[STATE_LOCATION];
 
-                genDataPages(location.chr, location.start, location.end, 1, state[STATE_FACETS])();
+                __genDataPages(location.chr, location.start, location.end, 1, state[STATE_FACETS])();
             },
             500,
             { 'leading': true })
@@ -149,31 +121,7 @@ svg > g > text {
             return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
-        let genDataPages = function(chromo, start, end, page, facets = []) {
-            return dataPages(
-                page,
-                _ => featureURL(chromo, start, end, facets),
-                featureTable,
-                emptyFeatureTable,
-                feature => true,
-                "No DNA Features Found",
-                "dnafeature",
-                "dhs_pagination",
-                "dhs",
-                "page"
-            );
-        }
-
-        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1);
-
-        {% if dhss.has_previous %}
-        pageLink("dhs_first_link", 1, getPages);
-        pageLink("dhs_prev_link", {{ dhss.previous_page_number }}, getPages);
-        {% endif %}
-        {% if dhss.has_next %}
-        pageLink("dhs_next_link", {{ dhss.next_page_number }}, getPages);
-        pageLink("dhs_last_link", {{ dhss.paginator.num_pages }}, getPages);
-        {% endif %}
+        {% include "search/v1/partials/_paged_nav_js.html" with data=dhss no_data="No DNA Features Found" container_id="dnafeature" prefix="dhs" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 

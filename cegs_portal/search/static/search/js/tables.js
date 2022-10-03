@@ -132,13 +132,13 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
 
                 return response.json()
             }).then(data => {
-                if(data.num_pages == 1 && data.objects.length == 0) {
+                if(data.num_pages == 1 && data.object_list.length == 0) {
                     g(dataTableID).replaceWith(emptyDataTableFunction(noDataMessage, dataTableID));
                     g(paginationID).replaceWith(e("div", {id: paginationID, display: "none"}, []));
                     return;
                 }
 
-                let filtered_data = data.objects.filter(dataFilter);
+                let filtered_data = data.object_list.filter(dataFilter);
                 g(dataTableID).replaceWith(dataTableFunction(filtered_data, dataTableID));
                 g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
 

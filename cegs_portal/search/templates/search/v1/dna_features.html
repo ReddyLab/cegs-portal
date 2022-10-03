@@ -19,24 +19,7 @@
     <div class="text-2xl font-bold">{{ feature_name }}</div>
     <div>
         <div class="p-2" id="genoverse"></div>
-        {% include "search/v1/partials/_features.html" with features=features %}
-        <div class="pagination">
-            <span class="step-links">
-                {% if features.has_previous %}
-                    <a id="feature_first_link" href="?page=1">&laquo; first</a>
-                    <a id="feature_prev_link" href="?page={{ features.previous_page_number }}">previous</a>
-                {% endif %}
-
-                <span class="current">
-                    Page {{ features.number }} of {{ features.paginator.num_pages }}
-                </span>
-
-                {% if features.has_next %}
-                    <a id="feature_next_link"href="?page={{ features.next_page_number }}">next</a>
-                    <a id="feature_last_link"href="?page={{ features.paginator.num_pages }}">last &raquo;</a>
-                {% endif %}
-            </span>
-        </div>
+        {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Fount" container_id="dnafeature" prefix="feature" page_query="page" table="search/v1/partials/_features.html" %}
     </div>
 {% endblock %}
 
@@ -57,7 +40,7 @@
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {
             let location = state[key];
-            genDataPages(location.chr, location.start, location.end, 1)();
+            __genDataPages(location.chr, location.start, location.end, 1)();
         });
 
         const _ul = function(_state, key) {
@@ -69,33 +52,9 @@
 
         let featureURL = function(chromosome, start, end) {
             return `/search/featureloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs`;
-        }
+        };
 
-        let genDataPages = function(chromo, start, end, page) {
-            return dataPages(
-                page,
-                _ => featureURL(chromo, start, end),
-                featureTable,
-                emptyFeatureTable,
-                feature => true,
-                "No DNA Features Found",
-                "dnafeature",
-                "dhs_pagination",
-                "dhs",
-                "page"
-            );
-        }
-
-        let getPages = genDataPages(initialLocation.chr, initialLocation.start, initialLocation.end, 1);
-
-        {% if features.has_previous %}
-        pageLink("feature_first_link", 1, getPages);
-        pageLink("feature_prev_link", {{ features.previous_page_number }}, getPages);
-        {% endif %}
-        {% if features.has_next %}
-        pageLink("feature_next_link", {{ features.next_page_number }}, getPages);
-        pageLink("feature_last_link", {{ features.paginator.num_pages }}, getPages);
-        {% endif %}
+        {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Feature Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end)" %}
 
         new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
