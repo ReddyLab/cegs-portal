@@ -60,7 +60,7 @@ svg > g > text {
             {% switch "effect_plot" %}
             <div id="plot"></div>
             {% endswitch %}
-            {% include "search/v1/partials/_paged_nav.html" with data=dhss name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="dhs" page_query="page" table="search/v1/partials/_features.html" %}
+            {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="feature_page" table="search/v1/partials/_features.html" %}
         </div>
     </div>
 {% endblock %}
@@ -87,6 +87,32 @@ svg > g > text {
             [STATE_FACETS]: []
         });
 
+        const _ul = function(_state, key) {
+            if (key !== STATE_LOCATION) { return; }
+            state.updateSharedState(key, _state[key]);
+        }
+
+        let initialLocation = state.getSharedState(STATE_LOCATION);
+
+        let featureURL = function(chromosome, start, end, facets=[]) {
+            let enabledFacets = facets.map(id => `facet=${id}`)
+                                  .join('&');
+            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        }
+
+        {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
+
+        const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
+
+        facetCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", _ => {
+                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+                                     .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                                     .map(i => i.id)
+                state.updateSharedState(STATE_FACETS, checkedFacets);
+            });
+        });
+
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {
             let location = state[key];
@@ -107,32 +133,6 @@ svg > g > text {
             500,
             { 'leading': true })
         );
-
-        const _ul = function(_state, key) {
-            if (key !== STATE_LOCATION) { return; }
-            state.updateSharedState(key, _state[key]);
-        }
-
-        let initialLocation = state.getSharedState(STATE_LOCATION);
-
-        let featureURL = function(chromosome, start, end, facets=[]) {
-            let enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&');
-            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
-        }
-
-        {% include "search/v1/partials/_paged_nav_js.html" with data=dhss no_data="No DNA Features Found" container_id="dnafeature" prefix="dhs" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
-
-        const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
-
-        facetCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", _ => {
-                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-                                     .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                                     .map(i => i.id)
-                state.updateSharedState(STATE_FACETS, checkedFacets);
-            });
-        });
 
         {% switch "effect_plot" %}
         // Show the plot

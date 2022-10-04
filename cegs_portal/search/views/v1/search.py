@@ -21,7 +21,7 @@ class SearchView(TemplateJsonView):
         options = super().request_options(request)
         options["search_query"] = request.GET["query"]
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
-        options["dhs_page"] = int(request.GET.get("dhs_page", 1))
+        options["feature_page"] = int(request.GET.get("feature_page", 1))
         return options
 
     def get(self, request, options, data):
@@ -40,10 +40,9 @@ class SearchView(TemplateJsonView):
 
         search_results["query"] = options["search_query"]
 
-        if search_results["dhss"] is not None:
-            dhs_paginator = Paginator(search_results["dhss"], 20)
-            search_results["dhss"] = dhs_paginator.get_page(options["dhs_page"])
+        if search_results["features"] is not None:
+            feature_paginator = Paginator(search_results["features"], 20)
+            search_results["features"] = feature_paginator.get_page(options["feature_page"])
         else:
-            search_results["dhss"] = []
-
+            search_results["features"] = []
         return search_results

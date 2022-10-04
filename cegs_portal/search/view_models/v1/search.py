@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType, Facet
+from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
@@ -53,9 +53,7 @@ def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[Chro
 
 class Search:
     @classmethod
-    def _dnafeature_search(
-        cls, location: ChromosomeLocation, assembly: str, facets: list[int], region_type: Optional[list[str]] = None
-    ):
+    def _dnafeature_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
         if location.range.lower >= location.range.upper:
             raise ViewModelError(
                 f"Invalid location; lower bound ({location.range.lower}) "
@@ -67,7 +65,7 @@ class Search:
             str(location.range.lower),
             str(location.range.upper),
             assembly,
-            region_type,
+            [],
             [],
             LocSearchType.OVERLAP.value,
             facets,
@@ -77,10 +75,10 @@ class Search:
 
     @classmethod
     def search(cls, query_string: str, facets: list[int] = []):
-        _query_terms, location, assembly_name, gene_names = parse_query(query_string)
+        _query_terms, location, assembly_name, _gene_names = parse_query(query_string)
         sites = None
         if location is not None:
-            sites = cls._dnafeature_search(location, assembly_name, facets, region_type=[DNAFeatureType.DHS])
+            sites = cls._dnafeature_search(location, assembly_name, facets)
         facet_results = Facet.objects.filter(facet_type="FacetType.DISCRETE").prefetch_related("values").all()
 
         return {
@@ -88,6 +86,6 @@ class Search:
                 "location": location,
                 "assembly": assembly_name,
             },
-            "dhss": sites,
+            "features": sites,
             "facets": facet_results,
         }

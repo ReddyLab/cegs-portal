@@ -51,7 +51,7 @@
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
         let featureURL = function(chromosome, start, end) {
-            return `/search/featureloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json&region_type=dhs`;
+            return `/search/featureloc/chr${chromosome}/${start}/${end}?search_type=overlap&accept=application/json`;
         };
 
         {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Feature Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end)" %}
