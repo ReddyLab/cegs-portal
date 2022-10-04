@@ -140,7 +140,7 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
 
                 let filtered_data = data.object_list.filter(dataFilter);
                 g(dataTableID).replaceWith(dataTableFunction(filtered_data, dataTableID));
-                g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix));
+                g(paginationID).replaceWith(newPagination(paginationID, data, idPrefix, pageQuery));
 
 
                 pageLink(`${idPrefix}_first_link`, 1, this);
