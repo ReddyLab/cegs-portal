@@ -78,13 +78,15 @@ svg > g > text {
 
         const STATE_LOCATION = "location";
         const STATE_FACETS = "facets"
+        const STATE_DHS_EFFECT = "dhs-effect-data"
         let state = new State({
             [STATE_LOCATION]: {
                 chr: "{{ loc_search.location.chromo }}",
                 start: {{ loc_search.location.range.lower }},
                 end: {{ loc_search.location.range.upper }}
             },
-            [STATE_FACETS]: []
+            [STATE_FACETS]: [],
+            [STATE_DHS_EFFECT]: null
         });
 
         const _ul = function(_state, key) {
@@ -137,9 +139,9 @@ svg > g > text {
         {% switch "effect_plot" %}
         // Show the plot
         function geneDHSPlot(data) {
-            let dhssWithTargets = data.filter(dhs => dhs.effects.length > 0 && dhs.effects.filter(effect => effect.targets.length > 0).length > 0);
+            let dhssWithTargets = data.filter(dhs => dhs.source_for.length > 0 && dhs.source_for.filter(effect => effect.targets.length > 0).length > 0);
             let dwtSet = new Set(dhssWithTargets);
-            let targets = dhssWithTargets.flatMap(dhs => dhs.effects.flatMap(effect => effect.targets.map(assembly => {
+            let targets = dhssWithTargets.flatMap(dhs => dhs.source_for.flatMap(effect => effect.targets.map(assembly => {
                 assembly["effect_size"] = effect.effect_size;
                 assembly["label"] = dhs.label;
                 return assembly
@@ -196,9 +198,9 @@ svg > g > text {
             return plot;
         }
         function applyPlot(state, key) {
-            if (key !== "dhs-effect-data" && key !== "location") { return; }
-            let dhss = state["dhs-effect-data"];
-            let location = state["location"];
+            if (key !== STATE_DHS_EFFECT && key !== STATE_LOCATION) { return; }
+            let dhss = state[STATE_DHS_EFFECT];
+            let location = state[STATE_LOCATION];
 
             if (!dhss || !location) { return; }
 
