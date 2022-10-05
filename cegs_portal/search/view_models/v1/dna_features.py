@@ -115,23 +115,26 @@ class DNAFeatureSearch:
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[)")
 
-        prefetch_values = ["facet_values"]
+        prefetch_values = []
+        if len(facets) > 0:
+            prefetch_values = ["facet_values", "facet_values__facet"]
+
         if "regeffects" in region_properties:
             prefetch_values.extend(
                 [
                     "source_for",
+                    "source_for__facet_values",
+                    "source_for__facet_values__facet",
                     "source_for__targets",
                     "target_of",
+                    "target_of__facet_values",
+                    "target_of__facet_values__facet",
                 ]
             )
 
-        features = (
-            DNAFeature.objects.filter(**query)
-            .select_related("parent", "closest_gene", "closest_gene__parent")
-            .prefetch_related(*prefetch_values)
-        )
+        features = DNAFeature.objects.filter(**query).prefetch_related(*prefetch_values)
 
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
 
-        return features.distinct()
+        return features
