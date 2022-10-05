@@ -18,14 +18,12 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
         "start": feature_obj.location.lower,
         "end": feature_obj.location.upper,
         "strand": feature_obj.strand,
-        "closest_gene_ensembl_id": feature_obj.closest_gene.ensembl_id
-        if feature_obj.closest_gene is not None
-        else None,
+        "closest_gene_ensembl_id": feature_obj.closest_gene_ensembl_id,
         "closest_gene_name": feature_obj.closest_gene_name,
         "assembly": f"{feature_obj.ref_genome}.{feature_obj.ref_genome_patch or '0'}",
         "type": feature_obj.get_feature_type_display(),
         "subtype": feature_obj.feature_subtype,
-        "parent_id": feature_obj.parent.ensembl_id if feature_obj.parent is not None else None,
+        "parent_id": feature_obj.parent_id,
         "misc": feature_obj.misc,
         "ids": feature_obj.ids,
         "facets": [value.value for value in feature_obj.facet_values.all()],

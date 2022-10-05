@@ -41,7 +41,7 @@ def test_feature(feature: DNAFeature):
         "misc": feature.misc,
     }
     if feature.closest_gene is not None:
-        result["closest_gene_ensembl_id"] = feature.closest_gene.ensembl_id
+        result["closest_gene_ensembl_id"] = feature.closest_gene_ensembl_id
 
     assert f_json(feature) == result
 

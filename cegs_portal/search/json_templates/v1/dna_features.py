@@ -53,13 +53,11 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "strand": feature_obj.strand,
         "ensembl_id": feature_obj.ensembl_id,
         "closest_gene_name": feature_obj.closest_gene_name,
-        "closest_gene_ensembl_id": feature_obj.closest_gene.ensembl_id
-        if feature_obj.closest_gene is not None
-        else None,
+        "closest_gene_ensembl_id": feature_obj.closest_gene_ensembl_id,
         "cell_line": feature_obj.cell_line,
         "type": feature_obj.get_feature_type_display(),
         "subtype": feature_obj.feature_subtype,
-        "parent_id": feature_obj.parent_id if feature_obj.parent is not None else None,
+        "parent_id": feature_obj.parent_id,
         "name": feature_obj.name,
         "ids": feature_obj.ids,
         "misc": feature_obj.misc,

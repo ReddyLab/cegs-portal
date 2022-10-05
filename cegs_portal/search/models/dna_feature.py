@@ -71,6 +71,7 @@ class DNAFeature(Accessioned, Searchable, Faceted):
     closest_gene = models.ForeignKey("self", null=True, on_delete=models.SET_NULL, related_name="closest_features")
     closest_gene_distance = models.IntegerField(null=True)
     closest_gene_name = models.CharField(max_length=50, null=True)
+    closest_gene_ensembl_id = models.CharField(max_length=50, null=True)
 
     # These values will be returned as 0-index, half-closed. This should be converted to
     # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
