@@ -1,4 +1,5 @@
 import re
+from enum import Enum, auto
 from typing import Optional
 
 from cegs_portal.search.models import ChromosomeLocation, Facet
@@ -15,26 +16,58 @@ ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)\s*", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)\s*", re.IGNORECASE)
 
 
-def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str]]:
+class ParseWarning(Enum):
+    TOO_MANY_LOCS = auto()
+    IGNORE_LOC = auto()
+    IGNORE_TERMS = auto()
+
+
+class SearchType(Enum):
+    LOCATION = auto()
+    ID = auto()
+
+
+def parse_query(
+    query: str,
+) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]]:
     terms: list[tuple[QueryToken, str]] = []
     location: Optional[ChromosomeLocation] = None
     assembly: Optional[str] = None
+    warnings: set[ParseWarning] = set()
+    search_type = None
 
-    query = query.strip()
+    query = query.replace(",", " ").strip()
 
     while query != "":
         if match := re.match(CHROMO_RE, query):
-            location = ChromosomeLocation(match.group(2), match.group(3), match.group(5))
+            if search_type == SearchType.ID:
+                warnings.add(ParseWarning.IGNORE_LOC)
+            elif search_type == SearchType.LOCATION:
+                warnings.add(ParseWarning.TOO_MANY_LOCS)
+            else:
+                search_type = SearchType.LOCATION
+                location = ChromosomeLocation(match.group(2), match.group(3), match.group(5))
+
             query = query[match.end() :]
             continue
 
         if match := re.match(ENSEMBL_RE, query):
-            terms.append(QueryToken.ENSEMBL_ID.associate(match.group(1)))
+            if search_type == SearchType.LOCATION:
+                warnings.add(ParseWarning.IGNORE_TERMS)
+            else:
+                terms.append(QueryToken.ENSEMBL_ID.associate(match.group(1)))
+                search_type = SearchType.ID
+
             query = query[match.end() :]
             continue
 
         if match := re.match(ACCESSION_RE, query):
-            terms.append(QueryToken.ACCESSION_ID.associate(match.group(1)))
+            if search_type == SearchType.LOCATION:
+                warnings.add(ParseWarning.IGNORE_TERMS)
+            else:
+                terms.append(QueryToken.ACCESSION_ID.associate(match.group(1)))
+                search_type = SearchType.ID
+
             query = query[match.end() :]
             continue
 
@@ -51,16 +84,25 @@ def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[Chro
             continue
 
         if match := re.match(POSSIBLE_GENE_NAME_RE, query):
-            terms.append(QueryToken.GENE_NAME.associate(match.group(1)))
+            if search_type == SearchType.LOCATION:
+                warnings.add(ParseWarning.IGNORE_TERMS)
+            else:
+                terms.append(QueryToken.GENE_NAME.associate(match.group(1)))
+                search_type = SearchType.ID
+
             query = query[match.end() :]
             continue
 
-    return terms, location, assembly
+    return search_type, terms, location, assembly, warnings
 
 
 class Search:
     @classmethod
-    def _dnafeature_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
+    def _dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]]):
+        pass
+
+    @classmethod
+    def _dnafeature_loc_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
         if location.range.lower >= location.range.upper:
             raise ViewModelError(
                 f"Invalid location; lower bound ({location.range.lower}) "
@@ -82,10 +124,10 @@ class Search:
 
     @classmethod
     def search(cls, query_string: str, facets: list[int] = []):
-        query_terms, location, assembly_name = parse_query(query_string)
+        search_type, query_terms, location, assembly_name, _warnings = parse_query(query_string)
         sites = None
         if location is not None:
-            sites = cls._dnafeature_search(location, assembly_name, facets)
+            sites = cls._dnafeature_loc_search(location, assembly_name, facets)
         facet_results = Facet.objects.filter(facet_type="FacetType.DISCRETE").prefetch_related("values").all()
 
         return {
