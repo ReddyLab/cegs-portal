@@ -6,49 +6,56 @@ from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
-CHROMO_RE = re.compile(r"\b((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\b", re.IGNORECASE)
-ACCESSION_RE = re.compile(r"\b(DCP[a-z]{1,4}[0-9a-f]{8})", re.IGNORECASE)
-ENSEMBL_RE = re.compile(r"\b(ENS[0-9a-z]+)", re.IGNORECASE)
-# HAVANA_RE = re.compile(r"\b(OTT[0-9a-z]+)", re.IGNORECASE)
-# HUGO_RE = re.compile(r"\b(HGNC:[0-9a-z]+)", re.IGNORECASE)
-ASSEMBLY_RE = re.compile(r"\b(hg19|hg38|grch37|grch38)\b", re.IGNORECASE)
-GENE_NAME_RE = re.compile(r"\b([A-Z0-9][A-Z0-9\.\-]+)\b", re.IGNORECASE)
+CHROMO_RE = re.compile(r"((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
+ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})\s*", re.IGNORECASE)
+ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)\s*", re.IGNORECASE)
+# HAVANA_RE = re.compile(r"\s*(OTT[0-9a-z]+)", re.IGNORECASE)
+# HUGO_RE = re.compile(r"\s*(HGNC:[0-9a-z]+)", re.IGNORECASE)
+ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)\s*", re.IGNORECASE)
+POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)\s*", re.IGNORECASE)
 
 
-def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], str, list[str]]:
+def parse_query(query: str) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str]]:
     terms: list[tuple[QueryToken, str]] = []
-    assembly = None
-    location = None
-    gene_names = []
+    location: Optional[ChromosomeLocation] = None
+    assembly: Optional[str] = None
 
-    for result in re.finditer(CHROMO_RE, query):
-        location = ChromosomeLocation(result.group(2), result.group(3), result.group(5))
-    query = re.sub(CHROMO_RE, " ", query)
+    query = query.strip()
 
-    for result in re.finditer(ENSEMBL_RE, query):
-        terms.append(QueryToken.ENSEMBL_ID.associate(result.group(1)))
-    query = re.sub(ENSEMBL_RE, " ", query)
+    while query != "":
+        if match := re.match(CHROMO_RE, query):
+            location = ChromosomeLocation(match.group(2), match.group(3), match.group(5))
+            query = query[match.end() :]
+            continue
 
-    for result in re.finditer(ACCESSION_RE, query):
-        terms.append(QueryToken.ACCESSION_ID.associate(result.group(1)))
-    query = re.sub(ACCESSION_RE, " ", query)
+        if match := re.match(ENSEMBL_RE, query):
+            terms.append(QueryToken.ENSEMBL_ID.associate(match.group(1)))
+            query = query[match.end() :]
+            continue
 
-    assembly = None  # Default
-    for result in re.finditer(ASSEMBLY_RE, query):
-        token = result.group(1).lower()
+        if match := re.match(ACCESSION_RE, query):
+            terms.append(QueryToken.ACCESSION_ID.associate(match.group(1)))
+            query = query[match.end() :]
+            continue
 
-        # Normalize token
-        if token == "hg19" or token == "grch37":
-            token = "GRCh37"
-        elif token == "hg38" or token == "grch38":
-            token = "GRCh38"
-        assembly = token
-    query = re.sub(ASSEMBLY_RE, " ", query)
+        if match := re.match(ASSEMBLY_RE, query):
+            token = match.group(1).lower()
 
-    for result in re.finditer(GENE_NAME_RE, query):
-        gene_names.append(result.group(1))
+            # Normalize token
+            if token == "hg19" or token == "grch37":
+                token = "GRCh37"
+            elif token == "hg38" or token == "grch38":
+                token = "GRCh38"
+            assembly = token
+            query = query[match.end() :]
+            continue
 
-    return terms, location, assembly, gene_names
+        if match := re.match(POSSIBLE_GENE_NAME_RE, query):
+            terms.append(QueryToken.GENE_NAME.associate(match.group(1)))
+            query = query[match.end() :]
+            continue
+
+    return terms, location, assembly
 
 
 class Search:
@@ -75,7 +82,7 @@ class Search:
 
     @classmethod
     def search(cls, query_string: str, facets: list[int] = []):
-        _query_terms, location, assembly_name, _gene_names = parse_query(query_string)
+        query_terms, location, assembly_name = parse_query(query_string)
         sites = None
         if location is not None:
             sites = cls._dnafeature_search(location, assembly_name, facets)
