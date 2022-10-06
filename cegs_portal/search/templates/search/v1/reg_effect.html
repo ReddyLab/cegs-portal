@@ -25,8 +25,8 @@
 
     {% if regulatory_effect.sources.all|length > 0 %}
     <div>
-        <div class="text-xl font-bold">Source DHSs</div>
-        {% include "search/v1/partials/_features.html" with regions=regulatory_effect.sources.all %}
+        <div class="text-xl font-bold">Source Features</div>
+        {% include "search/v1/partials/_features.html" with features=regulatory_effect.sources.all %}
     </div>
     {% endif %}
     {% endspaceless %}
