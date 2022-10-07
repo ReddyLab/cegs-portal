@@ -51,10 +51,21 @@ svg > g > text {
                     <input type="submit" value="Search Again" class="search-button self-end">
                 </form>
             </div>
-            {% if loc_search.location %}
-            <div id="loc-header" class="text-2xl font-bold my-4">{{ loc_search.location.chromo }}: {{ loc_search.location.range.lower }}-{{ loc_search.location.range.upper }}</div>
+            {% if "IGNORE_LOC" in warnings %}
+            <div class="text-red-700">The location in the query has been ignored.</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
             {% endif %}
-            {% if loc_search.location and loc_search.assembly %}
+            {% if "TOO_MANY_LOCS" in warnings %}
+            <div class="text-red-700">The query contains more than one location; only the first location is used.</div>
+            {% endif %}
+            {% if "IGNORE_TERMS" in warnings %}
+            <div class="text-red-700">Gene IDs or names in the query were ignored</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
+            {% endif %}
+            {% if location %}
+            <div id="loc-header" class="text-2xl font-bold my-4">{{ location.chromo }}: {{ location.range.lower }}-{{ location.range.upper }}</div>
+            {% endif %}
+            {% if location and assembly %}
             <div class="p-2" id="genoverse"></div>
             {% endif %}
             {% switch "effect_plot" %}
@@ -81,9 +92,9 @@ svg > g > text {
         const STATE_DHS_EFFECT = "dhs-effect-data"
         let state = new State({
             [STATE_LOCATION]: {
-                chr: "{{ loc_search.location.chromo }}",
-                start: {{ loc_search.location.range.lower }},
-                end: {{ loc_search.location.range.upper }}
+                chr: "{{ location.chromo }}",
+                start: {{ location.range.lower }},
+                end: {{ location.range.upper }}
             },
             [STATE_FACETS]: [],
             [STATE_DHS_EFFECT]: null
@@ -99,7 +110,7 @@ svg > g > text {
         let featureURL = function(chromosome, start, end, facets=[]) {
             let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&');
-            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ loc_search.assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
         {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
@@ -214,17 +225,17 @@ svg > g > text {
         }
         {% endswitch %}
 
-        {% if loc_search.location and loc_search.assembly %}
+        {% if location and assembly %}
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
             // If no genome supplied, it must have at least chromosomeSize, e.g.:
             // chromosomeSize : 249250621, // chromosome 1, human
-            genome    : '{{ loc_search.assembly }}', // see js/genomes/
-            assembly  : '{{ loc_search.assembly }}',
-            chr       : "{{ loc_search.location.chromo }}".replace("chr", ""),
-            start     : {{ loc_search.location.range.lower }},
-            end       : {{ loc_search.location.range.upper }},
+            genome    : '{{ assembly }}', // see js/genomes/
+            assembly  : '{{ assembly }}',
+            chr       : "{{ location.chromo }}".replace("chr", ""),
+            start     : {{ location.range.lower }},
+            end       : {{ location.range.upper }},
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,

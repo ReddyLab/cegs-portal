@@ -1,6 +1,6 @@
 class Http500(Exception):
-    pass
+    """Internal Server Error"""
 
 
 class Http400(Exception):
-    pass
+    """Bad Request"""
