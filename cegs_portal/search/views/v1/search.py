@@ -40,9 +40,8 @@ class SearchView(TemplateJsonView):
 
         search_results["query"] = options["search_query"]
 
-        if search_results["features"] is not None:
+        if search_results["search_type"] == "LOCATION":
             feature_paginator = Paginator(search_results["features"], 20)
             search_results["features"] = feature_paginator.get_page(options["feature_page"])
-        else:
-            search_results["features"] = []
+
         return search_results
