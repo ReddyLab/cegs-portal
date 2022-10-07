@@ -239,7 +239,7 @@ svg > g > text {
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
-            sharedStateCallbacks: [_ul{% switch "effect_plot" %}, applyPlot{% endswitch %}],
+            sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}{% switch "effect_plot" %}{% if search_type == "LOCATION" %}, {% endif %}applyPlot{% endswitch %}],
             width: 1200,
             tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),

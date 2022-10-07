@@ -14,8 +14,8 @@ from cegs_portal.utils.http_exceptions import Http400
 CHROMO_RE = re.compile(r"((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})\s*", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)\s*", re.IGNORECASE)
-# HAVANA_RE = re.compile(r"\s*(OTT[0-9a-z]+)", re.IGNORECASE)
-# HUGO_RE = re.compile(r"\s*(HGNC:[0-9a-z]+)", re.IGNORECASE)
+# HAVANA_RE = re.compile(r"(OTT[0-9a-z]+)\s*", re.IGNORECASE)
+# HUGO_RE = re.compile(r"(HGNC:[0-9a-z]+)\s*", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)\s*", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)\s*", re.IGNORECASE)
 
@@ -38,7 +38,8 @@ SearchResult = TypedDict(
         "assembly": str,
         "features": BaseManager[DNAFeature],
         "facets": BaseManager[Facet],
-        "warnings": set[ParseWarning],
+        "search_type": str,
+        "warnings": set[str],
     },
 )
 
@@ -117,13 +118,11 @@ def parse_query(
 class Search:
     @classmethod
     def _dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]], assembly: str):
-        regions = DNAFeatureSearch.ids_search(
+        return DNAFeatureSearch.ids_search(
             ids,
             assembly,
             [],
         )
-
-        return regions
 
     @classmethod
     def _dnafeature_loc_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
@@ -133,7 +132,7 @@ class Search:
                 f"larger than upper bound ({location.range.upper})"
             )
 
-        regions = DNAFeatureSearch.loc_search(
+        return DNAFeatureSearch.loc_search(
             location.chromo,
             str(location.range.lower),
             str(location.range.upper),
@@ -144,8 +143,6 @@ class Search:
             facets,
         )
 
-        return regions
-
     @classmethod
     def search(cls, query_string: str, facets: list[int] = list) -> SearchResult:
         search_type, query_terms, location, assembly_name, warnings = parse_query(query_string)
@@ -155,6 +152,12 @@ class Search:
             features = cls._dnafeature_loc_search(location, assembly_name, facets)
         elif search_type == SearchType.ID:
             features = cls._dnafeature_id_search(query_terms, assembly_name)
+            if features.count() == 1:
+                feature = features[0]
+                location = ChromosomeLocation(
+                    feature.chrom_name, str(max(0, feature.location.lower - 1000)), str(feature.location.upper + 1000)
+                )
+                assembly_name = feature.ref_genome
         else:
             raise Http400(f"Invalid Query: {query_string}")
 
@@ -163,5 +166,6 @@ class Search:
             "assembly": assembly_name,
             "features": features,
             "facets": facet_results,
+            "search_type": search_type.name,
             "warnings": {w.name for w in warnings},
         }
