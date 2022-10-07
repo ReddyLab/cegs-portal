@@ -1,11 +1,15 @@
 import re
 from enum import Enum, auto
-from typing import Optional
+from typing import Optional, TypedDict
+
+from django.db.models.manager import BaseManager
 
 from cegs_portal.search.models import ChromosomeLocation, Facet
+from cegs_portal.search.models.dna_feature import DNAFeature
 from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
+from cegs_portal.utils.http_exceptions import Http400
 
 CHROMO_RE = re.compile(r"((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})\s*", re.IGNORECASE)
@@ -27,9 +31,23 @@ class SearchType(Enum):
     ID = auto()
 
 
+SearchResult = TypedDict(
+    "SearchResult",
+    {
+        "location": Optional[ChromosomeLocation],
+        "assembly": str,
+        "features": BaseManager[DNAFeature],
+        "facets": BaseManager[Facet],
+        "warnings": set[ParseWarning],
+    },
+)
+
+
 def parse_query(
     query: str,
-) -> tuple[list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]]:
+) -> tuple[
+    Optional[SearchType], list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]
+]:
     terms: list[tuple[QueryToken, str]] = []
     location: Optional[ChromosomeLocation] = None
     assembly: Optional[str] = None
@@ -98,8 +116,14 @@ def parse_query(
 
 class Search:
     @classmethod
-    def _dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]]):
-        pass
+    def _dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]], assembly: str):
+        regions = DNAFeatureSearch.ids_search(
+            ids,
+            assembly,
+            [],
+        )
+
+        return regions
 
     @classmethod
     def _dnafeature_loc_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
@@ -123,18 +147,21 @@ class Search:
         return regions
 
     @classmethod
-    def search(cls, query_string: str, facets: list[int] = []):
-        search_type, query_terms, location, assembly_name, _warnings = parse_query(query_string)
-        sites = None
-        if location is not None:
-            sites = cls._dnafeature_loc_search(location, assembly_name, facets)
+    def search(cls, query_string: str, facets: list[int] = list) -> SearchResult:
+        search_type, query_terms, location, assembly_name, warnings = parse_query(query_string)
         facet_results = Facet.objects.filter(facet_type="FacetType.DISCRETE").prefetch_related("values").all()
 
+        if search_type == SearchType.LOCATION:
+            features = cls._dnafeature_loc_search(location, assembly_name, facets)
+        elif search_type == SearchType.ID:
+            features = cls._dnafeature_id_search(query_terms, assembly_name)
+        else:
+            raise Http400(f"Invalid Query: {query_string}")
+
         return {
-            "loc_search": {
-                "location": location,
-                "assembly": assembly_name,
-            },
-            "features": sites,
+            "location": location,
+            "assembly": assembly_name,
+            "features": features,
             "facets": facet_results,
+            "warnings": {w.name for w in warnings},
         }

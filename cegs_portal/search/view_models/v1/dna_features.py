@@ -1,10 +1,12 @@
 from enum import Enum
 from typing import cast
 
+from django.db.models import Q
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from cegs_portal.search.models import DNAFeature, DNAFeatureType, QueryToken
 from cegs_portal.search.view_models.errors import ViewModelError
+from cegs_portal.utils.http_exceptions import Http500
 
 
 # TODO: create StrEnum class so e.g., `"ensemble" == IdType.ENSEMBL` works as expected
@@ -79,6 +81,65 @@ class DNAFeatureSearch:
         )
         if distinct:
             features = features.distinct()
+
+        return features
+
+    @classmethod
+    def ids_search(
+        cls,
+        ids: list[tuple[QueryToken, str]],
+        assembly: str,
+        region_properties: list[str],
+    ):
+
+        query = {}
+
+        if assembly is not None:
+            query["ref_genome"] = assembly
+
+        accession_ids = []
+        ensembl_ids = []
+        gene_names = []
+        for id_type, feature_id in ids:
+            if id_type == QueryToken.ACCESSION_ID:
+                accession_ids.append(feature_id)
+            elif id_type == QueryToken.ENSEMBL_ID:
+                ensembl_ids.append(feature_id)
+            elif id_type == QueryToken.GENE_NAME:
+                gene_names.append(feature_id)
+            else:
+                raise Http500(f"Invalid Query Token: ({id_type}, {feature_id})")
+
+        id_query = False
+        if len(accession_ids) > 0:
+            id_query = Q(accession_id__in=accession_ids)
+        if len(ensembl_ids) > 0:
+            if id_query:
+                id_query |= Q(ensembl_id__in=ensembl_ids)
+            else:
+                id_query = Q(ensembl_id__in=ensembl_ids)
+        if len(gene_names) > 0:
+            if id_query:
+                id_query |= Q(name__in=gene_names)
+            else:
+                id_query = Q(name__in=gene_names)
+
+        prefetch_values = []
+
+        if "regeffects" in region_properties:
+            prefetch_values.extend(
+                [
+                    "source_for",
+                    "source_for__facet_values",
+                    "source_for__facet_values__facet",
+                    "source_for__targets",
+                    "target_of",
+                    "target_of__facet_values",
+                    "target_of__facet_values__facet",
+                ]
+            )
+
+        features = DNAFeature.objects.filter(id_query, **query).prefetch_related(*prefetch_values)
 
         return features
 
