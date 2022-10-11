@@ -36,6 +36,7 @@ class RegulatoryEffectObservation(Accessioned, Searchable, Faceted):
     objects = RegulatoryEffectObservationSet.as_manager()
 
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
+    experiment_accession_id = models.CharField(max_length=15, null=True)
     sources = models.ManyToManyField(DNAFeature, related_name="source_for")
     targets = models.ManyToManyField(DNAFeature, related_name="target_of")
 

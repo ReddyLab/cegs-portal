@@ -119,6 +119,7 @@ def load_reg_effects(
         effect = RegulatoryEffectObservation(
             accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
             experiment=experiment,
+            experiment_accession_id=experiment.accession_id,
             facet_num_values={
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
