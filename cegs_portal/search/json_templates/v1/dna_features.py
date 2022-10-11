@@ -81,7 +81,7 @@ def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, 
         "effect_size": re_obj.effect_size,
         "direction": re_obj.direction,
         "significance": re_obj.significance,
-        "experiment_id": re_obj.experiment_id,
+        "experiment_id": re_obj.experiment_accession_id,
         "targets": [{"name": regeffect.name, "ensembl_id": regeffect.ensembl_id} for regeffect in re_obj.targets.all()],
     }
 

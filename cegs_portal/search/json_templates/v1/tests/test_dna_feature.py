@@ -71,7 +71,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
         "effect_size": reg_effect.effect_size,
         "direction": reg_effect.direction,
         "significance": reg_effect.significance,
-        "experiment_id": reg_effect.experiment_id,
+        "experiment_id": reg_effect.experiment_accession_id,
         "source_ids": [dhs.id for dhs in reg_effect.sources.all()],
     }
 
