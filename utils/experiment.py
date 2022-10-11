@@ -76,7 +76,7 @@ class ExperimentMetadata:
         return experiment
 
     def db_del(self):
-        experiment = Experiment.objects.get(name=self.name)
+        experiment = Experiment.objects.get(accession_id=self.accession_id)
         experiment.data_files.all().delete()
         experiment.other_files.all().delete()
         experiment.delete()

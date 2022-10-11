@@ -32,5 +32,9 @@ cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/
     ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
 ./scripts/data_loading/DCPEXPR00000002_dhs_closest_ccres_klann_2021_scceres.sh ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
 
-./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPEXPR00000004_bounds_scCERES_mhc_2021/experiment.json ${ACCESSION_FILE}
-cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000004_bounds_scCERES_mhc_2021/
+./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPEXPR00000004_bounds_scCERES_mhc_ipsc_2021/experiment.json ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000004_bounds_scCERES_mhc_ipsc_2021/
+./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPEXPR00000005_bounds_scCERES_mhc_k562_2021/experiment.json ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000005_bounds_scCERES_mhc_k562_2021/
+./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPEXPR00000006_bounds_scCERES_mhc_npc_2021/experiment.json ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000006_bounds_scCERES_mhc_npc_2021/

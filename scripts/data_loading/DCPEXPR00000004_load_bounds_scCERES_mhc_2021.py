@@ -46,7 +46,7 @@ def bulk_save(grnas, effects, effect_directions, sources, source_facets, targets
 
     with transaction.atomic():
         print("Adding gRNA type facets to gRNA regions")
-        for facets, source in zip(source_facets, sources):
+        for source, facets in zip(sources, source_facets):
             source.facet_values.add(*facets)
 
     with transaction.atomic():
@@ -75,15 +75,20 @@ def load_reg_effects(
     effect_directions = []
     target_assembiles = []
     grnas = {}
+    existing_grna_facets = {}
+    grnas_to_save = []
     for i, line in enumerate(reader):
         # every other line in this file is basically a duplicate of the previous line
         if i % 2 == 0:
             continue
-        grna = line["grna"]
-        if grna in grnas:
-            region = grnas[grna]
+        grna_id = line["grna"]
+
+        if grna_id in grnas:
+            region = grnas[grna_id]
         else:
-            grna_info = grna.split("-")
+            existing_grna_facets[grna_id] = set()
+
+            grna_info = grna_id.split("-")
 
             if not grna_info[0].startswith("chr"):
                 continue
@@ -100,44 +105,58 @@ def load_reg_effects(
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
-            region = DNAFeature(
-                accession_id=accession_ids.incr(AccessionType.GRNA),
-                cell_line=cell_line,
-                chrom_name=chrom_name,
-                closest_gene=closest_gene,
-                closest_gene_distance=distance,
-                closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id,
-                location=grna_location,
-                misc={"grna": grna},
-                ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                feature_type=DNAFeatureType.GRNA,
-                source=region_source,
-                strand=strand,
-            )
-            grnas[grna] = region
+            try:
+                region = DNAFeature.objects.get(
+                    cell_line=cell_line,
+                    chrom_name=chrom_name,
+                    location=grna_location,
+                    ref_genome=ref_genome,
+                    ref_genome_patch=ref_genome_patch,
+                    feature_type=DNAFeatureType.GRNA,
+                )
+                existing_grna_facets[grna_id].update(region.facet_values.all())
+            except DNAFeature.DoesNotExist:
+                region = DNAFeature(
+                    accession_id=accession_ids.incr(AccessionType.GRNA),
+                    cell_line=cell_line,
+                    chrom_name=chrom_name,
+                    closest_gene=closest_gene,
+                    closest_gene_distance=distance,
+                    closest_gene_name=gene_name,
+                    closest_gene_ensembl_id=closest_gene.ensembl_id,
+                    location=grna_location,
+                    misc={"grna": grna_id},
+                    ref_genome=ref_genome,
+                    ref_genome_patch=ref_genome_patch,
+                    feature_type=DNAFeatureType.GRNA,
+                    source=region_source,
+                    strand=strand,
+                )
+                grnas_to_save.append(region)
+            grnas[grna_id] = region
         sites.append(region)
 
         grna_type = line["type"]
-        grna_facets = []
+        grna_facets = set()
+
         if grna_type == "targeting":
-            grna_facets.append(GRNA_FACET_VALUES["Targeting"])
+            grna_facets.add(GRNA_FACET_VALUES["Targeting"])
         elif grna_type == "nontargeting":
-            grna_facets.append(GRNA_FACET_VALUES["Non-targeting"])
+            grna_facets.add(GRNA_FACET_VALUES["Non-targeting"])
         elif grna_type == "positive_control_ipsc":
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control (iPSC)"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control (iPSC)"])
         elif grna_type == "positive_control_k562":
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control (k562)"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control (k562)"])
         elif grna_type == "positive_control_npc":
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control (NPC)"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control (NPC)"])
         elif grna_type == "positive_control_other":
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.append(GRNA_FACET_VALUES["Positive Control (other)"])
-        site_facets.append(grna_facets)
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
+            grna_facets.add(GRNA_FACET_VALUES["Positive Control (other)"])
+        site_facets.append(grna_facets - existing_grna_facets[grna_id])
+        existing_grna_facets[grna_id].update(grna_facets)
 
         significance = float(line["pval_fdr_corrected"])
         effect_size = float(line["avg_logFC"])
@@ -168,11 +187,18 @@ def load_reg_effects(
         target_assembiles.append(target_assembly)
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(grnas.values(), effects, effect_directions, sites, site_facets, target_assembiles)
+    bulk_save(grnas_to_save, effects, effect_directions, sites, site_facets, target_assembiles)
 
 
 def unload_reg_effects(experiment_metadata):
-    experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
+    try:
+        print(experiment_metadata.accession_id)
+        experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
+    except Experiment.DoesNotExist:
+        return
+    except Exception as e:
+        raise e
+
     RegulatoryEffectObservation.objects.filter(experiment=experiment).delete()
     for file in experiment.other_files.all():
         DNAFeature.objects.filter(source=file).delete()
