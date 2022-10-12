@@ -39,7 +39,14 @@ gen_data() {
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrMT
 }
 
+gen_data DCPEXPR00000001 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000001
 gen_data DCPEXPR00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000002
+
+# gen_data DCPEXPR00000003 needs some changes to the cov_viz and related programs to work. Some
+# of the  REOs have null effect sizes because the "direction" of the effect is "both". Deferring
+# for now. It's also not clear how to surface that in the facet filter.
+# gen_data DCPEXPR00000003 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000003
+
 gen_data DCPEXPR00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000004
 gen_data DCPEXPR00000005 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000005
 gen_data DCPEXPR00000006 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000006
