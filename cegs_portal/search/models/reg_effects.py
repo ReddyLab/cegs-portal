@@ -32,6 +32,7 @@ class RegulatoryEffectObservation(Accessioned, Searchable, Faceted):
         RAW_P_VALUE = "Raw p value"  # float
         SIGNIFICANCE = "Significance"  # float
         EFFECT_SIZE = "Effect Size"  # float
+        AVG_COUNTS_PER_MILLION = "Average Counts per Million"
 
     objects = RegulatoryEffectObservationSet.as_manager()
 

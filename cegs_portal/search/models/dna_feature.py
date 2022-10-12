@@ -18,6 +18,7 @@ class DNAFeatureType(Enum):
     CCRE = "ccre"
     DHS = "dhs"
     GRNA = "gRNA"
+    CAR = "chromatin accessable region"
 
     @property
     def accession_abbreviation(self):
@@ -33,6 +34,8 @@ class DNAFeatureType(Enum):
             return "DHS"
         elif self is DNAFeatureType.GRNA:
             return "GRNA"
+        elif self is DNAFeatureType.CAR:
+            return "CAR"
         else:
             raise Exception(f"No accession abbreviation defined for {self}")
 
@@ -61,6 +64,7 @@ class DNAFeature(Accessioned, Searchable, Faceted):
         (str(DNAFeatureType.CCRE), DNAFeatureType.CCRE.value),
         (str(DNAFeatureType.DHS), DNAFeatureType.DHS.value),
         (str(DNAFeatureType.GRNA), DNAFeatureType.GRNA.value),
+        (str(DNAFeatureType.CAR), DNAFeatureType.CAR.value),
     )
 
     cell_line = models.CharField(max_length=50, null=True)
