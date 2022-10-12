@@ -38,6 +38,7 @@ class AccessionType(Enum):
     CCRE = "ccre"
     DHS = "dhs"
     EXPERIMENT = "experiment"
+    CAR = "chromatin accessable region"
 
 
 class AccessionIds:

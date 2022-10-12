@@ -50,3 +50,4 @@ gen_data DCPEXPR00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCP
 gen_data DCPEXPR00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000004
 gen_data DCPEXPR00000005 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000005
 gen_data DCPEXPR00000006 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000006
+gen_data DCPEXPR00000007 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000007

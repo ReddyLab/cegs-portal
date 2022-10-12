@@ -38,3 +38,6 @@ cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000004_bounds_scCERES_mhc_ipsc_2021/
 cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000005_bounds_scCERES_mhc_k562_2021/
 ./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh ${DATA_DIR}/DCPEXPR00000006_bounds_scCERES_mhc_npc_2021/experiment.json ${ACCESSION_FILE}
 cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000006_bounds_scCERES_mhc_npc_2021/
+
+./scripts/data_loading/DCPEXPR00000007_load_siklenka_atacstarrseq_K562_2022.sh ${DATA_DIR}/DCPEXPR00000007_siklenka_atac-starr-seq_K562_2022/experiment.json ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000007_siklenka_atac-starr-seq_K562_2022/

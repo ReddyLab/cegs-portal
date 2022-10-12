@@ -41,7 +41,7 @@ def bulk_save(
     effect_directions: list[RegulatoryEffectObservation],
 ):
     with transaction.atomic():
-        print("Adding DNaseIHypersensitiveSites")
+        print("Adding Chromatin Accessable Regions")
         DNAFeature.objects.bulk_create(dhss, batch_size=1000)
 
         print("Adding RegulatoryEffectObservations")
@@ -69,18 +69,18 @@ def load_reg_effects(
     effects: list[RegulatoryEffectObservation] = []
     effect_directions: list[FacetValue] = []
     for line in reader:
-        chrom_name = line["chrom"]
+        chrom_name = line["seqnames"]
 
-        dhs_start = int(line["chromStart"])
-        dhs_end = int(line["chromEnd"])
-        dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+        ths_start = int(line["start"])
+        ths_end = int(line["end"])
+        dhs_location = NumericRange(ths_start, ths_end, "[]")
 
         try:
             dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
         except ObjectDoesNotExist:
-            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
+            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ths_start, ths_end)
             dhs = DNAFeature(
-                accession_id=accession_ids.incr(AccessionType.DHS),
+                accession_id=accession_ids.incr(AccessionType.CAR),
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -90,28 +90,26 @@ def load_reg_effects(
                 location=dhs_location,
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
-                feature_type=DNAFeatureType.DHS,
+                feature_type=DNAFeatureType.CAR,
                 source=region_source,
             )
             new_sites.append(dhs)
 
         sites.append(dhs)
 
-        effect_size_field = line["wgCERES_score_top3_wg"].strip()
+        effect_size_field = line["logFC"].strip()
         if effect_size_field == "":
             effect_size = None
         else:
             effect_size = float(effect_size_field)
 
-        direction_line = line["direction_wg"]
-        if direction_line == "non_sig":
+        significance = float(line["minusLog10PValue"])
+        if significance < 2:  # p-value < 0.01, we're being stricter about significance with this data set
             direction = DIR_FACET_VALUES["Non-significant"]
-        elif direction_line == "enriched":
+        elif effect_size > 0:
             direction = DIR_FACET_VALUES["Enriched Only"]
-        elif direction_line == "depleted":
+        elif effect_size < 0:
             direction = DIR_FACET_VALUES["Depleted Only"]
-        elif direction_line == "both":
-            direction = DIR_FACET_VALUES["Mixed"]
         else:
             direction = None
         effect = RegulatoryEffectObservation(
@@ -120,9 +118,10 @@ def load_reg_effects(
             experiment_accession_id=experiment.accession_id,
             facet_num_values={
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
-                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: float(line["pValue"]),
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                # significance is -log10(actual p-value), so raw_p_value uses the inverse operation
+                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(significance)),
+                RegulatoryEffectObservation.Facet.AVG_COUNTS_PER_MILLION.value: float(line["input_avg_counts.cpm"]),
             },
         )
         effects.append(effect)
@@ -157,7 +156,7 @@ def run(experiment_filename, accession_file):
     experiment = experiment_metadata.db_save()
 
     with AccessionIds(accession_file) as accession_ids:
-        for ceres_file, file_info, delimiter in experiment_metadata.metadata():
+        for ceres_file, file_info, _delimiter in experiment_metadata.metadata():
             load_reg_effects(
                 ceres_file,
                 accession_ids,
@@ -166,5 +165,5 @@ def run(experiment_filename, accession_file):
                 file_info.ref_genome,
                 file_info.ref_genome_patch,
                 experiment.other_files.all()[0],
-                delimiter,
+                "\t",
             )
