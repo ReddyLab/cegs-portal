@@ -39,6 +39,7 @@ class SearchView(TemplateJsonView):
             raise Http400(e)
 
         search_results["query"] = options["search_query"]
+        search_results["facets_query"] = options["facets"]
 
         if search_results["search_type"] == "LOCATION":
             feature_paginator = Paginator(search_results["features"], 20)
