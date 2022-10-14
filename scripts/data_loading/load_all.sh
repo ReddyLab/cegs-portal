@@ -41,3 +41,8 @@ cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000006_bounds_scCERES_mhc_npc_2021/
 
 ./scripts/data_loading/DCPEXPR00000007_load_siklenka_atacstarrseq_K562_2022.sh ${DATA_DIR}/DCPEXPR00000007_siklenka_atac-starr-seq_K562_2022/experiment.json ${ACCESSION_FILE}
 cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000007_siklenka_atac-starr-seq_K562_2022/
+
+./scripts/data_loading/DCPEXPR00000008_load_mccutcheon_scCERES_cd8_CRISPR_2022.sh ${DATA_DIR}/DCPEXPR00000008_mccutcheon_scCERES_cd8_CRISPRa_2022/experiment.json ${DATA_DIR}/DCPEXPR00000008_mccutcheon_scCERES_cd8_CRISPRa_2022/features.tsv ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000008_mccutcheon_scCERES_cd8_CRISPRa_2022/
+./scripts/data_loading/DCPEXPR00000008_load_mccutcheon_scCERES_cd8_CRISPR_2022.sh ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/experiment.json ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/features.tsv ${ACCESSION_FILE}
+cp ${ACCESSION_FILE} ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/
