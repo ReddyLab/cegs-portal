@@ -110,7 +110,7 @@ svg > g > text {
         let featureURL = function(chromosome, start, end, facets=[]) {
             let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&');
-            return `/search/featureloc/${chromosome}/${start}/${end}?assembly={{ assembly }}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+            return `/search/featureloc/${chromosome}/${start}/${end}?{% if assembly %}assembly={{ assembly }}{% endif %}&search_type=overlap&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
         {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
