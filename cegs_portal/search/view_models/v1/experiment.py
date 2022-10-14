@@ -16,9 +16,13 @@ class ExperimentSearch:
 
     @classmethod
     def all(cls):
-        experiments = Experiment.objects.annotate(
-            cell_lines=StringAgg("data_files__cell_line", ", ", default=Value("")),
-        ).all()
+        experiments = (
+            Experiment.objects.annotate(
+                cell_lines=StringAgg("data_files__cell_line", ", ", default=Value("")),
+            )
+            .order_by("accession_id")
+            .all()
+        )
         return experiments
 
     @classmethod
