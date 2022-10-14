@@ -18,9 +18,10 @@ First, clone this repository. This is a Django 4.0 project that requires Python 
 These instructions are for unix/linux systems. Windows users should use WSL to run the portal.
 
 ### Pre-reqs
-* python >= 3.9
-* docker
-* Node.js >= 14.17
+* [python](https://www.python.org) >= 3.9
+* [docker](http://docker.com)
+* [Node.js](https://nodejs.dev) >= 14.17
+* [Rust](https://www.rust-lang.org)
 
 Once you have the repository cloned and the pre-reqs installed you need to install the dependencies.
 
@@ -32,6 +33,18 @@ Once you have the repository cloned and the pre-reqs installed you need to insta
 Then you can start the database:
 
     $ docker compose up -d
+
+Before django can run, a dependency has to be manually added:
+
+    $ cd extensions/exp_viz
+    $ maturin develop
+    $ cd ../..
+
+You have to create the static data directory:
+
+    $ mkdir cegs_portal/static_data
+
+And create the `cegs_portal` database in your postgres container. This is left as an exercise to the reader.
 
 You'll need to set a few environment variables:
 
