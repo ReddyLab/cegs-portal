@@ -1,14 +1,32 @@
 #!/bin/sh
 set -euo pipefail
 
+gen_dir() {
+    local DIR=$1
+
+    if [ ! -x "${DIR}" ]; then
+        mkdir "${DIR}"
+    fi
+}
+
 gen_data() {
     local EXPERIMENT=$1
     local GENOME=$2
     local OUTPUT_DIR=$3
 
+    gen_dir OUTPUT_DIR
+
     # Install cov_viz from github: https://github.com/ReddyLab/cov_viz
     # Install cov_viz_manifest from github: https://github.com/ReddyLab/cov_viz_manifest
     # cov_viz and cov_viz_manifest require rust, which can be downloaded/installed from https://www.rust-lang.org
+
+    if [ $GENOME == "GRCH37" ]; then
+        cp "./scripts/data_generation/data/grch37.json" $OUTPUT_DIR
+    fi
+
+    if [ $GENOME == "GRCH38" ]; then
+        cp "./scripts/data_generation/data/grch38.json" $OUTPUT_DIR
+    fi
 
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME}
     cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.bin ${OUTPUT_DIR}
