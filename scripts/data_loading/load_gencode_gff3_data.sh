@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 INPUT_FILE=$1
 ACCESSION_FILE=$2
 GENOME=${3:-GRCh38}
