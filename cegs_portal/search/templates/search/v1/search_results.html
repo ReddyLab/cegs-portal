@@ -33,7 +33,7 @@ svg > g > text {
                         <div class="flex flex-row flex-wrap gap-1">
                             {% for value in facet.values.all %}
                             <div>
-                                <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"></input>
+                                <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
                                 <label for="{{ value.id }}">{{ value.value }}</label>
                             </div>
                             {% endfor %}
@@ -117,14 +117,19 @@ svg > g > text {
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 
-        facetCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", _ => {
-                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
+        const updateFacetState = function() {
+            let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
                                      .map(i => i.id)
                 state.updateSharedState(STATE_FACETS, checkedFacets);
+        }
+        facetCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", _ => {
+                updateFacetState();
             });
         });
+
+        updateFacetState();
 
         // Update the chromosome location at the top of the page
         state.addCallback(STATE_LOCATION, (state, key) => {
@@ -132,7 +137,7 @@ svg > g > text {
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`));
 
-            __genDataPages(location.chr, location.start, location.end, 1)();
+            __genDataPages(location.chr, location.start, location.end, 1,  state[STATE_FACETS])();
         });
 
         state.addCallback(STATE_FACETS, _.throttle(
