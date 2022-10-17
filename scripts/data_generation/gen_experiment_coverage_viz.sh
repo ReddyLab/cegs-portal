@@ -5,7 +5,7 @@ gen_dir() {
     local DIR=$1
 
     if [ ! -x "${DIR}" ]; then
-        mkdir "${DIR}"
+        mkdir -p "${DIR}"
     fi
 }
 
