@@ -14,7 +14,7 @@ gen_data() {
     local GENOME=$2
     local OUTPUT_DIR=$3
 
-    gen_dir OUTPUT_DIR
+    gen_dir "${OUTPUT_DIR}"
 
     # Install cov_viz from github: https://github.com/ReddyLab/cov_viz
     # Install cov_viz_manifest from github: https://github.com/ReddyLab/cov_viz_manifest
