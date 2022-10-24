@@ -4,11 +4,17 @@ import time
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType, Facet, FacetValue
+from cegs_portal.search.models import (
+    AccessionIds,
+    AccessionType,
+    DNAFeature,
+    DNAFeatureType,
+    Facet,
+    FacetValue,
+)
 from utils import FileMetadata, get_delimiter, timer
 
 from . import get_closest_gene
-from .utils import AccessionIds, AccessionType
 
 LOAD_BATCH_SIZE = 10_000
 
@@ -97,7 +103,7 @@ def check_filename(ccre_data: str):
         raise ValueError(f"cCRE data filename '{ccre_data}' must not be blank")
 
 
-def run(ccre_data: str, accession_file: str, ref_genome: str, ref_genome_patch: str):
+def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
     with open(ccre_data) as file:
         file_metadata = FileMetadata.json_load(file)
 
@@ -110,7 +116,9 @@ def run(ccre_data: str, accession_file: str, ref_genome: str, ref_genome_patch: 
 
     source_file = file_metadata.db_save()
 
-    with open(file_metadata.full_data_filepath) as ccres_file, AccessionIds(accession_file) as accession_ids:
+    with open(file_metadata.full_data_filepath) as ccres_file, AccessionIds(
+        message=f"cCRE for {ref_genome}.{ref_genome_patch}"
+    ) as accession_ids:
         load_ccres(
             ccres_file,
             accession_ids,

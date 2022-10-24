@@ -1,8 +1,14 @@
 import json
 import os.path
+from datetime import datetime, timezone
 from typing import IO, Any
 
-from cegs_portal.search.models import Experiment, ExperimentDataFile
+from cegs_portal.search.models import (
+    AccessionIdLog,
+    AccessionType,
+    Experiment,
+    ExperimentDataFile,
+)
 
 from .file import FileMetadata
 from .misc import get_delimiter
@@ -73,6 +79,13 @@ class ExperimentMetadata:
         for file in self.other_file_metadata:
             other_file = file.db_save()
             experiment.other_files.add(other_file)
+        accession_log = AccessionIdLog(
+            created_at=datetime.now(timezone.utc),
+            accession_type=AccessionType.EXPERIMENT,
+            accession_id=self.accession_id,
+            message=self.description[:200],
+        )
+        accession_log.save()
         return experiment
 
     def db_del(self):
