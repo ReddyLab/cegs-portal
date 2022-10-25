@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Optional
+from typing import Optional, TypeVar
 
 from psycopg2.extras import NumericRange
 
@@ -21,64 +21,67 @@ class AccessionType(Enum):
     def abbrev(self):
         if self == AccessionType.GENE:
             return "GENE"
-        elif self == AccessionType.TRANSCRIPT:
+        if self == AccessionType.TRANSCRIPT:
             return "T"
-        elif self == AccessionType.EXON:
+        if self == AccessionType.EXON:
             return "EXON"
-        elif self == AccessionType.REGULATORY_EFFECT_OBS:
+        if self == AccessionType.REGULATORY_EFFECT_OBS:
             return "REO"
-        elif self == AccessionType.GRNA:
+        if self == AccessionType.GRNA:
             return "GRNA"
-        elif self == AccessionType.CCRE:
+        if self == AccessionType.CCRE:
             return "CCRE"
-        elif self == AccessionType.DHS:
+        if self == AccessionType.DHS:
             return "DHS"
-        elif self == AccessionType.EXPERIMENT:
+        if self == AccessionType.EXPERIMENT:
             return "EXPR"
-        elif self == AccessionType.CAR:
+        if self == AccessionType.CAR:
             return "CAR"
-        elif self == AccessionType.TT:
+        if self == AccessionType.TT:
             return "TT"
-        elif self == AccessionType.CL:
+        if self == AccessionType.CL:
             return "CL"
-        elif self == AccessionType.BIOS:
+        if self == AccessionType.BIOS:
             return "BIOS"
-        else:
-            raise Exception("Invalid Accession type")
+
+        raise Exception("Invalid Accession type")
+
+
+T = TypeVar("T", bound="AccessionId")
 
 
 class AccessionId:
     id_string: str
     prefix: str
-    id_length: int
+    prefix_length: str
+    id_num_length: int
     abbrev: str
     id_num: int
 
-    def __init__(self, id_string: str, prefix: str = "DCP", id_length: int = 8):
+    def __init__(self, id_string: str, prefix_length: int = 3, id_num_length: int = 8):
         self.id_string = id_string
-        self.prefix = prefix
-        self.id_length = id_length
-        self.abbrev = id_string[len(prefix) : len(id_string) - id_length]  # noqa E203
-        self.id_num = int(id_string[len(id_string) - id_length :], 16)  # noqa E203
+        self.prefix = id_string[0:prefix_length]
+        self.prefix_length = prefix_length
+        self.id_num_length = id_num_length
+        self.abbrev = id_string[prefix_length : len(id_string) - id_num_length]  # noqa E203
+        self.id_num = int(id_string[len(id_string) - id_num_length :], 16)  # noqa E203
 
     def __str__(self) -> str:
-        return f"{self.prefix}{self.abbrev}{self.id_num:08X}"
+        return f"{self.prefix}{self.abbrev}{self.id_num:0{self.id_num_length}X}"
 
-    def __eq__(self, other: "AccessionId") -> bool:
-        return (
-            self.id_string == other.id_string
-            and self.prefix == other.prefix
-            and self.id_length == other.id_length
-            and self.abbrev == other.abbrev
-            and self.id_num == other.id_num
-        )
+    def __eq__(self, other: T) -> bool:
+        return str(self) == str(other)
 
     def incr(self):
         self.id_num += 1
 
     @classmethod
-    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_length: int = 8):
-        return AccessionId(f"{prefix}{accession_type.abbrev()}{'0' * id_length}")
+    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8):
+        return AccessionId(
+            f"{prefix}{accession_type.abbrev()}{'0' * id_num_length}",
+            prefix_length=len(prefix),
+            id_num_length=id_num_length,
+        )
 
 
 class QueryToken(Enum):
