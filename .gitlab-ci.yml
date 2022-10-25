@@ -3,7 +3,7 @@ stages:
   - build
   - test
   - scan
-  - deletecontainer
+  - deleteimage
   - updatechart
 
 
@@ -96,7 +96,15 @@ pytest-qa:
 
 scan-test:
   extends: .docker_scan
+  only:
+    - main
+
+scan-qa:
+  extends: .docker_scan
+  variables:
+    THE_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
   except:
+    - main
     - production
 
 scan-prod:
@@ -106,14 +114,14 @@ scan-prod:
   only:
     - production
 
-deletecontainer-qa:
+deleteimage-qa:
   image: ${CI_REGISTRY}/utility/images/basic-shell-executor:latest
-  stage: deletecontainer
+  stage: deleteimage
   script:
     - set -euo pipefail
     - TAG=${CI_COMMIT_REF_SLUG}
     - CONTENT_TYPE="application/json"
-    - 'curl -sfv -X DELETE -H "Private-Token: ${DELETE_CONTAINER_TAG}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/1732/tags/${TAG}"'
+    - 'curl -sfv -X DELETE -H "Private-Token: ${DELETE_CONTAINER_TAG}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/2148/tags/${TAG}"'
   tags:
     - kube-executor
   retry:
@@ -131,9 +139,12 @@ deletecontainer-qa:
     - set -euo pipefail
     - TAG=${TAG:-dev}
     - CONTENT_TYPE="application/json"
+    # Get the SHA hash of the newly created image
     - 'SHA=$(curl -sf -H "Private-Token: ${SELF_API_TOKEN}" -H "Accept: ${CONTENT_TYPE}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/1732/tags/$TAG" | jq ".digest")'
     - echo ${SHA}
+    # Update the IMAGE_SHA variable in cegs-portal-charts with the SHA hash of the new image
     - 'curl -svf -X PUT -H "Private-Token: ${CHART_API_TOKEN}" "${CI_API_V4_URL}/projects/4782/variables/${IMAGE_SHA}" -F "value=${SHA}"'
+    # Trigger the CD pipeline in cegs-portal-charts
     - 'curl -svf -X POST -H "Private-Token: ${CHART_API_TOKEN}" -F token=${DEPLOY_TRIGGER_TOKEN} -F ref=${TRIGGER_BRANCH} "${CI_API_V4_URL}/projects/4782/trigger/pipeline"'
   tags:
     - kube-executor
