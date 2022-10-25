@@ -76,7 +76,7 @@ class AccessionId:
         self.id_num += 1
 
     @classmethod
-    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8):
+    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8) -> T:
         return AccessionId(
             f"{prefix}{accession_type.abbrev()}{'0' * id_num_length}",
             prefix_length=len(prefix),

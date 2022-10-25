@@ -45,6 +45,10 @@ class AccessionIdLog(models.Model):
     def __str__(self):
         return f"{self.created_at} {self.accession_id}: {self.message}"
 
+    @classmethod
+    def latest(cls, atype: AccessionType):
+        return AccessionIdLog.objects.filter(accession_type=atype).order_by("-created_at").first()
+
 
 class AccessionIds:
     def __init__(self, message: str = ""):
@@ -56,7 +60,7 @@ class AccessionIds:
         if atype in self.id_dict:
             return self.id_dict[atype]
 
-        entry = AccessionIdLog.objects.filter(accession_type=atype).order_by("-created_at").first()
+        entry = AccessionIdLog.latest(atype)
         if entry is not None:
             result = AccessionId(entry.accession_id)
         else:
