@@ -5,6 +5,8 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
+    AccessionIds,
+    AccessionType,
     DNAFeature,
     DNAFeatureType,
     Experiment,
@@ -15,7 +17,6 @@ from cegs_portal.search.models import (
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
-from .utils import AccessionIds, AccessionType
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -142,7 +143,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename, accession_file):
+def run(experiment_filename):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -155,7 +156,7 @@ def run(experiment_filename, accession_file):
 
     experiment = experiment_metadata.db_save()
 
-    with AccessionIds(accession_file) as accession_ids:
+    with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
         for ceres_file, file_info, _delimiter in experiment_metadata.metadata():
             load_reg_effects(
                 ceres_file,

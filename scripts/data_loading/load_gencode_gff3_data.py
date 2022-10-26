@@ -4,14 +4,14 @@ from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
+    AccessionIds,
+    AccessionType,
     DNAFeature,
     DNAFeatureType,
     GencodeAnnotation,
     GencodeRegion,
 )
 from utils import timer
-
-from .utils import AccessionIds, AccessionType
 
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
@@ -105,7 +105,9 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
     bulk_annotation_save(annotations)
 
 
-def bulk_feature_save(assemblies, parent_ids=[]):
+def bulk_feature_save(assemblies, parent_ids=None):
+    if parent_ids is None:
+        parent_ids = []
     with transaction.atomic():
         if len(parent_ids) > 0:
             parents = DNAFeature.objects.filter(ensembl_id__in=parent_ids)
@@ -264,7 +266,7 @@ def check_genome(ref_genome: str, ref_genome_patch: str):
 
 
 @timer("Load Gencode Data")
-def run(annotation_filename: str, accession_file: str, ref_genome: str, ref_genome_patch: str, version: str):
+def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, version: str):
     check_filename(annotation_filename)
     check_genome(ref_genome, ref_genome_patch)
 
@@ -276,7 +278,7 @@ def run(annotation_filename: str, accession_file: str, ref_genome: str, ref_geno
     with open(annotation_filename, "r") as annotation_file:
         load_genome_annotations(annotation_file, ref_genome, ref_genome_patch, version)
 
-    with AccessionIds(accession_file) as accession_ids:
+    with AccessionIds(message=f"Gencode data for {ref_genome}.{ref_genome_patch}") as accession_ids:
         create_genes(accession_ids, ref_genome, ref_genome_patch)
         create_transcripts(accession_ids, ref_genome, ref_genome_patch)
         create_exons(accession_ids, ref_genome, ref_genome_patch)
