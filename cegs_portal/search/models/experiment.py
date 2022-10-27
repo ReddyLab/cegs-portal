@@ -7,7 +7,7 @@ from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
 
 
-class TissueType(models.Model):
+class TissueType(Accessioned):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=4096, null=True)
 
@@ -15,7 +15,7 @@ class TissueType(models.Model):
         return self.name
 
 
-class CellLine(models.Model):
+class CellLine(Accessioned):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=4096, null=True)
     tissue_type = models.ForeignKey(TissueType, on_delete=models.PROTECT)
@@ -25,11 +25,12 @@ class CellLine(models.Model):
         return self.name
 
 
-class Biosample(models.Model):
+class Biosample(Accessioned):
     name = models.CharField(max_length=100, null=True)
     cell_line = models.ForeignKey(CellLine, on_delete=models.PROTECT)
     cell_line_name = models.CharField(max_length=100)
     description = models.CharField(max_length=4096, null=True)
+    misc = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.name} ({self.cell_line_name})"
@@ -43,7 +44,7 @@ class Experiment(Accessioned, Faceted):
     description = models.CharField(max_length=4096, null=True)
     experiment_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=512)
-    biosamples = models.ManyToManyField(Biosample, related_name="experiment_data")
+    biosamples = models.ManyToManyField(Biosample, related_name="experiments")
     other_files = models.ManyToManyField(File, related_name="experiments")
 
     def assay(self):
