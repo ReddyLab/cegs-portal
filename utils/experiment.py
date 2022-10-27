@@ -1,10 +1,12 @@
 import json
 import os.path
 from datetime import datetime, timezone
-from typing import IO, Any
+from typing import IO, Any, TypeVar
 
+from cegs_portal.search.conftest import experiment
 from cegs_portal.search.models import (
     AccessionIdLog,
+    AccessionIds,
     AccessionType,
     Biosample,
     CellLine,
@@ -45,24 +47,44 @@ class ExperimentDatafileMetadata:
         return data_file
 
 
+T = TypeVar("T", bound="ExperimentMetadata")
+
+
 class ExperimentBiosample:
     cell_line: str
     tissue_type: str
     description: str
+    experiment: T
 
-    def __init__(self, bio_metadata: dict[str, str]):
+    def __init__(self, bio_metadata: dict[str, str], experiment: T):
         self.name = bio_metadata.get("name", None)
         self.description = bio_metadata.get("description", None)
         self.cell_line = bio_metadata["cell_line"]
         self.tissue_type = bio_metadata["tissue_type"]
+        self.experiment = experiment
 
     def db_save(self):
-        tt = TissueType.objects.get_or_create(name=self.tissue_type)
-        cl = CellLine.objects.get_or_create(name=self.cell_line, tissue_type=tt, tissue_type_name=self.tissue_type)
-        biosample = Biosample.objects.create(
-            name=self.name, description=self.description, cell_line=cl, cell_line_name=self.cell_line
-        )
-        biosample.save()
+        with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
+            cell_line = CellLine.objects.filter(name=self.cell_line).first()
+            if cell_line is None:
+                tissue_type, tt_created = TissueType.objects.get_or_create(name=self.tissue_type)
+                if tt_created:
+                    tissue_type.accession_id = accession_ids.incr(AccessionType.TT)
+                    tissue_type.save()
+                cell_line = CellLine(
+                    name=self.cell_line,
+                    accession_id=accession_ids.incr(AccessionType.CL),
+                    tissue_type=tissue_type,
+                    tissue_type_name=self.tissue_type,
+                )
+                cell_line.save()
+
+            bios = Biosample(
+                cell_line=cell_line,
+                cell_line_name=cell_line.name,
+                accession_id=accession_ids.incr(AccessionType.BIOS),
+            )
+            bios.save()
 
 
 class ExperimentMetadata:
@@ -83,7 +105,7 @@ class ExperimentMetadata:
         self.filename = experiment_filename
         self.data_file_metadata = []
         self.other_file_metadata = []
-        self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict["biosamples"]]
+        self.biosamples = [ExperimentBiosample(sample, self) for sample in experiment_dict["biosamples"]]
         for data in experiment_dict["data"]:
             self.data_file_metadata.append(ExperimentDatafileMetadata(data))
         for file in experiment_dict.get("other_files", []):
