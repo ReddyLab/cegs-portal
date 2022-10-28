@@ -7,7 +7,7 @@ ExperimentJson = TypedDict("ExperimentJson", {"id": int, "name": str})
 RegulatoryEffectObservationJson = TypedDict(
     "RegulatoryEffectObservationJson",
     {
-        "id": int,
+        "accession_id": str,
         "direction": str,
         "effect_size": Optional[float],
         "significance": Optional[float],
@@ -27,7 +27,7 @@ def regulatory_effect(
     reg_effect: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None
 ) -> RegulatoryEffectObservationJson:
     result = {
-        "id": reg_effect.id,
+        "accession_id": reg_effect.accession_id,
         "direction": reg_effect.direction,
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,

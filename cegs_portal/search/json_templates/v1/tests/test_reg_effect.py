@@ -23,7 +23,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     setattr(reg_effect, "tissue_types", tissue_types)
 
     result: RegulatoryEffectObservationJson = {
-        "id": reg_effect.id,
+        "accession_id": reg_effect.accession_id,
         "direction": reg_effect.direction,
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,

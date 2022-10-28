@@ -7,7 +7,6 @@ from cegs_portal.utils.pagination_types import PageableJson
 FeatureJson = TypedDict(
     "FeatureJson",
     {
-        "id": Union[int, str],
         "accession_id": str,
         "ensembl_id": str,
         "cell_line": str,
@@ -45,7 +44,6 @@ def features(
 
 def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -> FeatureJson:
     result = {
-        "id": feature_obj.id,
         "accession_id": feature_obj.accession_id,
         "chr": feature_obj.chrom_name,
         "start": feature_obj.location.lower,
@@ -77,7 +75,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
 
 def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
     result = {
-        "id": re_obj.id,
+        "accession_id": re_obj.accession_id,
         "effect_size": re_obj.effect_size,
         "direction": re_obj.direction,
         "significance": re_obj.significance,

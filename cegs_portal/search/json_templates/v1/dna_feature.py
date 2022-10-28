@@ -10,7 +10,7 @@ def features(feature_objs: DNAFeature, options: Optional[dict[str, Any]] = None)
 
 def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
     result = {
-        "id": feature_obj.id,
+        "accession_id": feature_obj.accession_id,
         "ensembl_id": feature_obj.ensembl_id,
         "cell_line": feature_obj.cell_line,
         "name": feature_obj.name,
@@ -41,7 +41,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
 
 def region(region_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
     result = {
-        "id": region_obj.id,
+        "accession_id": region_obj.accession_id,
         "chr": region_obj.chrom_name,
         "cell_line": region_obj.cell_line,
         "start": region_obj.location.lower,
@@ -59,7 +59,7 @@ def region(region_obj: DNAFeature, options: Optional[dict[str, Any]] = None):
 
 def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
     result = {
-        "id": re_obj.id,
+        "accession_id": re_obj.accession_id,
         "effect_size": re_obj.effect_size,
         "direction": re_obj.direction,
         "significance": re_obj.significance,
