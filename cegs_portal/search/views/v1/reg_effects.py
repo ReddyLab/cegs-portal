@@ -9,23 +9,24 @@ from cegs_portal.search.views.custom_views import TemplateJsonView
 
 
 class RegEffectView(TemplateJsonView):
+    """
+    Headers used:
+        accept
+            * application/json
+    """
+
     json_renderer = regulatory_effect
     template = "search/v1/reg_effect.html"
     template_data_name = "regulatory_effect"
 
     def get_data(self, _options, re_id):
-        """
-        Headers used:
-            accept
-                * application/json
-        """
         search_results = RegEffectSearch.id_search(re_id)
 
         cell_lines = set()
         tissue_types = set()
-        for f in search_results.experiment.data_files.all():
-            cell_lines.update(f.cell_lines.all())
-            tissue_types.update(f.tissue_types.all())
+        for bios in search_results.experiment.biosamples.all():
+            cell_lines.add(bios.cell_line)
+            tissue_types.add(bios.cell_line.tissue_type_name)
         setattr(search_results, "cell_lines", cell_lines)
         setattr(search_results, "tissue_types", tissue_types)
 
@@ -68,11 +69,9 @@ class SourceEffectsView(TemplateJsonView):
         for reg_effect in reg_effect_page:
             cell_lines = set()
             tissue_types = set()
-            for lines, types in [
-                (file.cell_lines.all(), file.tissue_types.all()) for file in reg_effect.experiment.data_files.all()
-            ]:
-                cell_lines.update(lines)
-                tissue_types.update(types)
+            for bios in reg_effect.experiment.biosamples.all():
+                cell_lines.update(bios.cell_line.name)
+                tissue_types.update(bios.cell_line.tissue_type_name)
             setattr(reg_effect, "cell_lines", cell_lines)
             setattr(reg_effect, "tissue_types", tissue_types)
             # Other DHSs associated with the same Regulatory Effect

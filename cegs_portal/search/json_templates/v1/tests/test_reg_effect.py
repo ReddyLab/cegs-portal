@@ -15,9 +15,9 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     tissue_types: set[TissueType] = set()
 
     if reg_effect.experiment is not None:
-        for f in reg_effect.experiment.data_files.all():
-            cell_lines.update(f.cell_lines.all())
-            tissue_types.update(f.tissue_types.all())
+        for bios in reg_effect.experiment.biosamples.all():
+            cell_lines.add(bios.cell_line_name)
+            tissue_types.add(bios.cell_line.tissue_type_name)
 
     setattr(reg_effect, "cell_lines", cell_lines)
     setattr(reg_effect, "tissue_types", tissue_types)

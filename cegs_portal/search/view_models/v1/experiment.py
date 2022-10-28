@@ -9,7 +9,9 @@ class ExperimentSearch:
     def accession_search(cls, accession_id):
         experiment = (
             Experiment.objects.filter(accession_id=accession_id)
-            .prefetch_related("data_files", "data_files__cell_lines", "data_files__tissue_types", "other_files")
+            .prefetch_related(
+                "data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "other_files"
+            )
             .first()
         )
         return experiment
@@ -18,7 +20,7 @@ class ExperimentSearch:
     def all(cls):
         experiments = (
             Experiment.objects.annotate(
-                cell_lines=StringAgg("data_files__cell_line", ", ", default=Value("")),
+                cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
             )
             .order_by("accession_id")
             .all()

@@ -1,13 +1,18 @@
 import json
 import os.path
 from datetime import datetime, timezone
-from typing import IO, Any
+from typing import IO, Any, TypeVar
 
+from cegs_portal.search.conftest import experiment
 from cegs_portal.search.models import (
     AccessionIdLog,
+    AccessionIds,
     AccessionType,
+    Biosample,
+    CellLine,
     Experiment,
     ExperimentDataFile,
+    TissueType,
 )
 
 from .file import FileMetadata
@@ -16,23 +21,20 @@ from .misc import get_delimiter
 
 class ExperimentDatafileMetadata:
     description: str
-    cell_line: str
     filename: str
     ref_genome: str
     ref_genome_patch: str
     significance_measure: str
 
     def __init__(self, file_metadata: dict[str, str]):
-        self.cell_line = file_metadata["cell_line"]
-        self.description = file_metadata["description"]
+        self.description = file_metadata.get("description", None)
         self.filename = file_metadata["file"]
         self.ref_genome = file_metadata["ref_genome"]
-        self.ref_genome_patch = file_metadata["ref_genome_patch"]
+        self.ref_genome_patch = file_metadata.get("ref_genome_patch", None)
         self.significance_measure = file_metadata["significance_measure"]
 
     def db_save(self, experiment: Experiment):
         data_file = ExperimentDataFile(
-            cell_line=self.cell_line,
             description=self.description,
             experiment=experiment,
             filename=self.filename,
@@ -41,7 +43,48 @@ class ExperimentDatafileMetadata:
             significance_measure=self.significance_measure,
         )
         data_file.save()
+
         return data_file
+
+
+T = TypeVar("T", bound="ExperimentMetadata")
+
+
+class ExperimentBiosample:
+    cell_line: str
+    tissue_type: str
+    description: str
+    experiment: T
+
+    def __init__(self, bio_metadata: dict[str, str], experiment: T):
+        self.name = bio_metadata.get("name", None)
+        self.description = bio_metadata.get("description", None)
+        self.cell_line = bio_metadata["cell_line"]
+        self.tissue_type = bio_metadata["tissue_type"]
+        self.experiment = experiment
+
+    def db_save(self):
+        with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
+            cell_line = CellLine.objects.filter(name=self.cell_line).first()
+            if cell_line is None:
+                tissue_type, tt_created = TissueType.objects.get_or_create(name=self.tissue_type)
+                if tt_created:
+                    tissue_type.accession_id = accession_ids.incr(AccessionType.TT)
+                    tissue_type.save()
+                cell_line = CellLine(
+                    name=self.cell_line,
+                    accession_id=accession_ids.incr(AccessionType.CL),
+                    tissue_type=tissue_type,
+                    tissue_type_name=self.tissue_type,
+                )
+                cell_line.save()
+
+            bios = Biosample(
+                cell_line=cell_line,
+                cell_line_name=cell_line.name,
+                accession_id=accession_ids.incr(AccessionType.BIOS),
+            )
+            bios.save()
 
 
 class ExperimentMetadata:
@@ -51,6 +94,7 @@ class ExperimentMetadata:
     name: str
     filename: str
     accession_id: str
+    biosamples: list[ExperimentBiosample]
     other_file_metadata: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
@@ -61,6 +105,7 @@ class ExperimentMetadata:
         self.filename = experiment_filename
         self.data_file_metadata = []
         self.other_file_metadata = []
+        self.biosamples = [ExperimentBiosample(sample, self) for sample in experiment_dict["biosamples"]]
         for data in experiment_dict["data"]:
             self.data_file_metadata.append(ExperimentDatafileMetadata(data))
         for file in experiment_dict.get("other_files", []):
@@ -86,6 +131,8 @@ class ExperimentMetadata:
             message=self.description[:200],
         )
         accession_log.save()
+        for biosample in self.biosamples:
+            biosample.db_save()
         return experiment
 
     def db_del(self):

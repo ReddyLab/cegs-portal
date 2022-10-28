@@ -4,6 +4,7 @@ import pytest
 from django.db.models import Manager
 
 from cegs_portal.search.models import (
+    Biosample,
     DNAFeature,
     EffectObservationDirectionType,
     Experiment,
@@ -14,10 +15,9 @@ from cegs_portal.search.models import (
 )
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import (
-    CellLineFactory,
+    BiosampleFactory,
     ExperimentDataFileFactory,
     ExperimentFactory,
-    TissueTypeFactory,
 )
 from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
@@ -35,14 +35,20 @@ def experiment() -> Experiment:
 
 @pytest.fixture
 def experiments() -> Iterable[Experiment]:
-    e1 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
-    e2 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
-    e3 = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e1 = ExperimentFactory(
+        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
+    )
+    e2 = ExperimentFactory(
+        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
+    )
+    e3 = ExperimentFactory(
+        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
+    )
     return [e1, e2, e3]
 
 
 def data_file() -> ExperimentDataFile:
-    return ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
+    return ExperimentDataFileFactory()
 
 
 @pytest.fixture(name="data_file")
@@ -57,6 +63,11 @@ def other_file() -> File:
 @pytest.fixture(name="other_file")
 def of() -> File:
     return other_file()
+
+
+@pytest.fixture
+def biosample() -> Biosample:
+    return BiosampleFactory()
 
 
 @pytest.fixture
@@ -105,9 +116,8 @@ def reg_effect() -> RegulatoryEffectObservation:
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)), facet_values=(direction,)
     )
-    effect.experiment.data_files.add(
-        ExperimentDataFileFactory(cell_lines=(CellLineFactory(),), tissue_types=(TissueTypeFactory(),))
-    )
+    effect.experiment.biosamples.add(BiosampleFactory())
+    effect.experiment.data_files.add(ExperimentDataFileFactory())
     return effect
 
 
