@@ -26,7 +26,7 @@ def test_experiments_json(experiments: Iterable[Experiment]):
 
     result = [
         {
-            "id": e.id,
+            "accession_id": e.accession_id,
             "name": e.name,
             "description": e.description,
             "biosamples": [b_json(b) for b in e.biosamples.all()],
@@ -45,7 +45,7 @@ def test_experiment_json(experiment: Experiment):
     setattr(experiment, "cell_lines", ", ".join(experi_cell_lines))
 
     assert exp_json(experiment) == {
-        "id": experiment.id,
+        "accession_id": experiment.accession_id,
         "name": experiment.name,
         "description": experiment.description,
         "assay": experiment.experiment_type,

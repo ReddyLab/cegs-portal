@@ -10,6 +10,22 @@ class ExperimentView(TemplateJsonView):
     json_renderer = experiment
     template = "search/v1/experiment.html"
 
+    def get(self, request, options, data, exp_id):
+        return super().get(
+            request,
+            options,
+            {
+                "experiment": data[0],
+                "other_experiments": {
+                    "id": "other_experiments",
+                    "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
+                },
+            },
+        )
+
+    def get_json(self, request, options, data, exp_id):
+        return super().get_json(request, options, data[0])
+
     def get_data(self, options, exp_id):
         experi = ExperimentSearch.accession_search(exp_id)
         other_experiments = ExperimentSearch.all_except(exp_id)
@@ -31,15 +47,7 @@ class ExperimentView(TemplateJsonView):
         setattr(experi, "tissue_types", experi_tissue_types)
         setattr(experi, "assemblies", experi_assemblies)
 
-        return {
-            "experiment": experi,
-            "other_experiments": {
-                "id": "other_experiments",
-                "options": [
-                    {"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in other_experiments
-                ],
-            },
-        }
+        return experi, other_experiments
 
 
 class ExperimentListView(TemplateJsonView):

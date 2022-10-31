@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 
 def test_feature(feature: DNAFeature):
     result = {
-        "id": feature.id,
+        "accession_id": feature.accession_id,
         "ensembl_id": feature.ensembl_id,
         "cell_line": feature.cell_line,
         "chr": feature.chrom_name,
@@ -35,7 +35,6 @@ def test_feature(feature: DNAFeature):
 
     assert f_json(feature) == result
 
-    result["id"] = str(feature.id)
     result["chr"] = feature.chrom_name.removeprefix("chr")
     result["children"] = [f_json(c, {"json_format": "genoverse"}) for c in feature.children.all()]
     result["closest_features"] = [r_json(d, {"json_format": "genoverse"}) for d in feature.closest_features.all()]
@@ -47,7 +46,7 @@ def test_feature(feature: DNAFeature):
 
 def test_region(feature: DNAFeature):
     result = {
-        "id": feature.id,
+        "accession_id": feature.accession_id,
         "chr": feature.chrom_name,
         "cell_line": feature.cell_line,
         "start": feature.location.lower,
@@ -59,7 +58,6 @@ def test_region(feature: DNAFeature):
 
     assert r_json(feature) == result
 
-    result["id"] = str(feature.id)
     result["chr"] = feature.chrom_name.removeprefix("chr")
 
     assert r_json(feature, {"json_format": "genoverse"}) == result
@@ -67,7 +65,7 @@ def test_region(feature: DNAFeature):
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     result = {
-        "id": reg_effect.id,
+        "accession_id": reg_effect.accession_id,
         "effect_size": reg_effect.effect_size,
         "direction": reg_effect.direction,
         "significance": reg_effect.significance,
@@ -76,7 +74,5 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     }
 
     assert re_json(reg_effect) == result
-
-    result["id"] = str(reg_effect.id)
 
     assert re_json(reg_effect, {"json_format": "genoverse"}) == result

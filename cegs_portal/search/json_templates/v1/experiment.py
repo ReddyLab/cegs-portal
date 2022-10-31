@@ -6,7 +6,7 @@ from cegs_portal.search.models import Experiment, ExperimentDataFile, File
 def experiments(experiments_obj: Iterable[Experiment]):
     results = [
         {
-            "id": e.id,
+            "accession_id": e.accession_id,
             "name": e.name,
             "description": e.description,
             "biosamples": [biosample(b) for b in e.biosamples.all()],
@@ -19,7 +19,7 @@ def experiments(experiments_obj: Iterable[Experiment]):
 
 def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = None):
     result = {
-        "id": experiment_obj.id,
+        "accession_id": experiment_obj.accession_id,
         "name": experiment_obj.name,
         "description": experiment_obj.description,
         "assay": experiment_obj.experiment_type,
