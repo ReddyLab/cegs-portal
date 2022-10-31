@@ -13,16 +13,7 @@ from cegs_portal.utils.http_exceptions import Http500
 class IdType(Enum):
     ENSEMBL = "ensembl"
     NAME = "name"
-    HAVANA = "havana"
-    HGNC = "hgnc"
     ACCESSION = "accession"
-
-
-class IdSearchType(Enum):
-    EXACT = "exact"
-    LIKE = "like"
-    START = "start"
-    IN = "in"
 
 
 class LocSearchType(Enum):
@@ -38,33 +29,17 @@ def join_fields(*field_names):
 
 class DNAFeatureSearch:
     @classmethod
-    def id_search(cls, id_type, feature_id, search_type="exact", distinct=True):
+    def id_search(cls, id_type, feature_id, distinct=True):
         if id_type == IdType.ENSEMBL.value:
-            field = "ensembl_id"
-        elif id_type == IdType.HAVANA.value:
-            field = "ids__havana"
-        elif id_type == IdType.HGNC.value:
-            field = "ids__hgnc"
+            id_field = "ensembl_id"
         elif id_type == IdType.NAME.value:
-            field = "name"
+            id_field = "name"
         elif id_type == IdType.ACCESSION.value:
-            field = "accession_id"
+            id_field = "accession_id"
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 
-        if search_type == IdSearchType.EXACT.value:
-            lookup = ""
-        elif search_type == IdSearchType.LIKE.value:
-            lookup = "icontains"
-        elif search_type == IdSearchType.START.value:
-            lookup = "istartswith"
-        elif search_type == IdSearchType.IN.value:
-            lookup = "in"
-        else:
-            raise ViewModelError(f"Invalid search type: {search_type}")
-
-        field_lookup = join_fields(field, lookup)
-        features = DNAFeature.objects.filter(**{field_lookup: feature_id}).prefetch_related(
+        features = DNAFeature.objects.filter(**{id_field: feature_id}).prefetch_related(
             "children",
             "closest_gene",
             "closest_features",
@@ -163,9 +138,9 @@ class DNAFeatureSearch:
             query["feature_type__in"] = feature_type_db_values
 
         field = "location"
-        if search_type == LocSearchType.EXACT.value or search_type is None:
+        if search_type == LocSearchType.EXACT.value:
             lookup = ""
-        elif search_type == LocSearchType.OVERLAP.value:
+        elif search_type == LocSearchType.OVERLAP.value or search_type is None:
             lookup = "overlap"
         else:
             raise ViewModelError(f"Invalid search type: {search_type}")
@@ -198,4 +173,4 @@ class DNAFeatureSearch:
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
 
-        return features
+        return features.order_by("location")

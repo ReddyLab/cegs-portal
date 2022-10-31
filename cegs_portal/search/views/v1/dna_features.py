@@ -3,31 +3,9 @@ from django.db.models import QuerySet
 
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature
-from cegs_portal.search.view_models.v1 import DNAFeatureSearch, IdType
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.utils.http_exceptions import Http400
-
-
-class DNAFeatureEnsembl(TemplateJsonView):
-    json_renderer = features
-    template = "search/v1/dna_feature.html"
-
-    def request_options(self, request):
-        """
-        Headers used:
-            accept
-                * application/json
-        GET queries used:
-            accept
-                * application/json
-        """
-        return super().request_options(request)
-
-    def get(self, request, options, data, feature_id):
-        return super().get(request, options, {"features": data, "feature_name": "Genome Features"})
-
-    def get_data(self, _options, feature_id):
-        return DNAFeatureSearch.id_search(IdType.ENSEMBL.value, feature_id)
 
 
 class DNAFeatureId(TemplateJsonView):
@@ -43,10 +21,9 @@ class DNAFeatureId(TemplateJsonView):
             accept
                 * application/json
             id_type
+                * "accession"
                 * "ensembl"
                 * "name"
-                * "havana"
-                * "hgnc"
             feature_id
         """
         options = super().request_options(request)
@@ -70,14 +47,23 @@ class DNAFeatureLoc(TemplateJsonView):
                 * application/json
         GET queries used:
             accept
-                * application/json
-            format
-                * genoverse, only relevant for json
-            search_type
-                * exact
-                * overlap
+                * "application/json"
             assembly
-                * free-text, but should match a genome assembly that exists in the DB
+                * Should match a genome assembly that exists in the DB
+            facet (multiple)
+                * Should match a discrete facet value
+            feature_type (multiple)
+                * Should match a feature type (gene, transcript, etc.)
+            format
+                * "genoverse" - only relevant for json
+            region_properties
+                * "regeffects" - preload associated reg effects
+            search_type
+                * "exact" - match location exactly
+                * "overlap" - match any overlapping feature
+            paginate - only used for JSON data, HTML is always paginated
+            page - which page to show
+                * int
         """
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
