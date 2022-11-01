@@ -77,7 +77,7 @@ class ExperimentFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPE^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^", upper=True)
         obj.save()
         return obj
 
@@ -121,8 +121,20 @@ class ExperimentDataFileFactory(DjangoModelFactory):
         django_get_or_create = ("filename",)
 
     description = Faker("text", max_nb_chars=4096)
-    experiment = factory.SubFactory(ExperimentFactory)
     filename = Faker("text", max_nb_chars=512)
     ref_genome = Faker("text", max_nb_chars=20)
     ref_genome_patch = Faker("text", max_nb_chars=10)
     significance_measure = Faker("text", max_nb_chars=2048)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+
+        experiment = kwargs.get("experiment", None)
+        if experiment is not None:
+            obj.experiment = experiment
+        else:
+            obj.experiment = ExperimentFactory()
+
+        obj.save()
+        return obj
