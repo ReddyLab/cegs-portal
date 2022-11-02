@@ -466,7 +466,7 @@
 
         let countFacetWorker;
         if (window.Worker) {
-            countFacetWorker = new Worker("{% static 'search/js/countFacetFilterWorker.js' %}")
+            countFacetWorker = new Worker("{% static 'search/js/exp_viz/countFacetFilterWorker.js' %}")
             countFacetWorker.onmessage = (cf) => {
                 state.u(STATE_ALL_FILTERED, cf.data);
             }

@@ -1,5 +1,3 @@
-from typing import Iterable
-
 import pytest
 
 from cegs_portal.search.json_templates.v1.experiment import biosample as b_json
@@ -9,12 +7,13 @@ from cegs_portal.search.json_templates.v1.experiment import experiments as exps_
 from cegs_portal.search.json_templates.v1.experiment import other_file as of_json
 from cegs_portal.search.models import Experiment, ExperimentDataFile, File
 from cegs_portal.search.models.experiment import Biosample
+from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
 
 
-def test_experiments_json(experiments: Iterable[Experiment]):
-    for experiment in experiments:
+def test_experiments_json(paged_experiments: Pageable[Experiment]):
+    for experiment in paged_experiments.object_list:
         experi_cell_lines: list[str] = []
         experi_tissue_types: list[str] = []
         for bios in experiment.biosamples.all():
@@ -31,10 +30,10 @@ def test_experiments_json(experiments: Iterable[Experiment]):
             "description": e.description,
             "biosamples": [b_json(b) for b in e.biosamples.all()],
         }
-        for e in experiments
+        for e in paged_experiments.object_list
     ]
 
-    assert exps_json(experiments) == result
+    assert exps_json(paged_experiments) == result
 
 
 def test_experiment_json(experiment: Experiment):

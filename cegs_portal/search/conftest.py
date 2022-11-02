@@ -30,25 +30,34 @@ from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 @pytest.fixture
 def experiment() -> Experiment:
-    return ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e.data_files.set(((data_file(e),)))
+    return e
 
 
 @pytest.fixture
-def experiments() -> Iterable[Experiment]:
-    e1 = ExperimentFactory(
-        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
+def paged_experiments() -> Pageable[Experiment]:
+    e1 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e1.data_files.set(((data_file(e1),)))
+    e2 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e2.data_files.set(((data_file(e2),)))
+    e3 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e3.data_files.set(((data_file(e3),)))
+    e4 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e4.data_files.set(((data_file(e4),)))
+    e5 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e5.data_files.set(((data_file(e5),)))
+    e6 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
+    e6.data_files.set(((data_file(e6),)))
+    experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
+    return MockPaginator(
+        experiments,
+        3,
     )
-    e2 = ExperimentFactory(
-        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
-    )
-    e3 = ExperimentFactory(
-        other_files=(other_file(), other_file()), data_files=(data_file(),), biosamples=(BiosampleFactory(),)
-    )
-    return [e1, e2, e3]
 
 
-def data_file() -> ExperimentDataFile:
-    return ExperimentDataFileFactory()
+def data_file(experiment=None) -> ExperimentDataFile:
+    return ExperimentDataFileFactory(experiment=experiment)
 
 
 @pytest.fixture(name="data_file")

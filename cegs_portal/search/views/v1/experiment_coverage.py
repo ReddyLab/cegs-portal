@@ -63,21 +63,16 @@ class ExperimentCoverageView(TemplateJsonView):
 
     def request_options(self, request):
         """
-        Headers used:
-            accept
-                * application/json
         GET queries used:
-            accept
-                * application/json
-            search_type
-                * exact
-                * like
-                * start
-                * in
             exp (multiple)
                 * Experiment Accession ID
         POST body:
             filters:
+                * object - the filter values
+            chromosomes:
+                * array - names of chromosomes that will be merged
+            zoom:
+                * str - the chromosome that's zoomed in on
         """
         options = super().request_options(request)
         options["exp_acc_ids"] = request.GET.getlist("exp", [])

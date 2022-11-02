@@ -1,9 +1,11 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 
-from cegs_portal.search.json_templates.v1.experiment import experiment
+from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
+from cegs_portal.search.models import Experiment
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.utils.pagination_types import Pageable
 
 
 class ExperimentView(TemplateJsonView):
@@ -51,7 +53,7 @@ class ExperimentView(TemplateJsonView):
 
 
 class ExperimentListView(TemplateJsonView):
-    json_renderer = experiment
+    json_renderer = experiments
     template = "search/v1/experiment_list.html"
     template_data_name = "experiments"
 
@@ -63,13 +65,18 @@ class ExperimentListView(TemplateJsonView):
         GET queries used:
             accept
                 * application/json
+            page
+                * int - the "page" of experiments to return, 1 indexed
+            per_page
+                * int - how many experiments to include per page
         """
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
+        options["per_page"] = int(request.GET.get("per_page", 20))
         return options
 
-    def get_data(self, options):
+    def get_data(self, options) -> Pageable[Experiment]:
         experiments = ExperimentSearch.all()
-        experiments_paginator = Paginator(experiments, 20)
+        experiments_paginator = Paginator(experiments, options["per_page"])
         experiments_page = experiments_paginator.get_page(options["page"])
         return experiments_page
