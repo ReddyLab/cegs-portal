@@ -13,9 +13,9 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ## Set up Devlopment Environment
 
-First, clone this repository. This is a Django 4.0 project that requires Python >= 3.9. Additionally you'll need at least Node.js 14.17 for CSS auto-reloading and compilation. The easiest way to set up the database is using Docker compose.
+First, clone this repository. This is a Django 4.x project that requires Python >= 3.9. Additionally you'll need at least Node.js 14.17 for CSS auto-reloading and compilation. The database, PostgreSQL, can [downloaded here](https://www.postgresql.org/download/) but the easiest way to set up the database is using Docker compose or, if you're on a Mac, [Postgres.app](https://postgresapp.com).
 
-These instructions are for unix/linux systems. Windows users should use WSL to run the portal.
+These instructions are for unix/linux systems. Windows users can follow along if they want to use WSL to run the portal.
 
 ### Pre-reqs
 * [python](https://www.python.org) >= 3.9
@@ -61,11 +61,32 @@ And start the server:
 
 This will launch django and the tailwind CSS compiler. When you edit a file the django server will restart. If you edit the project.css.tw file it will get recompiled.
 
-## Loading sample data
+## Loading data
 
 Currently there are scripts to load up the gencode gff3 files, downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz. There's an additional script for loading some wgCERES data (the data is not currently publicly available but will probably become so in the future).
+NOTE: This section is in progress until we have a location the data can be downloaded from.
 
-To load the gencode data download the files and edit the "loaddata" section of the Makefile to point at their location on your system. Comment out the `load_wgceres_data.sh` line. Then run `make loaddata`. Loading both gencode data sets will take quite a while -- close to an entire day.
+There are a couple of sets of publicly available data that go into the database
+
+* Gencode annotations for hg19 and hg38
+* Screen cCREs
+
+The gencode gff3 data is downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and can be added to the database using the [load_gencode_gff3_data.sh](scripts/data_loading/load_gencode_gff3_data.sh) script. See [load_all.sh](scripts/data_loading/load_all.sh) for usage.
+
+The Screen cCREs can be downloaded from https://api.wenglab.org/screen_v13/fdownloads/V3/GRCh38-cCREs.bed The hg19 cCREs are lifted over from this file using the [UCSC liftOver tool](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) and the [hg38ToHg19.over.chain](https://github.com/imbforge/liftover/raw/master/hg38ToHg19.over.chain) data file.
+
+### A note about loading experiment data when using docker compose for the database
+
+By default docker containers can only be 10Gb big. When loading up several experiments of data, this limit may be hit.
+To get around it, [modify](https://docs.docker.com/compose/compose-file/#volumes-top-level-element) [docker-compose.yml](docker-compose.yml) to store [PG_DATA on a separate volume](https://github.com/docker-library/docs/blob/master/postgres/README.md#where-to-store-data) (See https://docs.docker.com/compose/compose-file/#volumes-top-level-element for information on docker-compose.yml changes).
+
+## Generating Ancillary Data
+
+Some of the visualizations use data files built from the database, but that exist outside of the database.
+
+Download [cov_viz](https://github.com/ReddyLab/cov_viz) and install it with the command `cargo install --path [path to cov_viz directory]`
+Download [cov_viz_manifest](https://github.com/ReddyLab/cov_viz_manifest) and install it with the command `cargo install --path [path to cov_viz_manifest directory]`
+Run `make exp_cov` from the root portal directory.
 
 ## Basic Commands
 
