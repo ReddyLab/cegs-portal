@@ -11,13 +11,13 @@ from cegs_portal.search.view_models.errors import ViewModelError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 from cegs_portal.utils.http_exceptions import Http400
 
-CHROMO_RE = re.compile(r"((chr[12]?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
+CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})\s*", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)\s*", re.IGNORECASE)
-# HAVANA_RE = re.compile(r"(OTT[0-9a-z]+)\s*", re.IGNORECASE)
-# HUGO_RE = re.compile(r"(HGNC:[0-9a-z]+)\s*", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)\s*", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)\s*", re.IGNORECASE)
+
+BROWSER_PADDING = 1000
 
 
 class ParseWarning(Enum):
@@ -57,7 +57,11 @@ def parse_query(
 
     query = query.replace(",", " ").strip()
 
-    while query != "":
+    # Avoid an infinite loop by making sure `query` get shorter
+    # every iteration and stopping if it doesn't
+    old_query_len = len(query) + 1
+    while query != "" and old_query_len != len(query):
+        old_query_len = len(query)
         if match := re.match(CHROMO_RE, query):
             if search_type == SearchType.ID:
                 warnings.add(ParseWarning.IGNORE_LOC)
@@ -155,7 +159,11 @@ class Search:
             if features.count() == 1:
                 feature = features[0]
                 location = ChromosomeLocation(
-                    feature.chrom_name, str(max(0, feature.location.lower - 1000)), str(feature.location.upper + 1000)
+                    # Increase the location "width" to ensure white space on either side of the feature in
+                    # in the genome browser
+                    feature.chrom_name,
+                    str(max(0, feature.location.lower - BROWSER_PADDING)),
+                    str(feature.location.upper + BROWSER_PADDING),
                 )
                 assembly_name = feature.ref_genome
         else:

@@ -19,7 +19,7 @@ class SearchView(TemplateJsonView):
 
     def request_options(self, request):
         options = super().request_options(request)
-        options["search_query"] = request.GET["query"]
+        options["search_query"] = request.GET.get("query", "")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["feature_page"] = int(request.GET.get("feature_page", 1))
         return options
