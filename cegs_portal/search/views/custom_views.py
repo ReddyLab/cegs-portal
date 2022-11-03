@@ -28,7 +28,14 @@ class TemplateJsonView(View):
         # defer to the error handler. Also defer to the error handler if the
         # request method isn't on the approved list.
 
-        options = self.request_options(request)
+        try:
+            options = self.request_options(request)
+        except Http400 as err:
+            return self.http_bad_request(request, err)
+        except Http404 as err:
+            return self.http_page_not_found(request, err)
+        except Http500 as err:
+            return self.http_internal_error(request, err)
 
         if request.method.lower() in self.http_method_names:
             data_handler = getattr(self, f"{request.method.lower()}_data", None)

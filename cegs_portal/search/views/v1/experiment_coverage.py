@@ -17,7 +17,7 @@ from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_
 from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.view_utils import JSON_MIME
-from cegs_portal.utils.http_exceptions import Http400, Http500
+from cegs_portal.utils.http_exceptions import Http400
 
 CHROM_NAMES = {
     "1",
@@ -83,26 +83,26 @@ class ExperimentCoverageView(TemplateJsonView):
         try:
             body = json.loads(request.body)
         except Exception as e:
-            raise Http500(f"Invalid request body:\n{request.body}\n\nError:\n{e}")
+            raise Http400(f"Invalid request body:\n{request.body}\n\nError:\n{e}")
 
         try:
             options["filters"] = body["filters"]
         except Exception as e:
-            raise Http500(f'Invalid request body, no "filters" object:\n{request.body}\n\nError:\n{e}')
+            raise Http400(f'Invalid request body, no "filters" object:\n{request.body}\n\nError:\n{e}')
 
         try:
             options["chromosomes"] = body["chromosomes"]
         except Exception as e:
-            raise Http500(f'Invalid request body, no "chromosomes" object:\n{request.body}\n\nError:\n{e}')
+            raise Http400(f'Invalid request body, no "chromosomes" object:\n{request.body}\n\nError:\n{e}')
 
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
-        options["zoom"] = zoom_chr
+        options["zoom_chr"] = zoom_chr
 
         return options
 
     def post(self, request, options, data):
-        raise Http500(
+        raise Http400(
             (
                 f'This is a JSON-only API. Please request using "Accept: {JSON_MIME}" header or '
                 f'pass "{JSON_MIME}" as the "accept" GET parameter.'
@@ -130,7 +130,7 @@ class ExperimentCoverageView(TemplateJsonView):
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {
-                executor.submit(load_coverage, exp_acc_id, options["zoom"]): exp_acc_id
+                executor.submit(load_coverage, exp_acc_id, options["zoom_chr"]): exp_acc_id
                 for exp_acc_id in options["exp_acc_ids"]
             }
             loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
