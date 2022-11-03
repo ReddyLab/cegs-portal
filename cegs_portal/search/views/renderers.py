@@ -48,7 +48,7 @@ def _facetvalue(val: FacetValue, json_format=None):
 @json.register(DNAFeature)
 def _dnaregion(feature: DNAFeature, json_format=None):
     result = {
-        "id": feature.feature.ensembl_id,
+        "id": feature.ensembl_id,
         "ids": feature.ids,
         "name": feature.name,
         "cell_line": feature.cell_line,
