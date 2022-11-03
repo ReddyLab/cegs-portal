@@ -5,17 +5,21 @@ from cegs_portal.utils.pagination_types import Pageable
 
 
 def experiments(experiments_obj: Pageable[Experiment], options: Optional[dict[str, Any]] = None):
-    results = [
-        {
-            "accession_id": e.accession_id,
-            "name": e.name,
-            "description": e.description,
-            "biosamples": [biosample(b) for b in e.biosamples.all()],
-        }
-        for e in experiments_obj.object_list
-    ]
-
-    return results
+    return {
+        "object_list": [
+            {
+                "accession_id": e.accession_id,
+                "name": e.name,
+                "description": e.description,
+                "biosamples": [biosample(b) for b in e.biosamples.all()],
+            }
+            for e in experiments_obj.object_list
+        ],
+        "page": experiments_obj.number,
+        "has_next_page": experiments_obj.has_next(),
+        "has_prev_page": experiments_obj.has_previous(),
+        "num_pages": experiments_obj.paginator.num_pages,
+    }
 
 
 def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = None):
