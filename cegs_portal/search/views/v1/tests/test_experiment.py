@@ -11,17 +11,14 @@ pytestmark = pytest.mark.django_db
 
 def test_experiment_list_json(client: Client, paged_experiments: Pageable[Experiment]):
     response = client.get("/search/experiment?accept=application/json")
-    paged_experiments.per_page = 20  # The default number
-
+    paged_experiments.paginator.per_page = 20  # The default number
+    experiments = paged_experiments.paginator.page(1)
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
-    experiments = paged_experiments.page(1)
+    assert len(json_content["object_list"]) == len(experiments.object_list)
 
-    assert isinstance(json_content, list)
-    assert len(json_content) == len(experiments.object_list)
-
-    for json_expr, expr in zip(json_content, experiments.object_list):
+    for json_expr, expr in zip(json_content["object_list"], experiments.object_list):
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
         assert json_expr["description"] == expr.description
@@ -30,18 +27,17 @@ def test_experiment_list_json(client: Client, paged_experiments: Pageable[Experi
 def test_experiment_list_json_page(client: Client, paged_experiments: Pageable[Experiment]):
     page = 2
     response = client.get(
-        f"/search/experiment?accept=application/json&page={page}&per_page={paged_experiments.per_page}"
+        f"/search/experiment?accept=application/json&page={page}&per_page={paged_experiments.paginator.per_page}"
     )
 
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
-    experiments = paged_experiments.page(page)
+    experiments = paged_experiments.paginator.page(page)
 
-    assert isinstance(json_content, list)
-    assert len(json_content) == len(experiments.object_list)
+    assert len(json_content["object_list"]) == len(experiments.object_list)
 
-    for json_expr, expr in zip(json_content, experiments.object_list):
+    for json_expr, expr in zip(json_content["object_list"], experiments.object_list):
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
         assert json_expr["description"] == expr.description
