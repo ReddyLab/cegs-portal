@@ -16,6 +16,7 @@ These are the current items with Accession IDs:
 | Candidate cis-regulatory element | CCRE |
 | Guide RNA                        | GRNA |
 | DNase I hypersensitive site      | DHS  |
+| Chromatin Accessable Regions     | CAR  |
 | Cell Line                        | CL   |
 | Tissue Type                      | TT   |
-| Chromatin Accessable Regions     | CAR  |
+| Biosample                        | BIOS |
