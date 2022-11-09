@@ -18,7 +18,7 @@ class EffectObservationDirectionType(Enum):
 
 class RegulatoryEffectObservationSet(models.QuerySet):
     def with_facet_values(self):
-        return self.prefetch_related("facet_values")
+        return self.prefetch_related("facet_values", "facet_values__facet")
 
 
 class RegulatoryEffectObservation(Accessioned, Searchable, Faceted):
