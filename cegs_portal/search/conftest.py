@@ -30,7 +30,14 @@ from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 @pytest.fixture
 def experiment() -> Experiment:
-    e = ExperimentFactory(other_files=(other_file(), other_file()), data_files=(data_file(),))
+    e = ExperimentFactory(other_files=(other_file(), other_file()))
+    e.data_files.set(((data_file(e),)))
+    return e
+
+
+@pytest.fixture
+def private_experiment() -> Experiment:
+    e = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
     e.data_files.set(((data_file(e),)))
     return e
 

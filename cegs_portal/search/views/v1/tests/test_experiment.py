@@ -51,6 +51,45 @@ def test_experiment_list_html(client: Client):
     assert response.status_code == 200
 
 
+def test_experiment_list_with_anonymous_client(client: Client, experiment: Experiment, private_experiment: Experiment):
+    response = client.get("/search/experiment?accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    print(json_content["object_list"])
+    assert len(json_content["object_list"]) == 1
+
+
+def test_experiment_list_with_authenticated_client(
+    client: Client, experiment: Experiment, private_experiment: Experiment, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get("/search/experiment?accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["object_list"]) == 1
+
+
+def test_experiment_list_with_authenticated_authorized_client(
+    client: Client, experiment: Experiment, private_experiment: Experiment, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_experiment.accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/search/experiment?accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["object_list"]) == 2
+
+
 def test_experiment_json(client: Client, experiment: Experiment):
     response = client.get(f"/search/experiment/{experiment.accession_id}?accept=application/json")
 
@@ -67,4 +106,31 @@ def test_experiment_html(client: Client, experiment: Experiment):
 
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here
+    assert response.status_code == 200
+
+
+def test_experiment_with_anonymous_client(client: Client, private_experiment: Experiment):
+    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+    assert response.status_code == 302
+
+
+def test_experiment_with_authenticated_client(client: Client, private_experiment: Experiment, django_user_model):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_experiment_with_authenticated_authorized_client(
+    client: Client, private_experiment: Experiment, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_experiment.accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
     assert response.status_code == 200

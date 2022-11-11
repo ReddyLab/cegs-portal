@@ -51,7 +51,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
     def __str__(self):
-        return f"{self.id}: {self.name} ({self.experiment_type})"
+        return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
 
 class ExperimentDataFile(models.Model):
