@@ -82,6 +82,7 @@ def load_reg_effects(
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ths_start, ths_end)
             dhs = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.CAR),
+                experiment_accession_id=experiment.accession_id,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
