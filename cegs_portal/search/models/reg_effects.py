@@ -2,11 +2,11 @@ from enum import Enum
 
 from django.db import models
 
+from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
 from cegs_portal.search.models.dna_feature import DNAFeature
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import Faceted
-from cegs_portal.search.models.searchable import Searchable
 
 
 class EffectObservationDirectionType(Enum):
@@ -21,8 +21,8 @@ class RegulatoryEffectObservationSet(models.QuerySet):
         return self.prefetch_related("facet_values", "facet_values__facet")
 
 
-class RegulatoryEffectObservation(Accessioned, Searchable, Faceted):
-    class Meta(Accessioned.Meta, Searchable.Meta):
+class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["accession_id"], name="re_accession_id_index"),
         ]
@@ -37,7 +37,14 @@ class RegulatoryEffectObservation(Accessioned, Searchable, Faceted):
     objects = RegulatoryEffectObservationSet.as_manager()
 
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    experiment_accession_id = models.CharField(max_length=15, null=True)
+    experiment_accession = models.ForeignKey(
+        Experiment,
+        null=True,
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
     sources = models.ManyToManyField(DNAFeature, related_name="source_for")
     targets = models.ManyToManyField(DNAFeature, related_name="target_of")
 

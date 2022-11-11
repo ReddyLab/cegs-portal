@@ -2,6 +2,7 @@ from enum import Enum
 
 from django.db import models
 
+from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
 from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
@@ -36,11 +37,10 @@ class Biosample(Accessioned):
         return f"{self.name} ({self.cell_line_name})"
 
 
-class Experiment(Accessioned, Faceted):
+class Experiment(Accessioned, Faceted, AccessControlled):
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
 
-    archived = models.BooleanField(default=False)
     description = models.CharField(max_length=4096, null=True)
     experiment_type = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=512)
