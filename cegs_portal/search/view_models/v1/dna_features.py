@@ -154,7 +154,7 @@ class DNAFeatureSearch:
 
     @classmethod
     def ids_search_with_private(cls, *args, **kwargs):
-        return cls.ids_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(accession_id__in=args[-1]))
+        return cls.ids_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(experiment_accession_id__in=args[-1]))
 
     @classmethod
     def loc_search(
@@ -219,4 +219,4 @@ class DNAFeatureSearch:
 
     @classmethod
     def loc_search_with_private(cls, *args, **kwargs):
-        return cls.loc_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(accession_id__in=args[-1]))
+        return cls.loc_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(experiment_accession_id__in=args[-1]))

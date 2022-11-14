@@ -56,7 +56,6 @@ def test_experiment_list_with_anonymous_client(client: Client, experiment: Exper
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    print(json_content["object_list"])
     assert len(json_content["object_list"]) == 1
 
 

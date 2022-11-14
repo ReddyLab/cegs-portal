@@ -2,6 +2,7 @@ from typing import Iterable
 
 import pytest
 from django.db.models import Manager
+from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     Biosample,
@@ -121,6 +122,24 @@ def features() -> Iterable[DNAFeature]:
 @pytest.fixture
 def feature() -> DNAFeature:
     return DNAFeatureFactory(parent=None)
+
+
+@pytest.fixture
+def private_feature() -> DNAFeature:
+    return DNAFeatureFactory(parent=None, public=False)
+
+
+@pytest.fixture
+def nearby_feature_mix() -> list[DNAFeature]:
+    pub_feature = DNAFeatureFactory(parent=None)
+    private_feature = DNAFeatureFactory(
+        parent=None,
+        chrom_name=pub_feature.chrom_name,
+        location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
+        public=False,
+    )
+
+    return (pub_feature, private_feature)
 
 
 @pytest.fixture
