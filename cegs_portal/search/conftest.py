@@ -142,16 +142,27 @@ def nearby_feature_mix() -> list[DNAFeature]:
     return (pub_feature, private_feature)
 
 
-@pytest.fixture
-def reg_effect() -> RegulatoryEffectObservation:
+def _reg_effect(public=True) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     effect = RegEffectFactory(
-        sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)), facet_values=(direction,)
+        sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)),
+        facet_values=(direction,),
+        public=public,
     )
     effect.experiment.biosamples.add(BiosampleFactory())
     effect.experiment.data_files.add(ExperimentDataFileFactory())
     return effect
+
+
+@pytest.fixture
+def reg_effect(public=True) -> RegulatoryEffectObservation:
+    return _reg_effect()
+
+
+@pytest.fixture
+def private_reg_effect() -> RegulatoryEffectObservation:
+    return _reg_effect(public=False)
 
 
 @pytest.fixture
