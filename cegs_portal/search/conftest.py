@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import pytest
 from django.db.models import Manager
@@ -41,6 +41,25 @@ def private_experiment() -> Experiment:
     e = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
     e.data_files.set(((data_file(e),)))
     return e
+
+
+@pytest.fixture
+def archived_experiment() -> Experiment:
+    e = ExperimentFactory(other_files=(other_file(), other_file()), archived=True)
+    e.data_files.set(((data_file(e),)))
+    return e
+
+
+@pytest.fixture
+def access_control_experiments() -> Tuple[Experiment]:
+    e1 = ExperimentFactory(other_files=(other_file(), other_file()))
+    e1.data_files.set(((data_file(e1),)))
+    e2 = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
+    e2.data_files.set(((data_file(e2),)))
+    e3 = ExperimentFactory(other_files=(other_file(), other_file()), archived=True)
+    e3.data_files.set(((data_file(e3),)))
+
+    return (e1, e2, e3)
 
 
 @pytest.fixture
@@ -130,7 +149,12 @@ def private_feature() -> DNAFeature:
 
 
 @pytest.fixture
-def nearby_feature_mix() -> list[DNAFeature]:
+def archived_feature() -> DNAFeature:
+    return DNAFeatureFactory(parent=None, archived=True)
+
+
+@pytest.fixture
+def nearby_feature_mix() -> Tuple[DNAFeature]:
     pub_feature = DNAFeatureFactory(parent=None)
     private_feature = DNAFeatureFactory(
         parent=None,
@@ -138,17 +162,24 @@ def nearby_feature_mix() -> list[DNAFeature]:
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
         public=False,
     )
+    archived_feature = DNAFeatureFactory(
+        parent=None,
+        chrom_name=pub_feature.chrom_name,
+        location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
+        archived=True,
+    )
 
-    return (pub_feature, private_feature)
+    return (pub_feature, private_feature, archived_feature)
 
 
-def _reg_effect(public=True) -> RegulatoryEffectObservation:
+def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)),
         facet_values=(direction,),
         public=public,
+        archived=archived,
     )
     effect.experiment.biosamples.add(BiosampleFactory())
     effect.experiment.data_files.add(ExperimentDataFileFactory())
@@ -156,13 +187,18 @@ def _reg_effect(public=True) -> RegulatoryEffectObservation:
 
 
 @pytest.fixture
-def reg_effect(public=True) -> RegulatoryEffectObservation:
+def reg_effect() -> RegulatoryEffectObservation:
     return _reg_effect()
 
 
 @pytest.fixture
 def private_reg_effect() -> RegulatoryEffectObservation:
     return _reg_effect(public=False)
+
+
+@pytest.fixture
+def archived_reg_effect() -> RegulatoryEffectObservation:
+    return _reg_effect(archived=True)
 
 
 @pytest.fixture

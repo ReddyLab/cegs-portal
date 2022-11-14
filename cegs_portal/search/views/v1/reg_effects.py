@@ -36,6 +36,12 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
+    def is_archived(self):
+        try:
+            return RegEffectSearch.is_archived(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
     def get_data(self, _options, re_id):
         search_results = RegEffectSearch.id_search(re_id)
 

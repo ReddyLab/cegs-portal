@@ -16,6 +16,15 @@ class ExperimentSearch:
         return experiment[0]
 
     @classmethod
+    def is_archived(cls, expr_id: str) -> str:
+        experiment = Experiment.objects.filter(accession_id=expr_id).values_list("archived", flat=True)
+
+        if len(experiment) == 0:
+            raise ObjectNotFoundError(f"Experiment {expr_id} not found")
+
+        return experiment[0]
+
+    @classmethod
     def accession_search(cls, accession_id):
         experiment = (
             Experiment.objects.filter(accession_id=accession_id)
@@ -39,11 +48,11 @@ class ExperimentSearch:
 
     @classmethod
     def all_public(cls):
-        return cls.all().filter(public=True)
+        return cls.all().filter(public=True, archived=False)
 
     @classmethod
     def all_with_private(cls, private_experiments):
-        return cls.all().filter(Q(public=True) | Q(accession_id__in=private_experiments))
+        return cls.all().filter(Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments)))
 
     @classmethod
     def all_except(cls, accession_id):

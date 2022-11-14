@@ -25,6 +25,12 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
+    def is_archived(self):
+        try:
+            return ExperimentSearch.is_archived(self.kwargs["exp_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
     def get(self, request, options, data, exp_id):
         return super().get(
             request,

@@ -28,6 +28,12 @@ def test_regeffect_html(client: Client, reg_effect: RegulatoryEffectObservation)
     assert response.status_code == 200
 
 
+def test_no_regeffect_html(client: Client):
+    response = client.get("/search/regeffect/DCPREO00000000")
+
+    assert response.status_code == 404
+
+
 def test_regeffect_accession_with_anonymous_client(client: Client, private_reg_effect: RegulatoryEffectObservation):
     response = client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 302
@@ -55,3 +61,34 @@ def test_regeffect_accession_with_authenticated_authorized_client(
     client.login(username=username, password=password)
     response = client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 200
+
+
+def test_archived_regeffect_accession_with_anonymous_client(
+    client: Client, archived_reg_effect: RegulatoryEffectObservation
+):
+    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_archived_regeffect_accession_with_authenticated_client(
+    client: Client, archived_reg_effect: RegulatoryEffectObservation, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_archived_regeffect_accession_with_authenticated_authorized_client(
+    client: Client, archived_reg_effect: RegulatoryEffectObservation, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [archived_reg_effect.experiment_accession]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    assert response.status_code == 403

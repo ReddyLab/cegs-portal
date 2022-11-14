@@ -90,6 +90,20 @@ class DNAFeatureSearch:
         return feature[0]
 
     @classmethod
+    def is_archived(cls, feature_id: str) -> Optional[str]:
+        if feature_id.startswith("DCP"):
+            feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("archived", flat=True)
+        elif feature_id.startswith("ENS"):
+            feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("archived", flat=True)
+        else:
+            feature = DNAFeature.objects.filter(name=feature_id).values_list("archived", flat=True)
+
+        if len(feature) == 0:
+            raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
+
+        return feature[0]
+
+    @classmethod
     def ids_search(
         cls,
         ids: list[tuple[QueryToken, str]],
@@ -150,11 +164,13 @@ class DNAFeatureSearch:
 
     @classmethod
     def ids_search_public(cls, *args, **kwargs):
-        return cls.ids_search(*args, *kwargs).filter(public=True)
+        return cls.ids_search(*args, *kwargs).filter(public=True, archived=False)
 
     @classmethod
     def ids_search_with_private(cls, *args, **kwargs):
-        return cls.ids_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        return cls.ids_search(*args[:-1], *kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )
 
     @classmethod
     def loc_search(
@@ -215,8 +231,10 @@ class DNAFeatureSearch:
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):
-        return cls.loc_search(*args, *kwargs).filter(public=True)
+        return cls.loc_search(*args, *kwargs).filter(public=True, archived=False)
 
     @classmethod
     def loc_search_with_private(cls, *args, **kwargs):
-        return cls.loc_search(*args[:-1], *kwargs).filter(Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        return cls.loc_search(*args[:-1], *kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )

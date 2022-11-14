@@ -29,6 +29,12 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
+    def is_archived(self):
+        try:
+            return DNAFeatureSearch.is_archived(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
     def request_options(self, request):
         """
         Headers used:

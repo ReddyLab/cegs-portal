@@ -44,6 +44,15 @@ class RegEffectSearch:
         return reo[0]
 
     @classmethod
+    def is_archived(cls, reo_id: str) -> Optional[str]:
+        reo = RegulatoryEffectObservation.objects.filter(accession_id=reo_id).values_list("archived", flat=True)
+
+        if len(reo) == 0:
+            raise ObjectNotFoundError(f"Regulatory Effect Observation {reo_id} not found")
+
+        return reo[0]
+
+    @classmethod
     def source_search(cls, source_id: str):
         reg_effects = (
             RegulatoryEffectObservation.objects.with_facet_values()
