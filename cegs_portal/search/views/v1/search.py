@@ -153,7 +153,7 @@ class SearchView(TemplateJsonView):
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
                 features = Search.dnafeature_loc_search(location, assembly_name, options["facets"])
             else:
-                features = Search.loc_search_with_private(
+                features = Search.dnafeature_loc_search_with_private(
                     location, assembly_name, options["facets"], self.request.user.experiments
                 )
 

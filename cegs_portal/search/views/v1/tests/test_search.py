@@ -1,4 +1,5 @@
 import json
+from typing import Tuple
 
 import pytest
 from django.test import Client
@@ -139,7 +140,7 @@ def test_experiment_json(client: Client):
     assert len(json_content["features"]) == 0
 
 
-def test_experiment_feature_json(client: Client, feature: DNAFeature):
+def test_experiment_feature_loc_json(client: Client, feature: DNAFeature):
     response = client.get(
         f"/search/results/?query={feature.chrom_name}%3A{feature.location.lower - 10}-{feature.location.upper + 10}&accept=application/json"  # noqa: E501
     )
@@ -154,6 +155,54 @@ def test_experiment_feature_json(client: Client, feature: DNAFeature):
         "end": feature.location.upper + 10,
     }
     assert len(json_content["features"]) == 1
+
+
+def test_experiment_feature_loc_with_anonymous_client(client: Client, nearby_feature_mix: Tuple[DNAFeature]):
+    pub_feature, private_feature = nearby_feature_mix
+    response = client.get(
+        f"/search/results/?query={pub_feature.chrom_name}%3A{pub_feature.location.lower - 10}-{private_feature.location.upper + 10}&accept=application/json"  # noqa: E501
+    )
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 1
+
+
+def test_experiment_feature_loc_with_authenticated_client(
+    client: Client, nearby_feature_mix: Tuple[DNAFeature], django_user_model
+):
+    pub_feature, private_feature = nearby_feature_mix
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(
+        f"/search/results/?query={pub_feature.chrom_name}%3A{pub_feature.location.lower - 10}-{private_feature.location.upper + 10}&accept=application/json"  # noqa: E501
+    )
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 1
+
+
+def test_experiment_feature_loc_with_authenticated_authorized_client(
+    client: Client, nearby_feature_mix: Tuple[DNAFeature], django_user_model
+):
+    pub_feature, private_feature = nearby_feature_mix
+
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_feature.experiment_accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(
+        f"/search/results/?query={pub_feature.chrom_name}%3A{pub_feature.location.lower - 10}-{private_feature.location.upper + 10}&accept=application/json"  # noqa: E501
+    )
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 2
 
 
 def test_experiment_feature_accession_json(client: Client, feature: DNAFeature):
@@ -174,6 +223,44 @@ def test_experiment_feature_accession_json(client: Client, feature: DNAFeature):
     assert len(json_content["features"]) == 1
 
 
+def test_experiment_feature_accession_with_anonymous_client(client: Client, private_feature: DNAFeature):
+    response = client.get(f"/search/results/?query={private_feature.accession_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_experiment_feature_accession_with_authenticated_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.accession_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_experiment_feature_accession_with_authenticated_authorized_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_feature.experiment_accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.accession_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 1
+
+
 def test_experiment_feature_ensembl_json(client: Client, feature: DNAFeature):
     response = client.get(f"/search/results/?query={feature.ensembl_id}&accept=application/json")  # noqa: E501
 
@@ -189,6 +276,44 @@ def test_experiment_feature_ensembl_json(client: Client, feature: DNAFeature):
         "start": max(0, feature.location.lower - browser_padding),
         "end": feature.location.upper + browser_padding,
     }
+    assert len(json_content["features"]) == 1
+
+
+def test_experiment_feature_ensembl_with_anonymous_client(client: Client, private_feature: DNAFeature):
+    response = client.get(f"/search/results/?query={private_feature.ensembl_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_experiment_feature_ensembl_with_authenticated_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.ensembl_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_experiment_feature_ensembl_with_authenticated_authorized_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_feature.experiment_accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.ensembl_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
     assert len(json_content["features"]) == 1
 
 
