@@ -154,7 +154,7 @@ class SearchView(TemplateJsonView):
                 features = Search.dnafeature_loc_search(location, assembly_name, options["facets"])
             else:
                 features = Search.dnafeature_loc_search_with_private(
-                    location, assembly_name, options["facets"], self.request.user.experiments
+                    location, assembly_name, options["facets"], self.request.user.all_experiments()
                 )
 
             feature_paginator = Paginator(features, 20)
@@ -166,7 +166,7 @@ class SearchView(TemplateJsonView):
                 features = Search.dnafeature_id_search(query_terms, assembly_name)
             else:
                 features = Search.dnafeature_id_search_with_private(
-                    query_terms, assembly_name, self.request.user.experiments
+                    query_terms, assembly_name, self.request.user.all_experiments()
                 )
 
             if features.count() == 1:
