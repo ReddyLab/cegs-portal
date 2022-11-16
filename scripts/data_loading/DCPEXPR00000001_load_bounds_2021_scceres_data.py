@@ -91,6 +91,7 @@ def load_reg_effects(
 
             region = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.GRNA),
+                experiment_accession_id=experiment.accession_id,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,

@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import cast
+from typing import Optional, cast
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType, QueryToken
-from cegs_portal.search.view_models.errors import ViewModelError
+from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
 
 
@@ -29,7 +29,7 @@ def join_fields(*field_names):
 
 class DNAFeatureSearch:
     @classmethod
-    def id_search(cls, id_type, feature_id, distinct=True):
+    def id_search(cls, id_type: str, feature_id: str, distinct=True) -> QuerySet[DNAFeature]:
         if id_type == IdType.ENSEMBL.value:
             id_field = "ensembl_id"
         elif id_type == IdType.NAME.value:
@@ -60,12 +60,56 @@ class DNAFeatureSearch:
         return features
 
     @classmethod
+    def expr_id(cls, feature_id: str) -> Optional[str]:
+        if feature_id.startswith("DCP"):
+            feature = DNAFeature.objects.filter(accession_id=feature_id).values_list(
+                "experiment_accession_id", flat=True
+            )
+        elif feature_id.startswith("ENS"):
+            feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("experiment_accession_id", flat=True)
+        else:
+            feature = DNAFeature.objects.filter(name=feature_id).values_list("experiment_accession_id", flat=True)
+
+        if len(feature) == 0:
+            raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
+
+        return feature[0]
+
+    @classmethod
+    def is_public(cls, feature_id: str) -> Optional[str]:
+        if feature_id.startswith("DCP"):
+            feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("public", flat=True)
+        elif feature_id.startswith("ENS"):
+            feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("public", flat=True)
+        else:
+            feature = DNAFeature.objects.filter(name=feature_id).values_list("public", flat=True)
+
+        if len(feature) == 0:
+            raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
+
+        return feature[0]
+
+    @classmethod
+    def is_archived(cls, feature_id: str) -> Optional[str]:
+        if feature_id.startswith("DCP"):
+            feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("archived", flat=True)
+        elif feature_id.startswith("ENS"):
+            feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("archived", flat=True)
+        else:
+            feature = DNAFeature.objects.filter(name=feature_id).values_list("archived", flat=True)
+
+        if len(feature) == 0:
+            raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
+
+        return feature[0]
+
+    @classmethod
     def ids_search(
         cls,
         ids: list[tuple[QueryToken, str]],
         assembly: str,
         region_properties: list[str],
-    ):
+    ) -> QuerySet[DNAFeature]:
 
         query = {}
 
@@ -119,6 +163,16 @@ class DNAFeatureSearch:
         return features
 
     @classmethod
+    def ids_search_public(cls, *args, **kwargs):
+        return cls.ids_search(*args, *kwargs).filter(public=True, archived=False)
+
+    @classmethod
+    def ids_search_with_private(cls, *args, **kwargs):
+        return cls.ids_search(*args[:-1], *kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )
+
+    @classmethod
     def loc_search(
         cls,
         chromo: str,
@@ -129,7 +183,7 @@ class DNAFeatureSearch:
         region_properties: list[str],
         search_type: str,
         facets: list[int] = cast(list[int], list),
-    ):
+    ) -> QuerySet[DNAFeature]:
 
         query = {"chrom_name": chromo}
 
@@ -174,3 +228,13 @@ class DNAFeatureSearch:
             features = features.filter(facet_values__in=facets)
 
         return features.order_by("location")
+
+    @classmethod
+    def loc_search_public(cls, *args, **kwargs):
+        return cls.loc_search(*args, *kwargs).filter(public=True, archived=False)
+
+    @classmethod
+    def loc_search_with_private(cls, *args, **kwargs):
+        return cls.loc_search(*args[:-1], *kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )

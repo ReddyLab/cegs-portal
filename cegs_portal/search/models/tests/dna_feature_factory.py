@@ -7,6 +7,7 @@ from faker import Faker as F
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
 from cegs_portal.search.models.tests.file_factory import FileFactory
 
 
@@ -16,6 +17,9 @@ class DNAFeatureFactory(DjangoModelFactory):
         django_get_or_create = ("name", "ensembl_id")
 
     _faker = F()
+    archived = False
+    public = True
+    experiment_accession = factory.SubFactory(ExperimentFactory)
     accession_id = _faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
     ensembl_id = _faker.unique.numerify(text="ENSG###########")
     name = Faker("lexify", text="????-1", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")

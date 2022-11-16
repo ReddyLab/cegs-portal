@@ -4,10 +4,11 @@ from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
+from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import Faceted, FacetValue
 from cegs_portal.search.models.file import File
-from cegs_portal.search.models.searchable import Searchable
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
@@ -40,8 +41,8 @@ class DNAFeatureType(Enum):
             raise Exception(f"No accession abbreviation defined for {self}")
 
 
-class DNAFeature(Accessioned, Searchable, Faceted):
-    class Meta(Accessioned.Meta, Searchable.Meta):
+class DNAFeature(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["name"], name="sdf_name_index"),
             models.Index(fields=["chrom_name"], name="sdf_chrom_name_index"),
@@ -96,6 +97,15 @@ class DNAFeature(Accessioned, Searchable, Faceted):
 
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children")
 
+    experiment_accession = models.ForeignKey(
+        Experiment,
+        null=True,
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+
     @property
     def assay(self):
         return self.facet_values.get(facet__name=DNAFeature.Facet.ASSAYS.value).value
@@ -112,4 +122,4 @@ class DNAFeature(Accessioned, Searchable, Faceted):
             return None
 
     def __str__(self):
-        return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
+        return f"{self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"

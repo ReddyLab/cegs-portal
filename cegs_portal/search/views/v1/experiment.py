@@ -3,14 +3,33 @@ from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models import Experiment
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import (
+    ExperimentAccessMixin,
+    TemplateJsonView,
+)
 from cegs_portal.utils.pagination_types import Pageable
 
 
-class ExperimentView(TemplateJsonView):
+class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = experiment
     template = "search/v1/experiment.html"
+
+    def get_experiment_accession_id(self):
+        return self.kwargs["exp_id"]
+
+    def is_public(self):
+        try:
+            return ExperimentSearch.is_public(self.kwargs["exp_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return ExperimentSearch.is_archived(self.kwargs["exp_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
 
     def get(self, request, options, data, exp_id):
         return super().get(
@@ -76,7 +95,13 @@ class ExperimentListView(TemplateJsonView):
         return options
 
     def get_data(self, options) -> Pageable[Experiment]:
-        experiments = ExperimentSearch.all()
+        if self.request.user.is_anonymous:
+            experiments = ExperimentSearch.all_public()
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            experiments = ExperimentSearch.all()
+        else:
+            experiments = ExperimentSearch.all_with_private(self.request.user.experiments)
+
         experiments_paginator = Paginator(experiments, options["per_page"])
         experiments_page = experiments_paginator.get_page(options["page"])
         return experiments_page

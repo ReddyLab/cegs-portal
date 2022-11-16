@@ -1,6 +1,7 @@
 import logging
 from typing import Callable, Optional
 
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import (
     Http404,
     HttpResponseBadRequest,
@@ -16,6 +17,38 @@ from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http400, Http500
 
 logger = logging.getLogger("django.request")
+
+
+class ExperimentAccessMixin(UserPassesTestMixin):
+    def test_func(self):
+        if self.is_archived():
+            self.raise_exception = True
+            return False
+
+        if self.is_public():
+            return True
+
+        if self.request.user.is_anonymous:
+            return False
+
+        return (
+            self.request.user.is_superuser
+            or self.request.user.is_portal_admin
+            or self.get_experiment_accession_id() in self.request.user.experiments
+        )
+
+    def is_archived(self):
+        raise NotImplementedError(
+            f"{self.__class__.__name__} is missing the implementation of the is_archived() method."
+        )
+
+    def is_public(self):
+        raise NotImplementedError(f"{self.__class__.__name__} is missing the implementation of the is_public() method.")
+
+    def get_experiment_accession_id(self):
+        raise NotImplementedError(
+            f"{self.__class__.__name__} is missing the implementation of the get_experiment_accession_id() method."
+        )
 
 
 class TemplateJsonView(View):

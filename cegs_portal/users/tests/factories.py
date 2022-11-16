@@ -10,6 +10,8 @@ class UserFactory(DjangoModelFactory):
     username = Faker("user_name")
     email = Faker("email")
     name = Faker("name")
+    experiments = []
+    is_portal_admin = Faker("boolean", chance_of_getting_true=10)
 
     @post_generation
     def password(self, create: bool, extracted: Sequence[Any], **kwargs):

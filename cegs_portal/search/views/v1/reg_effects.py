@@ -1,14 +1,19 @@
 from django.core.paginator import Paginator
+from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.reg_effect import (
     regulatory_effect,
     source_reg_effects,
 )
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import RegEffectSearch
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import (
+    ExperimentAccessMixin,
+    TemplateJsonView,
+)
 
 
-class RegEffectView(TemplateJsonView):
+class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
     """
     Headers used:
         accept
@@ -18,6 +23,24 @@ class RegEffectView(TemplateJsonView):
     json_renderer = regulatory_effect
     template = "search/v1/reg_effect.html"
     template_data_name = "regulatory_effect"
+
+    def get_experiment_accession_id(self):
+        try:
+            return RegEffectSearch.expr_id(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return RegEffectSearch.is_public(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return RegEffectSearch.is_archived(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
 
     def get_data(self, _options, re_id):
         search_results = RegEffectSearch.id_search(re_id)

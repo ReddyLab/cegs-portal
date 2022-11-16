@@ -1,6 +1,9 @@
+from typing import Optional
+
 from django.db.models import Q
 
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
 
 
 class RegEffectSearch:
@@ -19,6 +22,35 @@ class RegEffectSearch:
             .first()
         )
         return reg_effect
+
+    @classmethod
+    def expr_id(cls, reo_id: str) -> Optional[str]:
+        reo = RegulatoryEffectObservation.objects.filter(accession_id=reo_id).values_list(
+            "experiment_accession_id", flat=True
+        )
+
+        if len(reo) == 0:
+            raise ObjectNotFoundError(f"Regulatory Effect Observation {reo_id} not found")
+
+        return reo[0]
+
+    @classmethod
+    def is_public(cls, reo_id: str) -> Optional[str]:
+        reo = RegulatoryEffectObservation.objects.filter(accession_id=reo_id).values_list("public", flat=True)
+
+        if len(reo) == 0:
+            raise ObjectNotFoundError(f"Regulatory Effect Observation {reo_id} not found")
+
+        return reo[0]
+
+    @classmethod
+    def is_archived(cls, reo_id: str) -> Optional[str]:
+        reo = RegulatoryEffectObservation.objects.filter(accession_id=reo_id).values_list("archived", flat=True)
+
+        if len(reo) == 0:
+            raise ObjectNotFoundError(f"Regulatory Effect Observation {reo_id} not found")
+
+        return reo[0]
 
     @classmethod
     def source_search(cls, source_id: str):
