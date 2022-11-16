@@ -42,5 +42,5 @@ class Faceted(models.Model):
     class Facets:
         pass
 
-    facet_values = models.ManyToManyField(FacetValue)
-    facet_num_values = models.JSONField(null=True)
+    facet_values = models.ManyToManyField(FacetValue, blank=True)
+    facet_num_values = models.JSONField(null=True, blank=True)

@@ -68,34 +68,36 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         (str(DNAFeatureType.CAR), DNAFeatureType.CAR.value),
     )
 
-    cell_line = models.CharField(max_length=50, null=True)
+    cell_line = models.CharField(max_length=50, null=True, blank=True)
     chrom_name = models.CharField(max_length=10)
-    ensembl_id = models.CharField(max_length=50, null=True)
-    ids = models.JSONField(null=True, validators=[validate_gene_ids])
+    ensembl_id = models.CharField(max_length=50, null=True, blank=True)
+    ids = models.JSONField(null=True, validators=[validate_gene_ids], blank=True)
 
-    closest_gene = models.ForeignKey("self", null=True, on_delete=models.SET_NULL, related_name="closest_features")
-    closest_gene_distance = models.IntegerField(null=True)
-    closest_gene_name = models.CharField(max_length=50, null=True)
-    closest_gene_ensembl_id = models.CharField(max_length=50, null=True)
+    closest_gene = models.ForeignKey(
+        "self", null=True, on_delete=models.SET_NULL, related_name="closest_features", blank=True
+    )
+    closest_gene_distance = models.IntegerField(null=True, blank=True)
+    closest_gene_name = models.CharField(max_length=50, null=True, blank=True)
+    closest_gene_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
 
     # These values will be returned as 0-index, half-closed. This should be converted to
     # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
     location = IntegerRangeField()
-    name = models.CharField(max_length=50)
-    strand = models.CharField(max_length=1, null=True)
+    name = models.CharField(max_length=50, null=True, blank=True)
+    strand = models.CharField(max_length=1, null=True, blank=True)
     ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
+    ref_genome_patch = models.CharField(max_length=10, default="0")
 
     feature_type = models.CharField(max_length=50, choices=FEATURE_TYPE, default=DNAFeatureType.GENE)
 
     # gene_type or transcript_type from gencodeannotation.attributes
-    feature_subtype = models.CharField(max_length=50, null=True)
+    feature_subtype = models.CharField(max_length=50, null=True, blank=True)
 
-    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
+    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL, blank=True)
 
-    misc = models.JSONField(null=True)  # exon number, for instance
+    misc = models.JSONField(null=True, blank=True)  # exon number, for instance
 
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children")
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children", blank=True)
 
     experiment_accession = models.ForeignKey(
         Experiment,
@@ -104,6 +106,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         db_column="experiment_accession_id",
         related_name="+",
         on_delete=models.CASCADE,
+        blank=True,
     )
 
     @property
