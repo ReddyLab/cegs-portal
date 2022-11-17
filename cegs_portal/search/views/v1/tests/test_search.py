@@ -7,6 +7,7 @@ from django.test import Client
 from cegs_portal.search.models import ChromosomeLocation, DNAFeature
 from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.views.v1.search import ParseWarning, SearchType, parse_query
+from cegs_portal.users.models import GroupExtension
 
 
 @pytest.mark.parametrize(
@@ -205,6 +206,28 @@ def test_experiment_feature_loc_with_authenticated_authorized_client(
     assert len(json_content["features"]) == 2
 
 
+def test_experiment_feature_loc_with_authenticated_authorized_group_client(
+    client: Client, nearby_feature_mix: Tuple[DNAFeature], group_extension: GroupExtension, django_user_model
+):
+    pub_feature, private_feature, archived_feature = nearby_feature_mix
+
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    group_extension.experiments = [private_feature.experiment_accession_id, archived_feature.experiment_accession_id]
+    group_extension.save()
+    user.groups.add(group_extension.group)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(
+        f"/search/results/?query={pub_feature.chrom_name}%3A{pub_feature.location.lower - 10}-{archived_feature.location.upper + 10}&accept=application/json"  # noqa: E501
+    )
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 2
+
+
 def test_experiment_feature_accession_json(client: Client, feature: DNAFeature):
     response = client.get(f"/search/results/?query={feature.accession_id}&accept=application/json")  # noqa: E501
 
@@ -261,6 +284,24 @@ def test_experiment_feature_accession_with_authenticated_authorized_client(
     assert len(json_content["features"]) == 1
 
 
+def test_experiment_feature_accession_with_authenticated_authorized_group_client(
+    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    group_extension.experiments = [private_feature.experiment_accession_id]
+    group_extension.save()
+    user.groups.add(group_extension.group)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.accession_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 1
+
+
 def test_archived_experiment_feature_accession_with_anonymous_client(client: Client, archived_feature: DNAFeature):
     response = client.get(f"/search/results/?query={archived_feature.accession_id}&accept=application/json")
     assert response.status_code == 200
@@ -290,6 +331,24 @@ def test_archived_experiment_feature_accession_with_authenticated_authorized_cli
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
     user.experiments = [archived_feature.experiment_accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={archived_feature.accession_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_archived_experiment_feature_accession_with_authenticated_authorized_group_client(
+    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    group_extension.experiments = [archived_feature.experiment_accession_id]
+    group_extension.save()
+    user.groups.add(group_extension.group)
     user.save()
     client.login(username=username, password=password)
     response = client.get(f"/search/results/?query={archived_feature.accession_id}&accept=application/json")
@@ -355,6 +414,24 @@ def test_experiment_feature_ensembl_with_authenticated_authorized_client(
     assert len(json_content["features"]) == 1
 
 
+def test_experiment_feature_ensembl_with_authenticated_authorized_group_client(
+    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    group_extension.experiments = [private_feature.experiment_accession_id]
+    group_extension.save()
+    user.groups.add(group_extension.group)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={private_feature.ensembl_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 1
+
+
 def test_archived_experiment_feature_ensembl_with_anonymous_client(client: Client, archived_feature: DNAFeature):
     response = client.get(f"/search/results/?query={archived_feature.ensembl_id}&accept=application/json")
     assert response.status_code == 200
@@ -384,6 +461,24 @@ def test_archived_experiment_feature_ensembl_with_authenticated_authorized_clien
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
     user.experiments = [archived_feature.experiment_accession_id]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/results/?query={archived_feature.ensembl_id}&accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["features"]) == 0
+
+
+def test_archived_experiment_feature_ensembl_with_authenticated_authorized_group_client(
+    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    group_extension.experiments = [archived_feature.experiment_accession_id]
+    group_extension.save()
+    user.groups.add(group_extension.group)
     user.save()
     client.login(username=username, password=password)
     response = client.get(f"/search/results/?query={archived_feature.ensembl_id}&accept=application/json")

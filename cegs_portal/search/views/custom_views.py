@@ -34,7 +34,7 @@ class ExperimentAccessMixin(UserPassesTestMixin):
         return (
             self.request.user.is_superuser
             or self.request.user.is_portal_admin
-            or self.get_experiment_accession_id() in self.request.user.experiments
+            or self.get_experiment_accession_id() in self.request.user.all_experiments()
         )
 
     def is_archived(self):

@@ -100,7 +100,7 @@ class ExperimentListView(TemplateJsonView):
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
             experiments = ExperimentSearch.all()
         else:
-            experiments = ExperimentSearch.all_with_private(self.request.user.experiments)
+            experiments = ExperimentSearch.all_with_private(self.request.user.all_experiments())
 
         experiments_paginator = Paginator(experiments, options["per_page"])
         experiments_page = experiments_paginator.get_page(options["page"])

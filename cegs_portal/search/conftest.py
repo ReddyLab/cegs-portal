@@ -26,6 +26,7 @@ from cegs_portal.search.models.tests.facet_factory import (
 )
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
+from cegs_portal.users.conftest import group_extension  # noqa: F401
 from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 

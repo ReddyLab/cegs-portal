@@ -144,7 +144,9 @@ class DNAFeatureLoc(TemplateJsonView):
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
                 features = DNAFeatureSearch.loc_search(*loc_search_params)
             else:
-                features = DNAFeatureSearch.loc_search_with_private(*loc_search_params, self.request.user.experiments)
+                features = DNAFeatureSearch.loc_search_with_private(
+                    *loc_search_params, self.request.user.all_experiments()
+                )
         except ValueError as e:
             raise Http400(e)
 
