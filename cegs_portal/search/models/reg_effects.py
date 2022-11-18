@@ -45,8 +45,8 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
         related_name="+",
         on_delete=models.CASCADE,
     )
-    sources = models.ManyToManyField(DNAFeature, related_name="source_for")
-    targets = models.ManyToManyField(DNAFeature, related_name="target_of")
+    sources = models.ManyToManyField(DNAFeature, related_name="source_for", blank=True)
+    targets = models.ManyToManyField(DNAFeature, related_name="target_of", blank=True)
 
     @property
     def direction(self):
