@@ -74,12 +74,13 @@ THIRD_PARTY_APPS = [
     "waffle",
 ]
 
+# Your stuff: custom apps go here
 LOCAL_APPS = [
     "cegs_portal.users.apps.UsersConfig",
     "cegs_portal.search.apps.SearchConfig",
     "cegs_portal.uploads.apps.UploadsConfig",
+    "cegs_portal.tasks.apps.TasksConfig",
     "cegs_portal.tools.apps.ToolsConfig",
-    # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
