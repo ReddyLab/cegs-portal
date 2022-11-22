@@ -274,3 +274,4 @@ FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+TESTING = False
