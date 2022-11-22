@@ -23,7 +23,6 @@ class ThreadTask(models.Model):
 
     @classmethod
     def set_description(cls, task_id, description):
-        print(task_id)
         try:
             task = cls.objects.get(id=task_id)
             task.description = description
