@@ -13,12 +13,8 @@ RegulatoryEffectObservationJson = TypedDict(
         "significance": Optional[float],
         "raw_p_value": Optional[float],
         "experiment": ExperimentJson,
-        "cell_lines": list[str],
-        "tissue_types": list[str],
         "source_ids": list[str],
         "target_ids": list[str],
-        "co_regulators": Optional[list[int]],
-        "co_sources": Optional[list[int]],
     },
 )
 
@@ -33,20 +29,11 @@ def regulatory_effect(
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "experiment": {"id": reg_effect.experiment.id, "name": reg_effect.experiment.name},
-        "cell_lines": [str(cl) for cl in reg_effect.cell_lines],  # type: ignore[attr-defined]
-        "tissue_types": [str(tt) for tt in reg_effect.tissue_types],  # type: ignore[attr-defined]
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
         "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
-        "co_regulators": None,
-        "co_sources": None,
     }
 
-    if hasattr(reg_effect, "co_regulators"):
-        result["co_regulators"] = [coreg.id for coreg in getattr(reg_effect, "co_regulators")]
-
-    if hasattr(reg_effect, "co_sources"):
-        result["co_sources"] = [cosrc.id for cosrc in getattr(reg_effect, "co_sources")]
-
+   
     return result
 
 

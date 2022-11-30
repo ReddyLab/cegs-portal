@@ -48,17 +48,3 @@ def regulatory_effect(
         result["co_sources"] = [cosrc.id for cosrc in getattr(reg_effect, "co_sources")]
 
     return result
-
-
-def source_reg_effects(
-    reg_effects: Pageable[RegulatoryEffectObservation], options: Optional[dict[str, Any]] = None
-) -> PageableJson:
-    results = {
-        "object_list": [regulatory_effect(re, options) for re in reg_effects.object_list],
-        "page": reg_effects.number,
-        "has_next_page": reg_effects.has_next(),
-        "has_prev_page": reg_effects.has_previous(),
-        "num_pages": reg_effects.paginator.num_pages,
-    }
-
-    return results

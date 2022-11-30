@@ -26,10 +26,11 @@ class RegEffectSearch:
             RegulatoryEffectObservation.objects.with_facet_values()
             .filter(sources__accession_id=source_id)
             .prefetch_related(
-                "experiment__biosamples__cell_line",
-                "sources__source_for",
-                "targets__target_of__sources",
+                "experiment",
+                "sources",
+                "targets",
             )
+            .order_by('sources__accession_id')
         )
 
         return reg_effects

@@ -50,10 +50,8 @@ def paged_experiments() -> Pageable[Experiment]:
     e6 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
     e6.data_files.set(((data_file(e6),)))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
-    return MockPaginator(
-        experiments,
-        3,
-    )
+    pages = MockPaginator(experiments, 3)
+    return pages.page(1)
 
 
 def data_file(experiment=None) -> ExperimentDataFile:
@@ -131,6 +129,26 @@ def reg_effect() -> RegulatoryEffectObservation:
 
 
 @pytest.fixture
+def source_reg_effects():
+    source = DNAFeatureFactory(parent=None)
+
+    reo1 = RegEffectFactory(
+        sources=(source,),
+    )
+    reo2 = RegEffectFactory(
+        sources=(source,),
+    )
+    reo3 = RegEffectFactory(
+        sources=(source,),
+    )
+    return {
+        "source": source,
+        "effects": [reo1, reo2, reo3],
+    }
+
+
+
+@pytest.fixture
 def facets() -> Manager[Facet]:
     f1 = FacetFactory()
     f2 = FacetFactory()
@@ -139,3 +157,7 @@ def facets() -> Manager[Facet]:
     _ = FacetValueFactory(facet=f2)
     _ = FacetValueFactory(facet=f2)
     return Facet.objects
+
+
+
+

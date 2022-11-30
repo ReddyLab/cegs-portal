@@ -1,9 +1,8 @@
 from django.core.paginator import Paginator
 
-from cegs_portal.search.json_templates.v1.reg_effect import (
+from cegs_portal.search.json_templates.v1.source_reg_effects import (
     regulatory_effect,
     source_reg_effects,
-    
 )
 
 from cegs_portal.search.view_models.v1 import RegEffectSearch, DNAFeatureSearch 
@@ -64,7 +63,7 @@ class SourceEffectsView(TemplateJsonView):
 
     def get_data(self, options, source_id) -> Pageable[RegulatoryEffectObservation]:
         reg_effects = RegEffectSearch.source_search(source_id)
-        reg_effect_paginator = Paginator(reg_effects, 20)
+        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
 
