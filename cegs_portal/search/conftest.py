@@ -51,7 +51,7 @@ def paged_experiments() -> Pageable[Experiment]:
     e6.data_files.set(((data_file(e6),)))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
     pages = MockPaginator(experiments, 3)
-    return pages.page(1)
+    return pages
 
 
 def data_file(experiment=None) -> ExperimentDataFile:
