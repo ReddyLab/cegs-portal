@@ -1,11 +1,10 @@
 import pytest
 
+from cegs_portal.search.json_templates.v1.source_reg_effects import PageableJson
 from cegs_portal.search.json_templates.v1.source_reg_effects import (
-    PageableJson,
+    source_reg_effect as re_json,
 )
-from cegs_portal.search.json_templates.v1.source_reg_effects import source_reg_effect as re_json
 from cegs_portal.search.models import RegulatoryEffectObservation
-
 
 pytestmark = pytest.mark.django_db
 

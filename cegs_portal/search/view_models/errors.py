@@ -1,4 +1,2 @@
 class ViewModelError(Exception):
     pass
-
-

@@ -30,7 +30,7 @@ class RegEffectSearch:
                 "sources",
                 "targets",
             )
-            .order_by('sources__accession_id')
+            .order_by("sources__accession_id")
         )
 
         return reg_effects

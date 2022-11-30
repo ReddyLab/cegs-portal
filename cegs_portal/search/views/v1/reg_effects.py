@@ -4,12 +4,10 @@ from cegs_portal.search.json_templates.v1.source_reg_effects import (
     regulatory_effect,
     source_reg_effects,
 )
-
-from cegs_portal.search.view_models.v1 import RegEffectSearch, DNAFeatureSearch 
+from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.view_models.v1 import RegEffectSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.utils.pagination_types import Pageable
-from cegs_portal.search.models import RegulatoryEffectObservation
-
 
 
 class RegEffectView(TemplateJsonView):
@@ -41,7 +39,6 @@ class SourceEffectsView(TemplateJsonView):
     json_renderer = source_reg_effects
     template = "search/v1/source_reg_effects.html"
     template_data_name = "regeffects"
-    
 
     def request_options(self, request):
         """
@@ -66,5 +63,3 @@ class SourceEffectsView(TemplateJsonView):
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
-
-

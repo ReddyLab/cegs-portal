@@ -147,7 +147,6 @@ def source_reg_effects():
     }
 
 
-
 @pytest.fixture
 def facets() -> Manager[Facet]:
     f1 = FacetFactory()
@@ -157,7 +156,3 @@ def facets() -> Manager[Facet]:
     _ = FacetValueFactory(facet=f2)
     _ = FacetValueFactory(facet=f2)
     return Facet.objects
-
-
-
-
