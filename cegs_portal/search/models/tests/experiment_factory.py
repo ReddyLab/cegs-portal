@@ -69,7 +69,8 @@ class ExperimentFactory(DjangoModelFactory):
         django_get_or_create = ("name",)
 
     _faker = F()
-    archived = Faker("boolean", chance_of_getting_true=90)
+    archived = False
+    public = True
     description = Faker("text", max_nb_chars=4096)
     experiment_type = Faker("text", max_nb_chars=100)
     name = Faker("text", max_nb_chars=512)

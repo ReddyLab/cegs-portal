@@ -4,10 +4,11 @@ from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
+from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.search.models.facets import Faceted, FacetValue
 from cegs_portal.search.models.file import File
-from cegs_portal.search.models.searchable import Searchable
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
@@ -40,8 +41,8 @@ class DNAFeatureType(Enum):
             raise Exception(f"No accession abbreviation defined for {self}")
 
 
-class DNAFeature(Accessioned, Searchable, Faceted):
-    class Meta(Accessioned.Meta, Searchable.Meta):
+class DNAFeature(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["name"], name="sdf_name_index"),
             models.Index(fields=["chrom_name"], name="sdf_chrom_name_index"),
@@ -67,34 +68,46 @@ class DNAFeature(Accessioned, Searchable, Faceted):
         (str(DNAFeatureType.CAR), DNAFeatureType.CAR.value),
     )
 
-    cell_line = models.CharField(max_length=50, null=True)
+    cell_line = models.CharField(max_length=50, null=True, blank=True)
     chrom_name = models.CharField(max_length=10)
-    ensembl_id = models.CharField(max_length=50, null=True)
-    ids = models.JSONField(null=True, validators=[validate_gene_ids])
+    ensembl_id = models.CharField(max_length=50, null=True, blank=True)
+    ids = models.JSONField(null=True, validators=[validate_gene_ids], blank=True)
 
-    closest_gene = models.ForeignKey("self", null=True, on_delete=models.SET_NULL, related_name="closest_features")
-    closest_gene_distance = models.IntegerField(null=True)
-    closest_gene_name = models.CharField(max_length=50, null=True)
-    closest_gene_ensembl_id = models.CharField(max_length=50, null=True)
+    closest_gene = models.ForeignKey(
+        "self", null=True, on_delete=models.SET_NULL, related_name="closest_features", blank=True
+    )
+    closest_gene_distance = models.IntegerField(null=True, blank=True)
+    closest_gene_name = models.CharField(max_length=50, null=True, blank=True)
+    closest_gene_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
 
     # These values will be returned as 0-index, half-closed. This should be converted to
     # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
     location = IntegerRangeField()
-    name = models.CharField(max_length=50)
-    strand = models.CharField(max_length=1, null=True)
+    name = models.CharField(max_length=50, null=True, blank=True)
+    strand = models.CharField(max_length=1, null=True, blank=True)
     ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
+    ref_genome_patch = models.CharField(max_length=10, default="0")
 
     feature_type = models.CharField(max_length=50, choices=FEATURE_TYPE, default=DNAFeatureType.GENE)
 
     # gene_type or transcript_type from gencodeannotation.attributes
-    feature_subtype = models.CharField(max_length=50, null=True)
+    feature_subtype = models.CharField(max_length=50, null=True, blank=True)
 
-    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL)
+    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL, blank=True)
 
-    misc = models.JSONField(null=True)  # exon number, for instance
+    misc = models.JSONField(null=True, blank=True)  # exon number, for instance
 
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children")
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children", blank=True)
+
+    experiment_accession = models.ForeignKey(
+        Experiment,
+        null=True,
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+        blank=True,
+    )
 
     @property
     def assay(self):
@@ -112,4 +125,4 @@ class DNAFeature(Accessioned, Searchable, Faceted):
             return None
 
     def __str__(self):
-        return f"{self.name} -- {self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
+        return f"{self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"

@@ -1,7 +1,7 @@
 import factory
 from factory import post_generation
 from factory.django import DjangoModelFactory
-from faker import Faker
+from faker import Faker as F
 
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
@@ -11,8 +11,11 @@ class RegEffectFactory(DjangoModelFactory):
     class Meta:
         model = RegulatoryEffectObservation
 
-    _faker = Faker()
+    _faker = F()
+    archived = False
+    public = True
     experiment = factory.SubFactory(ExperimentFactory)
+    experiment_accession = factory.SubFactory(ExperimentFactory)
     facet_num_values = {
         RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: -0.0660384670056446,
         RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 3.19229500470051e-06,

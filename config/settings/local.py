@@ -61,9 +61,6 @@ if env("USE_DOCKER") == "yes":
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS += [str(APPS_DIR / "static_data")]  # noqa F405
-
 # Your stuff...
 # ------------------------------------------------------------------------------
 

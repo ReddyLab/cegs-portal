@@ -1,16 +1,39 @@
 from django.core.paginator import Paginator
 from django.db.models import QuerySet
+from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import (
+    ExperimentAccessMixin,
+    TemplateJsonView,
+)
 from cegs_portal.utils.http_exceptions import Http400
 
 
-class DNAFeatureId(TemplateJsonView):
+class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = features
     template = "search/v1/dna_feature.html"
+
+    def get_experiment_accession_id(self):
+        try:
+            return DNAFeatureSearch.expr_id(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return DNAFeatureSearch.is_public(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return DNAFeatureSearch.is_archived(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
 
     def request_options(self, request):
         """
@@ -72,7 +95,7 @@ class DNAFeatureLoc(TemplateJsonView):
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
-        options["paginate"] = bool(request.GET.get("paginate", False))
+        options["paginate"] = "page" in request.GET or bool(request.GET.get("paginate", False))
 
         return options
 
@@ -106,7 +129,7 @@ class DNAFeatureLoc(TemplateJsonView):
         if chromo.isnumeric():
             chromo = f"chr{chromo}"
         try:
-            features = DNAFeatureSearch.loc_search(
+            loc_search_params = [
                 chromo,
                 start,
                 end,
@@ -115,7 +138,15 @@ class DNAFeatureLoc(TemplateJsonView):
                 options["region_properties"],
                 options["search_type"],
                 options["facets"],
-            )
+            ]
+            if self.request.user.is_anonymous:
+                features = DNAFeatureSearch.loc_search_public(*loc_search_params)
+            elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+                features = DNAFeatureSearch.loc_search(*loc_search_params)
+            else:
+                features = DNAFeatureSearch.loc_search_with_private(
+                    *loc_search_params, self.request.user.all_experiments()
+                )
         except ValueError as e:
             raise Http400(e)
 

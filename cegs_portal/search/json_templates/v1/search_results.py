@@ -13,16 +13,20 @@ SearchResults = TypedDict(
 
 
 def search_results(results: SearchResults, options: Optional[dict[str, Any]] = None):
-    return {
-        "location": {
-            "assembly": results["assembly"],
-            "chromosome": results["location"].chromo,
-            "start": results["location"].range.lower,
-            "end": results["location"].range.upper,
-        },
+    response = {
         "features": features(results["features"], options),
         "facets": [
             {"name": f.name, "description": f.description, "values": [value.value for value in f.values.all()]}
             for f in results["facets"].all()
         ],
     }
+
+    if results["location"] is not None:
+        response["location"] = {
+            "assembly": results["assembly"],
+            "chromosome": results["location"].chromo,
+            "start": results["location"].range.lower,
+            "end": results["location"].range.upper,
+        }
+
+    return response

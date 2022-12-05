@@ -84,8 +84,8 @@ To get around it, [modify](https://docs.docker.com/compose/compose-file/#volumes
 
 Some of the visualizations use data files built from the database, but that exist outside of the database.
 
-Download [cov_viz](https://github.com/ReddyLab/cov_viz) and install it with the command `cargo install --path [path to cov_viz directory]`
-Download [cov_viz_manifest](https://github.com/ReddyLab/cov_viz_manifest) and install it with the command `cargo install --path [path to cov_viz_manifest directory]`
+Download or `git clone` the [cov_viz repository](https://github.com/ReddyLab/cov_viz) and install the cov_viz utility with the command `cargo install --path [insert path to cov_viz directory here]`
+Download or `git clone` the [cov_viz_manifest repository](https://github.com/ReddyLab/cov_viz_manifest) and install the cov_viz_manifest utility with the command `cargo install --path [insert path to cov_viz_manifest directory here]`
 Run `make exp_cov` from the root portal directory.
 
 ## Basic Commands

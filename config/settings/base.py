@@ -74,12 +74,13 @@ THIRD_PARTY_APPS = [
     "waffle",
 ]
 
+# Your stuff: custom apps go here
 LOCAL_APPS = [
     "cegs_portal.users.apps.UsersConfig",
     "cegs_portal.search.apps.SearchConfig",
     "cegs_portal.uploads.apps.UploadsConfig",
+    "cegs_portal.tasks.apps.TasksConfig",
     "cegs_portal.tools.apps.ToolsConfig",
-    # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -145,7 +146,7 @@ STATIC_ROOT = str(ROOT_DIR / "static_root")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(APPS_DIR / "static"), str(ROOT_DIR / "static_source")]
+STATICFILES_DIRS = [str(APPS_DIR / "static"), str(ROOT_DIR / "static_source"), str(APPS_DIR / "static_data")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -268,6 +269,9 @@ ACCOUNT_ADAPTER = "cegs_portal.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "cegs_portal.users.adapters.SocialAccountAdapter"
 
+# https://docs.djangoproject.com/en/4.1/releases/4.1/#forms-4-1
+FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+TESTING = False

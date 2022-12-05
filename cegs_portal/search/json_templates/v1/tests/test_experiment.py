@@ -13,25 +13,21 @@ pytestmark = pytest.mark.django_db
 
 
 def test_experiments_json(paged_experiments: Pageable[Experiment]):
-    for experiment in paged_experiments.object_list:
-        experi_cell_lines: list[str] = []
-        experi_tissue_types: list[str] = []
-        for bios in experiment.biosamples.all():
-            experi_cell_lines.append(bios.cell_line_name)
-            experi_tissue_types.append(bios.cell_line.tissue_type_name)
-
-        setattr(experiment, "cell_lines", experi_cell_lines)
-        setattr(experiment, "tissue_types", experi_tissue_types)
-
-    result = [
-        {
-            "accession_id": e.accession_id,
-            "name": e.name,
-            "description": e.description,
-            "biosamples": [b_json(b) for b in e.biosamples.all()],
-        }
-        for e in paged_experiments.object_list
-    ]
+    result = {
+        "object_list": [
+            {
+                "accession_id": e.accession_id,
+                "name": e.name,
+                "description": e.description,
+                "biosamples": [b_json(b) for b in e.biosamples.all()],
+            }
+            for e in paged_experiments.object_list
+        ],
+        "page": paged_experiments.number,
+        "has_next_page": paged_experiments.has_next(),
+        "has_prev_page": paged_experiments.has_previous(),
+        "num_pages": paged_experiments.paginator.num_pages,
+    }
 
     assert exps_json(paged_experiments) == result
 
