@@ -1,9 +1,11 @@
 import pytest
-import json
-from cegs_portal.search.json_templates.v1.source_reg_effects import source_reg_effects, regulatory_effect
+
+from cegs_portal.search.json_templates.v1.source_reg_effects import (
+    regulatory_effect,
+    source_reg_effects,
+)
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.utils.pagination_types import Pageable
-from typing import TypedDict
 
 pytestmark = pytest.mark.django_db
 
