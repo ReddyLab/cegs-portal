@@ -185,5 +185,4 @@ def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
         ],
         2,
     )
-
-    return paginator.page(2)
+    return paginator.page(2) 
