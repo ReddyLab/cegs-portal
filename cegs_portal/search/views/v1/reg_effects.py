@@ -1,9 +1,7 @@
 from django.core.paginator import Paginator
 
-from cegs_portal.search.json_templates.v1.source_reg_effects import (
-    regulatory_effect,
-    source_reg_effects,
-)
+from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
+from cegs_portal.search.json_templates.v1.source_reg_effects import source_reg_effects
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.v1 import RegEffectSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
