@@ -33,7 +33,6 @@ def regulatory_effect(
         "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
     }
 
-   
     return result
 
 

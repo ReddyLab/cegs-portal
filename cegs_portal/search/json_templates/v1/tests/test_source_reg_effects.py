@@ -1,15 +1,12 @@
 import pytest
 import json
 from cegs_portal.search.json_templates.v1.source_reg_effects import (
-    PageableJson,
+    source_reg_effect as re_json,
 )
 from cegs_portal.search.json_templates.v1.source_reg_effects import source_reg_effects, regulatory_effect
-from cegs_portal.search.models import RegulatoryEffectObservation, DNAFeature
+from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.utils.pagination_types import Pageable
-from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
-from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 from typing import TypedDict
-
 
 pytestmark = pytest.mark.django_db
 

@@ -1,7 +1,6 @@
 from typing import Any, Optional, TypedDict
 
 from cegs_portal.search.models import RegulatoryEffectObservation
-from cegs_portal.utils.pagination_types import Pageable, PageableJson
 
 ExperimentJson = TypedDict("ExperimentJson", {"id": int, "name": str})
 RegulatoryEffectObservationJson = TypedDict(
