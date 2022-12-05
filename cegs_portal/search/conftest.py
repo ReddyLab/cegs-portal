@@ -203,6 +203,25 @@ def archived_reg_effect() -> RegulatoryEffectObservation:
 
 
 @pytest.fixture
+def source_reg_effects():
+    source = DNAFeatureFactory(parent=None)
+
+    reo1 = RegEffectFactory(
+        sources=(source,),
+    )
+    reo2 = RegEffectFactory(
+        sources=(source,),
+    )
+    reo3 = RegEffectFactory(
+        sources=(source,),
+    )
+    return {
+        "source": source,
+        "effects": [reo1, reo2, reo3],
+    }
+
+
+@pytest.fixture
 def facets() -> Manager[Facet]:
     f1 = FacetFactory()
     f2 = FacetFactory()
@@ -211,3 +230,33 @@ def facets() -> Manager[Facet]:
     _ = FacetValueFactory(facet=f2)
     _ = FacetValueFactory(facet=f2)
     return Facet.objects
+
+
+@pytest.fixture
+def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
+    source = DNAFeatureFactory(parent=None)
+
+    paginator: MockPaginator[RegulatoryEffectObservation] = MockPaginator(
+        [
+            RegEffectFactory(
+                sources=(source,),
+            ),
+            RegEffectFactory(
+                sources=(source,),
+            ),
+            RegEffectFactory(
+                sources=(source,),
+            ),
+            RegEffectFactory(
+                sources=(source,),
+            ),
+            RegEffectFactory(
+                sources=(source,),
+            ),
+            RegEffectFactory(
+                sources=(source,),
+            ),
+        ],
+        2,
+    )
+    return paginator.page(2)
