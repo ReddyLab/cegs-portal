@@ -1,0 +1,25 @@
+let __genDataPages = function(accessionID, page) {
+    return dataPages(
+        page,
+        {{ url_function }},
+        reTable,
+        emptyRETable,
+        feature => true,
+        "{{ no_data }}",
+        "{{ container_id }}",
+        "{{ prefix }}_pagination",
+        "{{ prefix }}",
+        "{{ page_query }}"
+    );
+}
+
+let __getPages = __genDataPages("{{ accession_id }}", 1);
+
+{% if data.has_previous %}
+pageLink("{{ prefix }}_first_link", 1, __getPages);
+pageLink("{{ prefix }}_prev_link", {{ data.previous_page_number }}, __getPages);
+{% endif %}
+{% if data.has_next %}
+pageLink("{{ prefix }}_next_link", {{ data.next_page_number }}, __getPages);
+pageLink("{{ prefix }}_last_link", {{ data.paginator.num_pages }}, __getPages);
+{% endif %}

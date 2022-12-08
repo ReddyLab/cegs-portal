@@ -43,14 +43,12 @@ function emptyRETable(emptyString, regionID="regeffect") {
 function reTable(regeffects, regionID="regeffect") {
     let newTable = e("table", {id: regionID,  class: "data-table"}, [
         e("tr", [
-            e("th", "Direction"),
+            e("th", "ID"),
             e("th", "Effect Size"),
+            e("th", "Direction"),
             e("th", "Significance"),
-            e("th", "Target Gene"),
             e("th", "Experiment"),
-            e("th", "Co-regulating DHSs"),
-            e("th", "Co-Sources"),
-            e("th"),
+            e("th", "Target")
         ])
     ])
     for(let effect of regeffects) {
@@ -60,18 +58,12 @@ function reTable(regeffects, regionID="regeffect") {
         for(const target of effect.target_ids) {
             newTable.append(
                 e("tr", [
-                    e("td", `${effect.direction}`),
+                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
                     e("td", `${effect.effect_size}`),
+                    e("td", `${effect.direction}`),
                     e("td", `${effect.significance}`),
-                    target == null ? e("td", "Unknown") : e("td", e("a", {href: `/search/feature/ensemble/${target}`}, target)),
-                    e("td", e("a", {href: `/search/experiment/${effect.experiment.id}`}, effect.experiment.name)),
-                    e("td", effect.co_regulators.length == 0 ? "None" : effect.co_regulators.map(coreg => {
-                        return e("a", {href: `/search/region/${coreg}`}, `DHS: ${coreg}`)
-                    })),
-                    e("td", effect.co_sources.length == 0 ? "None" : effect.co_sources.map(cosrc => {
-                        return e("a", {href: `/search/region/${cosrc}`}, `DHS: ${cosrc}`)
-                    })),
-                    e("td", e("a", {href: `/search/regeffect/${effect.id}`}, "More...")),
+                    e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
+                    target == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/ensemble/${target}`}, target)),
                 ])
             )
         }

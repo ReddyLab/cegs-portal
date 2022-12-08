@@ -5,7 +5,7 @@ from django.http import Http404
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import DNAFeatureSearch
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
@@ -53,7 +53,13 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         return options
 
     def get(self, request, options, data, id_type, feature_id):
-        return super().get(request, options, {"features": data, "feature_name": "Genome Features"})
+        sources_pages = []
+        for feature in data.all():
+            sources = RegEffectSearch.source_search(feature.accession_id)
+            sources = Paginator(sources, 20)
+            sources_page = sources.get_page(1)
+            sources_pages.append((feature, {"page": sources_page, "nav_prefix": f"source_for_{feature.accession_id}" }))
+        return super().get(request, options, {"features": data, "feature_name": "Genome Features", "feature_sources": sources_pages})
 
     def get_data(self, options, id_type, feature_id):
         return DNAFeatureSearch.id_search(id_type, feature_id)
