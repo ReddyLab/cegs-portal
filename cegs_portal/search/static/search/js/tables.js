@@ -59,9 +59,9 @@ function reTable(regeffects, regionID="regeffect") {
             newTable.append(
                 e("tr", [
                     e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e("td", `${effect.effect_size}`),
+                    e("td", `${effect.effect_size.toExponential(3)}`),
                     e("td", `${effect.direction}`),
-                    e("td", `${effect.significance}`),
+                    e("td", `${effect.significance.toExponential(3)}`),
                     e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
                     target == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/ensemble/${target}`}, target)),
                 ])

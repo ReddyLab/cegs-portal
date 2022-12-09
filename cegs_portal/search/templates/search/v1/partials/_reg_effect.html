@@ -5,9 +5,9 @@
         <tr>
             {% if forloop.first %}
             <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-            <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
+            <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size|stringformat:".3e" }}</td>
             <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-            <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
+            <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance|stringformat:".3e" }}</td>
             <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
             {% endif %}
            <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.accession_id }}</a></td>
