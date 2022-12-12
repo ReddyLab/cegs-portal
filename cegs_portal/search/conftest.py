@@ -222,6 +222,25 @@ def source_reg_effects():
 
 
 @pytest.fixture
+def target_reg_effects():
+    target = DNAFeatureFactory(parent=None)
+
+    reo1 = RegEffectFactory(
+        targets=(target,),
+    )
+    reo2 = RegEffectFactory(
+        targets=(target,),
+    )
+    reo3 = RegEffectFactory(
+        targets=(target,),
+    )
+    return {
+        "target": target,
+        "effects": [reo1, reo2, reo3],
+    }
+
+
+@pytest.fixture
 def facets() -> Manager[Facet]:
     f1 = FacetFactory()
     f2 = FacetFactory()

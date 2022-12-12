@@ -1,8 +1,8 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 
+from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
-from cegs_portal.search.json_templates.v1.source_reg_effects import source_reg_effects
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import RegEffectSearch
@@ -56,10 +56,11 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
         return search_results
 
 
-class SourceEffectsView(TemplateJsonView):
-    json_renderer = source_reg_effects
-    template = "search/v1/source_reg_effects.html"
+class FeatureEffectsView(TemplateJsonView):
+    json_renderer = feature_reg_effects
+    template = ""
     template_data_name = "regeffects"
+    page_title = ""
 
     def request_options(self, request):
         """
@@ -79,8 +80,25 @@ class SourceEffectsView(TemplateJsonView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         return options
 
-    def get_data(self, options, source_id) -> Pageable[RegulatoryEffectObservation]:
-        reg_effects = RegEffectSearch.source_search(source_id)
+    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+        raise NotImplementedError("FeatureEffectsView.get_data")
+
+
+class SourceEffectsView(FeatureEffectsView):
+    template = "search/v1/source_reg_effects.html"
+
+    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+        reg_effects = RegEffectSearch.source_search(feature_id)
+        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+        return reg_effect_page
+
+
+class TargetEffectsView(FeatureEffectsView):
+    template = "search/v1/target_reg_effects.html"
+
+    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+        reg_effects = RegEffectSearch.target_search(feature_id)
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page

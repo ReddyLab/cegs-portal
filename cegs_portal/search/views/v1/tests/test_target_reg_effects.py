@@ -8,10 +8,10 @@ from cegs_portal.search.models import DNAFeature
 pytestmark = pytest.mark.django_db
 
 
-def test_source_reg_effects_list_json(client: Client, source_reg_effects):
-    source = source_reg_effects["source"]
-    effects = source_reg_effects["effects"]
-    response = client.get(f"/search/regeffect/source/{source.accession_id}?accept=application/json")
+def test_target_reg_effects_list_json(client: Client, target_reg_effects):
+    target = target_reg_effects["target"]
+    effects = target_reg_effects["effects"]
+    response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json")
 
     assert response.status_code == 200
     json_content = json.loads(response.content)
@@ -25,10 +25,10 @@ def test_source_reg_effects_list_json(client: Client, source_reg_effects):
         assert json_reo["significance"] == reo.significance
 
 
-def test_source_reg_effects_list_page_json(client: Client, source_reg_effects):
-    source = source_reg_effects["source"]
-    effects = source_reg_effects["effects"]
-    response = client.get(f"/search/regeffect/source/{source.accession_id}?accept=application/json&page=1&per_page=1")
+def test_target_reg_effects_list_page_json(client: Client, target_reg_effects):
+    target = target_reg_effects["target"]
+    effects = target_reg_effects["effects"]
+    response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json&page=1&per_page=1")
 
     assert response.status_code == 200
     json_content = json.loads(response.content)
@@ -45,8 +45,8 @@ def test_source_reg_effects_list_page_json(client: Client, source_reg_effects):
     assert json_reo["significance"] == reo.significance
 
 
-def test_source_regeffect_html(client: Client, feature: DNAFeature):
-    response = client.get(f"/search/regeffect/source/{feature.accession_id}")
+def test_target_regeffect_html(client: Client, feature: DNAFeature):
+    response = client.get(f"/search/regeffect/target/{feature.accession_id}")
 
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here

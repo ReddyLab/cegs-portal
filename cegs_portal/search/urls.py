@@ -27,9 +27,14 @@ urlpatterns = [
         name="experiment_coverage",
     ),
     re_path(
-        r"regeffect/source/(?P<source_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
+        r"regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
         views.v1.SourceEffectsView.as_view(),
         name="source_effects",
+    ),
+    re_path(
+        r"regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
+        views.v1.TargetEffectsView.as_view(),
+        name="target_effects",
     ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("v1/results/", views.v1.SearchView.as_view()),
@@ -45,6 +50,7 @@ urlpatterns = [
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
         name="experiment_coverage",
     ),
-    re_path(r"v1/regeffect/source/(?P<source_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
+    re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
+    re_path(r"v1/regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.TargetEffectsView.as_view()),
     re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))
