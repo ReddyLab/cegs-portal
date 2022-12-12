@@ -42,11 +42,6 @@ class DNAFeatureSearch:
         features = DNAFeature.objects.filter(**{id_field: feature_id}).prefetch_related(
             "children",
             "closest_features",
-            "target_of",
-            "target_of__experiment",
-            "target_of__facet_values",
-            "target_of__facet_values__facet",
-            "target_of__sources",
         )
         if distinct:
             features = features.distinct()
