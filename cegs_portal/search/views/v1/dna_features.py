@@ -43,6 +43,8 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         GET queries used:
             accept
                 * application/json
+            property (multiple)
+                * "regeffects" - preload associated reg effects
             id_type
                 * "accession"
                 * "ensembl"
@@ -50,6 +52,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             feature_id
         """
         options = super().request_options(request)
+        options["feature_properties"] = request.GET.getlist("property", [])
         return options
 
     def get(self, request, options, data, id_type, feature_id):
@@ -73,7 +76,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         )
 
     def get_data(self, options, id_type, feature_id):
-        return DNAFeatureSearch.id_search(id_type, feature_id)
+        return DNAFeatureSearch.id_search(id_type, feature_id, feature_properties=options["feature_properties"])
 
 
 class DNAFeatureLoc(TemplateJsonView):
@@ -96,7 +99,7 @@ class DNAFeatureLoc(TemplateJsonView):
                 * Should match a feature type (gene, transcript, etc.)
             format
                 * "genoverse" - only relevant for json
-            region_properties
+            property (multiple)
                 * "regeffects" - preload associated reg effects
             search_type
                 * "exact" - match location exactly
@@ -108,7 +111,7 @@ class DNAFeatureLoc(TemplateJsonView):
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_types"] = request.GET.getlist("feature_type", [])
-        options["region_properties"] = request.GET.getlist("property", [])
+        options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
@@ -152,7 +155,7 @@ class DNAFeatureLoc(TemplateJsonView):
                 end,
                 options["assembly"],
                 options["feature_types"],
-                options["region_properties"],
+                options["feature_properties"],
                 options["search_type"],
                 options["facets"],
             ]

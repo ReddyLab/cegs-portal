@@ -29,7 +29,9 @@ def join_fields(*field_names):
 
 class DNAFeatureSearch:
     @classmethod
-    def id_search(cls, id_type: str, feature_id: str, distinct=True) -> QuerySet[DNAFeature]:
+    def id_search(
+        cls, id_type: str, feature_id: str, feature_properties: list[str] = list, distinct=True
+    ) -> QuerySet[DNAFeature]:
         if id_type == IdType.ENSEMBL.value:
             id_field = "ensembl_id"
         elif id_type == IdType.NAME.value:
@@ -43,6 +45,10 @@ class DNAFeatureSearch:
             "children",
             "closest_features",
         )
+
+        if "regeffects" in feature_properties:
+            features = features.prefetch_related("source_for", "target_of")
+
         if distinct:
             features = features.distinct()
 
@@ -97,7 +103,7 @@ class DNAFeatureSearch:
         cls,
         ids: list[tuple[QueryToken, str]],
         assembly: str,
-        region_properties: list[str],
+        feature_properties: list[str],
     ) -> QuerySet[DNAFeature]:
 
         query = {}
@@ -134,7 +140,7 @@ class DNAFeatureSearch:
 
         prefetch_values = []
 
-        if "regeffects" in region_properties:
+        if "regeffects" in feature_properties:
             prefetch_values.extend(
                 [
                     "source_for",
@@ -169,7 +175,7 @@ class DNAFeatureSearch:
         end: str,
         assembly: str,
         feature_types: list[str],
-        region_properties: list[str],
+        feature_properties: list[str],
         search_type: str,
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
@@ -198,7 +204,7 @@ class DNAFeatureSearch:
         if len(facets) > 0:
             prefetch_values = ["facet_values", "facet_values__facet"]
 
-        if "regeffects" in region_properties:
+        if "regeffects" in feature_properties:
             prefetch_values.extend(
                 [
                     "source_for",

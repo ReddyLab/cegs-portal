@@ -63,7 +63,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "ref_genome_patch": feature_obj.ref_genome_patch,
     }
 
-    if options is not None and "regeffects" in options.get("region_properties", []):
+    if options is not None and "regeffects" in options.get("feature_properties", []):
         result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
         result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
 
