@@ -28,7 +28,7 @@ def regulatory_effect(
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
-        "experiment": {"id": reg_effect.experiment.id, "name": reg_effect.experiment.name},
+        "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
         "source_ids": [str(source.id) for source in reg_effect.sources.all()],
         "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
     }

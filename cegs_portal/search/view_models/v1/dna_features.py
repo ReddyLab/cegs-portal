@@ -41,13 +41,7 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects.filter(**{id_field: feature_id}).prefetch_related(
             "children",
-            "closest_gene",
             "closest_features",
-            "source_for",
-            "source_for__experiment",
-            "source_for__facet_values",
-            "source_for__facet_values__facet",
-            "source_for__targets",
             "target_of",
             "target_of__experiment",
             "target_of__facet_values",
