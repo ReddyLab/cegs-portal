@@ -75,7 +75,7 @@ class RegEffectSearch:
             .prefetch_related(
                 "experiment",
                 "sources",
-                "sources",
+                "targets",
             )
             .order_by("targets__accession_id")
         )

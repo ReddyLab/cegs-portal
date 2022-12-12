@@ -71,6 +71,37 @@ function reTable(regeffects, regionID="regeffect") {
     return newTable;
 }
 
+function reTargetTable(regeffects, regionID="regeffect") {
+    let newTable = e("table", {id: regionID,  class: "data-table"}, [
+        e("tr", [
+            e("th", "ID"),
+            e("th", "Effect Size"),
+            e("th", "Direction"),
+            e("th", "Significance"),
+            e("th", "Experiment"),
+            e("th", "Source")
+        ])
+    ])
+    for(let effect of regeffects) {
+        if(effect.source_ids == 0) {
+            effect.source_ids = [null];
+        }
+        for(const source of effect.source_ids) {
+            newTable.append(
+                e("tr", [
+                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
+                    e("td", `${effect.effect_size.toExponential(3)}`),
+                    e("td", `${effect.direction}`),
+                    e("td", `${effect.significance.toExponential(3)}`),
+                    e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
+                    source == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/ensemble/${source}`}, source)),
+                ])
+            )
+        }
+    }
+    return newTable;
+}
+
 function newPagination(paginationID, pageData, idPrefix="",  pageQueryParam="page") {
     if (idPrefix != "") {
         idPrefix = `${idPrefix}_`
@@ -152,4 +183,4 @@ function dataPages(startPage, dataURLFunction, dataTableFunction, emptyDataTable
     return pageFunc.bind(pageFunc);
 }
 
-export { pageLink, dataPages, newPagination, featureTable, emptyFeatureTable, emptyRETable, reTable };
+export { pageLink, dataPages, newPagination, featureTable, emptyFeatureTable, emptyRETable, reTable, reTargetTable };

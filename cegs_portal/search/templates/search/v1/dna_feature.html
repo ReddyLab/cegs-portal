@@ -9,14 +9,14 @@
 {% endblock %}
 
 {% block content %}
-    {% for feature, sources in feature_sources %}
+    {% for feature, sources, targets in feature_reos %}
         <div class="mb-8">
             <div>
                 <span class="text-2xl font-bold">{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span class="text-2xl">({{ feature.ensembl_id }})</span>{% endif %}
-                {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">{{ children_name }}</a></span>{% endif %}
-                {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Other Nearby Features</a></span>{% endif %}
-                {% if sources.page.object_list|length > 0 %}<span><a href="#source-for-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Source for Regulatory Effect Observations</a></span>{% endif %}
-                {% if feature.target_of.all|length > 0 %}<span><a href="#target-of-{{ feature.ensembl_id }}-{{ feature.ref_genome }}">Targeting Regulatory Effect Observations</a></span>{% endif %}
+                {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.accession_id }}">{{ children_name }}</a></span>{% endif %}
+                {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.accession_id }}">Other Nearby Features</a></span>{% endif %}
+                {% if sources.page.object_list|length > 0 %}<span><a href="#source-for-{{ feature.accession_id }}">Source for Regulatory Effect Observations</a></span>{% endif %}
+                {% if targets.page.object_list|length > 0 %}<span><a href="#target-of-{{ feature.accession_id }}">Targeting Regulatory Effect Observations</a></span>{% endif %}
             </div>
             {% if feature.feature_subtype %}<div>Type: {{ feature.feature_subtype }}</div>{% endif %}
             <table class="data-table">
@@ -32,7 +32,7 @@
 
             {% if feature.children.all|length > 0 %}
             <div class="mb-8">
-                <a name="children-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
+                <a name="children-{{ feature.accession_id }}"></a>
                 <span class="text-xl font-bold">Children</span>
                 <table class="data-table">
                     <tr><th>ENSEMBL ID</th><th>Type</th><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
@@ -53,13 +53,9 @@
     {% endfor %}
 
     {% for feature in features %}
-
-    {% endfor %}
-
-    {% for feature in features %}
         {% if feature.closest_features.all|length > 0 %}
         <div>
-            <a name="closest-features-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
+            <a name="closest-features-{{ feature.accession_id }}"></a>
             <div class="text-xl font-bold">Nearby DNA Features</div>
             <table class="data-table">
                 <tr><th>ID</th><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
@@ -78,46 +74,17 @@
         {% endif %}
     {% endfor %}
 
-    {% for feature, sources in feature_sources %}
+    {% for feature, sources, targets in feature_reos %}
         {% if sources.page.object_list|length > 0 %}
         <div>
-            <a name="source-for-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
-
+            <a name="source-for-{{ feature.accession_id }}"></a>
             {% include "search/v1/partials/_paged_nav.html" with data=sources.page name="Source for Regulatory Effect Observations" no_data="" container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
-
-
         </div>
         {% endif %}
-        {% if feature.target_of.all|length > 0 %}
+        {% if targets.page.object_list|length > 0 %}
         <div>
-            <a name="target-of-{{ feature.ensembl_id }}-{{ feature.ref_genome }}"></a>
-            <div class="text-xl font-bold">Targeting Regulatory Effect Observations</div>
-            <table class="data-table">
-                <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
-                {% for regeffect in feature.target_of.all %}
-                    {% for re_source in regeffect.sources.all %}
-                    <tr>
-                        {% if forloop.first %}
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
-                        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
-                        {% endif %}
-                        <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
-                    </tr>
-                    {% empty %}
-                        <tr>
-                            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-                            <td>{{ regeffect.effect_size }}</td>
-                            <td>{{ regeffect.direction }}</td>
-                            <td>{{ regeffect.significance }}</td>
-                            <td><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
-                            <td>-</td>
-                        </tr>
-                    {% endfor %}
-                {% endfor %}
-            </table>
+            <a name="target-of-{{ feature.accession_id }}"></a>
+            {% include "search/v1/partials/_paged_nav.html" with data=targets.page name="Targeting Regulatory Effect Observations" no_data="" container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
         </div>
         {% endif %}
     {% endfor %}
@@ -139,7 +106,7 @@
     <script type="module">
         import { g } from "{% static 'search/js/dom.js' %}";
         import { featureTable } from "{% static 'search/js/tables.js' %}"
-        import { dataPages, reTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
+        import { dataPages, reTable, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
 
         let assemblies = [
             {% for feature in features %}
@@ -176,37 +143,51 @@
             return `/search/regeffect/source/${accessionID}?accept=application/json`;
         };
 
-        let __genDataPages = function(accessionID, page, prefix) {
-    return dataPages(
-        page,
-        _ => sourceForURL(accessionID),
-        reTable,
-        emptyRETable,
-        feature => true,
-        "",
-        prefix,
-        `${prefix}_pagination`,
-        prefix,
-        "page"
-    );
-}
+        let targetOfURL = function(accessionID) {
+            return `/search/regeffect/target/${accessionID}?accept=application/json`;
+        };
 
-let __getPages;
+        let __genDataPages = function(accessionID, page, prefix, urlGen, tableGen) {
+            return dataPages(
+                page,
+                _ => urlGen(accessionID),
+                tableGen,
+                emptyRETable,
+                feature => true,
+                "",
+                prefix,
+                `${prefix}_pagination`,
+                prefix,
+                "page"
+            );
+        }
 
-{% for feature, sources in feature_sources %}
+        let __getSourcePages;
+        let __getTargetPages;
 
-__getPages = __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}");
+        {% for feature, sources, targets in feature_reos %}
 
-{% if sources.page.has_previous %}
-pageLink("{{ sources.nav_prefix }}_first_link", 1, __getPages);
-pageLink("{{ sources.nav_prefix }}_prev_link", {{ sources.page.previous_page_number }}, __getPages);
-{% endif %}
-{% if sources.page.has_next %}
-pageLink("{{ sources.nav_prefix }}_next_link", {{ sources.page.next_page_number }}, __getPages);
-pageLink("{{ sources.nav_prefix }}_last_link", {{ sources.page.paginator.num_pages }}, __getPages);
-{% endif %}
+        __getSourcePages = __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable);
+        __getTargetPages = __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable);
 
-{% endfor %}
+        {% if sources.page.has_previous %}
+        pageLink("{{ sources.nav_prefix }}_first_link", 1, __getSourcePages);
+        pageLink("{{ sources.nav_prefix }}_prev_link", {{ sources.page.previous_page_number }}, __getSourcePages);
+        {% endif %}
+        {% if sources.page.has_next %}
+        pageLink("{{ sources.nav_prefix }}_next_link", {{ sources.page.next_page_number }}, __getSourcePages);
+        pageLink("{{ sources.nav_prefix }}_last_link", {{ sources.page.paginator.num_pages }}, __getSourcePages);
+        {% endif %}
+        {% if targets.page.has_previous %}
+        pageLink("{{ targets.nav_prefix }}_first_link", 1, __getTargetPages);
+        pageLink("{{ targets.nav_prefix }}_prev_link", {{ targets.page.previous_page_number }}, __getTargetPages);
+        {% endif %}
+        {% if targets.page.has_next %}
+        pageLink("{{ targets.nav_prefix }}_next_link", {{ targets.page.next_page_number }}, __getTargetPages);
+        pageLink("{{ targets.nav_prefix }}_last_link", {{ targets.page.paginator.num_pages }}, __getTargetPages);
+        {% endif %}
+
+        {% endfor %}
 
 
 
