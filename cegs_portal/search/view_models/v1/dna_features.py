@@ -176,6 +176,12 @@ class DNAFeatureSearch:
 
         query = {"chrom_name": chromo}
 
+        exclude_features = []
+
+        if "search_results" in feature_types:
+            feature_types.remove("search_results")
+            exclude_features.extend([str(DNAFeatureType("exon")), str(DNAFeatureType("transcript"))])
+
         if len(feature_types) > 0:
             feature_type_db_values = [str(DNAFeatureType(f)) for f in feature_types]
             query["feature_type__in"] = feature_type_db_values
@@ -212,6 +218,10 @@ class DNAFeatureSearch:
             )
 
         features = DNAFeature.objects.filter(**query).prefetch_related(*prefetch_values)
+
+        if len(exclude_features) > 0:
+            features = features.exclude(feature_type__in=exclude_features)
+
 
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
