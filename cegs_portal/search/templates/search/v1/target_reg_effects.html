@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Target of Regulatory Effect Observations{% endblock %}
+{% block content %}
+
+
+<div class="text-xl font-bold">Target of Regulatory Effect Observations</div>
+    <table class="data-table">
+        <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
+        {% for regeffect in regeffects %}
+            {% for re_source in regeffect.sources.all %}
+            <tr>
+                {% if forloop.first %}
+                <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
+                <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
+                <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
+                <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
+                <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
+                {% endif %}
+            <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
+            </tr>
+            {% empty %}
+                <tr>
+                    <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
+                    <td>{{ regeffect.effect_size }}</td>
+                    <td>{{ regeffect.direction }}</td>
+                    <td>{{ regeffect.significance }}</td>
+                    <td><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
+                    <td>-</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if regeffects.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ regeffects.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
+                </span>
+
+                {% if regeffects.has_next %}
+                    <a href="?page={{ regeffects.next_page_number }}">next</a>
+                    <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+
+
+{% endblock %}

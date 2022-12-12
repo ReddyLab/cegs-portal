@@ -29,14 +29,14 @@ def regulatory_effect(
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
-        "source_ids": [str(source.id) for source in reg_effect.sources.all()],
-        "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
+        "source_ids": [source.accession_id for source in reg_effect.sources.all()],
+        "target_ids": [target.accession_id for target in reg_effect.targets.all()],
     }
 
     return result
 
 
-def source_reg_effects(
+def feature_reg_effects(
     reg_effects: Pageable[RegulatoryEffectObservation], options: Optional[dict[str, Any]] = None
 ) -> PageableJson:
     results = {

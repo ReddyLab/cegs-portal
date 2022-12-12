@@ -1,8 +1,8 @@
 import pytest
 
-from cegs_portal.search.json_templates.v1.source_reg_effects import (
+from cegs_portal.search.json_templates.v1.feature_reg_effects import (
+    feature_reg_effects,
     regulatory_effect,
-    source_reg_effects,
 )
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.utils.pagination_types import Pageable
@@ -21,8 +21,8 @@ def test_source_reg_effect(paged_source_reg_effects: Pageable[RegulatoryEffectOb
         "num_pages": reg_effects.paginator.num_pages,
     }
 
-    assert source_reg_effects(paged_source_reg_effects) == results
-    assert source_reg_effects(paged_source_reg_effects, {"json_format": "genoverse"}) == results
+    assert feature_reg_effects(paged_source_reg_effects) == results
+    assert feature_reg_effects(paged_source_reg_effects, {"json_format": "genoverse"}) == results
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
@@ -34,8 +34,8 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
-        "source_ids": [str(source.id) for source in reg_effect.sources.all()],
-        "target_ids": [target.ensembl_id for target in reg_effect.targets.all()],
+        "source_ids": [source.accession_id for source in reg_effect.sources.all()],
+        "target_ids": [target.accession_id for target in reg_effect.targets.all()],
     }
 
     assert regulatory_effect(reg_effect) == results

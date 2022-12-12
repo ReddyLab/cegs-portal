@@ -68,6 +68,21 @@ class RegEffectSearch:
         return reg_effects
 
     @classmethod
+    def target_search(cls, source_id: str):
+        reg_effects = (
+            RegulatoryEffectObservation.objects.with_facet_values()
+            .filter(targets__accession_id=source_id)
+            .prefetch_related(
+                "experiment",
+                "sources",
+                "sources",
+            )
+            .order_by("targets__accession_id")
+        )
+
+        return reg_effects
+
+    @classmethod
     def feature_search(cls, features: list[DNAFeature]):
         reg_effects = (
             RegulatoryEffectObservation.objects.with_facet_values()
