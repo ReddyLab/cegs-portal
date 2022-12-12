@@ -222,7 +222,6 @@ class DNAFeatureSearch:
         if len(exclude_features) > 0:
             features = features.exclude(feature_type__in=exclude_features)
 
-
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
 
