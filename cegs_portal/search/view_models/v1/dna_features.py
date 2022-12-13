@@ -8,6 +8,8 @@ from cegs_portal.search.models import DNAFeature, DNAFeatureType, QueryToken
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
 
+PSEUDO_FEATURE_TYPES = {"search_results": set(DNAFeatureType) - set([DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT])}
+
 
 # TODO: create StrEnum class so e.g., `"ensemble" == IdType.ENSEMBL` works as expected
 class IdType(Enum):
@@ -176,15 +178,15 @@ class DNAFeatureSearch:
 
         query = {"chrom_name": chromo}
 
-        exclude_features = []
+        new_feature_types = []
+        for ft in feature_types:
+            if ft in PSEUDO_FEATURE_TYPES:
+                new_feature_types.extend(PSEUDO_FEATURE_TYPES[ft])
+            else:
+                new_feature_types.append(DNAFeatureType(ft))
 
-        if "search_results" in feature_types:
-            feature_types.remove("search_results")
-            exclude_features.extend([str(DNAFeatureType("exon")), str(DNAFeatureType("transcript"))])
-
-        if len(feature_types) > 0:
-            feature_type_db_values = [str(DNAFeatureType(f)) for f in feature_types]
-            query["feature_type__in"] = feature_type_db_values
+        if len(new_feature_types) > 0:
+            query["feature_type__in"] = new_feature_types
 
         field = "location"
         if search_type == LocSearchType.EXACT.value:
@@ -218,9 +220,6 @@ class DNAFeatureSearch:
             )
 
         features = DNAFeature.objects.filter(**query).prefetch_related(*prefetch_values)
-
-        if len(exclude_features) > 0:
-            features = features.exclude(feature_type__in=exclude_features)
 
         if len(facets) > 0:
             features = features.filter(facet_values__in=facets)
