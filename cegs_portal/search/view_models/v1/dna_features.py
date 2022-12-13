@@ -8,8 +8,6 @@ from cegs_portal.search.models import DNAFeature, DNAFeatureType, QueryToken
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
 
-PSEUDO_FEATURE_TYPES = {"search_results": set(DNAFeatureType) - set([DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT])}
-
 
 # TODO: create StrEnum class so e.g., `"ensemble" == IdType.ENSEMBL` works as expected
 class IdType(Enum):
@@ -30,6 +28,11 @@ def join_fields(*field_names):
 
 
 class DNAFeatureSearch:
+    SEARCH_RESULTS_PFT = "search_results"
+    PSEUDO_FEATURE_TYPES = {
+        SEARCH_RESULTS_PFT: set(DNAFeatureType) - set([DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT])
+    }
+
     @classmethod
     def id_search(cls, id_type: str, feature_id: str, distinct=True) -> QuerySet[DNAFeature]:
         if id_type == IdType.ENSEMBL.value:
@@ -180,8 +183,8 @@ class DNAFeatureSearch:
 
         new_feature_types = []
         for ft in feature_types:
-            if ft in PSEUDO_FEATURE_TYPES:
-                new_feature_types.extend(PSEUDO_FEATURE_TYPES[ft])
+            if ft in cls.PSEUDO_FEATURE_TYPES:
+                new_feature_types.extend(cls.PSEUDO_FEATURE_TYPES[ft])
             else:
                 new_feature_types.append(DNAFeatureType(ft))
 
