@@ -62,7 +62,7 @@ class RegEffectSearch:
                 "sources",
                 "targets",
             )
-            .order_by("sources__accession_id")
+            .order_by("accession_id")
         )
 
         return reg_effects
@@ -77,7 +77,7 @@ class RegEffectSearch:
                 "sources",
                 "targets",
             )
-            .order_by("targets__accession_id")
+            .order_by("accession_id")
         )
 
         return reg_effects

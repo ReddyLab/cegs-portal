@@ -79,4 +79,4 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
         return self.facet_num_values[RegulatoryEffectObservation.Facet.RAW_P_VALUE.value]
 
     def __str__(self):
-        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501
+        return f"{self.accession_id}: {self.sources.count()} source(s) -> {self.effect_size} ({self.direction}) on {self.targets.count()} target(s)"  # noqa: E501

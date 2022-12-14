@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 
 def test_target_reg_effects_list_json(client: Client, target_reg_effects):
     target = target_reg_effects["target"]
-    effects = target_reg_effects["effects"]
+    effects = sorted(target_reg_effects["effects"], key=lambda x: x.accession_id)
     response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json")
 
     assert response.status_code == 200
@@ -27,7 +27,7 @@ def test_target_reg_effects_list_json(client: Client, target_reg_effects):
 
 def test_target_reg_effects_list_page_json(client: Client, target_reg_effects):
     target = target_reg_effects["target"]
-    effects = target_reg_effects["effects"]
+    effects = sorted(target_reg_effects["effects"], key=lambda x: x.accession_id)
     response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json&page=1&per_page=1")
 
     assert response.status_code == 200
@@ -36,7 +36,7 @@ def test_target_reg_effects_list_page_json(client: Client, target_reg_effects):
     assert len(json_content["object_list"]) == 1
     assert json_content["num_pages"] == 3
 
-    json_reo = sorted(json_content["object_list"], key=lambda x: x["accession_id"])[0]
+    json_reo = json_content["object_list"][0]
     reo = effects[0]
 
     assert json_reo["accession_id"] == reo.accession_id
