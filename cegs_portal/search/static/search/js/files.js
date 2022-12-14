@@ -1,12 +1,11 @@
 export function getJson(path) {
-   return fetch(path, {credentials: "include"})
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
-            }
+    return fetch(path, {credentials: "include"}).then((response) => {
+        if (!response.ok) {
+            throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
+        }
 
-            return response.json();
-        });
+        return response.json();
+    });
 }
 
 export function postJson(path, body) {
@@ -15,17 +14,16 @@ export function postJson(path, body) {
         credentials: "include",
         body: body,
         headers: {
-            "Accept": "application/json"
+            Accept: "application/json",
         },
-        mode: "same-origin"
+        mode: "same-origin",
     };
 
-    return fetch(path, init)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
-            }
+    return fetch(path, init).then((response) => {
+        if (!response.ok) {
+            throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
+        }
 
-            return response.json();
-        });
+        return response.json();
+    });
 }

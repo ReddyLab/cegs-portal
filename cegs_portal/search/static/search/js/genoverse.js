@@ -125,45 +125,48 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         this.browser.updateSharedState("dhs-effect-data", allEffectfulDHSs);
     },
     getData: function (chr, start, end, done) {
-            start = Math.max(1, start);
-            end = Math.min(this.browser.getChromosomeSize(chr), end);
+        start = Math.max(1, start);
+        end = Math.min(this.browser.getChromosomeSize(chr), end);
 
-            var deferred = $.Deferred();
+        var deferred = $.Deferred();
 
-            if (typeof this.data !== "undefined") {
-                this.receiveData(
-                    typeof this.data.sort === "function"
-                        ? this.data.sort(function (a, b) {
-                              return a.start - b.start;
-                          })
-                        : this.data,
-                    chr,
-                    start,
-                    end
-                );
-                return deferred.resolveWith(this);
+        if (typeof this.data !== "undefined") {
+            this.receiveData(
+                typeof this.data.sort === "function"
+                    ? this.data.sort(function (a, b) {
+                          return a.start - b.start;
+                      })
+                    : this.data,
+                chr,
+                start,
+                end
+            );
+            return deferred.resolveWith(this);
+        }
+
+        var model = this;
+        var bins = [];
+        var length = end - start + 1;
+
+        if (!this.url) {
+            return deferred.resolveWith(this);
+        }
+
+        if (this.dataRequestLimit && length > this.dataRequestLimit) {
+            var i = Math.ceil(length / this.dataRequestLimit);
+
+            while (i--) {
+                bins.push([start, i ? (start += this.dataRequestLimit - 1) : end]);
+                start++;
             }
+        } else {
+            bins.push([start, end]);
+        }
 
-            var model = this;
-            var bins = [];
-            var length = end - start + 1;
-
-            if (!this.url) {
-                return deferred.resolveWith(this);
-            }
-
-            if (this.dataRequestLimit && length > this.dataRequestLimit) {
-                var i = Math.ceil(length / this.dataRequestLimit);
-
-                while (i--) {
-                    bins.push([start, i ? (start += this.dataRequestLimit - 1) : end]);
-                    start++;
-                }
-            } else {
-                bins.push([start, end]);
-            }
-
-            $.when.apply($, $.map(bins, function (bin) {
+        $.when
+            .apply(
+                $,
+                $.map(bins, function (bin) {
                     var request = $.ajax({
                         url: model.parseURL(chr, bin[0], bin[1]),
                         data: model.urlParams,
@@ -204,8 +207,8 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                 deferred.resolveWith(model);
             });
 
-            return deferred;
-        },
+        return deferred;
+    },
     parseData: function (data, chr) {
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
@@ -222,7 +225,9 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
     parseData: function (data, chr) {
         for (let feature of data) {
             feature.label =
-                feature.strand === "+" ? `${feature.name} (${feature.ensembl_id}) >` : `< ${feature.name} (${feature.ensembl_id})`;
+                feature.strand === "+"
+                    ? `${feature.name} (${feature.ensembl_id}) >`
+                    : `< ${feature.name} (${feature.ensembl_id})`;
             this.insertFeature(feature);
         }
     },
@@ -293,20 +298,19 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
             return d.type === "transcript";
         }).forEach(function (transcript, i) {
             if (!featuresById[transcript.id]) {
-                model.geneIds[transcript.parent_id] =
-                    model.geneIds[transcript.parent_id] || ++model.seenGenes;
+                model.geneIds[transcript.parent_id] = model.geneIds[transcript.parent_id] || ++model.seenGenes;
 
-                    transcript.label =
+                transcript.label =
                     parseInt(transcript.strand, 10) === 1
                         ? (transcript.name || transcript.ensembl_id) + " >"
                         : "< " + (transcript.name || transcript.ensembl_id);
-                        transcript.sort =
+                transcript.sort =
                     model.geneIds[transcript.parent_id] * 1e10 +
                     (transcript.subtype === "protein_coding" ? 0 : 1e9) +
                     transcript.start +
                     i;
-                    transcript.exons = {};
-                    transcript.subFeatures = [];
+                transcript.exons = {};
+                transcript.subFeatures = [];
 
                 model.insertFeature(transcript);
             }
@@ -317,7 +321,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
         data.filter(function (d) {
             return d.type === "exon" && featuresById[d.parent_id];
         }).forEach(function (exon) {
-                featuresById[exon.parent_id].subFeatures.push(exon);
+            featuresById[exon.parent_id].subFeatures.push(exon);
         });
 
         ids.forEach(function (id) {
@@ -417,7 +421,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
     legend: Genoverse.Track.Legend.extend({
-        name: "Results Legend"
+        name: "Results Legend",
     }),
     populateMenu: function (feature) {
         if (["gene", "exon", "transcript"].includes(feature.type)) {

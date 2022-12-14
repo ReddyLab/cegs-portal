@@ -5,17 +5,17 @@ function shallowClone(data) {
             chrom: chromosome.chrom,
             bucket_size: chromosome.bucket_size,
             target_intervals: Array(chromosome.target_intervals.length),
-            source_intervals: Array(chromosome.source_intervals.length)
-        })
+            source_intervals: Array(chromosome.source_intervals.length),
+        });
     }
     return newData;
 }
 
 function contains(x, y) {
-    for(const xItem of x) {
+    for (const xItem of x) {
         for (const yItem of y) {
             if (xItem === yItem) {
-                return true
+                return true;
             }
         }
     }
@@ -24,7 +24,7 @@ function contains(x, y) {
 
 function intersection(x, y) {
     let intersect = [];
-    for(const xItem of x) {
+    for (const xItem of x) {
         for (const yItem of y) {
             if (xItem === yItem) {
                 intersect.push(xItem);

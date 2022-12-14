@@ -1,5 +1,5 @@
 function a(p, c) {
-    p.appendChild(c)
+    p.appendChild(c);
 }
 
 function e(name) {
@@ -56,4 +56,4 @@ function rc(p, c) {
     a(p, c);
 }
 
-export { a, cc, e, g, rc, t };
+export {a, cc, e, g, rc, t};

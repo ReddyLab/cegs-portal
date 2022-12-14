@@ -5,7 +5,7 @@ export function State(initialState) {
 
     for (const key of this.keys) {
         this._callbacks[key] = [];
-    };
+    }
 
     this._checkSharedStateKey = function (key) {
         if (!Object.keys(this._sharedState).includes(key)) {
@@ -43,7 +43,7 @@ export function State(initialState) {
         for (const key of keys) {
             this._checkSharedStateKey(key);
 
-            this._callbacks[key].push(callback)
+            this._callbacks[key].push(callback);
         }
     };
 

@@ -1,4 +1,3 @@
-
 // Implement insert and range search in an AVL tree https://en.wikipedia.org/wiki/AVL_tree
 export function RangeTreeNode(data) {
     if (!data) {
@@ -16,29 +15,29 @@ export function RangeTreeNode(data) {
     this.left = null;
     this.right = null;
 
-    this.link = function(a) {
+    this.link = function (a) {
         if (a == 1) {
             return this.right;
         } else if (a == -1) {
             return this.left;
         } else {
-            throw `Invalid link value ${a}`
+            throw `Invalid link value ${a}`;
         }
-    }
+    };
 
-    this.setLink = function(a, value) {
+    this.setLink = function (a, value) {
         if (a == 1) {
             this.right = value;
         } else if (a == -1) {
             this.left = value;
         } else {
-            throw `Invalid link value ${a}`
+            throw `Invalid link value ${a}`;
         }
-    }
+    };
 
-    this.isLeaf = function() {
+    this.isLeaf = function () {
         return this.left === null && this.right === null;
-    }
+    };
 }
 
 export function RangeTree(updateFn) {
@@ -47,7 +46,7 @@ export function RangeTree(updateFn) {
     this.updateFn = updateFn ? updateFn : (_newData, oldData) => oldData;
 
     // AVL insert based on Knuth's AoCP Vol. 3 §6.2.3
-    this.insert = function(data) {
+    this.insert = function (data) {
         if (data.key === undefined || data.key === null) {
             throw "Data doesn't have a key";
         }
@@ -72,7 +71,7 @@ export function RangeTree(updateFn) {
                 if (pNext === null) {
                     // Inserts are always at leaves
                     pNext = new RangeTreeNode(data); // A5: Insert
-                    let newNode = new RangeTreeNode(p.data)
+                    let newNode = new RangeTreeNode(p.data);
                     p.left = pNext;
                     p.right = newNode;
                     p.key = data.key;
@@ -92,7 +91,7 @@ export function RangeTree(updateFn) {
                 if (pNext === null) {
                     // Inserts are always at leaves
                     pNext = new RangeTreeNode(data); // A5: Insert
-                    let newNode = new RangeTreeNode(p.data)
+                    let newNode = new RangeTreeNode(p.data);
                     p.right = pNext;
                     p.left = newNode;
                     break;
@@ -106,7 +105,7 @@ export function RangeTree(updateFn) {
             } else {
                 // A5: Insert, kinda
                 if (p.isLeaf()) {
-                    p.data = this.updateFn(data, p.data)
+                    p.data = this.updateFn(data, p.data);
                     return;
                 } else {
                     pNext = p.left;
@@ -143,7 +142,7 @@ export function RangeTree(updateFn) {
         // that shouldn't be true anymore, except for pNext's parent. pNext's parent should now have two children,
         // pNext and a copy of itself, so it is balanced.
         while (p.left != pNext && p.right != pNext) {
-            if(key < p.key) {
+            if (key < p.key) {
                 p.balanceFactor = -1;
                 p = p.left;
             } else if (key > p.key) {
@@ -189,7 +188,7 @@ export function RangeTree(updateFn) {
                 p.setLink(a, r);
                 rebalancePoint.setLink(a, p.link(-a));
                 p.setLink(-a, rebalancePoint);
-                if (p.balanceFactor == a){
+                if (p.balanceFactor == a) {
                     rebalancePoint.balanceFactor = -a;
                     r.balanceFactor = 0;
                 } else if (p.balanceFactor == 0) {
@@ -205,7 +204,7 @@ export function RangeTree(updateFn) {
 
         // A10: Finishing touch
         // Change rotation point parent to point at the new root of the rotated subtree
-        if (rebalancePointParent === this){
+        if (rebalancePointParent === this) {
             // Handle the case where the rotation point parent is the root of the tree
             this.root = p;
         } else if (rebalancePoint === rebalancePointParent.right) {
@@ -215,7 +214,7 @@ export function RangeTree(updateFn) {
         }
     };
 
-    this.count = function() {
+    this.count = function () {
         let count = 0;
 
         let toCheck = [this.root];
@@ -231,18 +230,18 @@ export function RangeTree(updateFn) {
         }
 
         return count;
-    }
+    };
 
-    this.print = function() {
+    this.print = function () {
         let nextLevel = [];
         let toPrint = [this.root];
         let fullString = "";
         while (toPrint.length != 0) {
             let levelString = "";
-            while(toPrint.length != 0) {
+            while (toPrint.length != 0) {
                 let node = toPrint.shift();
                 if (node) {
-                    levelString += `${node.key}(${node.balanceFactor})${node.isLeaf() ? '*' : ''} `;
+                    levelString += `${node.key}(${node.balanceFactor})${node.isLeaf() ? "*" : ""} `;
                     nextLevel.push(node.left);
                     nextLevel.push(node.right);
                 } else {
@@ -254,47 +253,47 @@ export function RangeTree(updateFn) {
             nextLevel = [];
         }
         console.log(fullString);
-    }
+    };
 
-    this.search = function(x, y) {
+    this.search = function (x, y) {
         let vSplit = this._findSplitNode(x, y);
-        let values = []
+        let values = [];
         if (vSplit.isLeaf()) {
             let vSplitKey = vSplit.key;
             if (vSplitKey >= x || vSplitKey <= y) {
-                values.push(vSplit.data)
+                values.push(vSplit.data);
             }
         } else {
             let node = vSplit.left;
             while (!node.isLeaf()) {
                 if (x <= node.key) {
-                    values.unshift(...this._subtreeLeafData(node.right))
+                    values.unshift(...this._subtreeLeafData(node.right));
                     node = node.left;
                 } else {
                     node = node.right;
                 }
             }
             if (node.key >= x && node.key <= y) {
-                values.unshift(node.data)
+                values.unshift(node.data);
             }
             node = vSplit.right;
             while (!node.isLeaf()) {
                 if (y >= node.key) {
-                    values.push(...this._subtreeLeafData(node.left))
+                    values.push(...this._subtreeLeafData(node.left));
                     node = node.right;
                 } else {
                     node = node.left;
                 }
             }
             if (node.key >= x && node.key <= y) {
-                values.push(node.data)
+                values.push(node.data);
             }
         }
 
         return values;
-    }
+    };
 
-    this._findSplitNode = function(x, y) {
+    this._findSplitNode = function (x, y) {
         let node = this.root;
         let nodeKey = node.key;
         while (!node.isLeaf() && (x > nodeKey || y <= nodeKey)) {
@@ -306,9 +305,9 @@ export function RangeTree(updateFn) {
             nodeKey = node.key;
         }
         return node;
-    }
+    };
 
-    this._subtreeLeafData = function(node) {
+    this._subtreeLeafData = function (node) {
         if (!node) {
             return [];
         }
@@ -331,5 +330,5 @@ export function RangeTree(updateFn) {
         }
 
         return leaves;
-    }
+    };
 }

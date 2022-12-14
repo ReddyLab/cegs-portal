@@ -9,13 +9,13 @@ onmessage = function (e) {
     let newData = shallowClone(data);
 
     for (let cIdx = 0; cIdx < data.length; cIdx++) {
-        newData[cIdx].source_intervals = data[cIdx].source_intervals.filter(inter => {
+        newData[cIdx].source_intervals = data[cIdx].source_intervals.filter((inter) => {
             return inter.count >= sourceFilter[0] && inter.count <= sourceFilter[1];
         });
-        newData[cIdx].target_intervals = data[cIdx].target_intervals.filter(inter => {
+        newData[cIdx].target_intervals = data[cIdx].target_intervals.filter((inter) => {
             return inter.count >= targetFilter[0] && inter.count <= targetFilter[1];
         });
     }
 
     postMessage(newData);
-}
+};

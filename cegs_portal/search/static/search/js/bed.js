@@ -1,9 +1,9 @@
-import { getLines } from "./text.js";
+import {getLines} from "./text.js";
 
-const getRegions = function(text) {
-    let regions = {}
+const getRegions = function (text) {
+    let regions = {};
     for (let line of getLines(text)) {
-        let fields = line.split('\t');
+        let fields = line.split("\t");
         let chrom = fields[0].replace("chr", "");
         let start = parseInt(fields[1]);
         let end = parseInt(fields[2]);
@@ -16,6 +16,6 @@ const getRegions = function(text) {
     }
 
     return regions;
-}
+};
 
-export { getRegions }
+export {getRegions};
