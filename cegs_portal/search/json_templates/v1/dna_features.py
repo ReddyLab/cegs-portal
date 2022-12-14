@@ -63,7 +63,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "ref_genome_patch": feature_obj.ref_genome_patch,
     }
 
-    if options is not None and "regeffects" in options.get("region_properties", []):
+    if options is not None and "regeffects" in options.get("feature_properties", []):
         result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
         result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
 
@@ -80,7 +80,7 @@ def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, 
         "direction": re_obj.direction,
         "significance": re_obj.significance,
         "experiment_id": re_obj.experiment_accession_id,
-        "targets": [{"name": regeffect.name, "ensembl_id": regeffect.ensembl_id} for regeffect in re_obj.targets.all()],
+        "targets": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in re_obj.targets.all()],
     }
 
     if options is not None and options.get("json_format", None) == "genoverse":
