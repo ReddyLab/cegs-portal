@@ -46,11 +46,10 @@ export class Tooltip {
         this.node.removeAttribute("display");
         this.node.setAttribute(
             "transform",
-            `translate(${this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX}, ${
-                this.renderContext.yInset +
-                chomIdx *
-                    (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
-                    scaleY
+            `translate(${this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX}, ${this.renderContext.yInset +
+            chomIdx *
+            (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
+            scaleY
             }) scale(2)`
         );
         this._count.textContent = `Ct: ${d.count}`;
@@ -194,7 +193,7 @@ export class GenomeRenderer {
         const bucketHeight = 44 * scaleY;
         const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
         const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
-        const scales = {scale, scaleX, scaleY};
+        const scales = { scale, scaleX, scaleY };
 
         const svg = d3
             .create("svg")
@@ -237,7 +236,7 @@ export class GenomeRenderer {
                     this.renderContext.yInset +
                     (this.chromDimensions.chromHeight / 2 +
                         (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) *
-                        scaleY
+                    scaleY
             )
             .attr("font-size", Math.max(Math.ceil(14 * (scaleY * 0.3)), 32))
             .text((chromo) => chromo.chrom);
@@ -284,7 +283,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY
+                    (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -322,7 +321,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY
+                    (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -381,7 +380,7 @@ export class GenomeRenderer {
                     mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    this.onBucketClick(i, rect.start, this);
+                    this.onBucketClick(i, chromName, rect.start, rect.end, this);
                 });
 
             targetRects
