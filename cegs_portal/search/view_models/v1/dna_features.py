@@ -28,6 +28,11 @@ def join_fields(*field_names):
 
 
 class DNAFeatureSearch:
+    SEARCH_RESULTS_PFT = "search_results"
+    PSEUDO_FEATURE_TYPES = {
+        SEARCH_RESULTS_PFT: set(DNAFeatureType) - set([DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT])
+    }
+
     @classmethod
     def id_search(
         cls, id_type: str, feature_id: str, feature_properties: list[str] = list, distinct=True
@@ -182,9 +187,15 @@ class DNAFeatureSearch:
 
         query = {"chrom_name": chromo}
 
-        if len(feature_types) > 0:
-            feature_type_db_values = [str(DNAFeatureType(f)) for f in feature_types]
-            query["feature_type__in"] = feature_type_db_values
+        new_feature_types = []
+        for ft in feature_types:
+            if ft in cls.PSEUDO_FEATURE_TYPES:
+                new_feature_types.extend(cls.PSEUDO_FEATURE_TYPES[ft])
+            else:
+                new_feature_types.append(DNAFeatureType(ft))
+
+        if len(new_feature_types) > 0:
+            query["feature_type__in"] = new_feature_types
 
         field = "location"
         if search_type == LocSearchType.EXACT.value:
