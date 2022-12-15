@@ -87,6 +87,7 @@ export class GenomeRenderer {
         this.renderContext = new VizRenderContext(this.chromDimensions, genome);
         this.tooltip = new Tooltip(this.renderContext);
         this.onBucketClick = null;
+        this.onBackgroundClick = null;
     }
 
     _chromosomeOutline(scales, d, i) {
@@ -380,8 +381,10 @@ export class GenomeRenderer {
                     mouseLeave();
                 })
                 .on("click", (event, rect) => {
+                    event.stopImmediatePropagation();
                     this.onBucketClick(i, chromName, rect.start, rect.end, this);
                 });
+
 
             targetRects
                 .on("mouseenter", (event, rect) => {
@@ -423,12 +426,15 @@ export class GenomeRenderer {
                     mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    this.onBucketClick(i, rect.start, this);
+                    event.stopImmediatePropagation();
+                    this.onBucketClick(i, chromName, rect.start, rect.end, this);
                 });
         }
 
         svg.append(() => this.tooltip.node);
-
+        svg.on("click", (event, rect) => {
+            this.onBackgroundClick(rect, this);
+        });
         return svg.node();
     }
 }

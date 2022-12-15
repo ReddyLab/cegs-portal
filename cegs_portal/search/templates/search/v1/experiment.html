@@ -178,8 +178,6 @@
         genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
             let zoomed = state.g(STATE_ZOOMED);
             if(zoomed) {
-                state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
-                state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
                 window.open(`/search/results/?query=chr${chromName}:${start}-${end}+${genomeName}`, "_blank");
             } else {
                 state.u(STATE_VIEWBOX, [
@@ -189,9 +187,18 @@
                     renderer.renderContext.viewHeight
                 ]);
                 state.u(STATE_ZOOM_CHROMO_INDEX, i);
+                state.u(STATE_ZOOMED, !zoomed);
             }
-            state.u(STATE_ZOOMED, !zoomed);
+
         }
+
+        genomeRenderer.onBackgroundClick = (rect, renderer) => {
+        let zoomed = state.g(STATE_ZOOMED);
+            if(zoomed) {
+                state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
+                state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
+                state.u(STATE_ZOOMED, !zoomed);
+            }}
 
         rc(g("chrom-data-header"), t("Experiment Coverage"));
 
