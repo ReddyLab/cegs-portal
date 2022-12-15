@@ -5,11 +5,11 @@ from django.dispatch import receiver
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.tasks.decorators import as_task
 from cegs_portal.tasks.models import ThreadTask
-from cegs_portal.utils.decorators import skip_in_testing
+from cegs_portal.utils.decorators import skip_receiver_in_testing
 
 
 @receiver(post_save, sender=Experiment)
-@skip_in_testing
+@skip_receiver_in_testing
 @as_task(pass_id=True)
 def set_access_controls(task_id, sender, instance, created, raw, using, update_fields, **kwargs):
     if created:

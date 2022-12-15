@@ -8,6 +8,12 @@ logger = logging.getLogger("django.task")
 
 
 def as_task(pass_id=False, description=None):
+    """
+    Wraps a function so it will run in a separate thread. A ThreadTask object
+    will also be created so the task will be logged in the database and the
+    state of the task can be checked.
+    """
+
     def as_task_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
