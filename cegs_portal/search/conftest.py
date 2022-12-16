@@ -7,6 +7,7 @@ from psycopg2.extras import NumericRange
 from cegs_portal.search.models import (
     Biosample,
     DNAFeature,
+    DNAFeatureType,
     EffectObservationDirectionType,
     Experiment,
     ExperimentDataFile,
@@ -279,3 +280,215 @@ def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
         2,
     )
     return paginator.page(2)
+
+
+@pytest.fixture
+def genoverse_dhs_features():
+    chrom = "chr10"
+    start = 1_000_000
+    length = 10_000
+    gap = 1_000
+    ref_genome = "GRCh38"
+    f1 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start, start + length),
+        feature_type=DNAFeatureType.DHS,
+    )
+    f2 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + length + gap, start + length * 2 + gap),
+        feature_type=DNAFeatureType.CCRE,
+    )
+    f3 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
+        feature_type=DNAFeatureType.CCRE,
+    )
+    f4 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
+        feature_type=DNAFeatureType.DHS,
+    )
+    f5 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
+        feature_type=DNAFeatureType.DHS,
+    )
+
+    g1 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        feature_type=DNAFeatureType.GENE,
+    )
+
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,))
+    _ = RegEffectFactory(sources=(f2,))
+    _ = RegEffectFactory(sources=(f3,))
+
+    g1 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        feature_type=DNAFeatureType.GENE,
+    )
+
+    return {
+        "chrom": chrom,
+        "start": start,
+        "end": start + length * 5 + gap * 4,
+        "ref_genome": ref_genome,
+        "features": [f1, f2, f3, f4, f5],
+    }
+
+
+@pytest.fixture
+def genoverse_gene_features():
+    chrom = "chr10"
+    start = 1_000_000
+    length = 10_000
+    gap = 1_000
+    ref_genome = "GRCh38"
+    f1 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        strand="-",
+        location=NumericRange(start, start + length),
+        feature_type=DNAFeatureType.GENE,
+    )
+    f2 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        strand="-",
+        location=NumericRange(start + length + gap, start + length * 2 + gap),
+        feature_type=DNAFeatureType.GENE,
+    )
+    f3 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        strand="+",
+        location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
+        feature_type=DNAFeatureType.GENE,
+    )
+    f4 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        strand="+",
+        location=NumericRange(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
+        feature_type=DNAFeatureType.GENE,
+    )
+    f5 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
+        strand="-",
+        feature_type=DNAFeatureType.GENE,
+    )
+
+    return {
+        "chrom": chrom,
+        "start": start,
+        "end": start + length * 5 + gap * 4,
+        "ref_genome": ref_genome,
+        "features": [f1, f2, f3, f4, f5],
+    }
+
+
+@pytest.fixture
+def genoverse_transcript_features():
+    chrom = "chr10"
+    start = 1_000_000
+    end = 1_100_000
+    ref_genome = "GRCh38"
+    g1 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start, start + 40_000),
+        strand="-",
+        feature_type=DNAFeatureType.GENE,
+    )
+
+    g1_t1 = DNAFeatureFactory(
+        parent=g1,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start, start + 40_000),
+        strand="-",
+        feature_type=DNAFeatureType.TRANSCRIPT,
+    )
+
+    g1_t1_e1 = DNAFeatureFactory(
+        parent=g1_t1,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start, start + 10_000),
+        strand="-",
+        feature_type=DNAFeatureType.EXON,
+    )
+    g1_t1_e2 = DNAFeatureFactory(
+        parent=g1_t1,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + 20_000, start + 40_000),
+        strand="-",
+        feature_type=DNAFeatureType.EXON,
+    )
+
+    g2 = DNAFeatureFactory(
+        parent=None,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + 50_000, end),
+        strand="+",
+        feature_type=DNAFeatureType.GENE,
+    )
+
+    g2_t1 = DNAFeatureFactory(
+        parent=g2,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + 50_000, end),
+        strand="+",
+        feature_type=DNAFeatureType.TRANSCRIPT,
+    )
+
+    g2_t1_e1 = DNAFeatureFactory(
+        parent=g2_t1,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + 50_000, start + 70_000),
+        strand="+",
+        feature_type=DNAFeatureType.EXON,
+    )
+    g2_t1_e2 = DNAFeatureFactory(
+        parent=g2_t1,
+        ref_genome=ref_genome,
+        chrom_name=chrom,
+        location=NumericRange(start + 80_000, end),
+        strand="+",
+        feature_type=DNAFeatureType.EXON,
+    )
+
+    return {
+        "chrom": chrom,
+        "start": start,
+        "end": end,
+        "ref_genome": ref_genome,
+        "features": [g1_t1, g1_t1_e1, g1_t1_e2, g2_t1, g2_t1_e1, g2_t1_e2],
+    }

@@ -37,7 +37,7 @@ def test_feature(feature: DNAFeature):
         "subtype": feature.feature_subtype,
         "ref_genome": feature.ref_genome,
         "ref_genome_patch": feature.ref_genome_patch,
-        "parent_id": feature.parent_id if feature.parent is not None else None,
+        "parent_accession_id": feature.parent_accession_id if feature.parent is not None else None,
         "misc": feature.misc,
     }
     if feature.closest_gene is not None:
@@ -54,6 +54,7 @@ def test_feature(feature: DNAFeature):
     assert "source_for" in f_dict
     assert "target_of" in f_dict
 
+    result["id"] = result["accession_id"]
     result["chr"] = feature.chrom_name.removeprefix("chr")
     assert f_json(feature, {"json_format": "genoverse"}) == result
 
@@ -69,4 +70,5 @@ def test_reg_effect(reg_effect: RegulatoryEffectObservation):
     }
 
     assert re_json(reg_effect) == result
+    result["id"] = result["accession_id"]
     assert re_json(reg_effect, {"json_format": "genoverse"}) == result
