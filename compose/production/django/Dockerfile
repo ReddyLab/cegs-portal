@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.11.0-slim-bullseye
+ARG PYTHON_VERSION=3.11.1-slim-bullseye
 
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
@@ -45,7 +45,7 @@ ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 WORKDIR ${APP_HOME}
 
 RUN addgroup --system django \
-    && adduser --system --ingroup django django
+  && adduser --system --ingroup django django
 
 RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 

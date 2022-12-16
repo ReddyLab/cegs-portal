@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.11.0-slim-bullseye
+ARG PYTHON_VERSION=3.11.1-slim-bullseye
 
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
@@ -60,7 +60,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
 
 
 RUN addgroup --system django \
-    && adduser --system --ingroup django django
+  && adduser --system --ingroup django django
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
@@ -69,7 +69,7 @@ COPY --chown=django:django --from=maturin /exp_viz/target/wheels/exp_viz-0.1.2-c
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
-	&& rm -rf /wheels/
+  && rm -rf /wheels/
 
 COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
