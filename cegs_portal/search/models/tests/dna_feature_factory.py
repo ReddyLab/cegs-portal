@@ -1,7 +1,7 @@
 import random
 
 import factory
-from factory import Faker
+from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker as F
 from psycopg2.extras import NumericRange
@@ -50,3 +50,10 @@ class DNAFeatureFactory(DjangoModelFactory):
         obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
         obj.save()
         return obj
+
+    @post_generation
+    def parent_accession_id(self, create, extracted, **kwargs):
+        if self.parent is not None:
+            self.parent_accession_id = self.parent.accession_id  # pylint: disable=no-member
+        else:
+            self.parent_accession_id = None

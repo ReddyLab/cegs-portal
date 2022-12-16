@@ -105,16 +105,17 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
     bulk_annotation_save(annotations)
 
 
-def bulk_feature_save(assemblies, parent_ids=None):
+def bulk_feature_save(features, parent_ids=None):
     if parent_ids is None:
         parent_ids = []
     with transaction.atomic():
         if len(parent_ids) > 0:
             parents = DNAFeature.objects.filter(ensembl_id__in=parent_ids)
             parents_dict = {p.ensembl_id: p for p in parents.all()}
-            for a, pid in zip(assemblies, parent_ids):
-                a.parent = parents_dict[pid]
-        DNAFeature.objects.bulk_create(assemblies)
+            for f, pid in zip(features, parent_ids):
+                f.parent = parents_dict[pid]
+                f.parent_assembly = parents_dict[pid]
+        DNAFeature.objects.bulk_create(features)
 
 
 @timer("Creating Genes", level=1)

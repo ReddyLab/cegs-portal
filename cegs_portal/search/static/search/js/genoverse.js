@@ -297,15 +297,16 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
         data.filter(function (d) {
             return d.type === "transcript";
         }).forEach(function (transcript, i) {
-            if (!featuresById[transcript.id]) {
-                model.geneIds[transcript.parent_id] = model.geneIds[transcript.parent_id] || ++model.seenGenes;
+            if (!featuresById[transcript.accession_id]) {
+                model.geneIds[transcript.parent_accession_id] =
+                    model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
 
                 transcript.label =
                     parseInt(transcript.strand, 10) === 1
                         ? (transcript.name || transcript.ensembl_id) + " >"
                         : "< " + (transcript.name || transcript.ensembl_id);
                 transcript.sort =
-                    model.geneIds[transcript.parent_id] * 1e10 +
+                    model.geneIds[transcript.parent_accession_id] * 1e10 +
                     (transcript.subtype === "protein_coding" ? 0 : 1e9) +
                     transcript.start +
                     i;
@@ -315,13 +316,13 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                 model.insertFeature(transcript);
             }
 
-            ids.push(transcript.id);
+            ids.push(transcript.accession_id);
         });
 
         data.filter(function (d) {
-            return d.type === "exon" && featuresById[d.parent_id];
+            return d.type === "exon" && featuresById[d.parent_accession_id];
         }).forEach(function (exon) {
-            featuresById[exon.parent_id].subFeatures.push(exon);
+            featuresById[exon.parent_accession_id].subFeatures.push(exon);
         });
 
         ids.forEach(function (id) {

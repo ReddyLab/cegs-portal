@@ -98,6 +98,15 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     misc = models.JSONField(null=True, blank=True)  # exon number, for instance
 
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="children", blank=True)
+    parent_accession = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        to_field="accession_id",
+        db_column="parent_accession_id",
+        related_name="children_accession",
+        blank=True,
+    )
 
     experiment_accession = models.ForeignKey(
         Experiment,
