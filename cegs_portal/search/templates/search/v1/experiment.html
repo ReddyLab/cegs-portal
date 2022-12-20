@@ -209,11 +209,12 @@
             const scaleY = state.g(STATE_SCALE_Y);
             const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
             let currentLevel = state.g(STATE_ALL_FILTERED);
+            let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
             let sourceCountInterval = countIntervals.source;
             let targetCountInterval = countIntervals.target;
 
-            rc(g("chrom-data"), genomeRenderer.render(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
+            rc(g("chrom-data"), genomeRenderer.render(currentLevel, focusIndex, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
             rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
                 title: "Source Count"
             }));
