@@ -20,3 +20,4 @@ django-allauth==0.45.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.12.0  # https://github.com/django-crispy-forms/django-crispy-forms
 django-redis==5.0.0  # https://github.com/jazzband/django-redis
 django-waffle==3.0.0  # https://github.com/django-waffle/django-waffle Feature Flags
+django-prometheus==2.2.0  # https://github.com/korfuri/django-prometheus Prometheus metrics endpoint
