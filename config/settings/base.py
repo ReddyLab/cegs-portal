@@ -278,3 +278,4 @@ FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
 # Your stuff...
 # ------------------------------------------------------------------------------
 TESTING = False
+PROMETHEUS_EXPORT_MIGRATIONS = False
