@@ -146,6 +146,11 @@ def feature() -> DNAFeature:
 
 
 @pytest.fixture
+def search_feature() -> DNAFeature:
+    return DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE)
+
+
+@pytest.fixture
 def private_feature() -> DNAFeature:
     return DNAFeatureFactory(parent=None, public=False)
 
@@ -157,15 +162,17 @@ def archived_feature() -> DNAFeature:
 
 @pytest.fixture
 def nearby_feature_mix() -> Tuple[DNAFeature]:
-    pub_feature = DNAFeatureFactory(parent=None)
+    pub_feature = DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE)
     private_feature = DNAFeatureFactory(
         parent=None,
+        feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
         public=False,
     )
     archived_feature = DNAFeatureFactory(
         parent=None,
+        feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
         archived=True,
