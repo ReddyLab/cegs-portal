@@ -81,17 +81,19 @@
         {% endif %}
 
         <div id="experiment-coverage" class="mt-4">
-            <div>
-                <form name="regionUploadForm">
-                    <div>
-                      <label class="font-bold" for="regionFile">Highlight Regions</label>
-                      <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
-                    </div>
-                  </form>
-            </div>
-            <div>
-                {% include "search/v1/partials/_multi_select.html" with select_data=other_experiments %}
-                <button id="multi-exp-filter">Filter Combined Experiment Data</button>
+            <div class="grid grid-cols-4 gap-4 auto-cols-max">
+                <div>
+                    <form name="regionUploadForm">
+                        <div>
+                        <label class="font-bold mr-2" for="regionFile">Highlight Regions</label>
+                        <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                        </div>
+                    </form>
+                </div>
+                <div>
+                    <div>{% include "search/v1/partials/_multi_select.html" with select_data=other_experiments label="Other Experiments"%}</div>
+                    <div><button id="multi-exp-filter">Filter Combined Data</button></div>
+                </div>
             </div>
             <div id="chrom-data-header" class="text-xl font-bold"></div>
             <div class="flex flex-row">

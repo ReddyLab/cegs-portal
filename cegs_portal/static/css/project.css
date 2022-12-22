@@ -643,6 +643,10 @@ input[type="submit"], input[type="button"], button {
   margin-top: 1rem;
 }
 
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
 .ml-1 {
   margin-left: 0.25rem;
 }
@@ -749,6 +753,15 @@ input[type="submit"], input[type="button"], button {
           transform: var(--tw-transform);
 }
 
+.auto-cols-max {
+  grid-auto-columns: -webkit-max-content;
+  grid-auto-columns: max-content;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
@@ -774,6 +787,10 @@ input[type="submit"], input[type="button"], button {
 
 .place-content-start {
   place-content: start;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 
 .gap-1 {
