@@ -192,32 +192,40 @@ export class GenomeRenderer {
     }
 
     _zoomOutButton(svg, chromIndex, scales, xInset) {
-        const buttonVMargin = 10;
-        const buttonHeight = this.chromDimensions.chromSpacing * scales.scaleY - buttonVMargin * 2;
-        const buttonTop =
+        const fontSize = 140;
+        const strokeSize = 3;
+        const fillColor = "#9D9D9D";
+        const cornerRadius = 2;
+        const vMargin = 10;
+        const text = "Zoom Out";
+        const textVAdjustment = 7;
+        const textHAnchor = "middle";
+        const textVAnchor = "central";
+        const height = this.chromDimensions.chromSpacing * scales.scaleY - vMargin * 2;
+        const width = 25 * scales.scaleX;
+        const top =
             this.renderContext.yInset +
             (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * chromIndex * scales.scaleY -
-            (buttonHeight + buttonVMargin);
-        const buttonWidth = 25 * scales.scaleX;
+            (height + vMargin);
 
         let buttonGroup = svg.append("g");
         let button = buttonGroup.append("rect");
         button
-            .attr("width", buttonWidth)
-            .attr("x", xInset + (this.renderContext.viewWidth - buttonWidth) / 2)
-            .attr("y", buttonTop)
-            .attr("height", buttonHeight)
-            .attr("stroke", 1)
-            .attr("fill", "#9D9D9D")
-            .attr("rx", 3 * scales.scale);
+            .attr("width", width)
+            .attr("x", xInset + (this.renderContext.viewWidth - width) / 2)
+            .attr("y", top)
+            .attr("height", height)
+            .attr("stroke-width", strokeSize)
+            .attr("fill", fillColor)
+            .attr("rx", cornerRadius * scales.scale);
         let buttonText = buttonGroup.append("text");
         buttonText
             .attr("x", xInset + this.renderContext.viewWidth / 2)
-            .attr("y", buttonTop + buttonHeight / 2 - 7)
-            .attr("font-size", 140)
-            .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "central")
-            .text("Zoom Out");
+            .attr("y", top + height / 2 - textVAdjustment)
+            .attr("font-size", fontSize)
+            .attr("text-anchor", textHAnchor)
+            .attr("dominant-baseline", textVAnchor)
+            .text(text);
     }
 
     render(
