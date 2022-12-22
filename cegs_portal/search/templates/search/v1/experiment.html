@@ -120,11 +120,13 @@
         import { mergeCoverageData, mergeFacets } from "{% static 'search/js/exp_viz/mergeDataStructures.js' %}";
 
         let genome;
+        let genomeName;
         let coverageData;
         let facets;
         try {
             let manifest = await getJson("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/coverage_manifest.json");
-            genome = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome}`);
+            genome = await getJson(`{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome.file}`);
+            genomeName = manifest.genome.name
             coverageData = manifest.chromosomes;
             facets = manifest.facets;
         } catch (error) {
@@ -173,11 +175,10 @@
             [STATE_SELECTED_EXPERIMENTS]: ["{{ experiment.accession_id }}"]
         });
 
-        genomeRenderer.onBucketClick = (i, start, renderer) => {
+        genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
             let zoomed = state.g(STATE_ZOOMED);
             if(zoomed) {
-                state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
-                state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
+                window.open(`/search/results/?query=chr${chromName}:${start}-${end}+${genomeName}`, "_blank");
             } else {
                 state.u(STATE_VIEWBOX, [
                     renderer.renderContext.xInset + renderer.renderContext.toPx(start) * 30 - renderer.renderContext.viewHeight / 6,
@@ -186,9 +187,18 @@
                     renderer.renderContext.viewHeight
                 ]);
                 state.u(STATE_ZOOM_CHROMO_INDEX, i);
+                state.u(STATE_ZOOMED, !zoomed);
             }
-            state.u(STATE_ZOOMED, !zoomed);
+
         }
+
+        genomeRenderer.onBackgroundClick = (rect, renderer) => {
+        let zoomed = state.g(STATE_ZOOMED);
+            if(zoomed) {
+                state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
+                state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
+                state.u(STATE_ZOOMED, !zoomed);
+            }}
 
         rc(g("chrom-data-header"), t("Experiment Coverage"));
 
@@ -199,11 +209,12 @@
             const scaleY = state.g(STATE_SCALE_Y);
             const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
             let currentLevel = state.g(STATE_ALL_FILTERED);
+            let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
             let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
             let sourceCountInterval = countIntervals.source;
             let targetCountInterval = countIntervals.target;
 
-            rc(g("chrom-data"), genomeRenderer.render(currentLevel, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
+            rc(g("chrom-data"), genomeRenderer.render(currentLevel, focusIndex, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions));
             rc(g("chrom-data-legend"), Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
                 title: "Source Count"
             }));

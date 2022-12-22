@@ -88,6 +88,7 @@ export class GenomeRenderer {
         this.renderContext = new VizRenderContext(this.chromDimensions, genome);
         this.tooltip = new Tooltip(this.renderContext);
         this.onBucketClick = null;
+        this.onBackgroundClick = null;
     }
 
     _chromosomeOutline(scales, d, i) {
@@ -190,7 +191,54 @@ export class GenomeRenderer {
         };
     }
 
-    render(coverageData, sourceCountInterval, targetCountInterval, viewBox, scale, scaleX, scaleY, highlightRegions) {
+    _zoomOutButton(svg, chromIndex, scales, xInset) {
+        const fontSize = 140;
+        const strokeSize = 3;
+        const fillColor = "#9D9D9D";
+        const cornerRadius = 2;
+        const vMargin = 10;
+        const text = "Zoom Out";
+        const textVAdjustment = 7;
+        const textHAnchor = "middle";
+        const textVAnchor = "central";
+        const height = this.chromDimensions.chromSpacing * scales.scaleY - vMargin * 2;
+        const width = 25 * scales.scaleX;
+        const top =
+            this.renderContext.yInset +
+            (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * chromIndex * scales.scaleY -
+            (height + vMargin);
+
+        let buttonGroup = svg.append("g");
+        let button = buttonGroup.append("rect");
+        button
+            .attr("width", width)
+            .attr("x", xInset + (this.renderContext.viewWidth - width) / 2)
+            .attr("y", top)
+            .attr("height", height)
+            .attr("stroke-width", strokeSize)
+            .attr("fill", fillColor)
+            .attr("rx", cornerRadius * scales.scale);
+        let buttonText = buttonGroup.append("text");
+        buttonText
+            .attr("x", xInset + this.renderContext.viewWidth / 2)
+            .attr("y", top + height / 2 - textVAdjustment)
+            .attr("font-size", fontSize)
+            .attr("text-anchor", textHAnchor)
+            .attr("dominant-baseline", textVAnchor)
+            .text(text);
+    }
+
+    render(
+        coverageData,
+        focusIndex,
+        sourceCountInterval,
+        targetCountInterval,
+        viewBox,
+        scale,
+        scaleX,
+        scaleY,
+        highlightRegions
+    ) {
         const bucketHeight = 44 * scaleY;
         const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
         const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
@@ -217,12 +265,17 @@ export class GenomeRenderer {
                 .attr("fill-opacity", 0.3)
                 .attr("stroke", "none")
                 .attr("d", this._chromosomeBand(scales, i));
+
             chrom
                 .append("path")
                 .attr("stroke-width", 1)
                 .attr("stroke", "black")
                 .attr("fill", "none")
                 .attr("d", this._chromosomeOutline(scales, this.genome[i], i));
+        }
+
+        if (scale > 1) {
+            this._zoomOutButton(svg, focusIndex, scales, viewBox[0]);
         }
 
         let nameGroup = svg.append("g");
@@ -381,7 +434,8 @@ export class GenomeRenderer {
                     mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    this.onBucketClick(i, rect.start, this);
+                    event.stopImmediatePropagation();
+                    this.onBucketClick(i, chromName, rect.start, rect.end, this);
                 });
 
             targetRects
@@ -424,12 +478,15 @@ export class GenomeRenderer {
                     mouseLeave();
                 })
                 .on("click", (event, rect) => {
-                    this.onBucketClick(i, rect.start, this);
+                    event.stopImmediatePropagation();
+                    this.onBucketClick(i, chromName, rect.start, rect.end, this);
                 });
         }
 
         svg.append(() => this.tooltip.node);
-
+        svg.on("click", (event, rect) => {
+            this.onBackgroundClick(rect, this);
+        });
         return svg.node();
     }
 }
