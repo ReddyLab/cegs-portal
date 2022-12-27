@@ -10,7 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL("""
+        migrations.RunSQL(
+            """
             UPDATE search_regulatoryeffectobservation SET experiment_accession_id =
             (SELECT sexper.accession_id
 	         FROM search_experiment as sexper

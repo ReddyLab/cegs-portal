@@ -6,31 +6,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0003_remove_regulatoryeffect_regulatoryeffect_srchbl_idx_and_more'),
+        ("search", "0003_remove_regulatoryeffect_regulatoryeffect_srchbl_idx_and_more"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='dnaregion',
-            name='dnaregion_srchbl_idx',
+            model_name="dnaregion",
+            name="dnaregion_srchbl_idx",
         ),
         migrations.RemoveIndex(
-            model_name='featureassembly',
-            name='featureassembly_srchbl_idx',
+            model_name="featureassembly",
+            name="featureassembly_srchbl_idx",
         ),
         migrations.AlterField(
-            model_name='dnaregion',
-            name='searchable',
+            model_name="dnaregion",
+            name="searchable",
             field=models.BooleanField(db_index=True, default=True),
         ),
         migrations.AlterField(
-            model_name='featureassembly',
-            name='searchable',
+            model_name="featureassembly",
+            name="searchable",
             field=models.BooleanField(db_index=True, default=True),
         ),
         migrations.AlterField(
-            model_name='regulatoryeffect',
-            name='searchable',
+            model_name="regulatoryeffect",
+            name="searchable",
             field=models.BooleanField(db_index=True, default=True),
         ),
     ]

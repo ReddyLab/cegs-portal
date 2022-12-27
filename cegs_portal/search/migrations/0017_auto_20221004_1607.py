@@ -10,7 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL("""
+        migrations.RunSQL(
+            """
             WITH cg AS (
                 SELECT sd1.id, sd2.ensembl_id
                 FROM search_dnafeature as sd1

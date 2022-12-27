@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0005_dnafeature_dnafeature_sdf_name_index_and_more'),
+        ("search", "0005_dnafeature_dnafeature_sdf_name_index_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dnafeature',
-            name='closest_gene_distance',
+            model_name="dnafeature",
+            name="closest_gene_distance",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='dnafeature',
-            name='closest_gene_name',
+            model_name="dnafeature",
+            name="closest_gene_name",
             field=models.CharField(max_length=50, null=True),
         ),
     ]

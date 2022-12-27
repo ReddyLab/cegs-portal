@@ -7,32 +7,52 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0002_remove_dnaregion_closest_gene_and_more'),
+        ("search", "0002_remove_dnaregion_closest_gene_and_more"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='regulatoryeffect',
-            name='regulatoryeffect_srchbl_idx',
+            model_name="regulatoryeffect",
+            name="regulatoryeffect_srchbl_idx",
         ),
         migrations.AddField(
-            model_name='dnaregion',
-            name='accession_id',
-            field=models.CharField(max_length=12, null=True, unique=True, validators=[cegs_portal.search.models.accession.validate_accession_id]),
+            model_name="dnaregion",
+            name="accession_id",
+            field=models.CharField(
+                max_length=12,
+                null=True,
+                unique=True,
+                validators=[cegs_portal.search.models.accession.validate_accession_id],
+            ),
         ),
         migrations.AddField(
-            model_name='featureassembly',
-            name='accession_id',
-            field=models.CharField(max_length=12, null=True, unique=True, validators=[cegs_portal.search.models.accession.validate_accession_id]),
+            model_name="featureassembly",
+            name="accession_id",
+            field=models.CharField(
+                max_length=12,
+                null=True,
+                unique=True,
+                validators=[cegs_portal.search.models.accession.validate_accession_id],
+            ),
         ),
         migrations.AddField(
-            model_name='regulatoryeffect',
-            name='accession_id',
-            field=models.CharField(max_length=12, null=True, unique=True, validators=[cegs_portal.search.models.accession.validate_accession_id]),
+            model_name="regulatoryeffect",
+            name="accession_id",
+            field=models.CharField(
+                max_length=12,
+                null=True,
+                unique=True,
+                validators=[cegs_portal.search.models.accession.validate_accession_id],
+            ),
         ),
         migrations.AlterField(
-            model_name='experiment',
-            name='accession_id',
-            field=models.CharField(max_length=12, null=True, unique=True, validators=[cegs_portal.search.models.accession.validate_accession_id]),
+            model_name="experiment",
+            name="accession_id",
+            field=models.CharField(
+                max_length=12,
+                null=True,
+                unique=True,
+                validators=[cegs_portal.search.models.accession.validate_accession_id],
+            ),
         ),
     ]

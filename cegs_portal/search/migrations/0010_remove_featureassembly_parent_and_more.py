@@ -8,28 +8,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0009_alter_dnafeature_closest_gene'),
+        ("search", "0009_alter_dnafeature_closest_gene"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='featureassembly',
-            name='parent',
+            model_name="featureassembly",
+            name="parent",
         ),
         migrations.AlterField(
-            model_name='dnafeature',
-            name='feature_type',
-            field=models.CharField(choices=[('DNAFeatureType.GENE', 'gene'), ('DNAFeatureType.TRANSCRIPT', 'transcript'), ('DNAFeatureType.EXON', 'exon'), ('DNAFeatureType.CCRE', 'ccre'), ('DNAFeatureType.DHS', 'dhs'), ('DNAFeatureType.GRNA', 'gRNA')], default=cegs_portal.search.models.dna_feature.DNAFeatureType['GENE'], max_length=50),
+            model_name="dnafeature",
+            name="feature_type",
+            field=models.CharField(
+                choices=[
+                    ("DNAFeatureType.GENE", "gene"),
+                    ("DNAFeatureType.TRANSCRIPT", "transcript"),
+                    ("DNAFeatureType.EXON", "exon"),
+                    ("DNAFeatureType.CCRE", "ccre"),
+                    ("DNAFeatureType.DHS", "dhs"),
+                    ("DNAFeatureType.GRNA", "gRNA"),
+                ],
+                default=cegs_portal.search.models.dna_feature.DNAFeatureType["GENE"],
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='facet',
-            name='facet_type',
-            field=models.CharField(choices=[('FacetType.DISCRETE', 'Discrete'), ('FacetType.CONTINUOUS', 'Continuous')], default=cegs_portal.search.models.facets.FacetType['CONTINUOUS'], max_length=30),
+            model_name="facet",
+            name="facet_type",
+            field=models.CharField(
+                choices=[("FacetType.DISCRETE", "Discrete"), ("FacetType.CONTINUOUS", "Continuous")],
+                default=cegs_portal.search.models.facets.FacetType["CONTINUOUS"],
+                max_length=30,
+            ),
         ),
         migrations.DeleteModel(
-            name='DNARegion',
+            name="DNARegion",
         ),
         migrations.DeleteModel(
-            name='FeatureAssembly',
+            name="FeatureAssembly",
         ),
     ]

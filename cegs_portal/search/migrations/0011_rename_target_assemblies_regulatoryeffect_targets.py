@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0010_remove_featureassembly_parent_and_more'),
+        ("search", "0010_remove_featureassembly_parent_and_more"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='regulatoryeffect',
-            old_name='target_assemblies',
-            new_name='targets',
+            model_name="regulatoryeffect",
+            old_name="target_assemblies",
+            new_name="targets",
         ),
     ]

@@ -7,18 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_alter_user_id'),
+        ("users", "0002_alter_user_id"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='experiments',
-            field=ArrayField(base_field=models.CharField(max_length=15, verbose_name='Associated Experiments'), default=list, size=None),
+            model_name="user",
+            name="experiments",
+            field=ArrayField(
+                base_field=models.CharField(max_length=15, verbose_name="Associated Experiments"),
+                default=list,
+                size=None,
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_portal_admin',
-            field=models.BooleanField(default=False, verbose_name='Is User a Portal Admin'),
+            model_name="user",
+            name="is_portal_admin",
+            field=models.BooleanField(default=False, verbose_name="Is User a Portal Admin"),
         ),
     ]

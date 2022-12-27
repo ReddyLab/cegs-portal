@@ -7,20 +7,19 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ThreadTask',
+            name="ThreadTask",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(blank=True, max_length=140, null=True)),
-                ('started_at', models.DateTimeField()),
-                ('ended_at', models.DateTimeField(blank=True, null=True)),
-                ('is_done', models.BooleanField(default=False)),
-                ('failed', models.BooleanField(default=False)),
-                ('failed_exception', models.CharField(blank=True, max_length=1024, null=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("description", models.CharField(blank=True, max_length=140, null=True)),
+                ("started_at", models.DateTimeField()),
+                ("ended_at", models.DateTimeField(blank=True, null=True)),
+                ("is_done", models.BooleanField(default=False)),
+                ("failed", models.BooleanField(default=False)),
+                ("failed_exception", models.CharField(blank=True, max_length=1024, null=True)),
             ],
         ),
     ]

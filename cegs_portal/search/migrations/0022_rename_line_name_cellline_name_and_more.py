@@ -41,9 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="cellline",
             name="tissue_type",
-            field=models.ForeignKey(
-                default=0, on_delete=django.db.models.deletion.PROTECT, to="search.tissuetype"
-            ),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.PROTECT, to="search.tissuetype"),
             preserve_default=False,
         ),
         migrations.AddField(

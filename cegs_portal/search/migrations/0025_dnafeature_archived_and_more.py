@@ -6,56 +6,70 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0024_remove_experimentdatafile_cell_line_and_more'),
+        ("search", "0024_remove_experimentdatafile_cell_line_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dnafeature',
-            name='archived',
+            model_name="dnafeature",
+            name="archived",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='dnafeature',
-            name='experiment_accession',
-            field=models.ForeignKey(db_column='experiment_accession_id', null=True, on_delete=models.deletion.CASCADE, related_name='+', to='search.experiment', to_field='accession_id'),
+            model_name="dnafeature",
+            name="experiment_accession",
+            field=models.ForeignKey(
+                db_column="experiment_accession_id",
+                null=True,
+                on_delete=models.deletion.CASCADE,
+                related_name="+",
+                to="search.experiment",
+                to_field="accession_id",
+            ),
         ),
         migrations.AddField(
-            model_name='dnafeature',
-            name='public',
+            model_name="dnafeature",
+            name="public",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='experiment',
-            name='public',
+            model_name="experiment",
+            name="public",
             field=models.BooleanField(default=True),
         ),
         migrations.RemoveField(
-            model_name='dnafeature',
-            name='searchable',
+            model_name="dnafeature",
+            name="searchable",
         ),
         migrations.AddField(
-            model_name='regulatoryeffectobservation',
-            name='archived',
+            model_name="regulatoryeffectobservation",
+            name="archived",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='regulatoryeffectobservation',
-            name='public',
+            model_name="regulatoryeffectobservation",
+            name="public",
             field=models.BooleanField(default=True),
         ),
         migrations.RenameField(
-            model_name='regulatoryeffectobservation',
-            old_name='experiment_accession_id',
-            new_name='experiment_accession',
+            model_name="regulatoryeffectobservation",
+            old_name="experiment_accession_id",
+            new_name="experiment_accession",
         ),
         migrations.AlterField(
-            model_name='regulatoryeffectobservation',
-            name='experiment_accession',
-            field=models.ForeignKey(db_column='experiment_accession_id', null=True, on_delete=models.deletion.CASCADE, related_name='+', to='search.experiment', to_field='accession_id'),
+            model_name="regulatoryeffectobservation",
+            name="experiment_accession",
+            field=models.ForeignKey(
+                db_column="experiment_accession_id",
+                null=True,
+                on_delete=models.deletion.CASCADE,
+                related_name="+",
+                to="search.experiment",
+                to_field="accession_id",
+            ),
         ),
         migrations.RemoveField(
-            model_name='regulatoryeffectobservation',
-            name='searchable',
+            model_name="regulatoryeffectobservation",
+            name="searchable",
         ),
     ]

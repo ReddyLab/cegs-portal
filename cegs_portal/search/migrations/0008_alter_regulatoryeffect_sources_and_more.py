@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0007_alter_dnafeature_feature_type'),
+        ("search", "0007_alter_dnafeature_feature_type"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='regulatoryeffect',
-            name='sources',
-            field=models.ManyToManyField(related_name='source_for', to='search.dnafeature'),
+            model_name="regulatoryeffect",
+            name="sources",
+            field=models.ManyToManyField(related_name="source_for", to="search.dnafeature"),
         ),
         migrations.AlterField(
-            model_name='regulatoryeffect',
-            name='target_assemblies',
-            field=models.ManyToManyField(related_name='target_of', to='search.dnafeature'),
+            model_name="regulatoryeffect",
+            name="target_assemblies",
+            field=models.ManyToManyField(related_name="target_of", to="search.dnafeature"),
         ),
     ]

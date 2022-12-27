@@ -7,13 +7,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0008_alter_regulatoryeffect_sources_and_more'),
+        ("search", "0008_alter_regulatoryeffect_sources_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dnafeature',
-            name='closest_gene',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='closest_features', to='search.dnafeature'),
+            model_name="dnafeature",
+            name="closest_gene",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="closest_features",
+                to="search.dnafeature",
+            ),
         ),
     ]

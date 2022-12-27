@@ -6,27 +6,27 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('search', '0001_initial'),
+        ("search", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='dnaregion',
-            name='closest_gene',
+            model_name="dnaregion",
+            name="closest_gene",
         ),
         migrations.RemoveField(
-            model_name='gencodeannotation',
-            name='feature',
+            model_name="gencodeannotation",
+            name="feature",
         ),
         migrations.RemoveField(
-            model_name='gencodeannotation',
-            name='feature_assembly',
+            model_name="gencodeannotation",
+            name="feature_assembly",
         ),
         migrations.RemoveField(
-            model_name='regulatoryeffect',
-            name='targets',
+            model_name="regulatoryeffect",
+            name="targets",
         ),
         migrations.DeleteModel(
-            name='Feature',
+            name="Feature",
         ),
     ]
