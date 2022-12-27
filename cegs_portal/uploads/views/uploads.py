@@ -3,11 +3,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import (
-    DNAFeature,
-    EffectObservationDirectionType,
-    RegulatoryEffectObservation,
-)
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 from cegs_portal.uploads.forms import UploadFileForm
 
 
@@ -29,7 +25,7 @@ def upload_complete(request):
 #  Don't actually use this right now
 def handle_uploaded_file(file):
     for line in file:
-        cell_line, chrom, start, end, name, direction, effect_size = line.decode("utf-8").split(", ")
+        cell_line, chrom, start, end, _name, _direction, _effect_size = line.decode("utf-8").split(", ")
 
         # skip header
         if cell_line == "cell_line":
@@ -42,11 +38,5 @@ def handle_uploaded_file(file):
         )
         # dhs.save()
 
-        effect_size = effect_size.strip()
-        if effect_size == "":
-            effect_size = None
-
-        re = RegulatoryEffectObservation(
-            direction=EffectObservationDirectionType(direction).value, effect_size=effect_size, sources=[dhs]
-        )
+        re = RegulatoryEffectObservation(sources=[dhs])
         re.save()
