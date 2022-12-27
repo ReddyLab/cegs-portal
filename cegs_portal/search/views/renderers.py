@@ -59,16 +59,12 @@ def _dnaregion(feature: DNAFeature, json_format=None):
         "closest_gene_name": feature.closest_gene_name,
         "ref_genome": feature.ref_genome,
         "ref_genome_patch": feature.ref_genome_patch,
-        "effects": [json(effect, json_format) for effect in feature.regulatory_effects.all()],
         "facet_values": {value.id: value.value for value in feature.facet_values.all()},
         "type": feature.get_feature_type_display(),
         "subtype": feature.feature_subtype,
         "parent_id": feature.parent.ensembl_id if feature.parent is not None else None,
         "misc": feature.misc,
     }
-
-    if hasattr(feature, "label"):
-        result["label"] = feature.label  # type: ignore[attr-defined]
 
     if json_format == "genoverse":
         result["id"] = str(feature.id)
