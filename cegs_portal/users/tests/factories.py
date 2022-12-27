@@ -13,7 +13,7 @@ class UserFactory(DjangoModelFactory):
     username = Faker("user_name")
     email = Faker("email")
     name = Faker("name")
-    experiments = []
+    experiments: list[str] = []
     is_portal_admin = Faker("boolean", chance_of_getting_true=10)
 
     @post_generation
@@ -58,7 +58,7 @@ class GroupFactory(DjangoModelFactory):
 
 class GroupExtensionFactory(DjangoModelFactory):
     description = Faker("text", max_nb_chars=1024)
-    experiments = []
+    experiments: list[str] = []
 
     class Meta:
         model = GroupExtension
