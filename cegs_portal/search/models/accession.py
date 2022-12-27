@@ -52,8 +52,8 @@ class AccessionIdLog(models.Model):
 
 class AccessionIds:
     def __init__(self, message: str = ""):
-        self.id_dict = {}
-        self.modified_dict = {}
+        self.id_dict: dict[AccessionType, AccessionId] = {}
+        self.modified_dict: dict[AccessionType, bool] = {}
         self.message = message
 
     def _load(self, atype: AccessionType):
@@ -91,7 +91,7 @@ class AccessionIds:
             if self.modified_dict[atype]:
                 log_items.append(
                     AccessionIdLog(
-                        created_at=now, accession_type=atype, accession_id=str(accession_id), message=self.message
+                        created_at=now, accession_type=str(atype), accession_id=str(accession_id), message=self.message
                     )
                 )
         AccessionIdLog.objects.bulk_create(log_items)
