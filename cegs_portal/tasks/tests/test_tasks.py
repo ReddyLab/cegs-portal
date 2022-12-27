@@ -21,9 +21,11 @@ def test_create_task():
     sleep(0.2)
 
     assert all_tasks.count() == 1
-    assert all_tasks.first().description is None
-    assert not all_tasks.first().failed
-    assert all_tasks.first().failed_exception is None
+    task = all_tasks.first()
+    assert task is not None
+    assert task.description is None
+    assert not task.failed
+    assert task.failed_exception is None
 
 
 def test_create_task_description():
@@ -39,8 +41,10 @@ def test_create_task_description():
     sleep(0.2)
 
     assert all_tasks.count() == 1
-    assert all_tasks.first().description == "Test Description"
-    assert not all_tasks.first().failed
+    task = all_tasks.first()
+    assert task is not None
+    assert task.description == "Test Description"
+    assert not task.failed
 
 
 def test_create_task_pass_id_description():
@@ -56,10 +60,11 @@ def test_create_task_pass_id_description():
     sleep(0.2)
 
     assert all_tasks.count() == 1
-    first_task = all_tasks.first()
-    assert first_task.description == "Test Description"
-    assert first_task.failed
-    assert first_task.failed_exception == f"Failed Task {first_task.id}"
+    task = all_tasks.first()
+    assert task is not None
+    assert task.description == "Test Description"
+    assert task.failed
+    assert task.failed_exception == f"Failed Task {task.id}"
 
 
 def test_task_exception():
@@ -75,6 +80,7 @@ def test_task_exception():
     sleep(0.2)
 
     assert all_tasks.count() == 1
-    first_task = all_tasks.first()
-    assert first_task.failed
-    assert first_task.failed_exception == "test exception"
+    task = all_tasks.first()
+    assert task is not None
+    assert task.failed
+    assert task.failed_exception == "test exception"
