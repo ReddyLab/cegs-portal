@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Optional, TypeVar
+from typing import Optional
 
 from psycopg2.extras import NumericRange
 
@@ -47,13 +47,10 @@ class AccessionType(Enum):
         raise Exception("Invalid Accession type")
 
 
-T = TypeVar("T", bound="AccessionId")
-
-
 class AccessionId:
     id_string: str
     prefix: str
-    prefix_length: str
+    prefix_length: int
     id_num_length: int
     abbrev: str
     id_num: int
@@ -69,14 +66,16 @@ class AccessionId:
     def __str__(self) -> str:
         return f"{self.prefix}{self.abbrev}{self.id_num:0{self.id_num_length}X}"
 
-    def __eq__(self, other: T) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AccessionId) and not isinstance(other, str):
+            return NotImplemented
         return str(self) == str(other)
 
     def incr(self):
         self.id_num += 1
 
     @classmethod
-    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8) -> T:
+    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8) -> "AccessionId":
         return AccessionId(
             f"{prefix}{accession_type.abbrev()}{'0' * id_num_length}",
             prefix_length=len(prefix),
