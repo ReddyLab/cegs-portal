@@ -10,9 +10,6 @@ class Accessioned(models.Model):
     class Meta:
         abstract = True
 
-    class Facets:
-        pass
-
     accession_id = models.CharField(max_length=15, validators=[validate_accession_id], unique=True)
 
 
