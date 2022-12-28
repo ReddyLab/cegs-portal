@@ -1,8 +1,12 @@
-from typing import Optional
+from typing import Optional, cast
 
 from django.db.models import Q
 
-from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.models import (
+    DNAFeature,
+    RegulatoryEffectObservation,
+    RegulatoryEffectObservationSet,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 
 
@@ -10,7 +14,8 @@ class RegEffectSearch:
     @classmethod
     def id_search(cls, re_id: str):
         reg_effect = (
-            RegulatoryEffectObservation.objects.with_facet_values()
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
             .filter(accession_id=re_id)
             .prefetch_related(
                 "experiment",
@@ -55,7 +60,8 @@ class RegEffectSearch:
     @classmethod
     def source_search(cls, source_id: str):
         reg_effects = (
-            RegulatoryEffectObservation.objects.with_facet_values()
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
             .filter(sources__accession_id=source_id)
             .prefetch_related(
                 "experiment",
@@ -70,7 +76,8 @@ class RegEffectSearch:
     @classmethod
     def target_search(cls, source_id: str):
         reg_effects = (
-            RegulatoryEffectObservation.objects.with_facet_values()
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
             .filter(targets__accession_id=source_id)
             .prefetch_related(
                 "experiment",
@@ -85,7 +92,8 @@ class RegEffectSearch:
     @classmethod
     def feature_search(cls, features: list[DNAFeature]):
         reg_effects = (
-            RegulatoryEffectObservation.objects.with_facet_values()
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
             .filter(Q(sources__in=features) | Q(targets__in=features))
             .prefetch_related(
                 "targets",
