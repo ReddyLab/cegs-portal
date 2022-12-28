@@ -1,5 +1,4 @@
 import json
-from typing import Tuple
 
 import pytest
 from django.test import Client
@@ -53,7 +52,9 @@ def test_experiment_list_html(client: Client):
     assert response.status_code == 200
 
 
-def test_experiment_list_with_anonymous_client(client: Client, access_control_experiments: Tuple[Experiment]):
+def test_experiment_list_with_anonymous_client(
+    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment]
+):
     response = client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
 
@@ -62,7 +63,7 @@ def test_experiment_list_with_anonymous_client(client: Client, access_control_ex
 
 
 def test_experiment_list_with_authenticated_client(
-    client: Client, access_control_experiments: Tuple[Experiment], django_user_model
+    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment], django_user_model
 ):
     username = "user1"
     password = "bar"
@@ -76,7 +77,7 @@ def test_experiment_list_with_authenticated_client(
 
 
 def test_experiment_list_with_authenticated_authorized_client(
-    client: Client, access_control_experiments: Tuple[Experiment], django_user_model
+    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment], django_user_model
 ):
     _, private_experiment, archived_experiment = access_control_experiments
     username = "user1"
@@ -93,7 +94,10 @@ def test_experiment_list_with_authenticated_authorized_client(
 
 
 def test_experiment_list_with_authenticated_authorized_group_client(
-    client: Client, access_control_experiments: Tuple[Experiment], group_extension: GroupExtension, django_user_model
+    client: Client,
+    access_control_experiments: tuple[Experiment, Experiment, Experiment],
+    group_extension: GroupExtension,
+    django_user_model,
 ):
     _, private_experiment, archived_experiment = access_control_experiments
     username = "user1"
