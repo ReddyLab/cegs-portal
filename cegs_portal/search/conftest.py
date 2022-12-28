@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple
+from typing import Iterable
 
 import pytest
 from django.db.models import Manager
@@ -28,7 +28,7 @@ from cegs_portal.search.models.tests.facet_factory import (
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 from cegs_portal.users.conftest import group_extension  # noqa: F401
-from cegs_portal.utils.pagination_types import MockPaginator, Pageable
+from cegs_portal.utils.pagination_types import MockPaginator, Pageable, Paginateable
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def archived_experiment() -> Experiment:
 
 
 @pytest.fixture
-def access_control_experiments() -> Tuple[Experiment]:
+def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
     e1 = ExperimentFactory(other_files=(other_file(), other_file()))
     e1.data_files.set(((data_file(e1),)))
     e2 = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
@@ -79,7 +79,7 @@ def paged_experiments() -> Pageable[Experiment]:
     e6 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
     e6.data_files.set(((data_file(e6),)))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
-    pages = MockPaginator(experiments, 3)
+    pages: Paginateable[Experiment] = MockPaginator(experiments, 3)
     return pages.page(1)
 
 
@@ -161,7 +161,7 @@ def archived_feature() -> DNAFeature:
 
 
 @pytest.fixture
-def nearby_feature_mix() -> Tuple[DNAFeature]:
+def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
     pub_feature = DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE)
     private_feature = DNAFeatureFactory(
         parent=None,

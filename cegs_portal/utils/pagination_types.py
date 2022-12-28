@@ -1,74 +1,63 @@
-from abc import abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
 from math import ceil
-from typing import Protocol, TypedDict, TypeVar
+from typing import Any, Protocol, TypedDict, TypeVar
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 
 
 class Paginateable(Protocol[T]):
     per_page: int
 
-    @abstractmethod
     def get_page(self, number) -> "Pageable[T]":
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def page(self, number) -> "Pageable[T]":
-        raise NotImplementedError
+        ...
 
     @property
-    @abstractmethod
     def count(self) -> int:
-        raise NotImplementedError
+        ...
 
     @property
-    @abstractmethod
     def num_pages(self) -> int:
-        raise NotImplementedError
+        ...
 
     @property
-    @abstractmethod
     def page_range(self) -> range:
-        raise NotImplementedError
+        ...
 
 
-class Pageable(Protocol[T], Iterable[T]):
-    object_list: list[T]
+class Pageable(Protocol[T]):
+    object_list: Any  # The real type is "Iterable[T] | QuerySet"
     number: int
-    paginator: Paginateable[T]
+    paginator: Any  # The real type is "Paginateable[T] | Paginator"
 
-    @abstractmethod
+    def __iter__(self) -> Iterator:
+        ...
+
     def __getitem__(self, index) -> T:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def has_next(self) -> bool:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def has_previous(self) -> bool:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def has_other_pages(self) -> bool:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def next_page_number(self) -> int:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def previous_page_number(self) -> int:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def start_index(self) -> int:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def end_index(self) -> int:
-        raise NotImplementedError
+        ...
 
 
 class MockPaginator(Paginateable[T]):
