@@ -4,16 +4,17 @@ from django.db.models import Manager
 
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature, Facet
+from cegs_portal.search.models.utils import ChromosomeLocation
 from cegs_portal.utils.pagination_types import Pageable
 
-Location = TypedDict("Location", {"assembly": str, "chromosome": str, "start": int, "end": int})
 SearchResults = TypedDict(
-    "SearchResults", {"location": Location, "features": Pageable[DNAFeature], "facets": Manager[Facet]}
+    "SearchResults",
+    {"location": ChromosomeLocation, "assembly": str, "features": Pageable[DNAFeature], "facets": Manager[Facet]},
 )
 
 
 def search_results(results: SearchResults, options: Optional[dict[str, Any]] = None):
-    response = {
+    response: dict[str, Any] = {
         "features": features(results["features"], options),
         "facets": [
             {"name": f.name, "description": f.description, "values": [value.value for value in f.values.all()]}
