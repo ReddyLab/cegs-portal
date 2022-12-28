@@ -1,3 +1,5 @@
+from typing import cast
+
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Q, Value
 
@@ -7,22 +9,22 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 
 class ExperimentSearch:
     @classmethod
-    def is_public(cls, expr_id: str) -> str:
+    def is_public(cls, expr_id: str) -> bool:
         experiment = Experiment.objects.filter(accession_id=expr_id).values_list("public", flat=True)
 
         if len(experiment) == 0:
             raise ObjectNotFoundError(f"Experiment {expr_id} not found")
 
-        return experiment[0]
+        return cast(bool, experiment[0])
 
     @classmethod
-    def is_archived(cls, expr_id: str) -> str:
+    def is_archived(cls, expr_id: str) -> bool:
         experiment = Experiment.objects.filter(accession_id=expr_id).values_list("archived", flat=True)
 
         if len(experiment) == 0:
             raise ObjectNotFoundError(f"Experiment {expr_id} not found")
 
-        return experiment[0]
+        return cast(bool, experiment[0])
 
     @classmethod
     def accession_search(cls, accession_id):
