@@ -1,4 +1,5 @@
 import json
+from typing import cast
 
 import pytest
 from django.test import Client
@@ -70,7 +71,10 @@ def test_regeffect_accession_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_reg_effect.experiment_accession_id]
+
+    assert private_reg_effect.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, private_reg_effect.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
