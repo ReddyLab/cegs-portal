@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import (
@@ -20,6 +20,8 @@ logger = logging.getLogger("django.request")
 
 
 class ExperimentAccessMixin(UserPassesTestMixin):
+    request: Any
+
     def test_func(self):
         if self.is_archived():
             self.raise_exception = True
@@ -81,6 +83,7 @@ class TemplateJsonView(View):
             handler = self.http_method_not_allowed
 
         try:
+            assert data_handler is not None
             response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
         except Http400 as err:
             response = self.http_bad_request(request, err)
