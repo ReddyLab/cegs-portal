@@ -5,14 +5,13 @@ from cegs_portal.search.json_templates.v1.reg_effect import (
 )
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect as re_json
 from cegs_portal.search.models import RegulatoryEffectObservation
-from cegs_portal.search.models.experiment import CellLine, TissueType
 
 pytestmark = pytest.mark.django_db
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
-    cell_lines: set[CellLine] = set()
-    tissue_types: set[TissueType] = set()
+    cell_lines: set[str] = set()
+    tissue_types: set[str] = set()
 
     if reg_effect.experiment is not None:
         for bios in reg_effect.experiment.biosamples.all():
@@ -21,6 +20,8 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
 
     setattr(reg_effect, "cell_lines", cell_lines)
     setattr(reg_effect, "tissue_types", tissue_types)
+
+    assert reg_effect.experiment is not None
 
     result: RegulatoryEffectObservationJson = {
         "accession_id": reg_effect.accession_id,
