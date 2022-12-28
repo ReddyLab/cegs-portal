@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+from cegs_portal.search.models import Biosample, Experiment, ExperimentDataFile, File
 from cegs_portal.utils.pagination_types import Pageable
 
 
@@ -36,7 +36,7 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
     return result
 
 
-def biosample(biosample_obj: ExperimentDataFile):
+def biosample(biosample_obj: Biosample):
     return {
         "name": biosample_obj.name,
         "cell_line": biosample_obj.cell_line_name,
