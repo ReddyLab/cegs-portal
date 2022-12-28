@@ -2,7 +2,7 @@ from typing import Any, Iterable, Optional, TypedDict, Union, cast
 
 from cegs_portal.search.json_templates import genoversify
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
-from cegs_portal.utils.pagination_types import PageableJson
+from cegs_portal.utils.pagination_types import Pageable, PageableJson
 
 FeatureJson = TypedDict(
     "FeatureJson",
@@ -28,17 +28,19 @@ FeatureJson = TypedDict(
 
 
 def features(
-    feature_objs: Iterable[DNAFeature], options: Optional[dict[str, Any]] = None
+    feature_objs: Pageable[DNAFeature] | Iterable[DNAFeature], options: Optional[dict[str, Any]] = None
 ) -> Union[PageableJson, list[FeatureJson]]:
     if options is not None and options.get("paginate", False):
+        feature_objs = cast(Pageable[DNAFeature], feature_objs)
         return {
-            "object_list": [feature(a, options) for a in feature_objs],
+            "object_list": [feature(a, options) for a in feature_objs.object_list],
             "page": feature_objs.number,
             "has_next_page": feature_objs.has_next(),
             "has_prev_page": feature_objs.has_previous(),
             "num_pages": feature_objs.paginator.num_pages,
         }
     else:
+        cast(Iterable[DNAFeature], feature_objs)
         return [feature(a, options) for a in feature_objs]
 
 
