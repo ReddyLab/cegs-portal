@@ -143,6 +143,8 @@ class SearchView(TemplateJsonView):
         search_type, query_terms, location, assembly_name, warnings = parse_query(unquoted_search_query)
 
         if search_type == SearchType.LOCATION:
+            assert location is not None
+
             if location.range.lower >= location.range.upper:
                 raise Http400(
                     f"Invalid location; lower bound ({location.range.lower}) "

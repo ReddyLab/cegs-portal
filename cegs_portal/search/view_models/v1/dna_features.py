@@ -109,7 +109,7 @@ class DNAFeatureSearch:
     def ids_search(
         cls,
         ids: list[tuple[QueryToken, str]],
-        assembly: str,
+        assembly: Optional[str],
         feature_properties: list[str],
     ) -> QuerySet[DNAFeature]:
 
@@ -180,7 +180,7 @@ class DNAFeatureSearch:
         chromo: str,
         start: str,
         end: str,
-        assembly: str,
+        assembly: Optional[str],
         feature_types: list[str],
         feature_properties: list[str],
         search_type: str,

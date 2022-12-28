@@ -1,3 +1,5 @@
+from typing import Optional
+
 from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.utils import QueryToken
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
@@ -5,7 +7,7 @@ from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
 class Search:
     @classmethod
-    def dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]], assembly: str):
+    def dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str]):
         return DNAFeatureSearch.ids_search(
             ids,
             assembly,
@@ -13,7 +15,7 @@ class Search:
         )
 
     @classmethod
-    def dnafeature_id_search_public(cls, ids: list[tuple[QueryToken, str]], assembly: str):
+    def dnafeature_id_search_public(cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str]):
         return DNAFeatureSearch.ids_search_public(
             ids,
             assembly,
@@ -22,7 +24,7 @@ class Search:
 
     @classmethod
     def dnafeature_id_search_with_private(
-        cls, ids: list[tuple[QueryToken, str]], assembly: str, private_experiments: list[str]
+        cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str], private_experiments: list[str]
     ):
         return DNAFeatureSearch.ids_search_with_private(
             ids,
@@ -32,7 +34,7 @@ class Search:
         )
 
     @classmethod
-    def dnafeature_loc_search(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
+    def dnafeature_loc_search(cls, location: ChromosomeLocation, assembly: Optional[str], facets: list[int]):
         return DNAFeatureSearch.loc_search(
             location.chromo,
             str(location.range.lower),
@@ -45,7 +47,7 @@ class Search:
         )
 
     @classmethod
-    def dnafeature_loc_search_public(cls, location: ChromosomeLocation, assembly: str, facets: list[int]):
+    def dnafeature_loc_search_public(cls, location: ChromosomeLocation, assembly: Optional[str], facets: list[int]):
         return DNAFeatureSearch.loc_search_public(
             location.chromo,
             str(location.range.lower),
@@ -59,7 +61,7 @@ class Search:
 
     @classmethod
     def dnafeature_loc_search_with_private(
-        cls, location: ChromosomeLocation, assembly: str, facets: list[int], private_experiments: list[str]
+        cls, location: ChromosomeLocation, assembly: Optional[str], facets: list[int], private_experiments: list[str]
     ):
         return DNAFeatureSearch.loc_search_with_private(
             location.chromo,
