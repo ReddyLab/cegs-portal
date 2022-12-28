@@ -81,8 +81,9 @@ def test_get_feature_ensembl_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -114,8 +115,9 @@ def test_get_archived_feature_ensembl_with_authenticated_authorized_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     user.experiments = [cast(str, archived_feature.experiment_accession)]
     user.save()
     client.login(username=username, password=password)
@@ -129,8 +131,9 @@ def test_get_archived_feature_ensembl_with_authenticated_authorized_group_client
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -181,8 +184,9 @@ def test_get_feature_accession_with_authenticated_authorized_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+
     user.experiments = [cast(str, private_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
@@ -196,8 +200,9 @@ def test_get_feature_accession_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -229,8 +234,9 @@ def test_get_archived_feature_accession_with_authenticated_authorized_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     user.experiments = [cast(str, archived_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
@@ -244,8 +250,9 @@ def test_get_archived_feature_accessionl_with_authenticated_authorized_group_cli
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -294,8 +301,9 @@ def test_get_feature_name_with_authenticated_authorized_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+
     user.experiments = [cast(str, private_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
@@ -309,8 +317,9 @@ def test_get_feature_name_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -342,8 +351,9 @@ def test_get_archived_feature_name_with_authenticated_authorized_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     user.experiments = [cast(str, archived_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
@@ -357,8 +367,9 @@ def test_get_archived_feature_name_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert archived_feature.experiment_accession_id is not None
+
     group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
@@ -446,10 +457,10 @@ def test_get_feature_loc_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    if private_feature.experiment_accession_id is None:
-        assert False
-    if archived_feature.experiment_accession_id is None:
-        assert False
+
+    assert private_feature.experiment_accession_id is not None
+    assert archived_feature.experiment_accession_id is not None
+
     group_extension.experiments = [
         cast(str, private_feature.experiment_accession_id),
         cast(str, archived_feature.experiment_accession_id),
