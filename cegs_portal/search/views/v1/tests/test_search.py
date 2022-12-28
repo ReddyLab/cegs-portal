@@ -1,5 +1,5 @@
 import json
-from typing import Tuple
+from typing import cast
 
 import pytest
 from django.test import Client
@@ -158,7 +158,9 @@ def test_experiment_feature_loc_json(client: Client, search_feature: DNAFeature)
     assert len(json_content["features"]) == 1
 
 
-def test_experiment_feature_loc_with_anonymous_client(client: Client, nearby_feature_mix: Tuple[DNAFeature]):
+def test_experiment_feature_loc_with_anonymous_client(
+    client: Client, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature]
+):
     pub_feature, _private_feature, archived_feature = nearby_feature_mix
     response = client.get(
         f"/search/results/?query={pub_feature.chrom_name}%3A{pub_feature.location.lower - 10}-{archived_feature.location.upper + 10}&accept=application/json"  # noqa: E501
@@ -170,7 +172,7 @@ def test_experiment_feature_loc_with_anonymous_client(client: Client, nearby_fea
 
 
 def test_experiment_feature_loc_with_authenticated_client(
-    client: Client, nearby_feature_mix: Tuple[DNAFeature], django_user_model
+    client: Client, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature], django_user_model
 ):
     pub_feature, _private_feature, archived_feature = nearby_feature_mix
     username = "user1"
@@ -187,7 +189,7 @@ def test_experiment_feature_loc_with_authenticated_client(
 
 
 def test_experiment_feature_loc_with_authenticated_authorized_client(
-    client: Client, nearby_feature_mix: Tuple[DNAFeature], django_user_model
+    client: Client, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature], django_user_model
 ):
     pub_feature, private_feature, archived_feature = nearby_feature_mix
 
@@ -207,14 +209,24 @@ def test_experiment_feature_loc_with_authenticated_authorized_client(
 
 
 def test_experiment_feature_loc_with_authenticated_authorized_group_client(
-    client: Client, nearby_feature_mix: Tuple[DNAFeature], group_extension: GroupExtension, django_user_model
+    client: Client,
+    nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature],
+    group_extension: GroupExtension,
+    django_user_model,
 ):
     pub_feature, private_feature, archived_feature = nearby_feature_mix
 
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_feature.experiment_accession_id, archived_feature.experiment_accession_id]
+
+    assert private_feature.experiment_accession_id is not None
+    assert archived_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [
+        cast(str, private_feature.experiment_accession_id),
+        cast(str, archived_feature.experiment_accession_id),
+    ]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
@@ -290,7 +302,10 @@ def test_experiment_feature_accession_with_authenticated_authorized_group_client
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_feature.experiment_accession_id]
+
+    assert private_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
@@ -346,7 +361,10 @@ def test_archived_experiment_feature_accession_with_authenticated_authorized_gro
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [archived_feature.experiment_accession_id]
+
+    assert archived_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
@@ -420,7 +438,10 @@ def test_experiment_feature_ensembl_with_authenticated_authorized_group_client(
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_feature.experiment_accession_id]
+
+    assert private_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
@@ -476,7 +497,10 @@ def test_archived_experiment_feature_ensembl_with_authenticated_authorized_group
     username = "user1"
     password = "bar"
     user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [archived_feature.experiment_accession_id]
+
+    assert archived_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
     group_extension.save()
     user.groups.add(group_extension.group)
     user.save()
