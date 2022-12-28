@@ -26,6 +26,7 @@ def test_source_reg_effect(paged_source_reg_effects: Pageable[RegulatoryEffectOb
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
+    assert reg_effect.experiment is not None
 
     results = {
         "accession_id": reg_effect.accession_id,
