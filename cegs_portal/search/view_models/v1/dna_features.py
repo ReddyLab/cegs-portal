@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
@@ -35,8 +35,10 @@ class DNAFeatureSearch:
 
     @classmethod
     def id_search(
-        cls, id_type: str, feature_id: str, feature_properties: list[str] = list, distinct=True
+        cls, id_type: str, feature_id: str, feature_properties: Optional[list[str]] = None, distinct=True
     ) -> QuerySet[DNAFeature]:
+        if feature_properties is None:
+            feature_properties = []
         if id_type == IdType.ENSEMBL.value:
             id_field = "ensembl_id"
         elif id_type == IdType.NAME.value:
@@ -60,7 +62,7 @@ class DNAFeatureSearch:
         return features
 
     @classmethod
-    def expr_id(cls, feature_id: str) -> Optional[str]:
+    def expr_id(cls, feature_id: str) -> str:
         if feature_id.startswith("DCP"):
             feature = DNAFeature.objects.filter(accession_id=feature_id).values_list(
                 "experiment_accession_id", flat=True
@@ -73,10 +75,10 @@ class DNAFeatureSearch:
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
 
-        return feature[0]
+        return cast(str, feature[0])
 
     @classmethod
-    def is_public(cls, feature_id: str) -> Optional[str]:
+    def is_public(cls, feature_id: str) -> bool:
         if feature_id.startswith("DCP"):
             feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("public", flat=True)
         elif feature_id.startswith("ENS"):
@@ -87,10 +89,10 @@ class DNAFeatureSearch:
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
 
-        return feature[0]
+        return cast(bool, feature[0])
 
     @classmethod
-    def is_archived(cls, feature_id: str) -> Optional[str]:
+    def is_archived(cls, feature_id: str) -> bool:
         if feature_id.startswith("DCP"):
             feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("archived", flat=True)
         elif feature_id.startswith("ENS"):
@@ -101,7 +103,7 @@ class DNAFeatureSearch:
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
 
-        return feature[0]
+        return cast(bool, feature[0])
 
     @classmethod
     def ids_search(
@@ -129,16 +131,16 @@ class DNAFeatureSearch:
             else:
                 raise Http500(f"Invalid Query Token: ({id_type}, {feature_id})")
 
-        id_query = False
+        id_query = None
         if len(accession_ids) > 0:
             id_query = Q(accession_id__in=accession_ids)
         if len(ensembl_ids) > 0:
-            if id_query:
+            if id_query is not None:
                 id_query |= Q(ensembl_id__in=ensembl_ids)
             else:
                 id_query = Q(ensembl_id__in=ensembl_ids)
         if len(gene_names) > 0:
-            if id_query:
+            if id_query is not None:
                 id_query |= Q(name__in=gene_names)
             else:
                 id_query = Q(name__in=gene_names)
@@ -185,9 +187,9 @@ class DNAFeatureSearch:
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
 
-        query = {"chrom_name": chromo}
+        query: dict[str, Any] = {"chrom_name": chromo}
 
-        new_feature_types = []
+        new_feature_types: list[DNAFeatureType] = []
         for ft in feature_types:
             if ft in cls.PSEUDO_FEATURE_TYPES:
                 new_feature_types.extend(cls.PSEUDO_FEATURE_TYPES[ft])
