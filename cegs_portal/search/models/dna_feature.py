@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
@@ -117,6 +118,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         on_delete=models.CASCADE,
         blank=True,
     )
+    experiment_accession_id: Optional[str]
 
     @property
     def assay(self):
