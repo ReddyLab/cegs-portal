@@ -4,16 +4,9 @@ from typing import Any, Optional, cast
 from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType, QueryToken
+from cegs_portal.search.models import DNAFeature, DNAFeatureType, IdType
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
-
-
-# TODO: create StrEnum class so e.g., `"ensemble" == IdType.ENSEMBL` works as expected
-class IdType(Enum):
-    ENSEMBL = "ensembl"
-    NAME = "name"
-    ACCESSION = "accession"
 
 
 class LocSearchType(Enum):
@@ -108,7 +101,7 @@ class DNAFeatureSearch:
     @classmethod
     def ids_search(
         cls,
-        ids: list[tuple[QueryToken, str]],
+        ids: list[tuple[IdType, str]],
         assembly: Optional[str],
         feature_properties: list[str],
     ) -> QuerySet[DNAFeature]:
@@ -122,11 +115,11 @@ class DNAFeatureSearch:
         ensembl_ids = []
         gene_names = []
         for id_type, feature_id in ids:
-            if id_type == QueryToken.ACCESSION_ID:
+            if id_type == IdType.ACCESSION:
                 accession_ids.append(feature_id)
-            elif id_type == QueryToken.ENSEMBL_ID:
+            elif id_type == IdType.ENSEMBL:
                 ensembl_ids.append(feature_id)
-            elif id_type == QueryToken.GENE_NAME:
+            elif id_type == IdType.GENE_NAME:
                 gene_names.append(feature_id)
             else:
                 raise Http500(f"Invalid Query Token: ({id_type}, {feature_id})")

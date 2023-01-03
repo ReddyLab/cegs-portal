@@ -12,7 +12,7 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.dna_feature import DNAFeature
-from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.utils.http_exceptions import Http400
@@ -51,9 +51,9 @@ SearchResult = TypedDict(
 def parse_query(
     query: str,
 ) -> tuple[
-    Optional[SearchType], list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]
+    Optional[SearchType], list[tuple[IdType, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]
 ]:
-    terms: list[tuple[QueryToken, str]] = []
+    terms: list[tuple[IdType, str]] = []
     location: Optional[ChromosomeLocation] = None
     assembly: Optional[str] = None
     warnings: set[ParseWarning] = set()
@@ -82,7 +82,7 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.ENSEMBL_ID.associate(match.group(1)))
+                terms.append(IdType.ENSEMBL.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]
@@ -92,7 +92,7 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.ACCESSION_ID.associate(match.group(1)))
+                terms.append(IdType.ACCESSION.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]
@@ -114,7 +114,7 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.GENE_NAME.associate(match.group(1)))
+                terms.append(IdType.GENE_NAME.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]

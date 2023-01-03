@@ -5,7 +5,7 @@ import pytest
 from django.test import Client
 
 from cegs_portal.search.models import ChromosomeLocation, DNAFeature
-from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.views.v1.search import ParseWarning, SearchType, parse_query
 from cegs_portal.users.models import GroupExtension
 
@@ -27,30 +27,30 @@ from cegs_portal.users.models import GroupExtension
         ),
         ("   hg38   ", (None, [], None, "GRCh38", set())),
         ("   hg19 hg38   ", (None, [], None, "GRCh38", set())),
-        ("DCPGENE00000000", (SearchType.ID, [QueryToken.ACCESSION_ID.associate("DCPGENE00000000")], None, None, set())),
+        ("DCPGENE00000000", (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, None, set())),
         (
             "DCPGENE00000000 hg19",
-            (SearchType.ID, [QueryToken.ACCESSION_ID.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
         ),
         (
             "hg19 DCPGENE00000000",
-            (SearchType.ID, [QueryToken.ACCESSION_ID.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
         ),
         (
             "   hg19    DCPGENE00000000    ",
-            (SearchType.ID, [QueryToken.ACCESSION_ID.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
         ),
         (
             "   hg19    DCPGENE00000000    ",
-            (SearchType.ID, [QueryToken.ACCESSION_ID.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
         ),
         (
             "hg19 DCPGENE00000000 DCPGENE00000001",
             (
                 SearchType.ID,
                 [
-                    QueryToken.ACCESSION_ID.associate("DCPGENE00000000"),
-                    QueryToken.ACCESSION_ID.associate("DCPGENE00000001"),
+                    IdType.ACCESSION.associate("DCPGENE00000000"),
+                    IdType.ACCESSION.associate("DCPGENE00000001"),
                 ],
                 None,
                 "GRCh37",
@@ -61,7 +61,7 @@ from cegs_portal.users.models import GroupExtension
             "hg19, DCPGENE00000000, ENSG00000001",
             (
                 SearchType.ID,
-                [QueryToken.ACCESSION_ID.associate("DCPGENE00000000"), QueryToken.ENSEMBL_ID.associate("ENSG00000001")],
+                [IdType.ACCESSION.associate("DCPGENE00000000"), IdType.ENSEMBL.associate("ENSG00000001")],
                 None,
                 "GRCh37",
                 set(),
@@ -71,7 +71,7 @@ from cegs_portal.users.models import GroupExtension
             "DCPGENE00000000,hg19,ENSG00000001",
             (
                 SearchType.ID,
-                [QueryToken.ACCESSION_ID.associate("DCPGENE00000000"), QueryToken.ENSEMBL_ID.associate("ENSG00000001")],
+                [IdType.ACCESSION.associate("DCPGENE00000000"), IdType.ENSEMBL.associate("ENSG00000001")],
                 None,
                 "GRCh37",
                 set(),
@@ -91,7 +91,7 @@ from cegs_portal.users.models import GroupExtension
             " hg19 ENSG00000001   chr1:1-100 DCPGENE00000000 ",
             (
                 SearchType.ID,
-                [QueryToken.ENSEMBL_ID.associate("ENSG00000001"), QueryToken.ACCESSION_ID.associate("DCPGENE00000000")],
+                [IdType.ENSEMBL.associate("ENSG00000001"), IdType.ACCESSION.associate("DCPGENE00000000")],
                 None,
                 "GRCh37",
                 {ParseWarning.IGNORE_LOC},
