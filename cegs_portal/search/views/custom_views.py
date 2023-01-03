@@ -14,7 +14,8 @@ from django.views.generic import View
 
 from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME
-from cegs_portal.utils.http_exceptions import Http400, Http500
+from cegs_portal.utils.http_exceptions import Http303, Http400, Http500
+from cegs_portal.utils.http_responses import HttpResponseSeeOtherRedirect
 
 logger = logging.getLogger("django.request")
 
@@ -85,6 +86,8 @@ class TemplateJsonView(View):
         try:
             assert data_handler is not None
             response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
+        except Http303 as redirect:
+            response = HttpResponseSeeOtherRedirect(redirect_to=redirect.location)
         except Http400 as err:
             response = self.http_bad_request(request, err)
         except Http404 as err:

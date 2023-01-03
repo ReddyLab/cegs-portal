@@ -28,20 +28,31 @@ class DNAFeatureSearch:
 
     @classmethod
     def id_search(
-        cls, id_type: str, feature_id: str, feature_properties: Optional[list[str]] = None, distinct=True
+        cls,
+        id_type: str,
+        feature_id: str,
+        assembly: Optional[str],
+        feature_properties: Optional[list[str]] = None,
+        distinct=True,
     ) -> QuerySet[DNAFeature]:
+        query = {}
+
         if feature_properties is None:
             feature_properties = []
-        if id_type == IdType.ENSEMBL.value:
-            id_field = "ensembl_id"
-        elif id_type == IdType.NAME.value:
-            id_field = "name"
-        elif id_type == IdType.ACCESSION.value:
-            id_field = "accession_id"
+
+        if id_type == IdType.ENSEMBL:
+            query["ensembl_id"] = feature_id
+        elif id_type == IdType.GENE_NAME:
+            query["name"] = feature_id
+        elif id_type == IdType.ACCESSION:
+            query["accession_id"] = feature_id
         else:
             raise ViewModelError(f"Invalid ID type: {id_type}")
 
-        features = DNAFeature.objects.filter(**{id_field: feature_id}).prefetch_related(
+        if assembly is not None:
+            query["ref_genome"] = assembly
+
+        features = DNAFeature.objects.filter(**query).prefetch_related(
             "children",
             "closest_features",
         )
@@ -153,7 +164,7 @@ class DNAFeatureSearch:
                 ]
             )
 
-        features = DNAFeature.objects.filter(id_query, **query).prefetch_related(*prefetch_values)
+        features = DNAFeature.objects.filter(id_query, **query).prefetch_related(*prefetch_values).distinct()
 
         return features
 
