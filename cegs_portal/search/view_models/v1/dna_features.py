@@ -222,6 +222,9 @@ class DNAFeatureSearch:
             prefetch_values = ["facet_values", "facet_values__facet"]
 
         if "regeffects" in feature_properties:
+            # The facet presets are used when getting the "direction" property
+            # of a RegulatoryEffectObservation. This is done in the _reg_effect.html partial
+            # and the reg_effect function of the dna_features.py json template.
             prefetch_values.extend(
                 [
                     "source_for",

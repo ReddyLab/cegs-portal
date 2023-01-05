@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import cached_property
 
 from django.db import models
 
@@ -48,7 +49,7 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
     sources = models.ManyToManyField(DNAFeature, related_name="source_for", blank=True)
     targets = models.ManyToManyField(DNAFeature, related_name="target_of", blank=True)
 
-    @property
+    @cached_property
     def direction(self):
         values = [
             value
