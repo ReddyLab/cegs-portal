@@ -43,6 +43,8 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         GET queries used:
             accept
                 * application/json
+            assembly
+                * Should match a genome assembly that exists in the DB
             property (multiple)
                 * "regeffects" - preload associated reg effects
             id_type
@@ -52,6 +54,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             feature_id
         """
         options = super().request_options(request)
+        options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
         return options
 
@@ -76,7 +79,9 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         )
 
     def get_data(self, options, id_type, feature_id):
-        return DNAFeatureSearch.id_search(id_type, feature_id, feature_properties=options["feature_properties"])
+        return DNAFeatureSearch.id_search(
+            id_type, feature_id, assembly=options["assembly"], feature_properties=options["feature_properties"]
+        )
 
 
 class DNAFeatureLoc(TemplateJsonView):

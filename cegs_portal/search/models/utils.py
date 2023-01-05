@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum, StrEnum
 from typing import Optional
 
 from psycopg2.extras import NumericRange
@@ -83,12 +83,12 @@ class AccessionId:
         )
 
 
-class QueryToken(Enum):
-    ENSEMBL_ID = auto()
-    ACCESSION_ID = auto()
-    GENE_NAME = auto()
+class IdType(StrEnum):
+    ENSEMBL = "ensembl"
+    ACCESSION = "accession"
+    GENE_NAME = "name"
 
-    def associate(self, value: str) -> tuple["QueryToken", str]:
+    def associate(self, value: str) -> tuple["IdType", str]:
         return (self, value)
 
 

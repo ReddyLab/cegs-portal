@@ -1,13 +1,13 @@
 from typing import Optional
 
 from cegs_portal.search.models import ChromosomeLocation, Facet
-from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
 
 class Search:
     @classmethod
-    def dnafeature_id_search(cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str]):
+    def dnafeature_ids_search(cls, ids: list[tuple[IdType, str]], assembly: Optional[str]):
         return DNAFeatureSearch.ids_search(
             ids,
             assembly,
@@ -15,7 +15,7 @@ class Search:
         )
 
     @classmethod
-    def dnafeature_id_search_public(cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str]):
+    def dnafeature_ids_search_public(cls, ids: list[tuple[IdType, str]], assembly: Optional[str]):
         return DNAFeatureSearch.ids_search_public(
             ids,
             assembly,
@@ -23,8 +23,8 @@ class Search:
         )
 
     @classmethod
-    def dnafeature_id_search_with_private(
-        cls, ids: list[tuple[QueryToken, str]], assembly: Optional[str], private_experiments: list[str]
+    def dnafeature_ids_search_with_private(
+        cls, ids: list[tuple[IdType, str]], assembly: Optional[str], private_experiments: list[str]
     ):
         return DNAFeatureSearch.ids_search_with_private(
             ids,

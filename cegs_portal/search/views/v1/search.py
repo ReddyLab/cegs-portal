@@ -5,6 +5,7 @@ from urllib.parse import unquote_plus
 
 from django.core.paginator import Paginator
 from django.db.models.manager import BaseManager
+from django.urls import reverse
 
 from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.json_templates.v1.search_results import (
@@ -12,10 +13,10 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.dna_feature import DNAFeature
-from cegs_portal.search.models.utils import QueryToken
+from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
-from cegs_portal.utils.http_exceptions import Http400
+from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d+)(-(\d+))?)\s*", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})\s*", re.IGNORECASE)
@@ -51,9 +52,9 @@ SearchResult = TypedDict(
 def parse_query(
     query: str,
 ) -> tuple[
-    Optional[SearchType], list[tuple[QueryToken, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]
+    Optional[SearchType], list[tuple[IdType, str]], Optional[ChromosomeLocation], Optional[str], set[ParseWarning]
 ]:
-    terms: list[tuple[QueryToken, str]] = []
+    terms: list[tuple[IdType, str]] = []
     location: Optional[ChromosomeLocation] = None
     assembly: Optional[str] = None
     warnings: set[ParseWarning] = set()
@@ -82,7 +83,7 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.ENSEMBL_ID.associate(match.group(1)))
+                terms.append(IdType.ENSEMBL.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]
@@ -92,7 +93,7 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.ACCESSION_ID.associate(match.group(1)))
+                terms.append(IdType.ACCESSION.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]
@@ -114,13 +115,21 @@ def parse_query(
             if search_type == SearchType.LOCATION:
                 warnings.add(ParseWarning.IGNORE_TERMS)
             else:
-                terms.append(QueryToken.GENE_NAME.associate(match.group(1)))
+                terms.append(IdType.GENE_NAME.associate(match.group(1)))
                 search_type = SearchType.ID
 
             query = query[match.end() :]
             continue
 
     return search_type, terms, location, assembly, warnings
+
+
+def feature_redirect(feature, assembly_name):
+    id_type, feature_id = feature
+    url = reverse("search:dna_features", args=[id_type, feature_id])
+    if assembly_name is not None:
+        url = f"{url}?assembly={assembly_name}"
+    raise Http303("Specific feature Id", location=url)
 
 
 class SearchView(TemplateJsonView):
@@ -162,12 +171,14 @@ class SearchView(TemplateJsonView):
             feature_paginator = Paginator(features, 20)
             features = feature_paginator.get_page(options["feature_page"])
         elif search_type == SearchType.ID:
+            if len(query_terms) == 1:
+                feature_redirect(query_terms[0], assembly_name)
             if self.request.user.is_anonymous:
-                features = Search.dnafeature_id_search_public(query_terms, assembly_name)
+                features = Search.dnafeature_ids_search_public(query_terms, assembly_name)
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-                features = Search.dnafeature_id_search(query_terms, assembly_name)
+                features = Search.dnafeature_ids_search(query_terms, assembly_name)
             else:
-                features = Search.dnafeature_id_search_with_private(
+                features = Search.dnafeature_ids_search_with_private(
                     query_terms, assembly_name, self.request.user.all_experiments()
                 )
 
