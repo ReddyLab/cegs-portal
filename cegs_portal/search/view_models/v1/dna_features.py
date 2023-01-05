@@ -231,6 +231,7 @@ class DNAFeatureSearch:
                     "target_of",
                     "target_of__facet_values",
                     "target_of__facet_values__facet",
+                    "target_of__sources",
                 ]
             )
 

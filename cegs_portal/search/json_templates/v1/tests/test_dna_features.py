@@ -66,6 +66,7 @@ def test_reg_effect(reg_effect: RegulatoryEffectObservation):
         "direction": reg_effect.direction,
         "significance": reg_effect.significance,
         "experiment_id": reg_effect.experiment_accession_id,
+        "sources": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in reg_effect.sources.all()],
         "targets": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in reg_effect.targets.all()],
     }
 
