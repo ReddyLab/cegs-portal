@@ -11,4 +11,3 @@ from .reg_effects import (
     RegulatoryEffectObservationSet,
 )
 from .utils import AccessionId, AccessionType, ChromosomeLocation, IdType
-from .variants import Subject, Variant, VCFEntry, VCFFile
