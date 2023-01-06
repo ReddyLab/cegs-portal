@@ -83,6 +83,7 @@ LOCAL_APPS = [
     "cegs_portal.uploads.apps.UploadsConfig",
     "cegs_portal.tasks.apps.TasksConfig",
     "cegs_portal.tools.apps.ToolsConfig",
+    "cegs_portal.get_expr_data.apps.GetExprDataConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
