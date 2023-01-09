@@ -12,6 +12,14 @@ from cegs_portal.utils.decorators import skip_receiver_in_testing
 @skip_receiver_in_testing
 @as_task(pass_id=True)
 def set_access_controls(task_id, sender, instance, created, raw, using, update_fields, **kwargs):
+    """This reciever is run when access permissions are changed on an experiment. It updates
+    the access permissions on the dna features and REOs associated with the experiment.
+
+    :param task_id: The id of the ThreadTask associated with this thread.
+    :type task_id: int
+
+    The other paramaters all have to do with django signal recievers.
+    """
     if created:
         ThreadTask.set_description(task_id, "Experiment created")
         return

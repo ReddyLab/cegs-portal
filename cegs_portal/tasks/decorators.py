@@ -8,10 +8,15 @@ logger = logging.getLogger("django.task")
 
 
 def as_task(pass_id=False, description=None):
-    """
-    Wraps a function so it will run in a separate thread. A ThreadTask object
+    """Wraps a function so it will run in a separate thread. A ThreadTask object
     will also be created so the task will be logged in the database and the
     state of the task can be checked.
+
+    :param pass_id: Should the task id be passed to the wrapped function in the args list
+    :type pass_id: bool
+    :param description: A description of the task. This will be included in the DB and should be
+        at most 140 chars.
+    :type description: str
     """
 
     def as_task_decorator(f):
