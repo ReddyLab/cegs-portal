@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Task {{ task.id }}{% endblock %}
+{% block content %}
+    <div class="text-2xl font-bold">Task {{ task.id }}</div>
+    <div>
+        <div><span class="font-bold">Description:</span> <span class="">{{ task.description }}</span></div>
+        <div><span class="font-bold">Started At:</span> <span class="">{{ task.started_at }}</span></div>
+        <div><span class="font-bold">Ended At:</span> <span class="">{{ task.ended_at }}</span></div>
+        <div><span class="font-bold">Completed:</span> <span class="">{{ task.is_done }}</span></div>
+        <div><span class="font-bold">Failed:</span> <span class="">{{ task.failed }}</span></div>
+        <div><span class="font-bold">Failure Reason:</span> <span class="">{{ task.failed_exception }}</span></div>
+    </div>
+{% endblock %}

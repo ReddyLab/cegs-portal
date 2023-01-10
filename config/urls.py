@@ -22,6 +22,7 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = (
             path("users/", include("cegs_portal.users.urls", namespace="users")),
             path("accounts/", include("allauth.urls")),
             path("search/", include("cegs_portal.search.urls")),
+            path("tasks/", include("cegs_portal.tasks.urls")),
             path("upload/", include("cegs_portal.uploads.urls")),
             path("", include("django_prometheus.urls")),
         ],
