@@ -21,31 +21,21 @@ class ThreadTask(models.Model):
         task = cls(description=description, started_at=datetime.now(timezone.utc))
         return task
 
-    @classmethod
-    def set_description(cls, task_id, description):
-        try:
-            task = cls.objects.get(id=task_id)
-            task.description = description
-            task.save()
-        except Exception as e:
-            print([t.id for t in cls.objects.all()])
-            raise e
+    def set_description(self, description):
+        self.description = description
+        self.save()
 
-    @classmethod
-    def end(cls, task_id):
-        task = cls.objects.get(id=task_id)
-        task.ended_at = datetime.now(timezone.utc)
-        task.is_done = True
-        task.save()
+    def end(self):
+        self.ended_at = datetime.now(timezone.utc)
+        self.is_done = True
+        self.save()
 
-    @classmethod
-    def fail(cls, task_id, reason):
-        task = cls.objects.get(id=task_id)
-        task.ended_at = datetime.now(timezone.utc)
-        task.is_done = True
-        task.failed = True
-        task.failed_exception = reason
-        task.save()
+    def fail(self, reason):
+        self.ended_at = datetime.now(timezone.utc)
+        self.is_done = True
+        self.failed = True
+        self.failed_exception = reason
+        self.save()
 
     @property
     def display_name(self):

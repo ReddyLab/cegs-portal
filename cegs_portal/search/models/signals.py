@@ -4,14 +4,13 @@ from django.dispatch import receiver
 
 from cegs_portal.search.models.experiment import Experiment
 from cegs_portal.tasks.decorators import as_task
-from cegs_portal.tasks.models import ThreadTask
 from cegs_portal.utils.decorators import skip_receiver_in_testing
 
 
 @receiver(post_save, sender=Experiment)
 @skip_receiver_in_testing
-@as_task(pass_id=True)
-def set_access_controls(task_id, sender, instance, created, raw, using, update_fields, **kwargs):
+@as_task(pass_task=True)
+def set_access_controls(task, sender, instance, created, raw, using, update_fields, **kwargs):
     """This reciever is run when access permissions are changed on an experiment. It updates
     the access permissions on the dna features and REOs associated with the experiment.
 
@@ -21,10 +20,10 @@ def set_access_controls(task_id, sender, instance, created, raw, using, update_f
     The other paramaters all have to do with django signal recievers.
     """
     if created:
-        ThreadTask.set_description(task_id, "Experiment created")
+        task.set_description("Experiment created")
         return
 
-    ThreadTask.set_description(task_id, f"Modify access controls of {instance.accession_id}")
+    task.set_description(f"Modify access controls of {instance.accession_id}")
 
     with connection.cursor() as cursor:
         cursor.execute(

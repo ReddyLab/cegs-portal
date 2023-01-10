@@ -3,25 +3,18 @@ from time import sleep
 import pytest
 
 from cegs_portal.tasks.decorators import as_task
-from cegs_portal.tasks.models import ThreadTask
 
-pytestmark = pytest.mark.django_db
+pytestmark = pytest.mark.django_db(transaction=True)
 
 
 def test_create_task():
-    @as_task(pass_id=False)
+    @as_task(pass_task=False)
     def test_func():
         pass
 
-    all_tasks = ThreadTask.objects.all()
-
-    assert all_tasks.count() == 0
-
-    test_func()
+    task = test_func()
     sleep(0.2)
 
-    assert all_tasks.count() == 1
-    task = all_tasks.first()
     assert task is not None
     assert task.description is None
     assert not task.failed
@@ -33,34 +26,40 @@ def test_create_task_description():
     def test_func():
         pass
 
-    all_tasks = ThreadTask.objects.all()
-
-    assert all_tasks.count() == 0
-
-    test_func()
+    task = test_func()
     sleep(0.2)
 
-    assert all_tasks.count() == 1
-    task = all_tasks.first()
     assert task is not None
     assert task.description == "Test Description"
     assert not task.failed
 
 
-def test_create_task_pass_id_description():
-    @as_task(pass_id=True, description="Test Description")
-    def test_func(task_id):
-        raise Exception(f"Failed Task {task_id}")
+def test_create_task_pass_task():
+    @as_task(pass_task=True)
+    def test_func(task):
+        task.set_description("Test Description")
 
-    all_tasks = ThreadTask.objects.all()
+    task = test_func()
 
-    assert all_tasks.count() == 0
-
-    test_func()
     sleep(0.2)
+    task.refresh_from_db()
 
-    assert all_tasks.count() == 1
-    task = all_tasks.first()
+    assert task is not None
+    assert task.description == "Test Description"
+    assert not task.failed
+    assert task.failed_exception is None
+
+
+def test_create_task_pass_task_description():
+    @as_task(pass_task=True, description="Test Description")
+    def test_func(task):
+        raise Exception(f"Failed Task {task.id}")
+
+    task = test_func()
+
+    sleep(0.2)
+    task.refresh_from_db()
+
     assert task is not None
     assert task.description == "Test Description"
     assert task.failed
@@ -68,19 +67,14 @@ def test_create_task_pass_id_description():
 
 
 def test_task_exception():
-    @as_task(pass_id=False)
+    @as_task(pass_task=False)
     def test_func():
         raise Exception("test exception")
 
-    all_tasks = ThreadTask.objects.all()
-
-    assert all_tasks.count() == 0
-
-    test_func()
+    task = test_func()
     sleep(0.2)
+    task.refresh_from_db()
 
-    assert all_tasks.count() == 1
-    task = all_tasks.first()
     assert task is not None
     assert task.failed
     assert task.failed_exception == "test exception"
