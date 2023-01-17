@@ -8,6 +8,7 @@ function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "ID"),
+            e("th", "Name"),
             e("th", "Feature Type"),
             e("th", "Cell Line"),
             e("th", "Location"),
@@ -20,6 +21,7 @@ function featureTable(features, regionID = "dnafeature") {
         newTable.append(
             e("tr", [
                 e("td", e("a", {href: `/search/feature/accession/${feature.accession_id}`}, feature.accession_id)),
+                e("td", feature.name || "N/A"),
                 e("td", feature.type),
                 e("td", feature.cell_line || "None"),
                 e("td", [e("span", feature.chr), ": ", e("span", `${feature.start}-${feature.end}`)]),

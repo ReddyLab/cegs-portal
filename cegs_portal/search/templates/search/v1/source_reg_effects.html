@@ -7,7 +7,7 @@
 
 <div class="text-xl font-bold">Source for Regulatory Effect Observations</div>
     <table class="data-table">
-        <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Target</th></tr>
+        <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Target Gene</th></tr>
         {% for regeffect in regeffects %}
             {% for re_target in regeffect.targets.all %}
             <tr>
@@ -18,7 +18,7 @@
                 <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
                 <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
                 {% endif %}
-            <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.accession_id }}</a></td>
+            <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a></td>
             </tr>
             {% empty %}
                 <tr>
@@ -54,4 +54,3 @@
 
 
 {% endblock %}
-
