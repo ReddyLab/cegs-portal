@@ -1,5 +1,5 @@
 """
-ASGI config for CEGS Portal project.
+ASGI config for CEGS CCGR Portal project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

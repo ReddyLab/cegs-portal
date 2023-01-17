@@ -1,11 +1,11 @@
 openapi: 3.1.0
 info:
-  title: CCGR Portal v1
+  title: CEGS CCGR Portal v1
   version: '1.0'
   contact:
     name: Thomas Cowart
     email: thomas.cowart@duke.edu
-  description: 'APIs for searching the CCGR Portal Additionally, individual Genes, DHSs, cCREs, Regulatory Effect Observations, and Experiments can be retrieved.'
+  description: 'APIs for searching the CEGS CCGR Portal Additionally, individual Genes, DHSs, cCREs, Regulatory Effect Observations, and Experiments can be retrieved.'
   summary: APIs for genetic information from CCGR portal
 servers:
   - url: 'http://localhost:3000/search/v1'

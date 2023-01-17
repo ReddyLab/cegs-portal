@@ -1,6 +1,6 @@
-# CEGS Portal
+# CEGS CCGR Portal
 
-Duke CEGS Functional Genomics Portal
+Duke CCGR Functional Genomics Portal
 
 <a href="https://github.com/pydanny/cookiecutter-django/"><img src="https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter" alt="Built with Cookiecutter Django"/></a>
 <a href="https://github.com/ambv/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black code style"/></a>
@@ -18,10 +18,11 @@ First, clone this repository. This is a Django 4.x project that requires Python 
 These instructions are for unix/linux systems. Windows users can follow along if they want to use WSL to run the portal.
 
 ### Pre-reqs
-* [python](https://www.python.org) >= 3.9
-* [docker](http://docker.com)
-* [Node.js](https://nodejs.dev) >= 14.17
-* [Rust](https://www.rust-lang.org)
+
+-   [python](https://www.python.org) >= 3.9
+-   [docker](http://docker.com)
+-   [Node.js](https://nodejs.dev) >= 14.17
+-   [Rust](https://www.rust-lang.org)
 
 Once you have the repository cloned and the pre-reqs installed you need to install the dependencies.
 
@@ -68,8 +69,8 @@ NOTE: This section is in progress until we have a location the data can be downl
 
 There are a couple of sets of publicly available data that go into the database
 
-* Gencode annotations for hg19 and hg38
-* Screen cCREs
+-   Gencode annotations for hg19 and hg38
+-   Screen cCREs
 
 The gencode gff3 data is downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and can be added to the database using the [load_gencode_gff3_data.sh](scripts/data_loading/load_gencode_gff3_data.sh) script. See [load_all.sh](scripts/data_loading/load_all.sh) for usage.
 
@@ -92,9 +93,9 @@ Run `make exp_cov` from the root portal directory.
 
 ### Setting Up Your Users
 
-* To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
+-   To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
 
-* To create an **superuser account**, use this command::
+-   To create an **superuser account**, use this command::
 
     $ python manage.py createsuperuser
 

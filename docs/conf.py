@@ -26,7 +26,7 @@ django.setup()
 
 # -- Project information -----------------------------------------------------
 
-project = "CEGS Portal"
+project = "CEGS CCGR Portal"
 copyright = """2021, Thomas Cowart"""
 author = "Thomas Cowart"
 
