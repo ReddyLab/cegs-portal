@@ -1,5 +1,6 @@
 import json
 from typing import cast
+from urllib.parse import quote_plus
 
 import pytest
 from django.test import Client
@@ -263,12 +264,12 @@ def test_get_archived_feature_accessionl_with_authenticated_authorized_group_cli
 
 
 def test_get_feature_name_json(client: Client, feature: DNAFeature):
-    response = client.get(f"/search/feature/name/{feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(feature.name)}?accept=application/json")
     check_json_response(response, feature)
 
 
 def test_get_feature_name_html(client: Client, feature: DNAFeature):
-    response = client.get(f"/search/feature/name/{feature.name}")
+    response = client.get(f"/search/feature/name/{quote_plus(feature.name)}")
 
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here
@@ -282,7 +283,7 @@ def test_get_no_feature_name_html(client: Client):
 
 
 def test_get_feature_name_with_anonymous_client(client: Client, private_feature: DNAFeature):
-    response = client.get(f"/search/feature/name/{private_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 302
 
 
@@ -291,7 +292,7 @@ def test_get_feature_name_with_authenticated_client(client: Client, private_feat
     password = "bar"
     django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{private_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
@@ -307,7 +308,7 @@ def test_get_feature_name_with_authenticated_authorized_client(
     user.experiments = [cast(str, private_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{private_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 200
 
 
@@ -325,12 +326,12 @@ def test_get_feature_name_with_authenticated_authorized_group_client(
     user.groups.add(group_extension.group)
     user.save()
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{private_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_get_archived_feature_name_with_anonymous_client(client: Client, archived_feature: DNAFeature):
-    response = client.get(f"/search/feature/name/{archived_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
@@ -341,7 +342,7 @@ def test_get_archived_feature_name_with_authenticated_client(
     password = "bar"
     django_user_model.objects.create_user(username=username, password=password)
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{archived_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
@@ -357,7 +358,7 @@ def test_get_archived_feature_name_with_authenticated_authorized_client(
     user.experiments = [cast(str, archived_feature.experiment_accession_id)]
     user.save()
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{archived_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
@@ -375,7 +376,7 @@ def test_get_archived_feature_name_with_authenticated_authorized_group_client(
     user.groups.add(group_extension.group)
     user.save()
     client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{archived_feature.name}?accept=application/json")
+    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
