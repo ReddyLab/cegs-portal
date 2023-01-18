@@ -61,14 +61,14 @@
 
     </div>
 
-    <div class="flex flex-row flex-1 place-content-start">
-      <div class="flex-auto"></div>
-      <div class="container self-start max-w-max flex flex-col">
+    <div class="flex flex-row flex-auto">
+      <div class="min-w-[5em] grow"></div>
+      <div class="flex flex-col">
         {% block content %}
           <p>Use this document as a way to quick start any new project.</p>
         {% endblock content %}
-      </div> <!-- /container -->
-      <div class="flex-grow flex-shrink"></div>
+      </div>
+      <div class="min-w-[5em] grow"></div>
     </div>
 
     <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>

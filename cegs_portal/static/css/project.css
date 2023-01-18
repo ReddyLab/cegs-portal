@@ -693,10 +693,20 @@ input[type="submit"], input[type="button"], button {
   width: 15rem;
 }
 
-.max-w-max {
-  max-width: -webkit-max-content;
-  max-width: -moz-max-content;
-  max-width: max-content;
+.min-w-\[5em\] {
+  min-width: 5em;
+}
+
+.min-w-fit {
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
+}
+
+.max-w-fit {
+  max-width: -webkit-fit-content;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
 }
 
 .max-w-5xl {
@@ -707,12 +717,6 @@ input[type="submit"], input[type="button"], button {
   -webkit-box-flex: 0;
       -ms-flex: none;
           flex: none;
-}
-
-.flex-1 {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0%;
-          flex: 1 1 0%;
 }
 
 .flex-auto {
@@ -727,12 +731,13 @@ input[type="submit"], input[type="button"], button {
           flex: 0 1 auto;
 }
 
-.flex-shrink {
-  -ms-flex-negative: 1;
-      flex-shrink: 1;
+.flex-grow {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
 }
 
-.flex-grow {
+.grow {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
@@ -785,21 +790,12 @@ input[type="submit"], input[type="button"], button {
       flex-wrap: wrap;
 }
 
-.place-content-start {
-  place-content: start;
-}
-
 .gap-4 {
   gap: 1rem;
 }
 
 .gap-1 {
   gap: 0.25rem;
-}
-
-.self-start {
-  -ms-flex-item-align: start;
-      align-self: flex-start;
 }
 
 .self-end {

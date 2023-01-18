@@ -25,7 +25,7 @@ svg > g > text {
 {% endblock %}
 {% block content %}
     <div class="flex flex-row">
-        <div id="filter-bar" class="grid grid-cols-1">
+        <div id="filter-bar" class="min-w-fit grid grid-cols-1">
             <div id="facets" class="w-60">
                 {% for facet in facets.all %}
                     <fieldset name="facetfield">
@@ -245,7 +245,7 @@ svg > g > text {
             useHash   : true,
             hideEmptyTracks: false,
             sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}{% switch "effect_plot" %}{% if search_type == "LOCATION" %}, {% endif %}applyPlot{% endswitch %}],
-            width: 1200,
+            width: 1000,
             tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
                 Genoverse.Track.Scalebar,
