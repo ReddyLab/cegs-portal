@@ -418,7 +418,7 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
 Genoverse.Track.Gene = Genoverse.Track.extend({
     id: "genes",
     name: "Genes",
-    resizable: false,
+    resizable: "auto",
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
     legend: Genoverse.Track.Legend.extend({
