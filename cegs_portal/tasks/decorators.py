@@ -1,13 +1,15 @@
 import logging
 import threading
-from functools import wraps
+from functools import partial, wraps
+
+from django.db import transaction
 
 from cegs_portal.tasks.models import ThreadTask
 
 logger = logging.getLogger("django.task")
 
 
-def as_task(pass_task=False, description=None):
+def as_task(pass_task_id=False, description=None):
     """Wraps a function so it will run in a separate thread. A ThreadTask object
     will also be created so the task will be logged in the database and the
     state of the task can be checked.
@@ -22,24 +24,28 @@ def as_task(pass_task=False, description=None):
     def as_task_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            def f_wrap(task, *args, **kwargs):
-                logger.info(f"Task <{task}> started")
+            def f_wrap(task_id, *args, **kwargs):
+                logger.info(f"Task <{task_id}> started")
+
                 try:
-                    if pass_task:
-                        args += (task,)
+                    if pass_task_id:
+                        args += (task_id,)
                     f(*args, **kwargs)
                 except Exception as e:
-                    task.fail(str(e)[:1024])
-                    logger.error(f"Task <{task}> failed")
+                    ThreadTask.fail(task_id, str(e)[:1024])
+                    logger.error(f"Task <{task_id}> failed")
                 else:
-                    task.end()
-                    logger.info(f"Task <{task}> ended")
+                    ThreadTask.end(task_id)
+                    logger.info(f"Task <{task_id}> ended")
 
             task = ThreadTask.new(description=description)
             task.save()
 
-            thread = threading.Thread(target=f_wrap, args=(task,) + args, kwargs=kwargs, daemon=True)
-            thread.start()
+            def g(task_id):
+                thread = threading.Thread(target=f_wrap, args=(task_id,) + args, kwargs=kwargs, daemon=False)
+                thread.start()
+
+            transaction.on_commit(partial(g, task.id))
 
             return task
 

@@ -18,24 +18,29 @@ class ThreadTask(models.Model):
 
     @classmethod
     def new(cls, description=None):
-        task = cls(description=description, started_at=datetime.now(timezone.utc))
-        return task
+        return cls(description=description, started_at=datetime.now(timezone.utc))
 
-    def set_description(self, description):
-        self.description = description
-        self.save()
+    @classmethod
+    def set_description(cls, task_id, description):
+        task = cls.objects.get(id=task_id)
+        task.description = description
+        task.save(update_fields=["description"])
 
-    def end(self):
-        self.ended_at = datetime.now(timezone.utc)
-        self.is_done = True
-        self.save()
+    @classmethod
+    def end(cls, task_id):
+        task = cls.objects.get(id=task_id)
+        task.ended_at = datetime.now(timezone.utc)
+        task.is_done = True
+        task.save(update_fields=["ended_at", "is_done"])
 
-    def fail(self, reason):
-        self.ended_at = datetime.now(timezone.utc)
-        self.is_done = True
-        self.failed = True
-        self.failed_exception = reason
-        self.save()
+    @classmethod
+    def fail(cls, task_id, reason):
+        task = cls.objects.get(id=task_id)
+        task.ended_at = datetime.now(timezone.utc)
+        task.is_done = True
+        task.failed = True
+        task.failed_exception = reason
+        task.save(update_fields=["ended_at", "is_done", "failed", "failed_exception"])
 
     @property
     def display_name(self):

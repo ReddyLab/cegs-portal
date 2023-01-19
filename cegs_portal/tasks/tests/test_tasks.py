@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db(transaction=True)
 
 
 def test_create_task():
-    @as_task(pass_task=False)
+    @as_task(pass_task_id=False)
     def test_func():
         pass
 
@@ -39,9 +39,9 @@ def test_create_task_description():
 
 
 def test_create_task_pass_task():
-    @as_task(pass_task=True)
-    def test_func(task):
-        task.set_description("Test Description")
+    @as_task(pass_task_id=True)
+    def test_func(task_id):
+        ThreadTask.set_description(task_id, "Test Description")
 
     task = test_func()
 
@@ -55,9 +55,9 @@ def test_create_task_pass_task():
 
 
 def test_create_task_pass_task_description():
-    @as_task(pass_task=True, description="Test Description")
-    def test_func(task):
-        raise Exception(f"Failed Task {task.id}")
+    @as_task(pass_task_id=True, description="Test Description")
+    def test_func(task_id):
+        raise Exception(f"Failed Task {task_id}")
 
     task = test_func()
 
@@ -71,7 +71,7 @@ def test_create_task_pass_task_description():
 
 
 def test_task_exception():
-    @as_task(pass_task=False)
+    @as_task(pass_task_id=False)
     def test_func():
         raise Exception("test exception")
 
