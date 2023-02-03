@@ -35,7 +35,6 @@ class ExperimentDataFile(admin.StackedInline):
     extra = 0
 
 
-@admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
     inlines = [ExperimentDataFile]
@@ -54,6 +53,9 @@ class ExperimentAdmin(admin.ModelAdmin):
     list_display = ("accession_id", "name", "public", "archived")
     list_filter = ["public", "archived"]
     search_fields = ["name", "description"]
+
+
+admin.site.register(Experiment, ExperimentAdmin)
 
 
 admin.site.register(Facet)
