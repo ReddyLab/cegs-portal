@@ -37,7 +37,7 @@ class ExperimentDataFileInlineAdmin(admin.StackedInline):
 
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentDataFile]
+    inlines = [ExperimentDataFileInlineAdmin]
     raw_id_fields = ["facet_values"]
     fields = [
         "public",
@@ -63,6 +63,11 @@ admin.site.register(Facet)
 
 class FacetValueAdmin(admin.ModelAdmin):
     search_fields = ["value", "facet__name"]
+    list_display = ["facet_list_display"]
+
+    @admin.display
+    def facet_list_display(self, obj):
+        return f"{obj.value} ({obj.facet.name})"
 
 
 admin.site.register(FacetValue, FacetValueAdmin)
