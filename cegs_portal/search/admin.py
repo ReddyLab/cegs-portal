@@ -3,6 +3,8 @@ from django.contrib import admin
 from cegs_portal.search.models import (
     DNAFeature,
     Experiment,
+    Facet,
+    FacetValue,
     RegulatoryEffectObservation,
 )
 
@@ -23,6 +25,14 @@ class ExperimentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Experiment, ExperimentAdmin)
+admin.site.register(Facet)
+
+
+class FacetValueAdmin(admin.ModelAdmin):
+    search_fields = ["value", "facet__name"]
+
+
+admin.site.register(FacetValue, FacetValueAdmin)
 
 
 class RegEffectAdmin(admin.ModelAdmin):
