@@ -21,6 +21,9 @@ class Facet(models.Model):
     description = models.CharField(max_length=4096, null=True)
     name = models.CharField(max_length=256)
 
+    def __str__(self):
+        return f"Facet: {self.name}"
+
 
 class FacetValue(models.Model):
     class Meta:
