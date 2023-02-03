@@ -10,6 +10,7 @@ from cegs_portal.search.models import (
     Facet,
     FacetValue,
     RegulatoryEffectObservation,
+    File,
 )
 
 
@@ -20,6 +21,18 @@ class DNAFeatureAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DNAFeature, DNAFeatureAdmin)
+
+
+class OtherFileForm(forms.ModelForm):
+    pass
+    # class Meta:
+    #     widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
+class ExperimentFacetValueForm(forms.ModelForm):
+    pass
+    # class Meta:
+    #     widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
 
 
 class ExperimentDataFileForm(forms.ModelForm):
@@ -40,10 +53,34 @@ class ExperimentDataFileInlineAdmin(admin.StackedInline):
     extra = 0
 
 
+class OtherFileInlineAdmin(admin.StackedInline):
+    form = OtherFileForm
+    model = Experiment.other_files.through
+    extra = 0
+    verbose_name = "Other File"
+
+    @admin.display
+    def other_file_info(self, obj):
+        return f"{obj.filename}"
+
+
+admin.site.register(File)
+
+
+class ExperimentFacetValueInlineAdmin(admin.StackedInline):
+    form = ExperimentFacetValueForm
+    model = Experiment.facet_values.through
+    extra = 0
+    verbose_name = "Facet Value"
+
+    @admin.display
+    def facet_info(self, obj):
+        return f"{obj.value} ({obj.facet.name})"
+
+
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentDataFileInlineAdmin]
-    raw_id_fields = ["facet_values"]
+    inlines = [ExperimentDataFileInlineAdmin, ExperimentFacetValueInlineAdmin, OtherFileInlineAdmin]
     fields = [
         "public",
         "archived",
@@ -51,9 +88,7 @@ class ExperimentAdmin(admin.ModelAdmin):
         "name",
         "description",
         "experiment_type",
-        "facet_values",
         "biosamples",
-        "other_files",
     ]
     list_display = ("accession_id", "name", "public", "archived")
     list_filter = ["public", "archived"]
