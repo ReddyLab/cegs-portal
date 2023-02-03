@@ -29,7 +29,7 @@ class ExperimentForm(forms.ModelForm):
 
 # StackedInline stackes the Experiment Data File fields vertically instead of horizontally(TubularInline).
 # Extra  = 0 reduces repeat field sections
-class ExperimentDataFile(admin.StackedInline):
+class ExperimentDataFileInlineAdmin(admin.StackedInline):
     form = ExperimentForm
     model = ExperimentDataFile
     extra = 0
