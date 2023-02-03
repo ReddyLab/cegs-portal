@@ -1,4 +1,7 @@
+from django import forms
 from django.contrib import admin
+from django.db import models
+from django.forms import Textarea
 
 from cegs_portal.search.models import (
     DNAFeature,
@@ -19,13 +22,40 @@ class DNAFeatureAdmin(admin.ModelAdmin):
 admin.site.register(DNAFeature, DNAFeatureAdmin)
 
 
+class ExperimentForm(forms.ModelForm):
+    class Meta:
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
+# StackedInline stackes the Experiment Data File fields vertically instead of horizontally(TubularInline).
+# Extra  = 0 reduces repeat field sections
+class ExperimentDataFile(admin.StackedInline):
+    form = ExperimentForm
+    model = ExperimentDataFile
+    extra = 0
+
+
+@admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
+    form = ExperimentForm
+    inlines = [ExperimentDataFile]
+    raw_id_fields = ["facet_values"]
+    fields = [
+        "public",
+        "archived",
+        "accession_id",
+        "name",
+        "description",
+        "experiment_type",
+        "facet_values",
+        "biosamples",
+        "other_files",
+    ]
     list_display = ("accession_id", "name", "public", "archived")
     list_filter = ["public", "archived"]
     search_fields = ["name", "description"]
 
 
-admin.site.register(Experiment, ExperimentAdmin)
 admin.site.register(Facet)
 
 
