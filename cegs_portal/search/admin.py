@@ -22,6 +22,11 @@ class DNAFeatureAdmin(admin.ModelAdmin):
 admin.site.register(DNAFeature, DNAFeatureAdmin)
 
 
+class ExperimentDataFileForm(forms.ModelForm):
+    class Meta:
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
 class ExperimentForm(forms.ModelForm):
     class Meta:
         widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
@@ -30,7 +35,7 @@ class ExperimentForm(forms.ModelForm):
 # StackedInline stackes the Experiment Data File fields vertically instead of horizontally(TubularInline).
 # Extra  = 0 reduces repeat field sections
 class ExperimentDataFileInlineAdmin(admin.StackedInline):
-    form = ExperimentForm
+    form = ExperimentDataFileForm
     model = ExperimentDataFile
     extra = 0
 
