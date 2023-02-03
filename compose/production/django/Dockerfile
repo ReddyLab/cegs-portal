@@ -64,7 +64,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:django --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --chown=django:django --from=maturin /exp_viz/target/wheels/exp_viz-0.1.2-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
+COPY --chown=django:django --from=maturin /exp_viz/target/wheels/exp_viz-0.1.3-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
