@@ -1,10 +1,11 @@
+use std::iter::zip;
 use std::time::Instant;
 
 use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
 use crate::filter_data_structures::*;
-use cov_viz_ds::{DbID, FacetCoverage, FacetRange};
+use cov_viz_ds::{ChromosomeData, DbID, FacetCoverage, FacetRange};
 
 fn is_disjoint(a: &Vec<DbID>, b: &Vec<DbID>) -> bool {
     for val_a in a {
@@ -118,11 +119,14 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
 
             let mut chrom_data = FilteredChromosome {
                 chrom: chromosome.chrom.clone(),
+                index: chromosome.index,
                 bucket_size: chromosome.bucket_size,
                 target_intervals: Vec::new(),
                 source_intervals: Vec::new(),
             };
-            let bucket_list = BucketList::new(&data.chrom_lengths, chromosome.bucket_size as usize);
+            let chrom_info: Vec<(&ChromosomeData, &usize)> =
+                zip(&data.chromosomes, &data.chrom_lengths).collect();
+            let bucket_list = BucketList::new(&chrom_info, chromosome.bucket_size as usize);
             if skip_cont_facet_check && sf_with_selections.is_empty() {
                 // do no filtering
                 chrom_data.source_intervals = chromosome

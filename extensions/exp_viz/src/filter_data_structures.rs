@@ -1,6 +1,6 @@
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
-use cov_viz_ds::{Bucket, CoverageData, DbID};
+use cov_viz_ds::{Bucket, ChromosomeData, CoverageData, DbID};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,7 @@ pub struct PyCoverageData {
 }
 
 #[pyclass]
+#[derive(Debug)]
 pub struct Filter {
     #[pyo3(get, set)]
     pub discrete_facets: FxHashSet<DbID>,
@@ -72,6 +73,7 @@ pub struct FilteredBucket {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FilteredChromosome {
     pub chrom: String,
+    pub index: u8,
     pub bucket_size: u32,
     pub target_intervals: Vec<FilteredBucket>,
     pub source_intervals: Vec<FilteredBucket>,
@@ -94,6 +96,7 @@ impl FilteredData {
                 .iter()
                 .map(|c| FilteredChromosome {
                     chrom: c.chrom.clone(),
+                    index: c.index,
                     bucket_size: c.bucket_size,
                     target_intervals: Vec::new(),
                     source_intervals: Vec::new(),
@@ -113,21 +116,25 @@ impl FilteredData {
 
 #[derive(Clone)]
 pub struct BucketList {
-    pub buckets: Vec<Vec<u32>>,
+    pub buckets: FxHashMap<u8, Vec<u32>>,
 }
 
 impl BucketList {
-    pub fn new(chroms: &Vec<usize>, bucket_size: usize) -> Self {
+    pub fn new(chrom_info: &Vec<(&ChromosomeData, &usize)>, bucket_size: usize) -> Self {
         BucketList {
-            buckets: chroms
+            buckets: chrom_info
                 .iter()
-                .map(|c| vec![0; (c / bucket_size) + 1])
+                .map(|c| (c.0.index, vec![0; (c.1 / bucket_size) + 1]))
                 .collect(),
         }
     }
 
-    pub fn insert(&mut self, chrom: usize, bucket: usize) {
-        self.buckets[chrom][bucket] = 1;
+    pub fn insert(&mut self, chrom: u8, bucket: usize) {
+        let x = self.buckets.get_mut(&chrom);
+        match x {
+            Some(v) => v[bucket] = 1,
+            None => (),
+        };
     }
 
     pub fn insert_from<'a, I>(&mut self, from: I)
@@ -141,10 +148,10 @@ impl BucketList {
 
     pub fn flat_list(&self) -> Vec<u32> {
         let mut new_list: Vec<u32> = Vec::new();
-        for (i, chrom) in self.buckets.iter().enumerate() {
+        for (i, chrom) in self.buckets.iter() {
             for (j, bucket) in chrom.iter().enumerate() {
                 if *bucket == 1 {
-                    new_list.push(i as u32);
+                    new_list.push(*i as u32);
                     new_list.push(j as u32);
                 }
             }

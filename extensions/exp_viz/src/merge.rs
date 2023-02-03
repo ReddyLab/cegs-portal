@@ -19,6 +19,7 @@ fn merge_chromosomes(
     for chrom in chromosomes {
         let mut new_chromosome = FilteredChromosome {
             chrom: chrom.clone(),
+            index: 0,
             bucket_size: 0,
             target_intervals: Vec::new(),
             source_intervals: Vec::new(),
@@ -36,6 +37,8 @@ fn merge_chromosomes(
                     new_chromosome = filtered_chrom.clone();
                     break;
                 }
+
+                new_chromosome.index = filtered_chrom.index;
 
                 // Right chromosome; has been added already; need to merge
                 let mut source_intervals: Vec<FilteredBucket> = Vec::new();
