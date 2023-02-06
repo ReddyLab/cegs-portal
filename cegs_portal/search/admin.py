@@ -21,18 +21,6 @@ class DNAFeatureAdmin(admin.ModelAdmin):
 admin.site.register(DNAFeature, DNAFeatureAdmin)
 
 
-class OtherFileForm(forms.ModelForm):
-    pass
-    # class Meta:
-    #     widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
-
-
-class ExperimentFacetValueForm(forms.ModelForm):
-    pass
-    # class Meta:
-    #     widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
-
-
 class ExperimentDataFileForm(forms.ModelForm):
     class Meta:
         widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
@@ -52,7 +40,6 @@ class ExperimentDataFileInlineAdmin(admin.StackedInline):
 
 
 class OtherFileInlineAdmin(admin.StackedInline):
-    form = OtherFileForm
     model = Experiment.other_files.through
     extra = 0
     verbose_name = "Other File"
@@ -66,7 +53,6 @@ admin.site.register(File)
 
 
 class ExperimentFacetValueInlineAdmin(admin.StackedInline):
-    form = ExperimentFacetValueForm
     model = Experiment.facet_values.through
     extra = 0
     verbose_name = "Facet Value"
