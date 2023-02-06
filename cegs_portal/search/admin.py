@@ -1,7 +1,5 @@
 from django import forms
 from django.contrib import admin
-from django.db import models
-from django.forms import Textarea
 
 from cegs_portal.search.models import (
     DNAFeature,
