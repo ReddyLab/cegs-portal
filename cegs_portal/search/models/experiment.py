@@ -59,7 +59,7 @@ class ExperimentDataFile(models.Model):
     experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="data_files")
     filename = models.CharField(max_length=512)
     ref_genome = models.CharField(max_length=20)
-    ref_genome_patch = models.CharField(max_length=10)
+    ref_genome_patch = models.CharField(max_length=10, blank=True)
     significance_measure = models.CharField(max_length=2048)
 
     def __str__(self):
