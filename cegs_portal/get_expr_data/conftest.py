@@ -1,11 +1,23 @@
+import os
+
 import pytest
+from django.core.files.storage import default_storage
 from psycopg2.extras import NumericRange
 
 from cegs_portal.get_expr_data.models import ReoSourcesTargets
+from cegs_portal.get_expr_data.view_models import EXPR_DATA_DIR
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
+
+
+@pytest.fixture(scope="module", autouse=True)
+def cleanup_test_files():
+    yield
+    _, files = default_storage.listdir(EXPR_DATA_DIR)
+    for file in files:
+        default_storage.delete(os.path.join(EXPR_DATA_DIR, file))
 
 
 @pytest.fixture

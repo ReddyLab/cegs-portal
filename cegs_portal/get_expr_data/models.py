@@ -19,12 +19,12 @@ class ReoSourcesTargets(models.Model):
         db_table = "reo_sources_targets"
 
     @classmethod
-    def refresh_view(_cls):
+    def refresh_view(cls):
         with connection.cursor() as cursor:
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets")
 
     @classmethod
-    def view_contents(_cls):
+    def view_contents(cls):
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM reo_sources_targets")
             return cursor.fetchall()

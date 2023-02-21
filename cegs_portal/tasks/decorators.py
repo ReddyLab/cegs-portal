@@ -25,18 +25,19 @@ def as_task(pass_task_id=False, description=None):
         @wraps(f)
         def wrapper(*args, **kwargs):
             def f_wrap(task_id, *args, **kwargs):
-                logger.info(f"Task <{task_id}> started")
+                logger.info("Task <%s> started", task_id)
 
                 try:
                     if pass_task_id:
                         args += (task_id,)
                     f(*args, **kwargs)
-                except Exception as e:
+                # pylint: disable-next=broad-exception-caught
+                except Exception as e:  # Who knows what exceptions the wrapped function might throw
                     ThreadTask.fail(task_id, str(e)[:1024])
-                    logger.error(f"Task <{task_id}> failed")
+                    logger.error("Task <%s> failed", task_id)
                 else:
                     ThreadTask.end(task_id)
-                    logger.info(f"Task <{task_id}> ended")
+                    logger.info("Task <%s> ended", task_id)
 
             task = ThreadTask.new(description=description)
             task.save()
