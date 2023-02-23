@@ -7,8 +7,8 @@ from cegs_portal.search.models import (
     ExperimentDataFile,
     Facet,
     FacetValue,
-    RegulatoryEffectObservation,
     File,
+    RegulatoryEffectObservation,
 )
 
 

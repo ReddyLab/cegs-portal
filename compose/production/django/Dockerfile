@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.11.1-slim-bullseye
+ARG PYTHON_VERSION=3.11.2-slim-bullseye
 
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
@@ -44,8 +44,7 @@ ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
-RUN addgroup --system django \
-  && adduser --system --ingroup django django
+RUN adduser --system --ingroup root django
 
 RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
@@ -60,35 +59,40 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
-
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
-COPY --chown=django:django --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --chown=django:django --from=maturin /exp_viz/target/wheels/exp_viz-0.1.3-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
+COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels/
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.1.3-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
   && rm -rf /wheels/
 
-COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
+COPY --chown=django:root ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
 
-COPY --chown=django:django ./compose/production/django/start /start
+COPY --chown=django:root ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
 # copy application code to WORKDIR
-COPY --chown=django:django . ${APP_HOME}
+COPY --chown=django:root . ${APP_HOME}
+
+# Create media directory for temporarily served files
+RUN mkdir -p ${APP_HOME}/cegs_portal/media/expr_data_dir
+RUN chmod ug+w ${APP_HOME}/cegs_portal/media/
+RUN chmod ug+w ${APP_HOME}/cegs_portal/media/expr_data_dir
 
 # make django owner of the WORKDIR directory as well.
-RUN chown django:django ${APP_HOME}
+RUN chown -R django:root ${APP_HOME}
 
 # make django owner of the python site-packages dir so third-party
 # migrations can be created and run
-RUN chown -R django:django /usr/local/lib/python3.11/site-packages
+RUN chown -R django:root /usr/local/lib/python3.11/site-packages
 
 USER django
+
 
 ENTRYPOINT ["/entrypoint"]

@@ -10,25 +10,23 @@ from django.views.generic import TemplateView
 
 import cegs_portal.search.views
 
-urlpatterns: list[Union[URLPattern, URLResolver]] = (
-    cast(
-        list[Union[URLPattern, URLResolver]],
-        [
-            path("", cegs_portal.search.views.index, name="home"),
-            path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
-            # Django Admin, use {% url 'admin:index' %}
-            path(settings.ADMIN_URL, admin.site.urls),
-            # User management
-            path("users/", include("cegs_portal.users.urls", namespace="users")),
-            path("accounts/", include("allauth.urls")),
-            path("search/", include("cegs_portal.search.urls")),
-            path("tasks/", include("cegs_portal.tasks.urls")),
-            path("upload/", include("cegs_portal.uploads.urls")),
-            path("", include("django_prometheus.urls")),
-        ],
-    )
-    + cast(list[Union[URLPattern, URLResolver]], static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
-)
+urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
+    list[Union[URLPattern, URLResolver]],
+    [
+        path("", cegs_portal.search.views.index, name="home"),
+        path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+        # Django Admin, use {% url 'admin:index' %}
+        path(settings.ADMIN_URL, admin.site.urls),
+        # User management
+        path("users/", include("cegs_portal.users.urls", namespace="users")),
+        path("accounts/", include("allauth.urls")),
+        path("search/", include("cegs_portal.search.urls")),
+        path("tasks/", include("cegs_portal.tasks.urls")),
+        path("exp_data/", include("cegs_portal.get_expr_data.urls")),
+        path("upload/", include("cegs_portal.uploads.urls")),
+        path("", include("django_prometheus.urls")),
+    ],
+) + cast(list[Union[URLPattern, URLResolver]], static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
 if settings.DEBUG:
     # Static file serving when using Gunicorn + Uvicorn for local web socket development
     urlpatterns += cast(list[Union[URLPattern, URLResolver]], staticfiles_urlpatterns())
