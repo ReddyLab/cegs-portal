@@ -8,110 +8,79 @@
     <meta name="description" content="Duke CCGR Functional Genomics Portal">
     <meta name="author" content="Thomas Cowart">
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tw-elements/dist/css/index.min.css" />
-    <script src="https://cdn.tailwindcss.com/3.2.4"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                fontFamily: {
-                    sans: ["Roboto", "sans-serif"],
-                    body: ["Roboto", "sans-serif"],
-                    mono: ["ui-monospace", "monospace"],
-                },
-            },
-        };
-    </script>
+
     {% block css %}
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     {% endblock %}
-    <!-- Le javascript
-    ================================================== -->
-        {# Placed at the top of the document so pages load faster with defer #} {% block javascript %}
-        <script defer src="{% static 'js/project.js' %}"></script>
-        {% endblock javascript %}
+    {% block javascript %}
+    <!-- Le javascript ================================================== -->
+    {# Placed at the top of the document so pages load faster with defer #}
+    <script defer src="{% static 'js/project.js' %}"></script>
+    {% endblock javascript %}
     </head>
 
   <body class="bg-color text-gray-900 font-sans min-h-screen" id="bg" style="background-image: url('{% static 'images/template.jpeg'%}')">
     <div class="min-h-screen flex flex-col">
-    <div class="flex-none mb-10">
-      <nav class="navbar navbar-expand-md navbar-dark bg-dark p-8">
-        <button class="navbar-toggler navbar-toggler-right w-10" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand" href="{% url 'home' %}">CEGS CCGR Portal</a>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item active">
-                                <a class="nav-link" href="{% url 'home' %}"
-                                    >Home <span class="sr-only">(current)</span></a
-                                >
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'about' %}">About</a>
-                            </li>
-                            {% if request.user.is_authenticated %}
-                            <li class="nav-item">
-                                {# URL provided by django-allauth/account/urls.py #}
-                                <a class="nav-link" href="{% url 'users:detail' request.user.username  %}"
-                                    >{% translate "My Profile" %}</a
-                                >
-                            </li>
-                            <li class="nav-item">
-                                {# URL provided by django-allauth/account/urls.py #}
-                                <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                {# URL provided by django-allauth/account/urls.py #}
-                                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}"
-                                    >{% translate "Sign Up" %}</a
-                                >
-                            </li>
-                            <li class="nav-item">
-                                {# URL provided by django-allauth/account/urls.py #}
-                                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"
-                                    >{% translate "Sign In" %}</a
-                                >
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </nav>
-            </div>
-
-            <div class="flex flex-row flex-1 place-content-start">
-                <div class="flex-auto"></div>
-                <div class="container self-start max-w-max flex flex-col">
-                    {% block content %}
-                    <p>Use this document as a way to quick start any new project.</p>
-                    {% endblock content %}
-                </div>
-
-                <div class="flex-grow flex-shrink"></div>
-            </div>
-
-            <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
-        </div>
-      <!-- </nav> -->
-
-    </div>
-
-    <!-- <div class="flex flex-row flex-auto">
-      <div class="min-w-[5em] grow"></div>
-      <div class="flex flex-col">
-
-          <p>Use this document as a way to quick start any new project.</p>
-
+      <div class="flex-none mb-10">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark p-8">
+          <button class="navbar-toggler navbar-toggler-right w-10" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'home' %}">CEGS CCGR Portal</a>
+          <div class="navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav mr-auto">
+                  <li class="nav-item active">
+                      <a class="nav-link" href="{% url 'home' %}"
+                          >Home <span class="sr-only">(current)</span></a
+                      >
+                  </li>
+                  <li class="nav-item">
+                      <a class="nav-link" href="{% url 'about' %}">About</a>
+                  </li>
+                  {% if request.user.is_authenticated %}
+                  <li class="nav-item">
+                      {# URL provided by django-allauth/account/urls.py #}
+                      <a class="nav-link" href="{% url 'users:detail' request.user.username  %}"
+                          >{% translate "My Profile" %}</a
+                      >
+                  </li>
+                  <li class="nav-item">
+                      {# URL provided by django-allauth/account/urls.py #}
+                      <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+                  </li>
+                  {% else %}
+                  <li class="nav-item">
+                      {# URL provided by django-allauth/account/urls.py #}
+                      <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}"
+                          >{% translate "Sign Up" %}</a
+                      >
+                  </li>
+                  <li class="nav-item">
+                      {# URL provided by django-allauth/account/urls.py #}
+                      <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"
+                          >{% translate "Sign In" %}</a
+                      >
+                  </li>
+                  {% endif %}
+              </ul>
+          </div>
+        </nav>
       </div>
-      <div class="min-w-[5em] grow"></div>
-    </div>
 
-    <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
-    </div> -->
+      <div class="flex flex-row flex-1 place-content-start">
+        <div class="flex-auto"></div>
+        <div class="container self-start max-w-max flex flex-col">
+            {% block content %}
+            <p>Use this document as a way to quick start any new project.</p>
+            {% endblock content %}
+        </div>
+
+        <div class="flex-grow flex-shrink"></div>
+      </div>
+
+      <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
+    </div>
     {% block modal %}{% endblock modal %}
 
     {% block inline_javascript %}

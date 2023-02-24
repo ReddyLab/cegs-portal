@@ -26,6 +26,12 @@
     },
     "jest": {
         "transform": {},
-        "testMatch": [ "**/__tests__/**/*.m?[jt]s?(x)", "**/?(*.)+(spec|test).m[jt]s?(x)" ]
+        "testMatch": [
+            "**/__tests__/**/*.m?[jt]s?(x)",
+            "**/?(*.)+(spec|test).m[jt]s?(x)"
+        ]
+    },
+    "dependencies": {
+        "tw-elements": "^1.0.0-beta1"
     }
 }
