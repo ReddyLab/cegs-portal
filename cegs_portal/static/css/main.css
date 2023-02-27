@@ -1,60 +1,39 @@
+.content-container {
+  background: #ffffff;
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 5px 4px rgba(0,0,0,.1);
+  margin-bottom: 20px;
+}
+
+.tab-bar {
+  background: #ffffff;
+  border-radius: 10px;
+  padding-left: 10px;
+  box-shadow: 0px 2px 5px 4px rgba(0,0,0,.1);
+}
+
+.tab-block {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
 .facet-content-section {
-    background: #ffffff;
-    padding: 20px 40px;
-    border: 1px solid #727169;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    margin-left: 40px;
-    box-shadow: 0px 2px 5px 4px rgba(0,0,0,.3);
-  }
+}
 
-  .chrom-content-section {
-    background: #ffffff;
-    padding: 20px 40px;
-    border: 1px solid #727169;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    margin-left: 20px;
-    margin-right: 40px;
-    box-shadow: 0px 2px 5px 4px rgba(0,0,0,.3);
-  }
+.chrom-content-section {
+  margin-left: 20px;
+}
 
-  .experiment-content-section {
-    background: #ffffff;
-    padding: 20px 40px;
-    border: 1px solid #727169;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    margin-left: 40px;
-    margin-right: 40px;
-    box-shadow: 0px 2px 5px 4px rgba(0,0,0,.3);
-  }
+.experiment-content-section {
+}
 
-  .datafile-content-section {
-    background: #ffffff;
-    padding: 20px 40px;
-    border: 1px solid #727169;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    margin-left: 25px;
-    margin-right: 25px;
-    box-shadow: 0px 2px 5px 4px rgba(0,0,0,.3);
-  }
+.datafile-content-section {
+}
 
-   #bg {
-      background-size: 2000px 1000px;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-attachment: fixed;
-  }
-
-  .experiment-content-sections {
-    background: #ffffff;
-    padding: 20px 40px;
-    border: 1px solid #727169;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    margin-left: 100px;
-    margin-right: 100px;
-    box-shadow: 0px 2px 5px 4px rgba(0,0,0,.3);
-  }
+#bg {
+  background-size: 2000px 1000px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
