@@ -1,4 +1,5 @@
 import csv
+import os.path
 import time
 
 from django.db import transaction
@@ -103,6 +104,11 @@ def check_filename(ccre_data: str):
         raise ValueError(f"cCRE data filename '{ccre_data}' must not be blank")
 
 
+def full_data_filepath(ccre_file, data_filename):
+    base_path = os.path.dirname(ccre_file)
+    return os.path.join(base_path, data_filename)
+
+
 def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
     with open(ccre_data) as file:
         file_metadata = FileMetadata.json_load(file)
@@ -116,7 +122,7 @@ def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
 
     source_file = file_metadata.db_save()
 
-    with open(file_metadata.full_data_filepath) as ccres_file, AccessionIds(
+    with open(full_data_filepath(ccre_data, file_metadata.filename)) as ccres_file, AccessionIds(
         message=f"cCRE for {ref_genome}.{ref_genome_patch}"
     ) as accession_ids:
         load_ccres(
@@ -125,5 +131,5 @@ def run(ccre_data: str, ref_genome: str, ref_genome_patch: str):
             source_file,
             ref_genome,
             ref_genome_patch,
-            delimiter=get_delimiter(file_metadata.data_filename),
+            delimiter=get_delimiter(file_metadata.filename),
         )

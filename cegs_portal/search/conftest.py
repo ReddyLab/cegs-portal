@@ -10,7 +10,7 @@ from cegs_portal.search.models import (
     DNAFeatureType,
     EffectObservationDirectionType,
     Experiment,
-    ExperimentDataFile,
+    ExperimentDataFileInfo,
     Facet,
     File,
     RegulatoryEffectObservation,
@@ -18,7 +18,7 @@ from cegs_portal.search.models import (
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import (
     BiosampleFactory,
-    ExperimentDataFileFactory,
+    ExperimentDataFileInfoFactory,
     ExperimentFactory,
 )
 from cegs_portal.search.models.tests.facet_factory import (
@@ -33,72 +33,71 @@ from cegs_portal.utils.pagination_types import MockPaginator, Pageable, Paginate
 
 @pytest.fixture
 def experiment() -> Experiment:
-    e = ExperimentFactory(other_files=(other_file(), other_file()))
-    e.data_files.set(((data_file(e),)))
+    e = ExperimentFactory()
+    _ = (_file(experiment=e), _file(experiment=e, data_file_info=data_file_info()))
     return e
 
 
 @pytest.fixture
 def private_experiment() -> Experiment:
-    e = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
-    e.data_files.set(((data_file(e),)))
+    e = ExperimentFactory(public=False)
+    _ = (_file(experiment=e), _file(experiment=e, data_file_info=data_file_info()))
     return e
 
 
 @pytest.fixture
 def archived_experiment() -> Experiment:
-    e = ExperimentFactory(other_files=(other_file(), other_file()), archived=True)
-    e.data_files.set(((data_file(e),)))
+    e = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e), _file(experiment=e, data_file_info=data_file_info()))
     return e
 
 
 @pytest.fixture
 def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
-    e1 = ExperimentFactory(other_files=(other_file(), other_file()))
-    e1.data_files.set(((data_file(e1),)))
-    e2 = ExperimentFactory(other_files=(other_file(), other_file()), public=False)
-    e2.data_files.set(((data_file(e2),)))
-    e3 = ExperimentFactory(other_files=(other_file(), other_file()), archived=True)
-    e3.data_files.set(((data_file(e3),)))
-
+    e1 = ExperimentFactory()
+    _ = (_file(experiment=e1), _file(experiment=e1, data_file_info=data_file_info()))
+    e2 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e2), _file(experiment=e2, data_file_info=data_file_info()))
+    e3 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e3), _file(experiment=e3, data_file_info=data_file_info()))
     return (e1, e2, e3)
 
 
 @pytest.fixture
 def paged_experiments() -> Pageable[Experiment]:
-    e1 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e1.data_files.set(((data_file(e1),)))
-    e2 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e2.data_files.set(((data_file(e2),)))
-    e3 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e3.data_files.set(((data_file(e3),)))
-    e4 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e4.data_files.set(((data_file(e4),)))
-    e5 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e5.data_files.set(((data_file(e5),)))
-    e6 = ExperimentFactory(other_files=(other_file(), other_file()), biosamples=(BiosampleFactory(),))
-    e6.data_files.set(((data_file(e6),)))
+    e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e1), _file(experiment=e1, data_file_info=data_file_info()))
+    e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e2), _file(experiment=e2, data_file_info=data_file_info()))
+    e3 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e3), _file(experiment=e3, data_file_info=data_file_info()))
+    e4 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e4), _file(experiment=e4, data_file_info=data_file_info()))
+    e5 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e5), _file(experiment=e5, data_file_info=data_file_info()))
+    e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    _ = (_file(experiment=e6), _file(experiment=e6, data_file_info=data_file_info()))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
     pages: Paginateable[Experiment] = MockPaginator(experiments, 3)
     return pages.page(1)
 
 
-def data_file(experiment=None) -> ExperimentDataFile:
-    return ExperimentDataFileFactory(experiment=experiment)
+def data_file_info() -> ExperimentDataFileInfo:
+    return ExperimentDataFileInfoFactory()
 
 
-@pytest.fixture(name="data_file")
-def df() -> ExperimentDataFile:
-    return data_file()
+@pytest.fixture(name="data_file_info")
+def dfi() -> ExperimentDataFileInfo:
+    return data_file_info()
 
 
-def other_file() -> File:
-    return FileFactory()
+def _file(experiment=None, data_file_info=None) -> File:
+    return FileFactory(experiment=experiment, data_file_info=data_file_info)
 
 
-@pytest.fixture(name="other_file")
-def of() -> File:
-    return other_file()
+@pytest.fixture
+def file() -> File:
+    return _file()
 
 
 @pytest.fixture
@@ -191,7 +190,7 @@ def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
         archived=archived,
     )
     effect.experiment.biosamples.add(BiosampleFactory())
-    effect.experiment.data_files.add(ExperimentDataFileFactory())
+    effect.experiment.files.add(FileFactory(data_file_info=ExperimentDataFileInfoFactory()))
     return effect
 
 

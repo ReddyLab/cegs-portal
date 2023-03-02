@@ -1,11 +1,10 @@
 import pytest
 
 from cegs_portal.search.json_templates.v1.experiment import biosample as b_json
-from cegs_portal.search.json_templates.v1.experiment import data_file as df_json
 from cegs_portal.search.json_templates.v1.experiment import experiment as exp_json
 from cegs_portal.search.json_templates.v1.experiment import experiments as exps_json
-from cegs_portal.search.json_templates.v1.experiment import other_file as of_json
-from cegs_portal.search.models import Experiment, ExperimentDataFile, File
+from cegs_portal.search.json_templates.v1.experiment import file as f_json
+from cegs_portal.search.models import Experiment, File
 from cegs_portal.search.models.experiment import Biosample
 from cegs_portal.utils.pagination_types import Pageable
 
@@ -45,8 +44,7 @@ def test_experiment_json(experiment: Experiment):
         "description": experiment.description,
         "assay": experiment.experiment_type,
         "biosamples": [b_json(b) for b in experiment.biosamples.all()],
-        "data_files": [df_json(file) for file in experiment.data_files.all()],
-        "other_files": [of_json(file) for file in experiment.other_files.all()],
+        "files": [f_json(file) for file in experiment.files.all()],
     }
 
 
@@ -57,17 +55,11 @@ def test_biosamples(biosample: Biosample):
     }
 
 
-def test_data_files(data_file: ExperimentDataFile):
-    assert df_json(data_file) == {
-        "filename": data_file.filename,
-        "description": data_file.description,
-        "assembly": f"{data_file.ref_genome}.{data_file.ref_genome_patch or '0'}",
-    }
-
-
-def test_other_files(other_file: File):
-    assert of_json(other_file) == {
-        "filename": other_file.filename,
-        "description": other_file.description,
-        "url": other_file.url,
+def test_file(file: File):
+    assert f_json(file) == {
+        "filename": file.filename,
+        "description": file.description,
+        "url": file.url,
+        "size": file.size,
+        "category": file.category,
     }
