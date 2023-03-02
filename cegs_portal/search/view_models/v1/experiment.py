@@ -31,7 +31,7 @@ class ExperimentSearch:
         experiment = (
             Experiment.objects.filter(accession_id=accession_id)
             .prefetch_related(
-                "data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "other_files"
+                "data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "other_files", "files"
             )
             .first()
         )

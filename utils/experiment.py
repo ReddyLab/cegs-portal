@@ -11,7 +11,7 @@ from cegs_portal.search.models import (
     Biosample,
     CellLine,
     Experiment,
-    ExperimentDataFile,
+    ExperimentDataFileInfo,
     TissueType,
 )
 
@@ -19,32 +19,30 @@ from .file import FileMetadata
 from .misc import get_delimiter
 
 
-class ExperimentDatafileMetadata:
-    description: str
-    filename: str
+class ExperimentFileMetadata:
+    file_metadata: FileMetadata
     ref_genome: str
     ref_genome_patch: str
     significance_measure: str
+    p_val_threshold: float
 
     def __init__(self, file_metadata: dict[str, str]):
-        self.description = file_metadata.get("description", None)
-        self.filename = file_metadata["file"]
+        self.file_metadata = FileMetadata(file_metadata)
         self.ref_genome = file_metadata["ref_genome"]
         self.ref_genome_patch = file_metadata.get("ref_genome_patch", None)
         self.significance_measure = file_metadata["significance_measure"]
+        self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
 
     def db_save(self, experiment: Experiment):
-        data_file = ExperimentDataFile(
-            description=self.description,
-            experiment=experiment,
-            filename=self.filename,
+        self.file_metadata.db_save(experiment)
+
+        data_file_info = ExperimentDataFileInfo(
             ref_genome=self.ref_genome,
             ref_genome_patch=self.ref_genome_patch,
             significance_measure=self.significance_measure,
+            p_value_threshold=self.p_val_threshold,
         )
-        data_file.save()
-
-        return data_file
+        data_file_info.save()
 
 
 T = TypeVar("T", bound="ExperimentMetadata")
@@ -88,7 +86,7 @@ class ExperimentBiosample:
 
 
 class ExperimentMetadata:
-    data_file_metadata: list[ExperimentDatafileMetadata]
+    file_metadata: list[ExperimentFileMetadata]
     description: str
     experiment_type: str
     name: str
@@ -103,13 +101,13 @@ class ExperimentMetadata:
         self.name = experiment_dict["name"]
         self.accession_id = experiment_dict["accession_id"]
         self.filename = experiment_filename
-        self.data_file_metadata = []
+        self.file_metadata = []
         self.other_file_metadata = []
         self.biosamples = [ExperimentBiosample(sample, self) for sample in experiment_dict["biosamples"]]
         for data in experiment_dict["data"]:
-            self.data_file_metadata.append(ExperimentDatafileMetadata(data))
+            self.file_metadata.append(ExperimentFileMetadata(data))
         for file in experiment_dict.get("other_files", []):
-            self.other_file_metadata.append(FileMetadata(file, self.filename, self.experiment_type))
+            self.other_file_metadata.append(FileMetadata(file))
 
     def db_save(self):
         experiment = Experiment(
@@ -119,11 +117,10 @@ class ExperimentMetadata:
             experiment_type=self.experiment_type,
         )
         experiment.save()
-        for metadata in self.data_file_metadata:
+        for metadata in self.file_metadata:
             metadata.db_save(experiment)
         for file in self.other_file_metadata:
-            other_file = file.db_save()
-            experiment.other_files.add(other_file)
+            file.db_save(experiment)
         accession_log = AccessionIdLog(
             created_at=datetime.now(timezone.utc),
             accession_type=AccessionType.EXPERIMENT,
@@ -137,17 +134,19 @@ class ExperimentMetadata:
 
     def db_del(self):
         experiment = Experiment.objects.get(accession_id=self.accession_id)
-        experiment.data_files.all().delete()
-        experiment.other_files.all().delete()
+        for file in experiment.files.all():
+            for data in file.data_file_info.all():
+                data.delete()
+            file.delete()
         experiment.delete()
 
     def metadata(self):
         base_path = os.path.dirname(self.filename)
-        for metadata in self.data_file_metadata:
+        for metadata in self.file_metadata:
             delimiter = get_delimiter(metadata.filename)
-            ceres_file = open(os.path.join(base_path, metadata.filename), "r", newline="")
-            yield ceres_file, metadata, delimiter
-            ceres_file.close()
+            data_file = open(os.path.join(base_path, metadata.filename), "r", newline="")
+            yield data_file, metadata, delimiter
+            data_file.close()
 
     @classmethod
     def json_load(cls, file: IO):

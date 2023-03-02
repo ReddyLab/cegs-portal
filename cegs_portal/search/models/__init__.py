@@ -1,9 +1,16 @@
 from . import signals
 from .accession import Accessioned, AccessionIdLog, AccessionIds
 from .dna_feature import DNAFeature, DNAFeatureType
-from .experiment import Biosample, CellLine, Experiment, ExperimentDataFile, TissueType
+from .experiment import (
+    Biosample,
+    CellLine,
+    Experiment,
+    ExperimentDataFile,
+    ExperimentDataFileInfo,
+    TissueType,
+)
 from .facets import Facet, Faceted, FacetType, FacetValue
-from .file import File
+from .file import File, FileCategory
 from .gene_annotation import GencodeAnnotation, GencodeRegion
 from .reg_effects import (
     EffectObservationDirectionType,
