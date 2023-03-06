@@ -86,8 +86,6 @@ class FileForm(forms.ModelForm):
         p_val_threshold = self.cleaned_data["p_val_threshold"]
         significance_measure = self.cleaned_data["significance_measure"]
         ref_genome_full = self.cleaned_data["ref_genome"]
-        print("************* save ***************")
-        print(p_val_threshold, significance_measure, ref_genome_full)
         ref_genome_parts = ref_genome_full.split(".")
         ref_genome = ref_genome_parts[0]
         ref_genome_patch = "" if len(ref_genome_parts) == 1 else ref_genome_parts[1]
@@ -112,7 +110,7 @@ class FileForm(forms.ModelForm):
                 data_file_info.ref_genome_patch = ref_genome_patch
                 data_file_info.save()
                 self.instance.data_file_info = data_file_info
-        super().save(commit)
+        return super().save(commit)
 
 
 class FileAdmin(admin.ModelAdmin):
