@@ -32,8 +32,8 @@
                         >
                             <div class="flex items-center flex-shrink-0 text-gray-800 mr-16">
                                 <span class="font-medium text-xl tracking-tight" style="color: azure">
-                                    <i class="bi bi-database"></i> CEGS CCGR Portal</span
-                                >
+                                    <a href="{% url 'home' %}" class="no-underline" style="color: inherit;"><i class="bi bi-database"></i> CEGS CCGR Portal</span
+                                ></a>
                             </div>
                             <div class="block lg:hidden">
                                 <button
@@ -57,13 +57,15 @@
                                 <a
                                     href="{% url 'home' %}"
                                     class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white px-4 py-2 rounded hover:bg-blue-700 mr-2 no-underline"
-                                >
+                                    style="color: white;"
+                                    >
                                     <i class="bi bi-house-door"></i> Home
                                 </a>
                                 <a
                                     href="{% url 'about' %}"
                                     class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white px-4 py-2 rounded hover:bg-blue-700 mr-2 no-underline"
-                                >
+                                    style="color: white;"
+                                    >
                                     <i class="bi bi-patch-question"></i> About
                                 </a>
                             </div>
@@ -100,12 +102,14 @@
                                 <a
                                     href="{% url 'users:detail' request.user.username  %}"
                                     class="block text-md px-4 py-2 rounded text-white ml-2 font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0 no-underline"
+                                    style="color: white;"
                                     ><i class="bi bi-person-circle"></i> {% translate "My Profile" %}</a
                                 >
 
                                 <a
                                     href="{% url 'account_logout' %}"
                                     class="block text-md px-4 ml-2 py-2 rounded text-white font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0 no-underline"
+                                    style="color: white;"
                                 >
                                     <i class="bi bi-door-open"></i> {% translate "Sign Out" %}</a
                                 >
@@ -115,12 +119,14 @@
                                 <a
                                     href="{% url 'account_signup' %}"
                                     class="block text-md px-4 py-2 rounded text-white ml-2 font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0 no-underline"
+                                    style="color: white;"
                                     ><i class="bi bi-people-fill"></i> {% translate "Sign Up" %}</a
                                 >
 
                                 <a
                                     href="{% url 'account_login' %}"
                                     class="block text-md px-4 ml-2 py-2 rounded text-white font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0 no-underline"
+                                    style="color: white;"
                                 >
                                     <i class="bi bi-person-badge"></i> {% translate "Login" %}</a
                                 >
@@ -143,7 +149,9 @@
 
             <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
         </div>
-        {% block modal %}{% endblock modal %} {% block inline_javascript %} {# Script tags with only code, no src (defer
-        by default) #} {% endblock inline_javascript %}
+        {% block modal %}{% endblock modal %} {% block inline_javascript %}
+        <!-- Script tags with only code, no src (defer
+        by default)  -->
+         {% endblock inline_javascript %}
     </body>
 </html>
