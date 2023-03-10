@@ -1,24 +1,16 @@
-{% extends "base.html" %}
-{% load static i18n %}
-
-{% block css %}
-{{ block.super }}
-<link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet">
+{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
 <style>
-    #hide-nav-searchbar {
-  display: none;
-}
+    #nav-searchbar {
+        display: none;
+    }
 </style>
-{% endblock %}
-
-{% block title %}Home{% endblock %}
-{% block content %}
+{% endblock %} {% block title %}Home{% endblock %} {% block content %}
 <div class="bg-blue-50 border-2 border-color rounded-md p-4 min-w-fit max-w-fit">
     <div class="text-2xl font-bold mb-2">Search for Genes and Regulatory Elements</div>
     <form action="{% url 'search:results' %}" method="get" class="search">
         <div class="searchwrapper">
             {{ form }}
-            <input type="submit" value="Go" class="search-button">
+            <input type="submit" value="Go" class="search-button" />
         </div>
     </form>
     <div class="text-m">Enter Ensembl IDs and chromosome ranges</div>
