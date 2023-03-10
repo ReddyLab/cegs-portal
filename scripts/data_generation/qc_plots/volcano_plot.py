@@ -10,11 +10,15 @@ def process(args):
     fold_change_col = args.fold_change_column
     p_val_col = args.p_value_column
     gene_sym_col = args.gene_symbol_column
-    try:
-        cat_col = getattr(args, "category_column")
-        valid_types = {t: 0 if i == 0 else 2 ** (i - 1) for i, t in enumerate(args.categories)}
-    except AttributeError:
-        cat_col = None
+    if args.control_column is not None:
+        control_col = args.control_column
+        control_val = args.control_value
+        non_control_val = args.non_control_value
+        valid_types = {non_control_val: 0, control_val: 1}
+    else:
+        control_col = None
+        control_val = None
+        non_control_val = None
 
     csv_reader = csv.DictReader(args.input, delimiter=args.delimiter)
 
@@ -29,7 +33,7 @@ def process(args):
             continue
 
         # skip rows of non-recognized guide types
-        if cat_col is not None and not row[cat_col] in valid_types:
+        if control_col is not None and not row[control_col] in valid_types:
             continue
 
         old_vals = (row[p_val_col], row[gene_sym_col])
@@ -49,7 +53,7 @@ def process(args):
             continue
 
         # skip rows of non-recognized guide types
-        if cat_col is not None and not row[cat_col] in valid_types:
+        if control_col is not None and not row[control_col] in valid_types:
             continue
 
         old_vals = (row[p_val_col], row[gene_sym_col])
@@ -76,7 +80,7 @@ def process(args):
                     f">ffBB{len(symbol)}s",
                     neg_log_10_p_val,
                     avg_log_fc,
-                    0 if cat_col is None else valid_types[row[cat_col]],
+                    0 if control_col is None else valid_types[row[control_col]],
                     len(symbol),
                     symbol,
                 )
@@ -116,8 +120,9 @@ def parse_args():
         default=0.05,
         help="The maxium p-value considered for ",
     )
-    parser.add_argument("-c", "--category-column")
-    parser.add_argument("--categories", nargs="+", help="Required if --category-column is set")
+    parser.add_argument("-c", "--control-column")
+    parser.add_argument("--control-value", help="Required if --control-column is set")
+    parser.add_argument("--non-control-value", help="Required if --control-column is set")
     parser.add_argument(
         "--max-pval-factor",
         help="How much larger than -log10(max p-val) -log10(0) should be considered",

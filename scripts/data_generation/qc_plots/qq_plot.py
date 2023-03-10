@@ -2,14 +2,13 @@ import argparse
 import csv
 import struct
 
+from scipy.stats import norm, uniform
 from scipy.stats.mstats import mquantiles
 
 
 def process(args):
     p_val_col = args.p_value_column
-    control_col = args.control_column
-    control_val = args.control_value
-    non_control_val = args.non_control_value
+
     quantile_count = int(args.quantile_count)
 
     quantile_step = 1 / quantile_count
@@ -17,25 +16,37 @@ def process(args):
 
     csv_reader = csv.DictReader(args.input, delimiter=args.delimiter)
 
-    control_p_values = []
-    non_control_p_values = []
-    for row in csv_reader:
-        p_val = float(row[p_val_col])
-        if row[control_col] == control_val:
-            control_p_values.append(p_val)
-        elif row[control_col] == non_control_val:
-            non_control_p_values.append(p_val)
+    if args.control_column is not None:
+        control_col = args.control_column
+        control_val = args.control_value
+        non_control_val = args.non_control_value
+        x_values = []
+        y_values = []
+        for row in csv_reader:
+            p_val = float(row[p_val_col])
+            if row[control_col] == control_val:
+                x_values.append(p_val)
+            elif row[control_col] == non_control_val:
+                y_values.append(p_val)
 
-    control_percentiles = mquantiles(control_p_values, percentiles)
-    non_control_percentiles = mquantiles(non_control_p_values, percentiles)
+        x_percentiles = mquantiles(x_values, percentiles)
+    else:
+        y_values = []
+        for row in csv_reader:
+            p_val = float(row[p_val_col])
+            y_values.append(p_val)
 
-    # print(
-    #     f'[{", ".join(str({"c": str(x), "nc": str(y)})
-    # for x, y in zip(control_percentiles, non_control_percentiles))}]'
-    # )
+        if args.normal:
+            x_percentiles = norm.ppf(percentiles, loc=0.5, scale=0.15)
+        elif args.uniform:
+            x_percentiles = uniform.ppf(percentiles)
+
+    y_percentiles = mquantiles(y_values, percentiles)
+
+    # print(f'[{", ".join(str({"c": str(x), "nc": str(y)}) for x, y in zip(x_percentiles, y_percentiles))}]')
 
     p_val_percentiles = []
-    for p in zip(control_percentiles, non_control_percentiles):
+    for p in zip(x_percentiles, y_percentiles):
         p_val_percentiles.extend(p)
 
     args.output.write(
@@ -67,9 +78,12 @@ def parse_args():
         required=True,
     )
     parser.add_argument("-p", "--p-value-column", required=True)
-    parser.add_argument("-c", "--control-column", required=True)
-    parser.add_argument("--control-value", required=True)
-    parser.add_argument("--non-control-value", required=True)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-c", "--control-column")
+    parser.add_argument("--control-value", help="Required if --control-column is set")
+    parser.add_argument("--non-control-value", help="Required if --control-column is set")
+    group.add_argument("--normal", help="Compare data to a normal distribution", action="store_true")
+    group.add_argument("--uniform", help="Compare data to a uniform distribution", action="store_true")
     parser.add_argument("-d", "--delimiter", default="\t")
     parser.add_argument("-q", "--quantile-count", default=100)
 
