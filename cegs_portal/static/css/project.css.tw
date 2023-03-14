@@ -30,6 +30,14 @@
   background-color: rgba(1, 33, 105, 1);
 }
 
+#bg {
+  background-size: 2000px 1000px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+
 @layer components {
   .bg-color {
     background-color: white;
