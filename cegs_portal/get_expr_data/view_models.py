@@ -2,6 +2,8 @@ import csv
 import os
 import re
 from enum import Enum
+from operator import itemgetter
+from typing import Optional, TypedDict
 from uuid import UUID, uuid4
 
 from django.core.files.storage import default_storage
@@ -9,6 +11,25 @@ from django.db import connection
 from psycopg2.extras import NumericRange
 
 from cegs_portal.tasks.decorators import as_task
+
+TargetJson = TypedDict(
+    "TargetJson",
+    {
+        "gene sym": str,
+        "gene id": str,
+    },
+)
+ExperimentDataJson = TypedDict(
+    "ExperimentDataJson",
+    {
+        "source locs": list[str],
+        "targets": list[TargetJson],
+        "p-val": float,
+        "adj p-val": float,
+        "effect size": Optional[float],
+        "expr id": str,
+    },
+)
 
 EXPR_DATA_DIR = "expr_data_dir"
 
@@ -64,58 +85,97 @@ def parse_target_info(target_info: str) -> list[str]:
     return info
 
 
-def output_experiment_data(
+def gen_output_rows(experiment_data):
+    for source_locs, target_info, _reo_accesion_id, effect_size, p_value, sig, expr_accession_id in experiment_data:
+        yield [
+            parse_source_locs(source_locs),
+            parse_target_info(target_info),
+            p_value,
+            effect_size,
+            sig,
+            expr_accession_id,
+        ]
+
+
+def write_experiment_data_csv(experiment_data, output_file):
+    csv_writer = csv.writer(output_file, delimiter="\t", lineterminator="\n")
+    csv_writer.writerow(
+        [
+            "Source Locs",
+            "Target Info",
+            "p-value",
+            "Adjusted p-value",
+            "Effect Size",
+            "Expr Accession Id",
+        ]
+    )
+    for row in gen_output_rows(experiment_data):
+        row[0] = ",".join(row[0])
+        row[1] = ",".join(row[1])
+        csv_writer.writerow(row)
+
+
+def output_experiment_data_list(
+    regions: list[tuple[str, int, int]], experiments: list[str], data_source: ReoDataSource
+) -> list[ExperimentDataJson]:
+    experiment_data = retrieve_experiment_data(regions, experiments, data_source)
+    exp_data_list = []
+    for row in gen_output_rows(experiment_data):
+        split_target_info = [target.split(":") for target in row[1]]
+
+        # Some observations have null effect sizes
+        try:
+            effect_size = float(row[4])
+        except TypeError:
+            effect_size = None
+        except ValueError:
+            effect_size = None
+
+        exp_data_list.append(
+            {
+                "source locs": row[0],
+                "targets": [{"gene sym": gene_sym, "gene id": gene_id} for gene_sym, gene_id in split_target_info],
+                "p-val": float(row[2]),
+                "adj p-val": float(row[3]),
+                "effect size": effect_size,
+                "expr id": row[5],
+            }
+        )
+    # Sort so the output is always in the same order. This isn't otherwise guaranteed because the
+    # output of retrieve_experiment_data is a set, which is unordered.
+    exp_data_list.sort(key=itemgetter("source locs", "targets"))
+    return exp_data_list
+
+
+def output_experiment_data_csv(
     regions: list[tuple[str, int, int]], experiments: list[str], data_source: ReoDataSource, output_filename: str
 ):
     experiment_data = retrieve_experiment_data(regions, experiments, data_source)
     full_output_path = os.path.join(default_storage.location, EXPR_DATA_DIR, output_filename)
-
-    with open(full_output_path, "w", encoding="utf-8") as output:
-        csv_writer = csv.writer(output, delimiter="\t")
-        csv_writer.writerow(
-            [
-                "Source Locs",
-                "Target Info",
-                "p-value",
-                "Adjusted p-value",
-                "Effect Size",
-                "Expr Accession Id",
-            ]
-        )
-        for source_locs, target_info, _reo_accesion_id, effect_size, p_value, sig, expr_accession_id in experiment_data:
-            csv_writer.writerow(
-                [
-                    ",".join(parse_source_locs(source_locs)),
-                    ",".join(parse_target_info(target_info)),
-                    p_value,
-                    effect_size,
-                    sig,
-                    expr_accession_id,
-                ]
-            )
+    with open(full_output_path, "w", encoding="utf-8") as output_file:
+        write_experiment_data_csv(experiment_data, output_file)
 
 
 def retrieve_experiment_data(regions: list[tuple[str, int, int]], experiments: list[str], data_source: ReoDataSource):
     if data_source == ReoDataSource.SOURCES:
         where = r"""WHERE reo_sources_targets.source_chrom = %s
-                        AND reo_sources_targets.source_loc && %s
-                        AND reo_sources_targets.reo_experiment = ANY(%s)"""
-        inputs = [[chrom, NumericRange(start, end), experiments] for chrom, start, end in regions]
+                        AND reo_sources_targets.source_loc && %s"""
+        inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
     elif data_source == ReoDataSource.TARGETS:
         where = r"""WHERE reo_sources_targets.target_chrom = %s
-                        AND reo_sources_targets.target_loc && %s
-                        AND reo_sources_targets.reo_experiment = ANY(%s)"""
-        inputs = [[chrom, NumericRange(start, end), experiments] for chrom, start, end in regions]
+                        AND reo_sources_targets.target_loc && %s"""
+        inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
     elif data_source == ReoDataSource.BOTH:
         where = r"""WHERE (reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
-                        OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s)
-                        AND reo_sources_targets.reo_experiment = ANY(%s)"""
-        inputs = [
-            [chrom, NumericRange(start, end), chrom, NumericRange(start, end), experiments]
-            for chrom, start, end in regions
-        ]
+                        OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s)"""
+        inputs = [[chrom, NumericRange(start, end), chrom, NumericRange(start, end)] for chrom, start, end in regions]
     else:
         raise InvalidDataSource()
+
+    if len(experiments) > 0:
+        where = f"""{where} AND reo_sources_targets.reo_experiment = ANY(%s)"""
+        for i in inputs:
+            i.append(experiments)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets.source_chrom,
@@ -145,4 +205,4 @@ def retrieve_experiment_data(regions: list[tuple[str, int, int]], experiments: l
     return experiment_data
 
 
-output_experiment_data_task = as_task()(output_experiment_data)
+output_experiment_data_csv_task = as_task()(output_experiment_data_csv)

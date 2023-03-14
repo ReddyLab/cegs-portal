@@ -46,7 +46,12 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
     effect_target = RegEffectFactory(
         targets=(
             DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(35_000, 40_000), experiment_accession=None
+                parent=None,
+                chrom_name="chr1",
+                name="LNLC-1",
+                ensembl_id="ENSG01124619313",
+                location=NumericRange(35_000, 40_000),
+                experiment_accession=None,
             ),
         ),
         public=public,
@@ -65,7 +70,12 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         ),
         targets=(
             DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(35_001, 40_001), experiment_accession=None
+                parent=None,
+                chrom_name="chr1",
+                name="XUEQ-1",
+                ensembl_id="ENSG01124619313",
+                location=NumericRange(35_001, 40_001),
+                experiment_accession=None,
             ),
         ),
         public=public,
