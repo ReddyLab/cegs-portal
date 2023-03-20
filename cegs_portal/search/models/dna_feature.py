@@ -4,6 +4,7 @@ from typing import Optional
 from django.contrib.postgres.fields import IntegerRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
+from django.db.models.functions import Upper
 
 from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
@@ -46,6 +47,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["name"], name="sdf_name_index"),
+            models.Index(Upper("name"), name="sdf_name_insensitive_index"),
             models.Index(fields=["chrom_name"], name="sdf_chrom_name_index"),
             models.Index(fields=["feature_type"], name="sdf_feature_type_index"),
             GistIndex(fields=["location"], name="sdf_loc_index"),
