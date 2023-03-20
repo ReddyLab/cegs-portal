@@ -43,7 +43,7 @@ class DNAFeatureSearch:
         if id_type == IdType.ENSEMBL:
             query["ensembl_id"] = feature_id
         elif id_type == IdType.GENE_NAME:
-            query["name"] = feature_id
+            query["name__iexact"] = feature_id
         elif id_type == IdType.ACCESSION:
             query["accession_id"] = feature_id
         else:
@@ -74,7 +74,9 @@ class DNAFeatureSearch:
         elif feature_id.startswith("ENS"):
             feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("experiment_accession_id", flat=True)
         else:
-            feature = DNAFeature.objects.filter(name=feature_id).values_list("experiment_accession_id", flat=True)
+            feature = DNAFeature.objects.filter(name__iexact=feature_id).values_list(
+                "experiment_accession_id", flat=True
+            )
 
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
@@ -88,7 +90,7 @@ class DNAFeatureSearch:
         elif feature_id.startswith("ENS"):
             feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("public", flat=True)
         else:
-            feature = DNAFeature.objects.filter(name=feature_id).values_list("public", flat=True)
+            feature = DNAFeature.objects.filter(name__iexact=feature_id).values_list("public", flat=True)
 
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
@@ -102,7 +104,7 @@ class DNAFeatureSearch:
         elif feature_id.startswith("ENS"):
             feature = DNAFeature.objects.filter(ensembl_id=feature_id).values_list("archived", flat=True)
         else:
-            feature = DNAFeature.objects.filter(name=feature_id).values_list("archived", flat=True)
+            feature = DNAFeature.objects.filter(name__iexact=feature_id).values_list("archived", flat=True)
 
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")

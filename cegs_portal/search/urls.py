@@ -10,7 +10,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("results/", views.v1.SearchView.as_view(), name="results"),
     re_path(
-        r"feature/(?P<id_type>\w+)/(?P<feature_id>[A-Z0-9]+-?[A-Z0-9]+)$",
+        r"feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)$",
         views.v1.DNAFeatureId.as_view(),
         name="dna_features",
     ),
@@ -38,7 +38,9 @@ urlpatterns = [
     ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("v1/results/", views.v1.SearchView.as_view()),
-    re_path(r"v1/feature/(?P<id_type>\w+)/(?P<feature_id>[A-Z0-9]+-?[A-Z0-9]+)$", views.v1.DNAFeatureId.as_view()),
+    re_path(
+        r"v1/feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)$", views.v1.DNAFeatureId.as_view()
+    ),
     re_path(
         r"v1/featureloc/(?P<chromo>(?:chr)?[a-zA-Z0-9]{1,3})/(?P<start>\d+)/(?P<end>\d+)$",
         views.v1.DNAFeatureLoc.as_view(),
