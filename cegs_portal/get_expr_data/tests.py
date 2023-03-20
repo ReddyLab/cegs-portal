@@ -8,12 +8,13 @@ from django.test import Client
 from cegs_portal.get_expr_data.view_models import (
     ReoDataSource,
     gen_output_filename,
-    output_experiment_data,
+    output_experiment_data_list,
     parse_source_locs,
     parse_target_info,
     retrieve_experiment_data,
     validate_expr,
     validate_filename,
+    write_experiment_data_csv,
 )
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -115,11 +116,142 @@ def test_retrieve_target_experiment_data():
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_output_experiment_data():
-    output_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], ReoDataSource.BOTH, "test.tsv"
+def test_list_experiment_data():
+    results = output_experiment_data_list(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], ReoDataSource.BOTH
     )
-    assert True
+
+    assert results == [
+        {
+            "source locs": [],
+            "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
+            "p-val": 0.00000319229500470051,
+            "adj p-val": -0.0660384670056446,
+            "effect size": 0.000427767530629869,
+            "expr id": "DCPEXPR00000002",
+        },
+        {
+            "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
+            "targets": [],
+            "p-val": 0.00000319229500470051,
+            "adj p-val": -0.0660384670056446,
+            "effect size": 0.000427767530629869,
+            "expr id": "DCPEXPR00000002",
+        },
+        {
+            "source locs": ["chr1:11-1001", "chr2:22223-33334"],
+            "targets": [{"gene sym": "XUEQ-1", "gene id": "ENSG01124619313"}],
+            "p-val": 0.00000319229500470051,
+            "adj p-val": -0.0660384670056446,
+            "effect size": 0.000427767530629869,
+            "expr id": "DCPEXPR00000002",
+        },
+    ]
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_location_experiment_data(client: Client, django_user_model):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+    print(json_content)
+    assert json_content == {
+        "experiment data": [
+            {
+                "source locs": [],
+                "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
+                "p-val": 0.00000319229500470051,
+                "adj p-val": -0.0660384670056446,
+                "effect size": 0.000427767530629869,
+                "expr id": "DCPEXPR00000002",
+            },
+            {
+                "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
+                "targets": [],
+                "p-val": 0.00000319229500470051,
+                "adj p-val": -0.0660384670056446,
+                "effect size": 0.000427767530629869,
+                "expr id": "DCPEXPR00000002",
+            },
+            {
+                "source locs": ["chr1:11-1001", "chr2:22223-33334"],
+                "targets": [{"gene sym": "XUEQ-1", "gene id": "ENSG01124619313"}],
+                "p-val": 0.00000319229500470051,
+                "adj p-val": -0.0660384670056446,
+                "effect size": 0.000427767530629869,
+                "expr id": "DCPEXPR00000002",
+            },
+        ]
+    }
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_location_experiment_data_invalid_region(client: Client, django_user_model):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/exp_data/location?region=ch1:1-100000&expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_location_experiment_data_no_region(client: Client, django_user_model):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/exp_data/location?expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_location_experiment_data_oversize_region(client: Client, django_user_model):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/exp_data/location?region=chr1:1-1000000&expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_location_experiment_data_backwards_region(client: Client, django_user_model):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get("/exp_data/location?region=chr1:10000-10&expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_write_experiment_data():
+    experiment_data = list(
+        retrieve_experiment_data(
+            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], ReoDataSource.BOTH
+        )
+    )
+    experiment_data.sort()
+    output_file = StringIO()
+    write_experiment_data_csv(experiment_data, output_file)
+    assert (
+        output_file.getvalue()
+        == """Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id
+\tLNLC-1:ENSG01124619313\t0.00000319229500470051\t-0.0660384670056446\t0.000427767530629869\tDCPEXPR00000002
+chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t-0.0660384670056446\t0.000427767530629869\tDCPEXPR00000002
+chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t-0.0660384670056446\t0.000427767530629869\tDCPEXPR00000002
+"""
+    )
 
 
 @pytest.mark.usefixtures("reg_effects")
