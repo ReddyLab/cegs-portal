@@ -3,9 +3,8 @@
 
 {% block title %}Source for Regulatory Effect Observations{% endblock %}
 {% block content %}
-
-
-<div class="text-xl font-bold">Source for Regulatory Effect Observations</div>
+<div>
+    <div class="text-xl font-bold">Source for Regulatory Effect Observations</div>
     <table class="data-table">
         <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Target Gene</th></tr>
         {% for regeffect in regeffects %}
@@ -33,24 +32,22 @@
         {% endfor %}
     </table>
 
-        <div class="pagination">
-            <span class="step-links">
-                {% if regeffects.has_previous %}
-                    <a href="?page=1">&laquo; first</a>
-                    <a href="?page={{ regeffects.previous_page_number }}">previous</a>
-                {% endif %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if regeffects.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ regeffects.previous_page_number }}">previous</a>
+            {% endif %}
 
-                <span class="current">
-                    Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
-                </span>
-
-                {% if regeffects.has_next %}
-                    <a href="?page={{ regeffects.next_page_number }}">next</a>
-                    <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
-                {% endif %}
+            <span class="current">
+                Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
             </span>
-        </div>
 
-
-
+            {% if regeffects.has_next %}
+                <a href="?page={{ regeffects.next_page_number }}">next</a>
+                <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
 {% endblock %}
