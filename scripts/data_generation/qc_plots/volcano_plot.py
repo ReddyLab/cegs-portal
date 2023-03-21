@@ -2,7 +2,6 @@ import argparse
 import csv
 import math
 import struct
-import sys
 
 
 def process(args):
@@ -29,14 +28,15 @@ def process(args):
     for row in csv_reader:
         # skip duplicate rows. These rows only differ by "dhs_overlaps_genebody_gene",
         # which doesn't matter for our purposes
-        if (row[p_val_col], row[gene_sym_col]) == old_vals:
+        if gene_sym_col is not None and (row[p_val_col], row[gene_sym_col]) == old_vals:
             continue
 
         # skip rows of non-recognized guide types
         if control_col is not None and not row[control_col] in valid_types:
             continue
 
-        old_vals = (row[p_val_col], row[gene_sym_col])
+        if gene_sym_col is not None:
+            old_vals = (row[p_val_col], row[gene_sym_col])
 
         p_val = float(row[p_val_col])
         if p_val < min_p_val and p_val != 0:
@@ -49,31 +49,35 @@ def process(args):
     for row in csv_reader:
         # skip duplicate rows. These rows only differ by "dhs_overlaps_genebody_gene",
         # which doesn't matter for our purposes
-        if (row[p_val_col], row[gene_sym_col]) == old_vals:
+        if gene_sym_col is not None and (row[p_val_col], row[gene_sym_col]) == old_vals:
             continue
 
         # skip rows of non-recognized guide types
         if control_col is not None and not row[control_col] in valid_types:
             continue
 
-        old_vals = (row[p_val_col], row[gene_sym_col])
+        if gene_sym_col is not None:
+            old_vals = (row[p_val_col], row[gene_sym_col])
 
         try:
-            p_val_fdr = float(row[p_val_col])
+            p_val = float(row[p_val_col])
             avg_log_fc = float(row[fold_change_col])
 
             # Skip non-significant, low fold-change data
             # This is by far most of the data so this keeps the number of
             # observation relatively small, which means the output file is small
-            if p_val_fdr > sig_threshold and abs(avg_log_fc) < 1:
+            if p_val > sig_threshold and abs(avg_log_fc) < 1:
                 continue
 
-            if row[p_val_col] == "0":
+            if p_val == 0:
                 neg_log_10_p_val = max_log10_p_val
             else:
-                neg_log_10_p_val = -math.log10(p_val_fdr)
+                neg_log_10_p_val = -math.log10(p_val)
 
-            symbol = row[gene_sym_col].encode("utf-8")
+            if gene_sym_col is not None:
+                symbol = row[gene_sym_col].encode("utf-8")
+            else:
+                symbol = b""
 
             args.output.write(
                 struct.pack(
@@ -112,7 +116,7 @@ def parse_args():
     )
     parser.add_argument("-x", "--fold-change-column", required=True)
     parser.add_argument("-y", "--p-value-column", required=True)
-    parser.add_argument("-g", "--gene-symbol-column", required=True)
+    parser.add_argument("-g", "--gene-symbol-column")
     parser.add_argument(
         "-s",
         "--significance-threshold",
@@ -135,8 +139,4 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    try:
-        process(parse_args())
-    except Exception as ex:
-        print(f"Exception occurred: {ex}")
-        sys.exit(1)
+    process(parse_args())

@@ -8,6 +8,7 @@ from scipy.stats.mstats import mquantiles
 
 def process(args):
     p_val_col = args.p_value_column
+    unlog = args.unlog_p_value
 
     quantile_count = int(args.quantile_count)
 
@@ -24,6 +25,8 @@ def process(args):
         y_values = []
         for row in csv_reader:
             p_val = float(row[p_val_col])
+            if unlog:
+                p_val = 10 ** (-p_val)
             if row[control_col] == control_val:
                 x_values.append(p_val)
             elif row[control_col] == non_control_val:
@@ -43,7 +46,7 @@ def process(args):
 
     y_percentiles = mquantiles(y_values, percentiles)
 
-    # print(f'[{", ".join(str({"c": str(x), "nc": str(y)}) for x, y in zip(x_percentiles, y_percentiles))}]')
+    # print(f'[{", ".join(str({"c": x, "nc": y}) for x, y in zip(x_percentiles, y_percentiles))}]')
 
     p_val_percentiles = []
     for p in zip(x_percentiles, y_percentiles):
@@ -78,6 +81,11 @@ def parse_args():
         required=True,
     )
     parser.add_argument("-p", "--p-value-column", required=True)
+    parser.add_argument(
+        "--unlog-p-value",
+        help="run 10**-(p-value) because p-value in data is really -log10(p-value)",
+        action="store_true",
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-c", "--control-column")
     parser.add_argument("--control-value", help="Required if --control-column is set")
