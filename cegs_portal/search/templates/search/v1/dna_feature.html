@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+<div>
     {% for feature, sources, targets in feature_reos %}
         <div class="mb-8">
             <div>
@@ -100,6 +101,7 @@
         </form>
         <table id="dnafeature" style="display:none;"></table>
     </div>
+</div>
 {% endblock content %}
 
 {% block inline_javascript %}

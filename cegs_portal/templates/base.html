@@ -22,7 +22,6 @@
     <body class="bg-slate-100 text-gray-900 font-sans min-h-screen">
       <div class="min-h-screen flex flex-col">
           <div class="flex-none mb-10">
-              <!-- component -->
               <nav
                   class="flex items-center justify-between flex-wrap bg-dark py-4"
               >
@@ -135,21 +134,16 @@
               </nav>
           </div>
 
-            <div class="flex flex-row flex-1 justify-center">
-
-                <div class="self-start max-w-full min-w-full">
-                    {% block content %}
-                    <p>Use this document as a way to quick start any new project.</p>
-                    {% endblock content %}
-                </div>
-
+            <div class="grow flex flex-col items-center px-10">
+                {% block content %}
+                <p>Use this document as a way to quick start any new project.</p>
+                {% endblock content %}
             </div>
 
-            <footer class="mt-24 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
+            <footer class="mt-10 bg-dark p-4 text-white flex-none">© 2021 Duke University</footer>
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
-        <!-- Script tags with only code, no src (defer
-        by default)  -->
+        <!-- Script tags with only code, no src (defer by default)  -->
          {% endblock inline_javascript %}
     </body>
 </html>
