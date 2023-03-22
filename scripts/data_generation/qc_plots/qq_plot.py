@@ -16,8 +16,10 @@ def process(args):
     percentiles = [x * quantile_step for x in range(1, 1 + quantile_count)]
 
     csv_reader = csv.DictReader(args.input, delimiter=args.delimiter)
+    x_label = b"Non-Control Quantiles"
 
     if args.control_column is not None:
+        y_label = b"Control Quantiles"
         control_col = args.control_column
         control_val = args.control_value
         non_control_val = args.non_control_value
@@ -41,8 +43,10 @@ def process(args):
 
         if args.normal:
             x_percentiles = norm.ppf(percentiles, loc=0.5, scale=0.15)
+            y_label = b"Theoretical Normal Quantiles"
         elif args.uniform:
             x_percentiles = uniform.ppf(percentiles)
+            y_label = b"Theoretical Uniform Quantiles"
 
     y_percentiles = mquantiles(y_values, percentiles)
 
@@ -54,8 +58,12 @@ def process(args):
 
     args.output.write(
         struct.pack(
-            f">I{2 * quantile_count}f",
+            f">IB{len(x_label)}sB{len(y_label)}s{2 * quantile_count}f",
             quantile_count,
+            len(x_label),
+            x_label,
+            len(y_label),
+            y_label,
             *p_val_percentiles,
         )
     )
