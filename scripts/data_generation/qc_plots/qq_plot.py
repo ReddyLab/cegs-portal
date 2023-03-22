@@ -54,7 +54,8 @@ def process(args):
 
     args.output.write(
         struct.pack(
-            f">{2 * quantile_count}f",
+            f">I{2 * quantile_count}f",
+            quantile_count,
             *p_val_percentiles,
         )
     )

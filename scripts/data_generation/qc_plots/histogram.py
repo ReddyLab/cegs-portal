@@ -40,7 +40,7 @@ def process(args):
 
     args.output.write(
         struct.pack(
-            f">BffH{len(bucket_amounts)}I",
+            f">IffI{len(bucket_amounts)}I",
             args.bin_size,
             mean(all_numbers),
             median(all_numbers),
