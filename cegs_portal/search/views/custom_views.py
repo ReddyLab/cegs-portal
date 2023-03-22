@@ -2,12 +2,7 @@ import logging
 from typing import Any, Callable, Optional
 
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http import (
-    Http404,
-    HttpResponseBadRequest,
-    HttpResponseNotFound,
-    HttpResponseServerError,
-)
+from django.core.exceptions import BadRequest
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -67,11 +62,7 @@ class TemplateJsonView(View):
         try:
             options = self.request_options(request)
         except Http400 as err:
-            return self.http_bad_request(request, err)
-        except Http404 as err:
-            return self.http_page_not_found(request, err)
-        except Http500 as err:
-            return self.http_internal_error(request, err)
+            self.http_bad_request(request, err)
 
         if request.method.lower() in self.http_method_names:
             data_handler = getattr(self, f"{request.method.lower()}_data", None)
@@ -83,17 +74,17 @@ class TemplateJsonView(View):
         else:
             handler = self.http_method_not_allowed
 
+        response = None
         try:
             assert data_handler is not None
             response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
         except Http303 as redirect:
             response = HttpResponseSeeOtherRedirect(redirect_to=redirect.location)
         except Http400 as err:
-            response = self.http_bad_request(request, err)
-        except Http404 as err:
-            response = self.http_page_not_found(request, err)
-        except Http500 as err:
-            response = self.http_internal_error(request, err)
+            self.http_bad_request(request, err)
+
+        if response is None:
+            raise Http500("Custom response is None")
 
         return response
 
@@ -114,7 +105,7 @@ class TemplateJsonView(View):
                 data,
             )
 
-        return self.http_internal_error(request, "No template found")
+        raise Http500("No template found")
 
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
@@ -130,31 +121,10 @@ class TemplateJsonView(View):
                 data,
             )
 
-        return self.http_internal_error(request, "No template found")
+        raise Http500("No template found")
 
     def post_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
 
     def http_bad_request(self, request, err, *args, **kwargs):
-        logger.warning(
-            "400 Bad Request (%s): %s",
-            request.method,
-            request.path,
-            extra={"status_code": 400, "request": request},
-        )
-        return HttpResponseBadRequest(str(err), *args, **kwargs)
-
-    def http_page_not_found(self, request, err, *args, **kwargs):
-        logger.warning(
-            "404 Response Not Found (%s): %s",
-            request.method,
-            request.path,
-            extra={"status_code": 404, "request": request},
-        )
-        return HttpResponseNotFound(str(err), *args, **kwargs)
-
-    def http_internal_error(self, request, err, *args, **kwargs):
-        logger.warning(
-            "500 Internal Error (%s): %s", request.method, request.path, extra={"status_code": 500, "request": request}
-        )
-        return HttpResponseServerError(str(err), *args, **kwargs)
+        raise BadRequest() from err

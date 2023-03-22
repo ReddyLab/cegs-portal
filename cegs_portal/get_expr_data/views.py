@@ -4,6 +4,7 @@ import re
 from typing import Optional
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import BadRequest
 from django.core.files.storage import default_storage
 from django.http import (
     FileResponse,
@@ -114,7 +115,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             region = get_region(request)
             data_source = get_data_source(request)
         except Http400 as error:
-            return HttpResponseBadRequest(error)
+            raise BadRequest() from error
 
         if region[1] >= region[2]:
             return HttpResponseBadRequest(
@@ -141,7 +142,7 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
             regions = get_regions_file(request)
             data_source = get_data_source(request)
         except Http400 as error:
-            return HttpResponseBadRequest(error)
+            raise BadRequest() from error
 
         output_file = gen_output_filename(experiments)
         task = output_experiment_data_csv_task(regions, experiments, data_source, output_file)
