@@ -229,6 +229,27 @@ def source_reg_effects():
 
 
 @pytest.fixture
+def hidden_source_reg_effects():
+    source = DNAFeatureFactory(parent=None)
+
+    reo1 = RegEffectFactory(
+        sources=(source,),
+        public=False,
+    )
+    reo2 = RegEffectFactory(
+        sources=(source,),
+        archived=True,
+    )
+    reo3 = RegEffectFactory(
+        sources=(source,),
+    )
+    return {
+        "source": source,
+        "effects": [reo1, reo2, reo3],
+    }
+
+
+@pytest.fixture
 def target_reg_effects():
     target = DNAFeatureFactory(parent=None)
 
@@ -237,6 +258,27 @@ def target_reg_effects():
     )
     reo2 = RegEffectFactory(
         targets=(target,),
+    )
+    reo3 = RegEffectFactory(
+        targets=(target,),
+    )
+    return {
+        "target": target,
+        "effects": [reo1, reo2, reo3],
+    }
+
+
+@pytest.fixture
+def hidden_target_reg_effects():
+    target = DNAFeatureFactory(parent=None)
+
+    reo1 = RegEffectFactory(
+        targets=(target,),
+        public=False,
+    )
+    reo2 = RegEffectFactory(
+        targets=(target,),
+        archived=True,
     )
     reo3 = RegEffectFactory(
         targets=(target,),

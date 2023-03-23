@@ -27,6 +27,16 @@ def test_target_reg_effects_list_json(client: Client, target_reg_effects):
         assert json_reo["significance"] == reo.significance
 
 
+def test_hidden_target_reg_effects_list_json(client: Client, hidden_target_reg_effects):
+    target = hidden_target_reg_effects["target"]
+    response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json")
+
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+
+    assert len(json_content["object_list"]) == 1
+
+
 def test_get_target_reg_effects_with_anonymous_client(client: Client, private_feature: DNAFeature):
     response = client.get(f"/search/regeffect/target/{private_feature.accession_id}?accept=application/json")
     assert response.status_code == 302

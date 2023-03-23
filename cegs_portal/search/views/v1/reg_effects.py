@@ -106,7 +106,12 @@ class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
-        reg_effects = RegEffectSearch.source_search(feature_id)
+        if self.request.user.is_anonymous:
+            reg_effects = RegEffectSearch.source_search_public(feature_id)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            reg_effects = RegEffectSearch.source_search(feature_id)
+        else:
+            reg_effects = RegEffectSearch.source_search_with_private(feature_id, self.request.user.all_experiments())
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
@@ -116,7 +121,12 @@ class TargetEffectsView(FeatureEffectsView):
     template = "search/v1/target_reg_effects.html"
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
-        reg_effects = RegEffectSearch.target_search(feature_id)
+        if self.request.user.is_anonymous:
+            reg_effects = RegEffectSearch.target_search_public(feature_id)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            reg_effects = RegEffectSearch.target_search(feature_id)
+        else:
+            reg_effects = RegEffectSearch.target_search_with_private(feature_id, self.request.user.all_experiments())
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
