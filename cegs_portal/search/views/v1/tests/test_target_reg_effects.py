@@ -1,9 +1,11 @@
 import json
+from typing import cast
 
 import pytest
 from django.test import Client
 
 from cegs_portal.search.models import DNAFeature
+from cegs_portal.users.models import GroupExtension
 
 pytestmark = pytest.mark.django_db
 
@@ -23,6 +25,103 @@ def test_target_reg_effects_list_json(client: Client, target_reg_effects):
         assert json_reo["effect_size"] == reo.effect_size
         assert json_reo["direction"] == reo.direction
         assert json_reo["significance"] == reo.significance
+
+
+def test_get_target_reg_effects_with_anonymous_client(client: Client, private_feature: DNAFeature):
+    response = client.get(f"/search/regeffect/target/{private_feature.accession_id}?accept=application/json")
+    assert response.status_code == 302
+
+
+def test_get_target_reg_effects_with_authenticated_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{private_feature.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_get_target_reg_effects_with_authenticated_authorized_client(
+    client: Client, private_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+    user.experiments = [private_feature.experiment_accession]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{private_feature.accession_id}?accept=application/json")
+    assert response.status_code == 200
+
+
+def test_get_target_reg_effects_with_authenticated_authorized_group_client(
+    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+
+    assert private_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
+    group_extension.save()
+    user.groups.add(group_extension.group)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{private_feature.accession_id}?accept=application/json")
+    assert response.status_code == 200
+
+
+def test_get_archived_target_reg_effects_with_anonymous_client(client: Client, archived_feature: DNAFeature):
+    response = client.get(f"/search/regeffect/target/{archived_feature.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_get_archived_target_reg_effects_with_authenticated_client(
+    client: Client, archived_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    django_user_model.objects.create_user(username=username, password=password)
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{archived_feature.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_get_archived_target_reg_effects_with_authenticated_authorized_client(
+    client: Client, archived_feature: DNAFeature, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+
+    assert archived_feature.experiment_accession_id is not None
+
+    user.experiments = [cast(str, archived_feature.experiment_accession)]
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{archived_feature.accession_id}?accept=application/json")
+    assert response.status_code == 403
+
+
+def test_get_archived_target_reg_effects_with_authenticated_authorized_group_client(
+    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+):
+    username = "user1"
+    password = "bar"
+    user = django_user_model.objects.create_user(username=username, password=password)
+
+    assert archived_feature.experiment_accession_id is not None
+
+    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
+    group_extension.save()
+    user.groups.add(group_extension.group)
+    user.save()
+    client.login(username=username, password=password)
+    response = client.get(f"/search/regeffect/target/{archived_feature.accession_id}?accept=application/json")
+    assert response.status_code == 403
 
 
 def test_target_reg_effects_list_page_json(client: Client, target_reg_effects):
