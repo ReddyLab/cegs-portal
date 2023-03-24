@@ -2,6 +2,10 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 <link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite-api@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-tooltip"></script>
 <!-- This CSS modifies the range slider look -->
 <style>
     .noUi-horizontal {
@@ -348,10 +352,282 @@
         role="tabpanel"
         aria-labelledby="tabs-qc-graphs-tab"
     >
-        <div class="datafile-content-section content-container min-w-max max-w-max">QC plots TK</div>
+        <div
+            class="datafile-content-section content-container min-w-max max-w-max text-xl font-bold"
+            style="color: gray"
+        >
+            QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
+            <div class="faded-line my-3.5"></div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="ncells_histogram" class="mr-4"></div>
+                <div id="ngrna_histogram"></div>
+            </div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="uniform_qqplot" class="mr-4"></div>
+                <div id="volcano"></div>
+            </div>
+        </div>
     </div>
 </div>
+
 {% endblock %} {% block inline_javascript %}
+
+<script>
+    // setup API options
+    const options = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+        view: {
+            // view constructor options
+            // remove the loader if you don't want to default to vega-datasets!
+            loader: vega.loader({
+                baseURL: "https://cdn.jsdelivr.net/npm/vega-datasets@2/",
+            }),
+            renderer: "canvas",
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, options);
+
+    // now you can use the API!
+    plot = (values, subtitle) => {
+        return vl
+            .markCircle()
+            .data(values)
+            .width(450)
+            .height(400)
+            .encode(
+                vl.y().fieldQ("0").title("-log10(p-value)"),
+                vl.x().fieldQ(1).title("log2(FC)"), //.scale({"domain":[0, 2], "clamp": true}),
+                vl
+                    .color()
+                    .fieldN(2)
+                    .title("Gene Type")
+                    .legend({labelExpr: "{0: 'Targeting', 1: 'Non-Targeting'}[datum.label]"}),
+                vl.tooltip(vl.fieldN(3))
+            )
+            .title({text: "Volcano Plot", subtitle: subtitle, anchor: "start"})
+            .render()
+
+            .then((viewElement) => {
+                // render returns a promise to a DOM element containing the chart
+                // viewElement.value contains the Vega View object instance
+                document.getElementById("volcano").appendChild(viewElement);
+            });
+    };
+
+    fetch("http://127.0.0.1:8000/static/search/experiments/{{ experiment.accession_id }}/dcpexpr00000004_cropped@1.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+            let length = buffer.byteLength;
+            let decoder = new TextDecoder();
+            let data = new DataView(buffer);
+            let offset = 0;
+            let values = [];
+            while (offset < length) {
+                let pVal = data.getFloat32(offset);
+                let avgFC = data.getFloat32(offset + 4);
+                let type = data.getUint8(offset + 8);
+                let symLen = data.getUint8(offset + 9);
+                offset += 10;
+                let symArray = new Uint8Array(buffer, offset, symLen);
+                let sym = decoder.decode(symArray);
+                values.push([pVal, avgFC, type, sym]);
+                offset += symLen;
+            }
+            return values;
+        })
+        .then((values) => {
+            return plot(values, "Crop of Non-Significant, Low Effect Observations");
+        });
+</script>
+
+<script>
+    // setup API options
+    const option9 = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+        view: {
+            // view constructor options
+            // remove the loader if you don't want to default to vega-datasets!
+            loader: vega.loader({
+                baseURL: "https://cdn.jsdelivr.net/npm/vega-datasets@2/",
+            }),
+            renderer: "canvas",
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, option9);
+
+    // now you can use the API!
+
+    fetch("http://127.0.0.1:8000/static/search/experiments/{{ experiment.accession_id }}/qqplot.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+            const start = performance.now();
+            let data = new DataView(buffer);
+            let decoder = new TextDecoder();
+            let offset = 0;
+            let values = [];
+            let quantileCount = data.getUint32(offset);
+            offset += 4;
+            let xLabelLen = data.getUint8(offset);
+            offset += 1;
+            let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
+            let xLabel = decoder.decode(xLabelArray);
+            offset += xLabelLen;
+            let yLabelLen = data.getUint8(offset);
+            offset += 1;
+            let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
+            let yLabel = decoder.decode(yLabelArray);
+            offset += yLabelLen;
+
+            for (let i = 0; i < quantileCount; i++) {
+                let x = data.getFloat32(offset);
+                let y = data.getFloat32(offset + 4);
+                offset += 8;
+                values.push({c: x, nc: y});
+            }
+            console.log(`time (ms): ${performance.now() - start}`);
+            return {xLabel, yLabel, values};
+        })
+
+        .then((data) => {
+            vl.data(data)
+                .width(450)
+                .height(400)
+                .layer(
+                    vl
+                        .markCircle({color: "green", tooltip: true})
+                        .title("QQ-Plot")
+                        .encode(
+                            vl.y().fieldQ("nc").title("Non-Control Quantiles"),
+                            vl.x().fieldQ("c").title("Theoretical Uniform Values")
+                        ),
+
+                    vl
+                        .data([
+                            {x: 0.0, y: 0.0},
+                            {x: 1.0, y: 1.0},
+                        ])
+                        .layer(vl.markLine({size: 1, color: "grey"}).encode(vl.x().fieldQ("x"), vl.y().fieldQ("y")))
+                )
+                .render()
+
+                .then((viewElement) => {
+                    // render returns a promise to a DOM element containing the chart
+                    // viewElement.value contains the Vega View object instance
+                    document.getElementById("uniform_qqplot").appendChild(viewElement);
+                });
+        });
+</script>
+
+<script>
+    // setup API options
+    const option4 = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, option4);
+
+    // now you can use the API!
+    vl.data("http://127.0.0.1:8000/static/search/new_ipsc-2.run_negbinom.ncells_per_grna.csv")
+        .width(450)
+        .height(300)
+        .layer(
+            vl
+                .markBar({tooltip: true})
+                .title("Number of cells per gRNA")
+                .encode(
+                    vl.x().fieldQ("ncells").title("Number of Cells").bin({step: 4}),
+                    vl.y().aggregate("count").title("Counts")
+                ),
+
+            vl
+                .markRule({size: 3, color: "red", tooltip: true})
+                .title("Number of Cells")
+                .encode(vl.x().fieldQ("ncells").aggregate("median").title("Median")),
+
+            vl
+                .markRule({size: 3, color: "yellow", tooltip: true})
+                .title("mean")
+                .encode(vl.x().fieldQ("ncells").aggregate("mean").title("Mean"))
+        )
+        .render()
+        .then((viewElement) => {
+            // render returns a promise to a DOM element containing the chart
+            // viewElement.value contains the Vega View object instance
+            document.getElementById("ncells_histogram").appendChild(viewElement);
+        });
+</script>
+
+<script>
+    // setup API options
+    const option5 = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, option5);
+
+    const layer1 = vl
+        .markBar({color: "dimgray", tooltip: true})
+        .title("Number of gRNA per cell")
+        .encode(
+            vl.x().fieldQ("ngRNA").title("Number of gRNA's").bin({step: 1}),
+            vl.y().aggregate("count").title("Counts")
+        );
+    // now you can use the API!
+    vl.data("http://127.0.0.1:8000/static/search/new_ipsc.run_negbinom.ngrnas_per_cell (2).csv")
+        .width(450)
+        .height(300)
+        .layer(
+            layer1,
+            vl
+                .markRule({size: 3, color: "red", tooltip: true})
+                .title("Number of Cells")
+                .encode(vl.x().fieldQ("ngRNA").aggregate("median").title("Median")),
+
+            vl
+                .markRule({size: 3, color: "yellow", tooltip: true})
+                .title("mean")
+                .encode(vl.x().fieldQ("ngRNA").aggregate("mean").title("Mean"))
+        )
+        .render()
+        .then((viewElement) => {
+            // render returns a promise to a DOM element containing the chart
+            // viewElement.value contains the Vega View object instance
+            document.getElementById("ngrna_histogram").appendChild(viewElement);
+        });
+</script>
+
+
+
 <script>
     $(document).ready(function () {
         $("#dataFilesTable").DataTable({
