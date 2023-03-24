@@ -17,6 +17,7 @@ class AccessionType(Enum):
     TT = "tissue type"
     CL = "cell line"
     BIOS = "biosample"
+    ANALYSIS = "analysis"
 
     def abbrev(self):
         if self == AccessionType.GENE:
@@ -43,6 +44,8 @@ class AccessionType(Enum):
             return "CL"
         if self == AccessionType.BIOS:
             return "BIOS"
+        if self == AccessionType.ANALYSIS:
+            return "AN"
 
         raise Exception("Invalid Accession type")
 

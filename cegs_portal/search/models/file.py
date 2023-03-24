@@ -11,7 +11,7 @@ class FileCategory(models.Model):
 class File(Faceted):
     filename = models.CharField(max_length=512)
     description = models.CharField(max_length=4096, null=True, blank=True)
-    url = models.CharField(max_length=2048, null=True, blank=True)
+    url = models.URLField(null=True, blank=True)
     experiment = models.ForeignKey(
         "Experiment",
         to_field="accession_id",
@@ -21,6 +21,7 @@ class File(Faceted):
         null=True,
         blank=True,
     )
+    analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="analysis", null=True, blank=True)
     size = models.PositiveBigIntegerField(null=True, blank=True)
     category = models.ForeignKey(FileCategory, on_delete=models.SET_NULL, null=True, blank=True)
     data_file_info = models.ForeignKey(

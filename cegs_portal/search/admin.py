@@ -4,7 +4,8 @@ from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from cegs_portal.search.models import (
+from cegs_portal.search.models import (  # Pipeline,
+    Analysis,
     DNAFeature,
     Experiment,
     ExperimentDataFileInfo,
@@ -159,7 +160,9 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
 
 class ExperimentForm(forms.ModelForm):
     class Meta:
-        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 6, "columns": 90}),
+        }
 
 
 class ExperimentAdmin(admin.ModelAdmin):
@@ -183,6 +186,17 @@ admin.site.register(Experiment, ExperimentAdmin)
 
 
 admin.site.register(Facet)
+
+
+class AnalysisForm(forms.ModelForm):
+    verbose_name_plural = "Analyses"
+
+
+class AnalysisAdmin(admin.ModelAdmin):
+    form = AnalysisForm
+
+
+admin.site.register(Analysis, AnalysisAdmin)
 
 
 class FacetValueAdmin(admin.ModelAdmin):

@@ -1,5 +1,6 @@
 from enum import Enum
 
+from django.contrib.postgres.fields import DateRangeField
 from django.db import models
 
 from cegs_portal.search.models.access_control import AccessControlled
@@ -77,3 +78,15 @@ class ExperimentDataFileInfo(models.Model):
             return f"ref genome: {self.ref_genome}.{self.ref_genome_patch}, p_val_threshold: {self.p_value_threshold}"
 
         return f"ref genome: {self.ref_genome}, p_val_threshold: {self.p_value_threshold}"
+
+
+class Analysis(Accessioned, Faceted, AccessControlled):
+    description = models.CharField(max_length=4096, blank=True)
+    experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="analyses")
+    when = DateRangeField(null=True, blank=True)
+
+
+class Pipeline(models.Model):
+    analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="pipelines")
+    description = models.CharField(max_length=4096)
+    url = models.URLField(null=True, blank=True)
