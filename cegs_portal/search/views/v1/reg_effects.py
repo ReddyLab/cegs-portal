@@ -5,7 +5,7 @@ from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import RegEffectSearch
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
@@ -56,11 +56,29 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
         return search_results
 
 
-class FeatureEffectsView(TemplateJsonView):
+class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = feature_reg_effects
     template = ""
     template_data_name = "regeffects"
     page_title = ""
+
+    def get_experiment_accession_id(self):
+        try:
+            return DNAFeatureSearch.expr_id(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return DNAFeatureSearch.is_public(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return DNAFeatureSearch.is_archived(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
 
     def request_options(self, request):
         """
@@ -88,7 +106,12 @@ class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
-        reg_effects = RegEffectSearch.source_search(feature_id)
+        if self.request.user.is_anonymous:
+            reg_effects = RegEffectSearch.source_search_public(feature_id)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            reg_effects = RegEffectSearch.source_search(feature_id)
+        else:
+            reg_effects = RegEffectSearch.source_search_with_private(feature_id, self.request.user.all_experiments())
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
@@ -98,7 +121,12 @@ class TargetEffectsView(FeatureEffectsView):
     template = "search/v1/target_reg_effects.html"
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
-        reg_effects = RegEffectSearch.target_search(feature_id)
+        if self.request.user.is_anonymous:
+            reg_effects = RegEffectSearch.target_search_public(feature_id)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            reg_effects = RegEffectSearch.target_search(feature_id)
+        else:
+            reg_effects = RegEffectSearch.target_search_with_private(feature_id, self.request.user.all_experiments())
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
