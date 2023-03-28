@@ -80,6 +80,10 @@ RUN chmod +x /start
 # copy application code to WORKDIR
 COPY --chown=django:root . ${APP_HOME}
 
+# Create media directory for static served files
+RUN mkdir -p ${APP_HOME}/static_root
+RUN chmod ug+w ${APP_HOME}/static_root
+
 # Create media directory for temporarily served files
 RUN mkdir -p ${APP_HOME}/cegs_portal/media/expr_data_dir
 RUN chmod ug+w ${APP_HOME}/cegs_portal/media/
