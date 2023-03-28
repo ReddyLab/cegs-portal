@@ -81,9 +81,26 @@ class ExperimentDataFileInfo(models.Model):
 
 
 class Analysis(Accessioned, Faceted, AccessControlled):
+    class Meta:
+        verbose_name_plural = "Analyses"
+
     description = models.CharField(max_length=4096, blank=True)
-    experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="analyses")
+    experiment = models.ForeignKey(
+        "Experiment",
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        on_delete=models.CASCADE,
+        related_name="analyses",
+    )
     when = DateRangeField(null=True, blank=True)
+
+    def __str__(self):
+        description = self.description
+
+        if len(description) > 15:
+            return f"{self.accession_id}: {self.description[:15]}..."
+
+        return f"{self.accession_id}: {self.description}"
 
 
 class Pipeline(models.Model):
