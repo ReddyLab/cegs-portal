@@ -489,19 +489,35 @@
         })
         .then((data) => {
             vl.data(data)
-                .title("Number of gRNA per cell, Median, Mean")
+                .title(`Number of gRNA per cell`)
                 .width(450)
                 .height(300)
                 .layer(
                     vl
                         .markBar({tooltip: true, color: "dimgray"})
                         .encode(
-                            vl.x().fieldQ("bin_start").bin({step: data.binSize, binned: true}).title("Number of gRNAs"),
+                            vl
+                                .x()
+                                .fieldQ("bin_start")
+                                .bin({step: data.binSize, binned: true})
+                                .title(`Number of gRNA per cell`),
                             vl.x2().fieldQ("bin_end"),
                             vl.y().fieldQ("count").title("Counts")
                         ),
-                    vl.markRule({size: 3, color: "red"}).encode(vl.x().datum(data.median)),
-                    vl.markRule({size: 3, color: "yellow"}).encode(vl.x().datum(data.mean))
+                    vl
+                        .markRule({size: 3, color: "red", tooltip: {content: "encoding"}})
+                        .encode(vl.x().datum(data.median), vl.tooltip().value(`Median: ${data.median}`)),
+                    vl
+                        .markRule({size: 3, color: "yellow", tooltip: {content: "encoding"}})
+                        .encode(vl.x().datum(data.mean), vl.tooltip().value(`Mean: ${data.mean}`)),
+
+                    vl
+                        .markText({align: "center", baseline: "bottom", dx: 0, dy: -5})
+                        .encode(vl.x().datum(data.median), vl.y().value(0), vl.text().value("Median")),
+
+                    vl
+                        .markText({align: "center", baseline: "bottom", dx: 20, dy: 15})
+                        .encode(vl.x().datum(data.mean), vl.y().value(0), vl.text().value("Mean"))
                 )
                 .render()
                 .then((viewElement) => {
@@ -598,8 +614,6 @@
         });
 </script>
 
-
-
 <script>
     // setup API options
     const option4 = {
@@ -641,7 +655,7 @@
         })
         .then((data) => {
             vl.data(data)
-                .title("Number of cells per gRNA, Median, Mean")
+                .title(`Number of gRNA per cell`)
                 .width(450)
                 .height(300)
                 .layer(
@@ -652,12 +666,24 @@
                                 .x()
                                 .fieldQ("bin_start")
                                 .bin({step: data.binSize, binned: true})
-                                .title("Number of cells"),
+                                .title(`Number of gRNA per cell`),
                             vl.x2().fieldQ("bin_end"),
                             vl.y().fieldQ("count").title("Counts")
                         ),
-                    vl.markRule({size: 3, color: "red"}).encode(vl.x().datum(data.median)),
-                    vl.markRule({size: 3, color: "yellow"}).encode(vl.x().datum(data.mean))
+                    vl
+                        .markRule({size: 3, color: "red", tooltip: {content: "encoding"}})
+                        .encode(vl.x().datum(data.median), vl.tooltip().value(`Median: ${data.median}`)),
+                    vl
+                        .markRule({size: 3, color: "yellow", tooltip: {content: "encoding"}})
+                        .encode(vl.x().datum(data.mean), vl.tooltip().value(`Mean: ${data.mean}`)),
+
+                    vl
+                        .markText({align: "center", baseline: "bottom", dx: 0, dy: -5})
+                        .encode(vl.x().datum(data.median), vl.y().value(0), vl.text().value("Median")),
+
+                    vl
+                        .markText({align: "center", baseline: "bottom", dx: 20, dy: 15})
+                        .encode(vl.x().datum(data.mean), vl.y().value(0), vl.text().value("Mean"))
                 )
                 .render()
                 .then((viewElement) => {
