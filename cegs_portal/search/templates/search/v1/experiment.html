@@ -464,7 +464,7 @@
     vl.register(vega, vegaLite, option3);
 
     // now you can use the API!
-    fetch("http://127.0.0.1:8000/static/search/experiments/DCPEXPR00000004/g_per_c.bin")
+    fetch("http://127.0.0.1:8000/static/search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
             const start = performance.now();
@@ -630,7 +630,7 @@
     vl.register(vega, vegaLite, option4);
 
     // now you can use the API!
-    fetch("http://127.0.0.1:8000/static/search/experiments/DCPEXPR00000004/c_per_g.bin")
+    fetch("http://127.0.0.1:8000/static/search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
             const start = performance.now();
