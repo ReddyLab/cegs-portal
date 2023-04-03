@@ -5,8 +5,8 @@ from urllib.parse import quote_plus
 import pytest
 from django.test import Client
 
+from cegs_portal.search.conftest import SearchClient
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
-from cegs_portal.users.models import GroupExtension
 
 pytestmark = pytest.mark.django_db
 
@@ -54,43 +54,26 @@ def test_get_feature_ensembl_with_anonymous_client(client: Client, private_featu
     assert response.status_code == 302
 
 
-def test_get_feature_ensembl_with_authenticated_client(client: Client, private_feature: DNAFeature, django_user_model):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
+def test_get_feature_ensembl_with_authenticated_client(login_client: SearchClient, private_feature: DNAFeature):
+    response = login_client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_feature_ensembl_with_authenticated_authorized_client(
-    client: Client, private_feature: DNAFeature, django_user_model
+    login_client: SearchClient, private_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [private_feature.experiment_accession]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
+    login_client.set_user_experiments([private_feature.experiment_accession])
+    response = login_client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_get_feature_ensembl_with_authenticated_authorized_group_client(
-    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, private_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert private_feature.experiment_accession_id is not None
 
-    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
+    group_login_client.set_group_experiments([cast(str, private_feature.experiment_accession_id)])
+    response = group_login_client.get(f"/search/feature/ensembl/{private_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 200
 
 
@@ -100,47 +83,29 @@ def test_get_archived_feature_ensembl_with_anonymous_client(client: Client, arch
 
 
 def test_get_archived_feature_ensembl_with_authenticated_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
+    login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
+    response = login_client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_ensembl_with_authenticated_authorized_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
+    login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
 
-    user.experiments = [cast(str, archived_feature.experiment_accession)]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
+    login_client.set_user_experiments([cast(str, archived_feature.experiment_accession)])
+    response = login_client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_ensembl_with_authenticated_authorized_group_client(
-    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
 
-    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
+    group_login_client.set_group_experiments([cast(str, archived_feature.experiment_accession_id)])
+    response = group_login_client.get(f"/search/feature/ensembl/{archived_feature.ensembl_id}?accept=application/json")
     assert response.status_code == 403
 
 
@@ -168,48 +133,30 @@ def test_get_feature_accession_with_anonymous_client(client: Client, private_fea
     assert response.status_code == 302
 
 
-def test_get_feature_accession_with_authenticated_client(
-    client: Client, private_feature: DNAFeature, django_user_model
-):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{private_feature.accession_id}?accept=application/json")
+def test_get_feature_accession_with_authenticated_client(login_client: SearchClient, private_feature: DNAFeature):
+    response = login_client.get(f"/search/feature/accession/{private_feature.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_feature_accession_with_authenticated_authorized_client(
-    client: Client, private_feature: DNAFeature, django_user_model
+    login_client: SearchClient, private_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert private_feature.experiment_accession_id is not None
 
-    user.experiments = [cast(str, private_feature.experiment_accession_id)]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{private_feature.accession_id}?accept=application/json")
+    login_client.set_user_experiments([cast(str, private_feature.experiment_accession_id)])
+    response = login_client.get(f"/search/feature/accession/{private_feature.accession_id}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_get_feature_accession_with_authenticated_authorized_group_client(
-    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, private_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert private_feature.experiment_accession_id is not None
 
-    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{private_feature.accession_id}?accept=application/json")
+    group_login_client.set_group_experiments([cast(str, private_feature.experiment_accession_id)])
+    response = group_login_client.get(
+        f"/search/feature/accession/{private_feature.accession_id}?accept=application/json"
+    )
     assert response.status_code == 200
 
 
@@ -219,47 +166,30 @@ def test_get_archived_feature_accession_with_anonymous_client(client: Client, ar
 
 
 def test_get_archived_feature_accession_with_authenticated_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
+    login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json")
+    response = login_client.get(f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_accession_with_authenticated_authorized_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
+    login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
-
-    user.experiments = [cast(str, archived_feature.experiment_accession_id)]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json")
+    login_client.set_user_experiments([cast(str, archived_feature.experiment_accession_id)])
+    response = login_client.get(f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_accessionl_with_authenticated_authorized_group_client(
-    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
+    group_login_client.set_group_experiments([cast(str, archived_feature.experiment_accession_id)])
 
-    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json")
+    response = group_login_client.get(
+        f"/search/feature/accession/{archived_feature.accession_id}?accept=application/json"
+    )
     assert response.status_code == 403
 
 
@@ -287,46 +217,28 @@ def test_get_feature_name_with_anonymous_client(client: Client, private_feature:
     assert response.status_code == 302
 
 
-def test_get_feature_name_with_authenticated_client(client: Client, private_feature: DNAFeature, django_user_model):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
+def test_get_feature_name_with_authenticated_client(login_client: SearchClient, private_feature: DNAFeature):
+    response = login_client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
-def test_get_feature_name_with_authenticated_authorized_client(
-    client: Client, private_feature: DNAFeature, django_user_model
-):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
+def test_get_feature_name_with_authenticated_authorized_client(login_client: SearchClient, private_feature: DNAFeature):
     assert private_feature.experiment_accession_id is not None
+    login_client.set_user_experiments([cast(str, private_feature.experiment_accession_id)])
 
-    user.experiments = [cast(str, private_feature.experiment_accession_id)]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
+    response = login_client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_get_feature_name_with_authenticated_authorized_group_client(
-    client: Client, private_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, private_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert private_feature.experiment_accession_id is not None
+    group_login_client.set_group_experiments([cast(str, private_feature.experiment_accession_id)])
 
-    group_extension.experiments = [cast(str, private_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json")
+    response = group_login_client.get(
+        f"/search/feature/name/{quote_plus(private_feature.name)}?accept=application/json"
+    )
     assert response.status_code == 200
 
 
@@ -335,48 +247,29 @@ def test_get_archived_feature_name_with_anonymous_client(client: Client, archive
     assert response.status_code == 403
 
 
-def test_get_archived_feature_name_with_authenticated_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
-):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
+def test_get_archived_feature_name_with_authenticated_client(login_client: SearchClient, archived_feature: DNAFeature):
+    response = login_client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_name_with_authenticated_authorized_client(
-    client: Client, archived_feature: DNAFeature, django_user_model
+    login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
+    login_client.set_user_experiments([cast(str, archived_feature.experiment_accession_id)])
 
-    user.experiments = [cast(str, archived_feature.experiment_accession_id)]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
+    response = login_client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_get_archived_feature_name_with_authenticated_authorized_group_client(
-    client: Client, archived_feature: DNAFeature, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, archived_feature: DNAFeature
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert archived_feature.experiment_accession_id is not None
-
-    group_extension.experiments = [cast(str, archived_feature.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json")
+    group_login_client.set_group_experiments([cast(str, archived_feature.experiment_accession_id)])
+    response = group_login_client.get(
+        f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json"
+    )
     assert response.status_code == 403
 
 
@@ -411,14 +304,10 @@ def test_get_feature_loc_with_anonymous_client(
 
 
 def test_get_feature_loc_with_authenticated_client(
-    client: Client, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature], django_user_model
+    login_client: SearchClient, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature]
 ):
     pub_feature, _private_feature, archived_feature = nearby_feature_mix
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(
+    response = login_client.get(
         f"/search/featureloc/{pub_feature.chrom_name}/{pub_feature.location.lower - 10}/{archived_feature.location.upper + 10}?accept=application/json"  # noqa: E501
     )
     assert response.status_code == 200
@@ -428,17 +317,14 @@ def test_get_feature_loc_with_authenticated_client(
 
 
 def test_get_feature_loc_with_authenticated_authorized_client(
-    client: Client, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature], django_user_model
+    login_client: SearchClient, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature]
 ):
     pub_feature, private_feature, archived_feature = nearby_feature_mix
 
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [private_feature.experiment_accession_id, archived_feature.experiment_accession_id]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(
+    login_client.set_user_experiments(
+        [private_feature.experiment_accession_id, archived_feature.experiment_accession_id]
+    )
+    response = login_client.get(
         f"/search/featureloc/{pub_feature.chrom_name}/{pub_feature.location.lower - 10}/{archived_feature.location.upper + 10}?accept=application/json"  # noqa: E501
     )
     assert response.status_code == 200
@@ -448,29 +334,20 @@ def test_get_feature_loc_with_authenticated_authorized_client(
 
 
 def test_get_feature_loc_with_authenticated_authorized_group_client(
-    client: Client,
-    nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature],
-    group_extension: GroupExtension,
-    django_user_model,
+    group_login_client: SearchClient, nearby_feature_mix: tuple[DNAFeature, DNAFeature, DNAFeature]
 ):
     pub_feature, private_feature, archived_feature = nearby_feature_mix
-
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
 
     assert private_feature.experiment_accession_id is not None
     assert archived_feature.experiment_accession_id is not None
 
-    group_extension.experiments = [
-        cast(str, private_feature.experiment_accession_id),
-        cast(str, archived_feature.experiment_accession_id),
-    ]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(
+    group_login_client.set_group_experiments(
+        [
+            cast(str, private_feature.experiment_accession_id),
+            cast(str, archived_feature.experiment_accession_id),
+        ]
+    )
+    response = group_login_client.get(
         f"/search/featureloc/{pub_feature.chrom_name}/{pub_feature.location.lower - 10}/{archived_feature.location.upper + 10}?accept=application/json"  # noqa: E501
     )
     assert response.status_code == 200
