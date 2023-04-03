@@ -39,6 +39,11 @@ class Biosample(Accessioned):
 
 
 class Experiment(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="exp_accession_id_index"),
+        ]
+
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
 
@@ -81,7 +86,10 @@ class ExperimentDataFileInfo(models.Model):
 
 
 class Analysis(Accessioned, Faceted, AccessControlled):
-    class Meta:
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="an_accession_id_index"),
+        ]
         verbose_name_plural = "Analyses"
 
     description = models.CharField(max_length=4096, blank=True)

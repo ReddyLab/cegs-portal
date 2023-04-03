@@ -1,12 +1,13 @@
 from enum import Enum
 from functools import cached_property
+from typing import Optional
 
 from django.db import models
 
 from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
 from cegs_portal.search.models.dna_feature import DNAFeature
-from cegs_portal.search.models.experiment import Experiment
+from cegs_portal.search.models.experiment import Analysis, Experiment
 from cegs_portal.search.models.facets import Faceted
 
 
@@ -46,6 +47,15 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
         related_name="+",
         on_delete=models.CASCADE,
     )
+    analysis = models.ForeignKey(
+        Analysis,
+        null=True,
+        to_field="accession_id",
+        db_column="analysis_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+    analysis_accession_id: Optional[str]
     sources = models.ManyToManyField(DNAFeature, related_name="source_for", blank=True)
     targets = models.ManyToManyField(DNAFeature, related_name="target_of", blank=True)
 
