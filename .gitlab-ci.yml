@@ -149,13 +149,13 @@ deleteimage-qa:
   tags:
     - kube-executor
 
-# updatechart-test:
-#   extends: .updatechart
-#   variables:
-#     IMAGE_SHA: DEV_IMAGE_SHA
-#     TRIGGER_BRANCH: master
-#   only:
-#     - main
+updatechart-test:
+  extends: .updatechart
+  variables:
+    IMAGE_SHA: DEV_IMAGE_SHA
+    TRIGGER_BRANCH: master
+  only:
+    - main
 
 updatechart-prod:
   extends: .updatechart
