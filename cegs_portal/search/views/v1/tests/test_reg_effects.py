@@ -4,8 +4,8 @@ from typing import cast
 import pytest
 from django.test import Client
 
+from cegs_portal.search.conftest import SearchClient
 from cegs_portal.search.models import RegulatoryEffectObservation
-from cegs_portal.users.models import GroupExtension
 
 pytestmark = pytest.mark.django_db
 
@@ -42,44 +42,27 @@ def test_regeffect_accession_with_anonymous_client(client: Client, private_reg_e
 
 
 def test_regeffect_accession_with_authenticated_client(
-    client: Client, private_reg_effect: RegulatoryEffectObservation, django_user_model
+    login_client: SearchClient, private_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
+    response = login_client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_regeffect_accession_with_authenticated_authorized_client(
-    client: Client, private_reg_effect: RegulatoryEffectObservation, django_user_model
+    login_client: SearchClient, private_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [private_reg_effect.experiment_accession]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
+    login_client.set_user_experiments([private_reg_effect.experiment_accession])
+    response = login_client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_regeffect_accession_with_authenticated_authorized_group_client(
-    client: Client, private_reg_effect: RegulatoryEffectObservation, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, private_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-
     assert private_reg_effect.experiment_accession_id is not None
 
-    group_extension.experiments = [cast(str, private_reg_effect.experiment_accession_id)]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
+    group_login_client.set_group_experiments([cast(str, private_reg_effect.experiment_accession_id)])
+    response = group_login_client.get(f"/search/regeffect/{private_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 200
 
 
@@ -91,39 +74,23 @@ def test_archived_regeffect_accession_with_anonymous_client(
 
 
 def test_archived_regeffect_accession_with_authenticated_client(
-    client: Client, archived_reg_effect: RegulatoryEffectObservation, django_user_model
+    login_client: Client, archived_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    response = login_client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_archived_regeffect_accession_with_authenticated_authorized_client(
-    client: Client, archived_reg_effect: RegulatoryEffectObservation, django_user_model
+    login_client: Client, archived_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [archived_reg_effect.experiment_accession]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    login_client.set_user_experiments([archived_reg_effect.experiment_accession])
+    response = login_client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_archived_regeffect_accession_with_authenticated_authorized_group_client(
-    client: Client, archived_reg_effect: RegulatoryEffectObservation, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, archived_reg_effect: RegulatoryEffectObservation
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [archived_reg_effect.accession_id]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
+    group_login_client.set_group_experiments([archived_reg_effect.accession_id])
+    response = group_login_client.get(f"/search/regeffect/{archived_reg_effect.accession_id}?accept=application/json")
     assert response.status_code == 403
