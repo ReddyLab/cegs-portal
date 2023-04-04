@@ -3,7 +3,6 @@ from io import StringIO
 from time import sleep
 
 import pytest
-from django.test import Client
 
 from cegs_portal.get_expr_data.view_models import (
     ReoDataSource,
@@ -16,6 +15,7 @@ from cegs_portal.get_expr_data.view_models import (
     validate_filename,
     write_experiment_data_csv,
 )
+from cegs_portal.search.conftest import SearchClient
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -150,13 +150,8 @@ def test_list_experiment_data():
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
+def test_location_experiment_data(login_client: SearchClient):
+    response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 200
     json_content = json.loads(response.content)
     print(json_content)
@@ -191,46 +186,26 @@ def test_location_experiment_data(client: Client, django_user_model):
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_invalid_region(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/location?region=ch1:1-100000&expr=DCPEXPR00000002&datasource=both")
+def test_location_experiment_data_invalid_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/location?region=ch1:1-100000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_no_region(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/location?expr=DCPEXPR00000002&datasource=both")
+def test_location_experiment_data_no_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/location?expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_oversize_region(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/location?region=chr1:1-1000000&expr=DCPEXPR00000002&datasource=both")
+def test_location_experiment_data_oversize_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/location?region=chr1:1-1000000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_backwards_region(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/location?region=chr1:10000-10&expr=DCPEXPR00000002&datasource=both")
+def test_location_experiment_data_backwards_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/location?region=chr1:10000-10&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
@@ -255,15 +230,10 @@ chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t-
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_request_experiment_data(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
+def test_request_experiment_data(login_client: SearchClient):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = client.post(
+    response = login_client.post(
         "/exp_data/request?expr=DCPEXPR00000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
@@ -271,22 +241,17 @@ def test_request_experiment_data(client: Client, django_user_model):
     assert response.status_code == 200
     sleep(0.1)
     json_content = json.loads(response.content)
-    loc_response = client.get(json_content["file location"])
+    loc_response = login_client.get(json_content["file location"])
     assert loc_response.status_code == 200
 
-    prog_response = client.get(json_content["file progress"])
+    prog_response = login_client.get(json_content["file progress"])
     assert prog_response.status_code == 200
 
 
-def test_download_experiment_data_success(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
+def test_download_experiment_data_success(login_client: SearchClient):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = client.post(
+    response = login_client.post(
         "/exp_data/request?expr=DCPEXPR00000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
@@ -294,7 +259,7 @@ def test_download_experiment_data_success(client: Client, django_user_model):
     assert response.status_code == 200
     sleep(0.1)
     json_content = json.loads(response.content)
-    loc_response = client.get(json_content["file location"])
+    loc_response = login_client.get(json_content["file location"])
     assert loc_response.status_code == 200
     content = StringIO()
     for data in loc_response.streaming_content:
@@ -302,21 +267,11 @@ def test_download_experiment_data_success(client: Client, django_user_model):
     assert len(content.getvalue()) > 0
 
 
-def test_download_experiment_data_fail(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/file/DCPEXPR00000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
+def test_download_experiment_data_fail(login_client: SearchClient):
+    response = login_client.get("/exp_data/file/DCPEXPR00000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
     assert response.status_code == 404
 
 
-def test_download_experiment_data_invalid_filename(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/exp_data/file/DCPEXPR0000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
+def test_download_experiment_data_invalid_filename(login_client: SearchClient):
+    response = login_client.get("/exp_data/file/DCPEXPR0000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
     assert response.status_code == 400
