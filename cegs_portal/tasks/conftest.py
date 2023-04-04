@@ -1,5 +1,6 @@
 import pytest
 
+from cegs_portal.search.conftest import login_client, public_client  # noqa:
 from cegs_portal.tasks.factories import ThreadTaskFactory
 from cegs_portal.tasks.models import ThreadTask
 
