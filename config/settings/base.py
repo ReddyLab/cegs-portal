@@ -66,7 +66,6 @@ DJANGO_APPS = [
     "django.contrib.admin",
     "django.forms",
     "channels",
-
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -75,7 +74,6 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "waffle",
     "django_prometheus",
-    "corsheaders",
 ]
 
 # Your stuff: custom apps go here
