@@ -129,7 +129,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -144,14 +143,6 @@ MIDDLEWARE = [
     "waffle.middleware.WaffleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
-
-
-CORS_ALLOWED_ORIGINS = [
-    "https://localhost:8000",
-    "http://127.0.0.1:9000",
-    "http://127.0.0.1:8000",
-]
-
 
 # STATIC
 # ------------------------------------------------------------------------------
