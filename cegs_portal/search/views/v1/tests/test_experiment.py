@@ -3,8 +3,8 @@ import json
 import pytest
 from django.test import Client
 
+from cegs_portal.search.conftest import SearchClient
 from cegs_portal.search.models import Experiment
-from cegs_portal.users.models import GroupExtension
 from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
@@ -52,9 +52,8 @@ def test_experiment_list_html(client: Client):
     assert response.status_code == 200
 
 
-def test_experiment_list_with_anonymous_client(
-    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment]
-):
+@pytest.mark.usefixtures("access_control_experiments")
+def test_experiment_list_with_anonymous_client(client: Client):
     response = client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
 
@@ -62,14 +61,9 @@ def test_experiment_list_with_anonymous_client(
     assert len(json_content["object_list"]) == 1
 
 
-def test_experiment_list_with_authenticated_client(
-    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment], django_user_model
-):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get("/search/experiment?accept=application/json")
+@pytest.mark.usefixtures("access_control_experiments")
+def test_experiment_list_with_authenticated_client(login_client: SearchClient):
+    response = login_client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
@@ -77,16 +71,12 @@ def test_experiment_list_with_authenticated_client(
 
 
 def test_experiment_list_with_authenticated_authorized_client(
-    client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment], django_user_model
+    login_client: SearchClient, access_control_experiments: tuple[Experiment, Experiment, Experiment]
 ):
     _, private_experiment, archived_experiment = access_control_experiments
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [private_experiment.accession_id, archived_experiment.accession_id]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/search/experiment?accept=application/json")
+
+    login_client.set_user_experiments([private_experiment.accession_id, archived_experiment.accession_id])
+    response = login_client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
@@ -94,21 +84,12 @@ def test_experiment_list_with_authenticated_authorized_client(
 
 
 def test_experiment_list_with_authenticated_authorized_group_client(
-    client: Client,
-    access_control_experiments: tuple[Experiment, Experiment, Experiment],
-    group_extension: GroupExtension,
-    django_user_model,
+    group_login_client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment]
 ):
     _, private_experiment, archived_experiment = access_control_experiments
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_experiment.accession_id, archived_experiment.accession_id]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/search/experiment?accept=application/json")
+
+    group_login_client.set_group_experiments([private_experiment.accession_id, archived_experiment.accession_id])
+    response = group_login_client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
@@ -145,40 +126,22 @@ def test_experiment_with_anonymous_client(client: Client, private_experiment: Ex
     assert response.status_code == 302
 
 
-def test_experiment_with_authenticated_client(client: Client, private_experiment: Experiment, django_user_model):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+def test_experiment_with_authenticated_client(login_client: SearchClient, private_experiment: Experiment):
+    response = login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
-def test_experiment_with_authenticated_authorized_client(
-    client: Client, private_experiment: Experiment, django_user_model
-):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [private_experiment.accession_id]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+def test_experiment_with_authenticated_authorized_client(login_client: SearchClient, private_experiment: Experiment):
+    login_client.set_user_experiments([private_experiment.accession_id])
+    response = login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
     assert response.status_code == 200
 
 
 def test_experiment_with_authenticated_authorized_group_client(
-    client: Client, private_experiment: Experiment, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, private_experiment: Experiment
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [private_experiment.accession_id]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+    group_login_client.set_group_experiments([private_experiment.accession_id])
+    response = group_login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
     assert response.status_code == 200
 
 
@@ -187,40 +150,22 @@ def test_archived_experiment_with_anonymous_client(client: Client, archived_expe
     assert response.status_code == 403
 
 
-def test_archived_experiment_with_authenticated_client(
-    client: Client, archived_experiment: Experiment, django_user_model
-):
-    username = "user1"
-    password = "bar"
-    django_user_model.objects.create_user(username=username, password=password)
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
+def test_archived_experiment_with_authenticated_client(login_client: SearchClient, archived_experiment: Experiment):
+    response = login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_archived_experiment_with_authenticated_authorized_client(
-    client: Client, archived_experiment: Experiment, django_user_model
+    login_client: SearchClient, archived_experiment: Experiment
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.experiments = [archived_experiment.accession_id]
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
+    login_client.set_user_experiments([archived_experiment.accession_id])
+    response = login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
     assert response.status_code == 403
 
 
 def test_archived_experiment_with_authenticated_authorized_group_client(
-    client: Client, archived_experiment: Experiment, group_extension: GroupExtension, django_user_model
+    group_login_client: SearchClient, archived_experiment: Experiment
 ):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    group_extension.experiments = [archived_experiment.accession_id]
-    group_extension.save()
-    user.groups.add(group_extension.group)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
+    group_login_client.set_group_experiments([archived_experiment.accession_id])
+    response = group_login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
     assert response.status_code == 403

@@ -62,7 +62,8 @@ def test_coverage_filter_everything_json(client: Client, monkeypatch: MonkeyPatc
     assert response.status_code == 200
 
 
-def test_coverage_no_experiment_json(client: Client, monkeypatch: MonkeyPatch, experiment: Experiment):
+@pytest.mark.usefixtures("experiment")
+def test_coverage_no_experiment_json(client: Client, monkeypatch: MonkeyPatch):
     monkeypatch.setattr(exp_cov, "load_coverage", mock_load_coverage)
     response = client.post(
         "/search/experiment_coverage?accept=application/json",

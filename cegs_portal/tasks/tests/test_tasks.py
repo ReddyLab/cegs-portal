@@ -3,8 +3,8 @@ from time import sleep
 
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
-from django.test import Client
 
+from cegs_portal.search.conftest import SearchClient
 from cegs_portal.tasks.decorators import as_task
 from cegs_portal.tasks.models import ThreadTask
 
@@ -94,95 +94,55 @@ def check_thread_task_response(task, task_json):
     assert task_json["failed_exception"] == task.failed_exception
 
 
-def test_non_logged_in_task_json(client: Client):
-    response = client.get("/tasks/task/1?accept=application/json")
+def test_non_logged_in_task_json(public_client: SearchClient):
+    response = public_client.get("/tasks/task/1?accept=application/json")
     assert response.status_code == 302
 
 
-def test_unfinished_thread_task_html(client: Client, unfinished_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{unfinished_thread_task.id}")
+def test_unfinished_thread_task_html(login_client: SearchClient, unfinished_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{unfinished_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_unfinished_thread_task_json(client: Client, unfinished_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{unfinished_thread_task.id}?accept=application/json")
+def test_unfinished_thread_task_json(login_client: SearchClient, unfinished_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{unfinished_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(unfinished_thread_task, json_content)
 
 
-def test_finished_thread_task_html(client: Client, finished_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{finished_thread_task.id}")
+def test_finished_thread_task_html(login_client: SearchClient, finished_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{finished_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_finished_thread_task_json(client: Client, finished_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{finished_thread_task.id}?accept=application/json")
+def test_finished_thread_task_json(login_client: SearchClient, finished_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{finished_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(finished_thread_task, json_content)
 
 
-def test_failed_thread_task_html(client: Client, failed_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{failed_thread_task.id}")
+def test_failed_thread_task_html(login_client: SearchClient, failed_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{failed_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_failed_thread_task_json(client: Client, failed_thread_task: ThreadTask, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get(f"/tasks/task/{failed_thread_task.id}?accept=application/json")
+def test_failed_thread_task_json(login_client: SearchClient, failed_thread_task: ThreadTask):
+    response = login_client.get(f"/tasks/task/{failed_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(failed_thread_task, json_content)
 
 
-def test_non_existent_thread_task_html(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/tasks/task/1")
+def test_non_existent_thread_task_html(login_client: SearchClient):
+    response = login_client.get("/tasks/task/1")
     assert response.status_code == 404
 
 
-def test_non_existent_thread_task_json(client: Client, django_user_model):
-    username = "user1"
-    password = "bar"
-    user = django_user_model.objects.create_user(username=username, password=password)
-    user.save()
-    client.login(username=username, password=password)
-    response = client.get("/tasks/task/1?accept=application/json")
+def test_non_existent_thread_task_json(login_client: SearchClient):
+    response = login_client.get("/tasks/task/1?accept=application/json")
     assert response.status_code == 404
