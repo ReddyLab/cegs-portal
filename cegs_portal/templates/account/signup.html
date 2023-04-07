@@ -1,22 +1,41 @@
-{% extends "account/base.html" %}
+{% extends "account/base.html" %} {% load i18n %} {% load crispy_forms_tags %} {% block head_title %}{% translate
+"Signup" %}{% endblock %} {% block inner %}
 
-{% load i18n %}
-{% load crispy_forms_tags %}
+<div
+    class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700"
+>
+    <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend
+                    class="text-xl font-bold leading-tight tracking-tight md:text-2xl dark:text-white form-header-text"
+                >
+                    Sign Up! <i class="bi bi-people-fill"></i>
+                </legend>
+                <div class="faded-line my-3.5"></div>
+                {{ form|crispy }} {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+            </fieldset>
 
-{% block head_title %}{% translate "Signup" %}{% endblock %}
-
-{% block inner %}
-<h1>{% translate "Sign Up" %}</h1>
-
-<p>{% blocktranslate %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktranslate %}</p>
-
-<form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-  {% csrf_token %}
-  {{ form|crispy }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-  <button class="btn btn-primary" type="submit">{% translate "Sign Up" %} &raquo;</button>
-</form>
+            <div class="form-group">
+                <button
+                    type="submit"
+                    class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                >
+                    {% translate "Sign Up" %} &raquo;
+                </button>
+            </div>
+            <div class="border-top pt-3">
+                {% blocktranslate %}
+                <small class="text-muted">
+                    Already have an account? <a class="ml-2" href="{{ login_url }}">Log In!</a>
+                </small>
+                {% endblocktranslate %}
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

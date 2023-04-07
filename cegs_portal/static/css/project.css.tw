@@ -37,6 +37,23 @@
   background-attachment: fixed;
 }
 
+.faded-line {
+      border-top: 0.5px solid rgb(133, 139, 146);
+      /* margin-top: 5px; */
+  }
+
+.form-group .form-control {
+      margin-bottom: 10px;
+      border-radius: 5px;
+      width: 300px;
+      margin-top: 5px;
+  }
+
+.form-header-text {
+  color: rgb(16, 13, 121)
+}
+
+
 
 @layer components {
   .bg-color {
