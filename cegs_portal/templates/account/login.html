@@ -1,6 +1,9 @@
-{% extends "account/base.html" %} {% load i18n %} {% load account socialaccount %} {% load crispy_forms_tags %} {% block
-head_title %}{% translate "Sign In" %}{% block inner %}
+{% extends "account/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block head_title %}{% translate "Log In" %}{% endblock %}
 
+{% block inner %}
 <div
     class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700"
 >
@@ -41,5 +44,4 @@ head_title %}{% translate "Sign In" %}{% block inner %}
         </form>
     </div>
 </div>
-
 {% endblock %}
