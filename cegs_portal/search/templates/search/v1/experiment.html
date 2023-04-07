@@ -2,6 +2,10 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 <link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite-api@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-tooltip"></script>
 <!-- This CSS modifies the range slider look -->
 <style>
     .noUi-horizontal {
@@ -150,6 +154,19 @@
                     aria-controls="tabs-qc-graphs"
                     aria-selected="false"
                     >QC Graphs <i class="bi bi-file-bar-graph-fill"></i
+                ></a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-analysis"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-analysis-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-analysis"
+                    role="tab"
+                    aria-controls="tabs-analysis"
+                    aria-selected="false"
+                    >Analysis <i class="bi bi-pie-chart-fill"></i
                 ></a>
             </li>
         </ul>
@@ -348,10 +365,287 @@
         role="tabpanel"
         aria-labelledby="tabs-qc-graphs-tab"
     >
-        <div class="datafile-content-section content-container min-w-max max-w-max">QC plots TK</div>
+        <div
+            class="datafile-content-section content-container min-w-max max-w-max text-xl font-bold"
+            style="color: gray"
+        >
+            QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
+            <div class="faded-line my-3.5"></div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="ncells_histogram" class="mr-4"></div>
+                <div id="ngrna_histogram"></div>
+            </div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="uniform_qqplot" class="mr-4"></div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-analysis"
+        role="tabpanel"
+        aria-labelledby="tabs-analysis"
+    >
+        <div
+            class="datafile-content-section content-container min-w-max max-w-max text-xl font-bold"
+            style="color: gray"
+        >
+            Analysis <i class="bi bi-pie-chart-fill"></i>
+            <div class="faded-line my-3.5"></div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="volcano"></div>
+            </div>
+        </div>
     </div>
 </div>
+
 {% endblock %} {% block inline_javascript %}
+
+<script>
+    // setup API options
+    const vegaVolcanoOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaVolcanoOptions);
+
+    // now you can use the API!
+    plot = (values, subtitle) => {
+        return vl
+            .markCircle()
+            .data(values)
+            .width(450)
+            .height(400)
+            .encode(
+                vl.y().fieldQ("0").title("-log10(p-value)"),
+                vl.x().fieldQ(1).title("log2(FC)"), //.scale({"domain":[0, 2], "clamp": true}),
+                vl
+                    .color()
+                    .fieldN(2)
+                    .title("Gene Type")
+                    .legend({labelExpr: "{0: 'Targeting', 1: 'Non-Targeting'}[datum.label]"}),
+                vl.tooltip(vl.fieldN(3))
+            )
+            .title({text: "Volcano Plot", subtitle: subtitle, anchor: "start"})
+            .render()
+
+            .then((viewElement) => {
+                // render returns a promise to a DOM element containing the chart
+                // viewElement.value contains the Vega View object instance
+                document.getElementById("volcano").appendChild(viewElement);
+            });
+    };
+
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+            let length = buffer.byteLength;
+            let decoder = new TextDecoder();
+            let data = new DataView(buffer);
+            let offset = 0;
+            let values = [];
+            while (offset < length) {
+                let pVal = data.getFloat32(offset);
+                let avgFC = data.getFloat32(offset + 4);
+                let type = data.getUint8(offset + 8);
+                let symLen = data.getUint8(offset + 9);
+                offset += 10;
+                let symArray = new Uint8Array(buffer, offset, symLen);
+                let sym = decoder.decode(symArray);
+                values.push([pVal, avgFC, type, sym]);
+                offset += symLen;
+            }
+            return values;
+        })
+        .then((values) => {
+            return plot(values, "Crop of Non-Significant, Low Effect Observations");
+        });
+
+    //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
+    function processHistogramData(buffer) {
+        let data = new DataView(buffer);
+        let offset = 0;
+        let values = [];
+        let binSize = data.getUint32(offset);
+        let mean = data.getFloat32(offset + 4);
+        let median = data.getFloat32(offset + 8);
+        let binCount = data.getUint32(offset + 12);
+        offset += 16;
+        for (let i = 0; i < binCount; i++, offset += 4) {
+            let binValue = data.getUint32(offset);
+            values.push({
+                bin_start: i * binSize,
+                bin_end: (i + 1) * binSize,
+                count: binValue,
+            });
+        }
+
+        return {binSize, mean, median, values};
+    }
+
+    function createHistogramChart(data, color, chart_title, x_axis_title, elementId) {
+        vl.data(data)
+            .title(chart_title)
+            .width(450)
+            .height(300)
+            .layer(
+                vl
+                    .markBar({tooltip: true, color: color})
+                    .encode(
+                        vl.x().fieldQ("bin_start").bin({step: data.binSize, binned: true}).title(x_axis_title),
+                        vl.x2().fieldQ("bin_end"),
+                        vl.y().fieldQ("count").title("Counts")
+                    ),
+                vl
+                    .markRule({size: 3, color: "red", tooltip: {content: "encoding"}})
+                    .encode(vl.x().datum(data.median), vl.tooltip().value(`Median: ${data.median}`)),
+                vl
+                    .markRule({size: 3, color: "yellow", tooltip: {content: "encoding"}})
+                    .encode(vl.x().datum(data.mean), vl.tooltip().value(`Mean: ${data.mean}`)),
+
+                vl
+                    .markText({align: "center", baseline: "bottom", dx: 0, dy: -5})
+                    .encode(vl.x().datum(data.median), vl.y().value(0), vl.text().value("Median")),
+
+                vl
+                    .markText({align: "center", baseline: "bottom", dx: 20, dy: 15})
+                    .encode(vl.x().datum(data.mean), vl.y().value(0), vl.text().value("Mean"))
+            )
+            .render()
+            .then((viewElement) => {
+                // render returns a promise to a DOM element containing the chart
+                // viewElement.value contains the Vega View object instance
+                document.getElementById(elementId).appendChild(viewElement);
+            });
+    }
+
+    // setup API options
+    const vegaGrnaHistogramOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaGrnaHistogramOptions);
+
+    // now you can use the API!
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => processHistogramData(buffer))
+        .then((data) =>
+            createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
+        );
+
+    // setup API options
+    const vegaQqPlotOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaQqPlotOptions);
+
+    // now you can use the API!
+
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+            let data = new DataView(buffer);
+            let decoder = new TextDecoder();
+            let offset = 0;
+            let values = [];
+            let quantileCount = data.getUint32(offset);
+            offset += 4;
+            let xLabelLen = data.getUint8(offset);
+            offset += 1;
+            let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
+            let xLabel = decoder.decode(xLabelArray);
+            offset += xLabelLen;
+            let yLabelLen = data.getUint8(offset);
+            offset += 1;
+            let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
+            let yLabel = decoder.decode(yLabelArray);
+            offset += yLabelLen;
+
+            for (let i = 0; i < quantileCount; i++) {
+                let x = data.getFloat32(offset);
+                let y = data.getFloat32(offset + 4);
+                offset += 8;
+                values.push({c: x, nc: y});
+            }
+
+            return {xLabel, yLabel, values};
+        })
+
+        .then((data) => {
+            vl.data(data)
+                .width(450)
+                .height(400)
+                .layer(
+                    vl
+                        .markCircle({color: "green", tooltip: true})
+                        .title("QQ-Plot")
+                        .encode(
+                            vl.y().fieldQ("nc").title("Non-Control Quantiles"),
+                            vl.x().fieldQ("c").title("Theoretical Uniform Values")
+                        ),
+
+                    vl
+                        .data([
+                            {x: 0.0, y: 0.0},
+                            {x: 1.0, y: 1.0},
+                        ])
+                        .layer(vl.markLine({size: 1, color: "grey"}).encode(vl.x().fieldQ("x"), vl.y().fieldQ("y")))
+                )
+                .render()
+
+                .then((viewElement) => {
+                    // render returns a promise to a DOM element containing the chart
+                    // viewElement.value contains the Vega View object instance
+                    document.getElementById("uniform_qqplot").appendChild(viewElement);
+                });
+        });
+
+    // setup API options
+    const vegaCellsHistogramOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaCellsHistogramOptions);
+
+    // now you can use the API!
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => processHistogramData(buffer))
+        .then((data) =>
+            createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
+        );
+</script>
+
 <script>
     $(document).ready(function () {
         $("#dataFilesTable").DataTable({
