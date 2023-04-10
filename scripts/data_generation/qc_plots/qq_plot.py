@@ -52,6 +52,22 @@ def process(args):
     for p in zip(x_percentiles, *y_percentiles):
         p_val_percentiles.extend(p)
 
+    # The serialized format of the qqplot data is (using pythons `struct` module formats)
+    #   (\d indicates a non-negative integer)
+    #   See https://docs.python.org/3.11/library/struct.html#module-struct
+    # >: Big-endian byte order
+    # I: Quantile Count
+    # B: Category count
+    # Category Name list:
+    #   B: Category name length
+    #   \ds: Category name
+    # B: X-axis label length
+    # \ds: X-axis label
+    # B: Y-axis label length
+    # \ds: Y-axis label
+    # \df: quantile values. These are packed together like, x0yyx1yyx2yyx3yy, etc.
+    #     Where "x" a value from the uniform quantile and each "y" is from an observed data quantile
+    #     for a particular category. The "y" values are in the same order as the category names.
     y_val_name_format = [f"B{len(category_name)}s" for category_name in category_names]
     y_val_name_data = []
     for category_name in category_names:
@@ -61,7 +77,7 @@ def process(args):
             f">IB{''.join(y_val_name_format)}B{len(x_axis_label)}s"
             f"B{len(y_axis_label)}s{(1 + len(y_values)) * quantile_count}f",
             quantile_count,
-            len(y_values),  # y value count
+            len(y_values),  # category count
             *y_val_name_data,
             len(x_axis_label),
             x_axis_label,

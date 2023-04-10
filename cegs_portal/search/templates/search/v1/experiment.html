@@ -567,6 +567,8 @@
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
+            // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation of the data
+            // format.
             let data = new DataView(buffer);
             let decoder = new TextDecoder();
             let offset = 0;
