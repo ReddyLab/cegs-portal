@@ -446,6 +446,8 @@
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
+            // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
+            // format.
             let length = buffer.byteLength;
             let decoder = new TextDecoder();
             let data = new DataView(buffer);
@@ -470,6 +472,8 @@
 
     //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
     function processHistogramData(buffer) {
+        // See scripts/data_generation/qc_plots/histogram.py in the source for an explanation of the data
+        // format.
         let data = new DataView(buffer);
         let offset = 0;
         let values = [];

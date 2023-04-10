@@ -38,6 +38,15 @@ def process(args):
     max_number = all_numbers[-1]
     bucket_amounts = [counter[i] for i in range((max_number // args.bin_size) + 1)]
 
+    # The serialized format of the histogram data is (using pythons `struct` module formats)
+    #   (\d indicates a non-negative integer)
+    #   See https://docs.python.org/3.11/library/struct.html#module-struct
+    # >: Big-endian byte order
+    # I: The size of each histogram bin
+    # f: The mean of the histogram
+    # f: The median of the histogram
+    # I: The number of bins
+    # \dI: The values for each bin
     args.output.write(
         struct.pack(
             f">IffI{len(bucket_amounts)}I",

@@ -79,6 +79,16 @@ def process(args):
             else:
                 symbol = b""
 
+            # The serialized format of the histogram data is (using pythons `struct` module formats)
+            #   (\d indicates a non-negative integer)
+            #   See https://docs.python.org/3.11/library/struct.html#module-struct
+            # >: Big-endian byte order
+            # f: -log10(p-value)
+            # f: avg log fold change
+            # B: A number associated with the category the data come from ("targeting", "nontargeting", etc.)
+            # B: The length of the associated gene symbol
+            # \ds: The gene symbol
+
             args.output.write(
                 struct.pack(
                     f">ffBB{len(symbol)}s",
