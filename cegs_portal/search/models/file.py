@@ -21,7 +21,7 @@ class File(Faceted):
         null=True,
         blank=True,
     )
-    analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="analysis", null=True, blank=True)
+    analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="files", null=True, blank=True)
     size = models.PositiveBigIntegerField(null=True, blank=True)
     category = models.ForeignKey(FileCategory, on_delete=models.SET_NULL, null=True, blank=True)
     data_file_info = models.ForeignKey(

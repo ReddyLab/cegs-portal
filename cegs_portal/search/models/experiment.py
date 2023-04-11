@@ -60,6 +60,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
 
+# Deprecated in favor of File + ExperimentDataFileInfo
 class ExperimentDataFile(models.Model):
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="data_files")
@@ -92,6 +93,7 @@ class Analysis(Accessioned, Faceted, AccessControlled):
         ]
         verbose_name_plural = "Analyses"
 
+    name = models.CharField(max_length=512)
     description = models.CharField(max_length=4096, blank=True)
     experiment = models.ForeignKey(
         "Experiment",
@@ -106,9 +108,9 @@ class Analysis(Accessioned, Faceted, AccessControlled):
         description = self.description
 
         if len(description) > 15:
-            return f"{self.accession_id}: {self.description[:15]}..."
+            return f"{self.accession_id}: {description[:15]}..."
 
-        return f"{self.accession_id}: {self.description}"
+        return f"{self.accession_id}: {description}"
 
 
 class Pipeline(models.Model):
