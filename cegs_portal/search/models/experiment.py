@@ -1,5 +1,6 @@
 from enum import Enum
 
+from django.contrib.postgres.fields import DateRangeField
 from django.db import models
 
 from cegs_portal.search.models.access_control import AccessControlled
@@ -38,6 +39,11 @@ class Biosample(Accessioned):
 
 
 class Experiment(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="exp_accession_id_index"),
+        ]
+
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
 
@@ -54,6 +60,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
 
+# Deprecated in favor of File + ExperimentDataFileInfo
 class ExperimentDataFile(models.Model):
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment = models.ForeignKey("Experiment", on_delete=models.CASCADE, related_name="data_files")
@@ -77,3 +84,36 @@ class ExperimentDataFileInfo(models.Model):
             return f"ref genome: {self.ref_genome}.{self.ref_genome_patch}, p_val_threshold: {self.p_value_threshold}"
 
         return f"ref genome: {self.ref_genome}, p_val_threshold: {self.p_value_threshold}"
+
+
+class Analysis(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="an_accession_id_index"),
+        ]
+        verbose_name_plural = "Analyses"
+
+    name = models.CharField(max_length=512)
+    description = models.CharField(max_length=4096, blank=True)
+    experiment = models.ForeignKey(
+        "Experiment",
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        on_delete=models.CASCADE,
+        related_name="analyses",
+    )
+    when = DateRangeField(null=True, blank=True)
+
+    def __str__(self):
+        description = self.description
+
+        if len(description) > 15:
+            return f"{self.accession_id}: {description[:15]}..."
+
+        return f"{self.accession_id}: {description}"
+
+
+class Pipeline(models.Model):
+    analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="pipelines")
+    description = models.CharField(max_length=4096)
+    url = models.URLField(null=True, blank=True)

@@ -2,11 +2,13 @@ from . import signals
 from .accession import Accessioned, AccessionIdLog, AccessionIds
 from .dna_feature import DNAFeature, DNAFeatureType
 from .experiment import (
+    Analysis,
     Biosample,
     CellLine,
     Experiment,
     ExperimentDataFile,
     ExperimentDataFileInfo,
+    Pipeline,
     TissueType,
 )
 from .facets import Facet, Faceted, FacetType, FacetValue

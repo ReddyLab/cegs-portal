@@ -8,7 +8,7 @@ from django.db.models.functions import Upper
 
 from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
-from cegs_portal.search.models.experiment import Experiment
+from cegs_portal.search.models.experiment import Analysis, Experiment
 from cegs_portal.search.models.facets import Faceted, FacetValue
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.validators import validate_gene_ids
@@ -121,6 +121,17 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         blank=True,
     )
     experiment_accession_id: Optional[str]
+
+    analysis = models.ForeignKey(
+        Analysis,
+        null=True,
+        to_field="accession_id",
+        db_column="analysis_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+        blank=True,
+    )
+    analysis_accession_id: Optional[str]
 
     @property
     def assay(self):

@@ -6,17 +6,18 @@ The format of the accession id is DCPYYYYXXXXXXXX. DCP stands for "Duke CCGR Por
 
 These are the current items with Accession IDs:
 
-| Type                     | Abbreviation |
-|-------------------------------|---------|
-| Experiment                       | EXPR |
-| Regulatory Effect Observation    | REO  |
-| Gene                             | GENE |
-| Transcript                       | T    |
-| Exon                             | EXON |
-| Candidate cis-regulatory element | CCRE |
-| Guide RNA                        | GRNA |
-| DNase I hypersensitive site      | DHS  |
-| Chromatin Accessable Regions     | CAR  |
-| Cell Line                        | CL   |
-| Tissue Type                      | TT   |
-| Biosample                        | BIOS |
+| Type                             | Abbreviation |
+| -------------------------------- | ------------ |
+| Experiment                       | EXPR         |
+| Analysis                         | AN           |
+| Regulatory Effect Observation    | REO          |
+| Gene                             | GENE         |
+| Transcript                       | T            |
+| Exon                             | EXON         |
+| Candidate cis-regulatory element | CCRE         |
+| Guide RNA                        | GRNA         |
+| DNase I hypersensitive site      | DHS          |
+| Chromatin Accessable Regions     | CAR          |
+| Cell Line                        | CL           |
+| Tissue Type                      | TT           |
+| Biosample                        | BIOS         |

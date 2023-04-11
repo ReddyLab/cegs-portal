@@ -5,12 +5,14 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 
 from cegs_portal.search.models import (
+    Analysis,
     DNAFeature,
     Experiment,
     ExperimentDataFileInfo,
     Facet,
     FacetValue,
     File,
+    Pipeline,
     RegulatoryEffectObservation,
 )
 
@@ -134,7 +136,7 @@ class FileAdmin(admin.ModelAdmin):
 admin.site.register(File, FileAdmin)
 
 
-# StackedInline stackes the Experiment Data File fields vertically instead of horizontally(TubularInline).
+# StackedInline stackes the Experiment Data File fields vertically instead of horizontally(TabularInline).
 # Extra  = 0 reduces repeat field sections
 class FileInlineAdmin(admin.StackedInline):
     form = FileForm
@@ -159,7 +161,9 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
 
 class ExperimentForm(forms.ModelForm):
     class Meta:
-        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 6, "columns": 90}),
+        }
 
 
 class ExperimentAdmin(admin.ModelAdmin):
@@ -183,6 +187,69 @@ admin.site.register(Experiment, ExperimentAdmin)
 
 
 admin.site.register(Facet)
+
+
+class PipelineForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 6, "columns": 90}),
+        }
+
+
+class PipelineInlineForm(admin.StackedInline):
+    model = Pipeline
+    form = PipelineForm
+    extra = 0
+
+
+class AnalysisFacetValueInlineAdmin(admin.StackedInline):
+    model = Analysis.facet_values.through
+    extra = 0
+    verbose_name = "Facet Value"
+
+    @admin.display
+    def facet_info(self, obj):
+        return f"{obj.value} ({obj.facet.name})"
+
+
+class AnalysisForm(forms.ModelForm):
+    verbose_name_plural = "Analyses"
+
+
+class AnalysisAdmin(admin.ModelAdmin):
+    form = AnalysisForm
+    inlines = [AnalysisFacetValueInlineAdmin, PipelineInlineForm]
+    list_display = (
+        "accession_id",
+        "description",
+        "experiment_info",
+    )
+    fields = [
+        "public",
+        "archived",
+        "accession_id",
+        "description",
+        "when",
+    ]
+    search_fields = ["experiment__accession_id", "experiment__name"]
+
+    # TODO: This is definitely a cause of n+1 queries
+    @admin.display(description="Experiment")
+    def experiment_info(self, obj):
+        exper = obj.experiment
+
+        return f"{exper.accession_id}: {exper.description[:15]}..."
+
+    @admin.display(description="Description")
+    def description(self, obj):
+        description = obj.description
+        if len(description) <= 30:
+            return description
+
+        return f"{description[:30]}..."
+
+
+admin.site.register(Analysis, AnalysisAdmin)
 
 
 class FacetValueAdmin(admin.ModelAdmin):
