@@ -1,6 +1,7 @@
 import csv
 
 from django.db import transaction
+from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -30,7 +31,11 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(effects, effect_directions, sources, targets):
+def bulk_save(
+    sources: list[DNAFeature],
+    effects: list[RegulatoryEffectObservation],
+    effect_directions: list[RegulatoryEffectObservation],
+):
     with transaction.atomic():
         print("Adding RegulatoryEffectObservations")
         RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
@@ -44,50 +49,55 @@ def bulk_save(effects, effect_directions, sources, targets):
         print("Adding sources to RegulatoryEffectObservations")
         for source, effect in zip(sources, effects):
             effect.sources.add(source)
-        print("Adding targets to RegulatoryEffectObservations")
-        for target, effect in zip(targets, effects):
-            effect.targets.add(target)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_patch, delimiter=","):
+def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=","):
     experiment = analysis.experiment
     reader = csv.DictReader(reo_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sources = []
-    effects = []
-    effect_directions = []
-    targets = []
-    grnas = {}
+    sources: list[DNAFeature] = []
+    effects: list[RegulatoryEffectObservation] = []
+    effect_directions: list[FacetValue] = []
+    dhss = {}
     for line in reader:
-        grna = line["grna"]
-        if grna in grnas:
-            region = grnas[grna]
+        chrom_name = line["chrom"]
+
+        dhs_start = int(line["chromStart"])
+        dhs_end = int(line["chromEnd"])
+        dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
+
+        if dhs_string in dhss:
+            dhs = dhss[dhs_string]
         else:
-            # Skip non-targeting guides
-            grna_info = grna.split("-")
-            if not grna_info[0].startswith("chr"):
-                continue
+            dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+            dhs = DNAFeature.objects.get(
+                experiment_accession_id=experiment.accession_id,
+                chrom_name=chrom_name,
+                location=dhs_location,
+                ref_genome=ref_genome,
+            )
+            dhss[dhs_string] = dhs
 
-            region = DNAFeature.objects.get(experiment_accession_id=experiment.accession_id, misc__grna=grna)
-            grnas[grna] = region
-        sources.append(region)
+        sources.append(dhs)
 
-        significance = float(line["pval_fdr_corrected"])
-        effect_size = float(line["avg_logFC"])
-        if significance >= 0.01:
+        effect_size_field = line["wgCERES_score_top3_wg"].strip()
+        if effect_size_field == "":
+            effect_size = None
+        else:
+            effect_size = float(effect_size_field)
+
+        direction_line = line["direction_wg"]
+        if direction_line == "non_sig":
             direction = DIR_FACET_VALUES["Non-significant"]
-        elif effect_size > 0:
+        elif direction_line == "enriched":
             direction = DIR_FACET_VALUES["Enriched Only"]
-        elif effect_size < 0:
+        elif direction_line == "depleted":
             direction = DIR_FACET_VALUES["Depleted Only"]
+        elif direction_line == "both":
+            direction = DIR_FACET_VALUES["Mixed"]
         else:
-            direction = DIR_FACET_VALUES["Non-significant"]
-
-        target = DNAFeature.objects.get(
-            ref_genome=ref_genome, ref_genome_patch=ref_genome_patch, name=line["gene_symbol"]
-        )
-
+            direction = None
         effect = RegulatoryEffectObservation(
             accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
             experiment=experiment,
@@ -95,14 +105,14 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
             analysis=analysis,
             facet_num_values={
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
+                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: float(line["pValue"]),
             },
         )
-        targets.append(target)
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(effects, effect_directions, sources, targets)
+    bulk_save(sources, effects, effect_directions)
 
 
 def unload_reg_effects(analysis_metadata):
@@ -113,9 +123,9 @@ def unload_reg_effects(analysis_metadata):
     analysis_metadata.db_del(analysis)
 
 
-def check_filename(analysis_filename: str):
-    if len(analysis_filename) == 0:
-        raise ValueError(f"scCERES experiment filename '{analysis_filename}' must not be blank")
+def check_filename(experiment_filename: str):
+    if len(experiment_filename) == 0:
+        raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
 
 
 def run(analysis_filename):
@@ -138,6 +148,5 @@ def run(analysis_filename):
                 accession_ids,
                 analysis,
                 file_info.ref_genome,
-                file_info.ref_genome_patch,
                 delimiter,
             )

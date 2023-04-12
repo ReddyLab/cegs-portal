@@ -80,12 +80,13 @@ class ExperimentBiosample:
             cell_line_name=cell_line.name,
         ).first()
         if bios is None:
-            bios = Biosample(
-                cell_line=cell_line,
-                cell_line_name=cell_line.name,
-                accession_id=accession_ids.incr(AccessionType.BIOS),
-            )
-            bios.save()
+            with AccessionIds(message=f"{self.experiment.accession_id}: {self.experiment.name}"[:200]) as accession_ids:
+                bios = Biosample(
+                    cell_line=cell_line,
+                    cell_line_name=cell_line.name,
+                    accession_id=accession_ids.incr(AccessionType.BIOS),
+                )
+                bios.save()
 
 
 class AnalysisMetadata:
