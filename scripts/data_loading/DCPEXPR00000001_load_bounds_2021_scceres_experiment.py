@@ -11,7 +11,6 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     FacetValue,
-    RegulatoryEffectObservation,
 )
 from utils import ExperimentMetadata, timer
 
@@ -34,39 +33,20 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(grnas, effects, effect_directions, sources, targets):
+def bulk_save(grnas):
     with transaction.atomic():
         print("Adding gRNA Regions")
         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
 
-        print("Adding RegulatoryEffectObservations")
-        RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
-
-    with transaction.atomic():
-        print("Adding effect directions to effects")
-        for direction, effect in zip(effect_directions, effects):
-            effect.facet_values.add(direction)
-
-    with transaction.atomic():
-        print("Adding sources to RegulatoryEffectObservations")
-        for source, effect in zip(sources, effects):
-            effect.sources.add(source)
-        print("Adding targets to RegulatoryEffectObservations")
-        for target, effect in zip(targets, effects):
-            effect.targets.add(target)
-
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
-@timer("Load Reg Effects")
-def load_reg_effects(
+@timer("Load gRNAS")
+def load_grna(
     ceres_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
 ):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites = []
-    effects = []
-    effect_directions = []
-    targets = []
     grnas = {}
+
     for line in reader:
         grna = line["grna"]
         if grna in grnas:
@@ -74,14 +54,15 @@ def load_reg_effects(
         else:
             grna_info = grna.split("-")
 
-            if not grna_info[0].startswith("chr"):
-                continue
-
             if len(grna_info) == 5:
                 chrom_name, grna_start_str, grna_end_str, strand, _grna_seq = grna_info
             elif len(grna_info) == 6:
                 chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
                 strand = "-"
+
+            # Skip non-targeting guides
+            if not chrom_name.startswith("chr"):
+                continue
 
             grna_start = int(grna_start_str)
             grna_end = int(grna_end_str)
@@ -91,7 +72,7 @@ def load_reg_effects(
 
             region = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.GRNA),
-                experiment_accession_id=experiment.accession_id,
+                experiment_accession=experiment,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -107,43 +88,12 @@ def load_reg_effects(
                 strand=strand,
             )
             grnas[grna] = region
-        sites.append(region)
-
-        significance = float(line["pval_fdr_corrected"])
-        effect_size = float(line["avg_logFC"])
-        if significance >= 0.01:
-            direction = DIR_FACET_VALUES["Non-significant"]
-        elif effect_size > 0:
-            direction = DIR_FACET_VALUES["Enriched Only"]
-        elif effect_size < 0:
-            direction = DIR_FACET_VALUES["Depleted Only"]
-        else:
-            direction = DIR_FACET_VALUES["Non-significant"]
-
-        target = DNAFeature.objects.get(
-            ref_genome=ref_genome, ref_genome_patch=ref_genome_patch, name=line["gene_symbol"]
-        )
-
-        effect = RegulatoryEffectObservation(
-            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
-            experiment=experiment,
-            experiment_accession_id=experiment.accession_id,
-            facet_num_values={
-                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
-            },
-        )
-        targets.append(target)
-        effects.append(effect)
-        effect_directions.append(direction)
-    bulk_save(grnas.values(), effects, effect_directions, sites, targets)
+    bulk_save(grnas.values())
 
 
-def unload_reg_effects(experiment_metadata):
+def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    RegulatoryEffectObservation.objects.filter(experiment=experiment).delete()
-    for file in experiment.other_files.all():
+    for file in experiment.files.all():
         DNAFeature.objects.filter(source=file).delete()
     experiment_metadata.db_del()
 
@@ -158,24 +108,24 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_experiment if you want to delete the experiment, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    # unload_experiment() uncommented is not, strictly, idempotent.
+    # unload_experiment(experiment_metadata)
 
     experiment = experiment_metadata.db_save()
 
     with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-        for i, meta in enumerate(experiment_metadata.metadata()):
-            ceres_file, file_info, delimiter = meta
-            load_reg_effects(
-                ceres_file,
-                accession_ids,
-                experiment,
-                experiment.other_files.all()[i],
-                file_info.cell_line,
-                file_info.ref_genome,
-                file_info.ref_genome_patch,
-                delimiter,
-            )
+        # We only want to load data from the first file in the list of files
+        ceres_file, file_info, delimiter = next(experiment_metadata.metadata())
+        load_grna(
+            ceres_file,
+            accession_ids,
+            experiment,
+            experiment.files.all()[0],
+            experiment_metadata.biosamples[0].cell_line,
+            file_info.misc["ref_genome"],
+            file_info.misc["ref_genome_patch"],
+            delimiter,
+        )

@@ -325,7 +325,7 @@
                                     <th class="px-6 py-2 text-xs text-white">Download</th>
                                 </tr>
                             </thead>
-                            {% if experiment.other_files.all|length > 0 %} {% for file in experiment.other_files.all %}
+                            {% if experiment.files.all|length > 0 %} {% for file in experiment.files.all %}
                             <tbody class="bg-white divide-y divide-gray-300">
                                 <tr class="text-center whitespace-nowrap">
                                     <td class="px-6 py-4">

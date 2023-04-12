@@ -27,6 +27,7 @@ class File(Faceted):
     data_file_info = models.ForeignKey(
         "ExperimentDataFileInfo", on_delete=models.SET_NULL, null=True, related_name="file"
     )
+    misc = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.filename}"
