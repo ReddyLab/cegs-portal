@@ -123,9 +123,9 @@ def unload_reg_effects(analysis_metadata):
     analysis_metadata.db_del(analysis)
 
 
-def check_filename(experiment_filename: str):
-    if len(experiment_filename) == 0:
-        raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
+def check_filename(analysis_filename: str):
+    if len(analysis_filename) == 0:
+        raise ValueError(f"wgCERES experiment filename '{analysis_filename}' must not be blank")
 
 
 def run(analysis_filename):

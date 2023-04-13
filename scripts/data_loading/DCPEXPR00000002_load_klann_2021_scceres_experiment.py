@@ -21,6 +21,9 @@ DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
 
 
+CORRECT_FEATURES = ["ENSG00000272333"]
+
+
 #
 # The following lines should work as expected when using postgres. See
 # https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
@@ -46,16 +49,19 @@ def load_dhss(
     dhs_file, accession_ids, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","
 ):
     reader = csv.DictReader(dhs_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_sites: list[DNAFeature] = []
-    for line in reader:
-        chrom_name = line["chrom"]
+    new_dhss: list[DNAFeature] = []
 
-        dhs_start = int(line["chromStart"])
-        dhs_end = int(line["chromEnd"])
+    for line in reader:
+        chrom_name = line["dhs_chrom"]
+
+        dhs_start = int(line["dhs_start"])
+        dhs_end = int(line["dhs_end"])
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         try:
-            dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
+            dhs = DNAFeature.objects.get(
+                chrom_name=chrom_name, feature_type=DNAFeatureType.DHS, location=dhs_location, ref_genome=ref_genome
+            )
         except ObjectDoesNotExist:
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
             dhs = DNAFeature(
@@ -73,8 +79,9 @@ def load_dhss(
                 feature_type=DNAFeatureType.DHS,
                 source=region_source,
             )
-            new_sites.append(dhs)
-    bulk_save(new_sites)
+            new_dhss.append(dhs)
+    print(f"DHS Count: {len(new_dhss)}")
+    bulk_save(new_dhss)
 
 
 def unload_reg_effects(experiment_metadata):
@@ -86,7 +93,7 @@ def unload_reg_effects(experiment_metadata):
 
 def check_filename(experiment_filename: str):
     if len(experiment_filename) == 0:
-        raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
+        raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
 def run(experiment_filename):

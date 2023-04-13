@@ -42,9 +42,9 @@ def bulk_save(grnas):
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load gRNAS")
 def load_grna(
-    ceres_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
+    grna_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
 ):
-    reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    reader = csv.DictReader(grna_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     grnas = {}
 
     for line in reader:
@@ -118,9 +118,9 @@ def run(experiment_filename):
 
     with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
         # We only want to load data from the first file in the list of files
-        ceres_file, file_info, delimiter = next(experiment_metadata.metadata())
+        grna_file, file_info, delimiter = next(experiment_metadata.metadata())
         load_grna(
-            ceres_file,
+            grna_file,
             accession_ids,
             experiment,
             experiment.files.all()[0],

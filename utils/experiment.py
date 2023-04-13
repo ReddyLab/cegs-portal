@@ -87,6 +87,7 @@ class ExperimentBiosample:
                     accession_id=accession_ids.incr(AccessionType.BIOS),
                 )
                 bios.save()
+        return bios
 
 
 class AnalysisMetadata:
@@ -185,7 +186,8 @@ class ExperimentMetadata:
         )
         accession_log.save()
         for biosample in self.biosamples:
-            biosample.db_save()
+            bios = biosample.db_save()
+            experiment.biosamples.add(bios)
         return experiment
 
     def db_del(self):
