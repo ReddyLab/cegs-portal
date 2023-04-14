@@ -9,15 +9,10 @@ from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
     Experiment,
-    Facet,
-    FacetValue,
 )
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
-
-DIR_FACET = Facet.objects.get(name="Direction")
-DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
 
 
 #
