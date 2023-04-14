@@ -261,7 +261,7 @@
         role="tabpanel"
         aria-labelledby="tabs-files-tab"
     >
-        <div class="datafile-content-section content-container">
+        <div class="content-container">
             <div class="container mx-auto">
                 <div class="flex flex-col">
                     <div class="w-full">
@@ -307,7 +307,7 @@
             </div>
         </div>
 
-        <div class="datafile-content-section content-container">
+        <div class="content-container">
             <div class="container mx-auto">
                 <div class="flex flex-col">
                     <div class="w-full">
@@ -366,7 +366,7 @@
         aria-labelledby="tabs-qc-graphs-tab"
     >
         <div
-            class="datafile-content-section content-container min-w-max max-w-max text-xl font-bold"
+            class="content-container min-w-max max-w-max text-xl font-bold"
             style="color: gray"
         >
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
@@ -387,7 +387,7 @@
         aria-labelledby="tabs-analysis"
     >
         <div
-            class="datafile-content-section content-container min-w-max max-w-max text-xl font-bold"
+            class="content-container min-w-max max-w-max text-xl font-bold"
             style="color: gray"
         >
             Analysis <i class="bi bi-pie-chart-fill"></i>
@@ -446,6 +446,8 @@
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
+            // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
+            // format.
             let length = buffer.byteLength;
             let decoder = new TextDecoder();
             let data = new DataView(buffer);
@@ -470,6 +472,8 @@
 
     //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
     function processHistogramData(buffer) {
+        // See scripts/data_generation/qc_plots/histogram.py in the source for an explanation of the data
+        // format.
         let data = new DataView(buffer);
         let offset = 0;
         let values = [];
@@ -567,12 +571,25 @@
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
+            // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation of the data
+            // format.
             let data = new DataView(buffer);
             let decoder = new TextDecoder();
             let offset = 0;
             let values = [];
             let quantileCount = data.getUint32(offset);
             offset += 4;
+            let categoryCount = data.getUint8(offset);
+            offset += 1;
+            let categoryNames = [];
+            for(let i = 0; i < categoryCount; i++){
+                let nameSize = data.getUint8(offset);
+                offset += 1;
+                let nameArray = new Uint8Array(buffer, offset, nameSize);
+                let name = decoder.decode(nameArray);
+                offset += nameSize;
+                categoryNames.push(name)
+            }
             let xLabelLen = data.getUint8(offset);
             offset += 1;
             let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
@@ -586,41 +603,36 @@
 
             for (let i = 0; i < quantileCount; i++) {
                 let x = data.getFloat32(offset);
-                let y = data.getFloat32(offset + 4);
-                offset += 8;
-                values.push({c: x, nc: y});
+                offset += 4;
+                for(let j = 0; j < categoryCount; j++) {
+                    let y = data.getFloat32(offset);
+                    offset += 4;
+                    values.push({t: x, o: y, cat: categoryNames[j]});
+                }
             }
 
-            return {xLabel, yLabel, values};
-        })
+            return {categoryNames, xLabel, yLabel, values};
+        }).then((data) => {
+            const scale = {
+                domain: data.categoryNames,
+                range: ['#ff8c00', '#777777', '#aec7e8', '#1f77b4', '#9467bd']
+            };
 
-        .then((data) => {
-            vl.data(data)
-                .width(450)
-                .height(400)
-                .layer(
-                    vl
-                        .markCircle({color: "green", tooltip: true})
-                        .title("QQ-Plot")
-                        .encode(
-                            vl.y().fieldQ("nc").title("Non-Control Quantiles"),
-                            vl.x().fieldQ("c").title("Theoretical Uniform Values")
-                        ),
-
-                    vl
-                        .data([
-                            {x: 0.0, y: 0.0},
-                            {x: 1.0, y: 1.0},
-                        ])
-                        .layer(vl.markLine({size: 1, color: "grey"}).encode(vl.x().fieldQ("x"), vl.y().fieldQ("y")))
-                )
-                .render()
-
-                .then((viewElement) => {
-                    // render returns a promise to a DOM element containing the chart
-                    // viewElement.value contains the Vega View object instance
-                    document.getElementById("uniform_qqplot").appendChild(viewElement);
-                });
+            return vl.markCircle({tooltip: true})
+            .data(data)
+            .width(500)
+            .height(500)
+            .title('Q-Q Plot')
+            .encode(
+                vl.color().fieldN('cat').scale(scale).title(''),
+                vl.x().fieldQ('t').title(data.xLabel),
+                vl.y().fieldQ('o').title(data.yLabel),
+            )
+            .render()
+        }).then((viewElement) => {
+            // render returns a promise to a DOM element containing the chart
+            // viewElement.value contains the Vega View object instance
+            document.getElementById("uniform_qqplot").appendChild(viewElement);
         });
 
     // setup API options
