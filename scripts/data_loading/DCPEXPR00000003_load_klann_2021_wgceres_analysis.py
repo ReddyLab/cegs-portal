@@ -125,7 +125,7 @@ def unload_reg_effects(analysis_metadata):
 
 def check_filename(analysis_filename: str):
     if len(analysis_filename) == 0:
-        raise ValueError(f"wgCERES experiment filename '{analysis_filename}' must not be blank")
+        raise ValueError(f"wgCERES analysis filename '{analysis_filename}' must not be blank")
 
 
 def run(analysis_filename):
@@ -133,7 +133,7 @@ def run(analysis_filename):
         analysis_metadata = AnalysisMetadata.json_load(analysis_file)
     check_filename(analysis_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_reg_effects if you want to delete the analysis, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
