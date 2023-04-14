@@ -1,22 +1,19 @@
 import csv
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     AccessionIds,
     AccessionType,
+    Analysis,
     DNAFeature,
     DNAFeatureType,
-    Experiment,
     Facet,
     FacetValue,
     RegulatoryEffectObservation,
 )
-from utils import ExperimentMetadata, timer
-
-from . import get_closest_gene
+from utils import AnalysisMetadata, timer
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -37,14 +34,10 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 # get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
     sources: list[DNAFeature],
-    dhss: list[DNAFeature],
     effects: list[RegulatoryEffectObservation],
     effect_directions: list[RegulatoryEffectObservation],
 ):
     with transaction.atomic():
-        print("Adding Chromatin Accessable Regions")
-        DNAFeature.objects.bulk_create(dhss, batch_size=1000)
-
         print("Adding RegulatoryEffectObservations")
         RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
 
@@ -61,12 +54,11 @@ def bulk_save(
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
-def load_reg_effects(
-    ceres_file, accession_ids, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","
-):
+def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, delimiter=","):
+    experiment = analysis.experiment
+    cell_line = experiment.biosamples.first().cell_line_name
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sites: list[DNAFeature] = []
-    new_sites: list[DNAFeature] = []
+    sources: list[DNAFeature] = []
     effects: list[RegulatoryEffectObservation] = []
     effect_directions: list[FacetValue] = []
     for line in reader:
@@ -77,27 +69,18 @@ def load_reg_effects(
         dhs_location = NumericRange(ths_start, ths_end, "[]")
 
         try:
-            dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
-        except ObjectDoesNotExist:
-            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ths_start, ths_end)
-            dhs = DNAFeature(
-                accession_id=accession_ids.incr(AccessionType.CAR),
-                experiment_accession_id=experiment.accession_id,
-                cell_line=cell_line,
+            dhs = DNAFeature.objects.get(
                 chrom_name=chrom_name,
-                closest_gene=closest_gene,
-                closest_gene_distance=distance,
-                closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id,
+                cell_line=cell_line,
                 location=dhs_location,
                 ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                feature_type=DNAFeatureType.CAR,
-                source=region_source,
+                feature_type__in=[DNAFeatureType.DHS, DNAFeatureType.CCRE, DNAFeatureType.CAR],
             )
-            new_sites.append(dhs)
+        except DNAFeature.DoesNotExist as e:
+            print(f"{cell_line} {chrom_name}:{dhs_location} {ref_genome}")
+            raise e
 
-        sites.append(dhs)
+        sources.append(dhs)
 
         effect_size_field = line["logFC"].strip()
         if effect_size_field == "":
@@ -117,7 +100,8 @@ def load_reg_effects(
         effect = RegulatoryEffectObservation(
             accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
             experiment=experiment,
-            experiment_accession_id=experiment.accession_id,
+            experiment_accession=experiment,
+            analysis=analysis,
             facet_num_values={
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
@@ -128,44 +112,41 @@ def load_reg_effects(
         )
         effects.append(effect)
         effect_directions.append(direction)
-    bulk_save(sites, new_sites, effects, effect_directions)
+    bulk_save(sources, effects, effect_directions)
 
 
-def unload_reg_effects(experiment_metadata):
-    experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    RegulatoryEffectObservation.objects.filter(experiment=experiment).delete()
-    for file in experiment.other_files.all():
-        DNAFeature.objects.filter(source=file).delete()
-    experiment_metadata.db_del()
+def unload_reg_effects(analysis_metadata):
+    analysis = Analysis.objects.get(
+        experiment_id=analysis_metadata.experiment_accession_id, name=analysis_metadata.name
+    )
+    RegulatoryEffectObservation.objects.filter(analysis=analysis).delete()
+    analysis_metadata.db_del(analysis)
 
 
-def check_filename(experiment_filename: str):
-    if len(experiment_filename) == 0:
-        raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
+def check_filename(analysis_filename: str):
+    if len(analysis_filename) == 0:
+        raise ValueError(f"wgCERES analysis filename '{analysis_filename}' must not be blank")
 
 
-def run(experiment_filename):
-    with open(experiment_filename) as experiment_file:
-        experiment_metadata = ExperimentMetadata.json_load(experiment_file)
-    check_filename(experiment_metadata.name)
+def run(analysis_filename):
+    with open(analysis_filename) as analysis_file:
+        analysis_metadata = AnalysisMetadata.json_load(analysis_file)
+    check_filename(analysis_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_reg_effects if you want to delete the analysis, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
     # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    # unload_reg_effects(analysis_metadata)
 
-    experiment = experiment_metadata.db_save()
+    analysis = analysis_metadata.db_save()
 
-    with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-        for ceres_file, file_info, _delimiter in experiment_metadata.metadata():
+    with AccessionIds(message=f"{analysis.accession_id}: {analysis.name}"[:200]) as accession_ids:
+        for ceres_file, file_info, _delimiter in analysis_metadata.metadata():
             load_reg_effects(
                 ceres_file,
                 accession_ids,
-                experiment,
-                file_info.cell_line,
+                analysis,
                 file_info.ref_genome,
-                file_info.ref_genome_patch,
-                experiment.other_files.all()[0],
                 "\t",
             )
