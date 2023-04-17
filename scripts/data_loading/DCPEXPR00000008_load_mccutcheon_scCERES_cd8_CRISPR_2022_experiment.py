@@ -50,7 +50,7 @@ def bulk_save(grnas):
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
-@timer("Load Reg Effects")
+@timer("Load GRNAs")
 def load_grnas(
     ceres_file,
     accession_ids,

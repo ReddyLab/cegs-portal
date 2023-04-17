@@ -36,8 +36,8 @@ def bulk_save(dhss: list[DNAFeature]):
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
-@timer("Load Reg Effects")
-def load_reg_effects(
+@timer("Load CARs")
+def load_cars(
     ceres_file, accession_ids, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","
 ):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
@@ -105,7 +105,7 @@ def run(experiment_filename):
 
     with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
         for ceres_file, file_info, _delimiter in experiment_metadata.metadata():
-            load_reg_effects(
+            load_cars(
                 ceres_file,
                 accession_ids,
                 experiment,
