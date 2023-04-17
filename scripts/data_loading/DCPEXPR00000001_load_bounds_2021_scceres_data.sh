@@ -1,4 +1,8 @@
 #!/bin/sh
-INPUT_FILE=$1
+set -euo pipefail
 
-python manage.py shell -c "from scripts.data_loading import DCPEXPR00000001_load_bounds_2021_scceres_data; DCPEXPR00000001_load_bounds_2021_scceres_data.run(\"${INPUT_FILE}\")"
+EXPERIMENT_FILE=$1
+ANALYSIS_FILE=$2
+
+python manage.py shell -c "from scripts.data_loading import DCPEXPR00000001_load_bounds_2021_scceres_experiment; DCPEXPR00000001_load_bounds_2021_scceres_experiment.run(\"${EXPERIMENT_FILE}\")"
+python manage.py shell -c "from scripts.data_loading import DCPEXPR00000001_load_bounds_2021_scceres_analysis; DCPEXPR00000001_load_bounds_2021_scceres_analysis.run(\"${ANALYSIS_FILE}\")"
