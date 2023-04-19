@@ -13,6 +13,14 @@ class ExperimentData(models.Model):
     data = models.FileField(upload_to="expr_data")
 
 
+# This is a non-managed table because it's really a "Materialized View" (See
+# https://www.postgresql.org/docs/current/sql-creatematerializedview.html)
+#
+# This model class isn't used, but the materialized view itself is, when getting experiment data
+# for a set of regions. See `retrieve_experiment_data` in cegs_portal/get_expr_data/view_models.py.
+# The materialized view is a necessary query optimization. Otherwise getting the experiment data is
+# Extremely slow.
+# You can see the data definition in cegs_portal/get_expr_data/migrations/0005_auto_20230418_1148.py
 class ReoSourcesTargets(models.Model):
     class Meta:
         managed = False

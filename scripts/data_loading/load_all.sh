@@ -46,3 +46,5 @@ DATA_DIR=$1
 ./scripts/data_loading/DCPEXPR00000008_load_mccutcheon_scCERES_cd8_CRISPR_2022.sh ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/experiment.json \
   ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/analysis001.json \
   ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/features.tsv
+
+python manage.py shell -c "from cegs_portal.get_expr_data.models import ReoSourcesTargets; ReoSourcesTargets.refresh_view()"
