@@ -1,10 +1,5 @@
 {% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
 <style>
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-top: 10px;
-    }
-
     .content-container {
         background: #ffffff;
         box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
@@ -35,23 +30,10 @@
     }
 
     .accession-id {
-        color: #3490dc;
         font-weight: bold;
-        text-decoration: none;
+        color: #6e7e98;
+        margin-top: 0.6rem;
     }
-
-    .accession-id {
-        margin-left: 20px;
-        margin-top: 0.5rem;
-    }
-
-    .id-and-cell-lines {
-        display: flex;
-    }
-
-    /* .accession-id {
-  margin-left: 10px;
-} */
 
     .name {
         color: #4a5568;
@@ -107,7 +89,7 @@
                 <div>
                     <div class="name">{{ experiment.name }}</div>
                     <div class="description">{{ experiment.description }}</div>
-                    <div class="id-and-cell-lines">
+                    <div class="flex justify-between">
                         <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
                         <div class="accession-id">{{ experiment.accession_id }}</div>
                     </div>
