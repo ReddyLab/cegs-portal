@@ -1,7 +1,7 @@
 import csv
 import os
 import re
-from enum import Enum
+from enum import Enum, StrEnum, auto
 from operator import itemgetter
 from typing import Optional, TypedDict
 from uuid import UUID, uuid4
@@ -10,6 +10,7 @@ from django.core.files.storage import default_storage
 from django.db import connection
 from psycopg2.extras import NumericRange
 
+from cegs_portal.get_expr_data.models import EXPR_DATA_BASE_PATH, ExperimentData
 from cegs_portal.tasks.decorators import as_task
 
 TargetJson = TypedDict(
@@ -32,8 +33,6 @@ ExperimentDataJson = TypedDict(
     },
 )
 
-EXPR_DATA_DIR = "expr_data_dir"
-
 
 class InvalidDataSource(Exception):
     pass
@@ -43,6 +42,14 @@ class ReoDataSource(Enum):
     SOURCES = 1
     TARGETS = 2
     BOTH = 3
+
+
+class DataState(StrEnum):
+    IN_PREPARATION = auto()
+    READY = auto()
+    DELETED = auto()
+    UNKNOWN = auto()
+    NOT_FOUND = auto()
 
 
 def validate_expr(expr) -> bool:
@@ -68,6 +75,31 @@ def validate_filename(filename: str) -> bool:
         return False
 
     return file_sections[-1] == "tsv" and all(validate_expr(f) or validate_an(f) for f in file_sections[0:-2])
+
+
+def file_exists(filename):
+    return default_storage.exists(os.path.join(EXPR_DATA_BASE_PATH, filename))
+
+
+def open_file(filename):
+    return default_storage.open(os.path.join(EXPR_DATA_BASE_PATH, filename), "rb")
+
+
+def file_status(filename, user):
+    try:
+        data_status = ExperimentData.objects.get(filename=filename, user=user)
+    except ExperimentData.DoesNotExist:
+        return DataState.NOT_FOUND
+
+    match data_status.state:
+        case ExperimentData.DataState.IN_PREPARATION:
+            return DataState.IN_PREPARATION
+        case ExperimentData.DataState.READY:
+            return DataState.READY
+        case ExperimentData.DataState.DELETED:
+            return DataState.DELETED
+        case _:
+            return DataState.UNKNOWN
 
 
 def parse_source_locs(source_locs: str) -> list[str]:
@@ -167,16 +199,22 @@ def output_experiment_data_list(
 
 
 def output_experiment_data_csv(
+    user,
     regions: list[tuple[str, int, int]],
     experiments: list[str],
     analyses: list[str],
     data_source: ReoDataSource,
     output_filename: str,
 ):
+    experiment_data_info = ExperimentData(user=user, filename=output_filename)
+    experiment_data_info.save()
     experiment_data = retrieve_experiment_data(regions, experiments, analyses, data_source)
-    full_output_path = os.path.join(default_storage.location, EXPR_DATA_DIR, output_filename)
+    full_output_path = os.path.join(EXPR_DATA_BASE_PATH, output_filename)
     with open(full_output_path, "w", encoding="utf-8") as output_file:
         write_experiment_data_csv(experiment_data, output_file)
+        experiment_data_info.file = output_file
+        experiment_data_info.state = ExperimentData.DataState.READY
+        experiment_data_info.save()
 
 
 def retrieve_experiment_data(
@@ -241,4 +279,4 @@ def retrieve_experiment_data(
     return experiment_data
 
 
-output_experiment_data_csv_task = as_task()(output_experiment_data_csv)
+output_experiment_data_csv_task = as_task(description="Experiment data file creation")(output_experiment_data_csv)
