@@ -1,19 +1,78 @@
-{% extends "account/base.html" %}
+{% extends "account/base.html" %} {% load i18n %} {% block css %} {{ block.super }}
 
-{% load i18n %}
+<style>
+    .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-family: "Arial", sans-serif;
+        color: #094474;
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
 
-{% block head_title %}{% translate "Sign Out" %}{% endblock %}
+    .cancel-sign-out-button,
+    .sign-out-button {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        border-radius: 0.25rem;
+        margin-top: 10px;
+    }
 
-{% block inner %}
-<h1>{% translate "Sign Out" %}</h1>
+    .cancel-sign-out-button {
+        background-color: rgb(82, 116, 210);
+        color: #ffffff;
+        text-decoration: none;
+    }
 
-<p>{% translate 'Are you sure you want to sign out?' %}</p>
+    .cancel-sign-out-button:hover {
+        color: #ffffff;
+        background-color: rgb(29, 78, 216);
+    }
 
-<form method="post" action="{% url 'account_logout' %}">
-  {% csrf_token %}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-  {% endif %}
-  <button class="btn btn-danger" type="submit">{% translate 'Sign Out' %}</button>
-</form>
+    .sign-out-button {
+        background-color: rgb(156, 163, 175);
+        color: #ffffff;
+    }
+
+    .sign-out-button:hover {
+        background-color: #c02626;
+    }
+
+    h1 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.75rem;
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+        margin-top: 10px;
+    }
+
+    a:visited {
+        text-decoration: none;
+        color: #ffffff;
+    }
+</style>
+{% endblock %} {% block head_title %}{% translate "Sign Out" %}{% endblock %} {% block inner %}
+
+<div class="container">
+    <form method="post" action="{% url 'account_logout' %}">
+        <h1>{% translate "Sign Out" %} <i class="bi bi-door-open"></i></h1>
+        <div class="faded-line my-3.5"></div>
+        <p>{% translate 'Are you sure you want to sign out?' %}</p>
+        {% csrf_token %} {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+        <button type="submit" class="sign-out-button">{% translate 'Yes' %}</button>
+        <a href="{% url 'users:detail' request.user.username %}" class="cancel-sign-out-button">
+            {% translate 'No' %}
+        </a>
+    </form>
+</div>
+
 {% endblock %}
