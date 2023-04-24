@@ -3,7 +3,6 @@
     .content-container {
         background: #ffffff;
         box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
         align-items: center;
         padding: 20px 40px;
         margin-bottom: 20px;
@@ -48,7 +47,6 @@
     .description {
         margin-top: 0.5rem;
         color: rgb(87, 86, 86);
-        width: 1100px;
     }
 
     h1 {
@@ -86,13 +84,11 @@
         {% for experiment in experiments %}
         <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link">
             <div class="content-container">
-                <div>
-                    <div class="name">{{ experiment.name }}</div>
-                    <div class="description">{{ experiment.description }}</div>
-                    <div class="flex justify-between cell-accession">
-                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
-                        <div class="accession-id">{{ experiment.accession_id }}</div>
-                    </div>
+                <div class="name">{{ experiment.name }}</div>
+                <div class="description">{{ experiment.description }}</div>
+                <div class="flex justify-between">
+                    <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                    <div class="accession-id">{{ experiment.accession_id }}</div>
                 </div>
             </div>
         </a>
