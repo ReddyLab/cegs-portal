@@ -3,8 +3,6 @@ from factory.django import DjangoModelFactory
 
 from cegs_portal.search.models import File
 
-from .experiment_factory import ExperimentFactory
-
 
 class FileFactory(DjangoModelFactory):
     class Meta:
@@ -21,11 +19,7 @@ class FileFactory(DjangoModelFactory):
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
 
-        experiment = kwargs.get("experiment", None)
-        if experiment is not None:
-            obj.experiment = experiment
-        else:
-            obj.experiment = ExperimentFactory()
+        obj.experiment = kwargs.get("experiment", None)
 
         obj.save()
         return obj

@@ -25,9 +25,8 @@ def cleanup_test_files():
 
 @pytest.fixture
 def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
-    experiment = ExperimentFactory()
-    experiment.accession_id = "DCPEXPR00000002"
-    experiment.save()
+    experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
+    analysis = experiment.analyses.first()
 
     effect_source = RegEffectFactory(
         sources=(
@@ -45,6 +44,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         archived=archived,
         experiment=experiment,
         experiment_accession=experiment,
+        analysis=analysis,
     )
     effect_target = RegEffectFactory(
         targets=(
@@ -61,6 +61,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         archived=archived,
         experiment=experiment,
         experiment_accession=experiment,
+        analysis=analysis,
     )
     effect_both = RegEffectFactory(
         sources=(
@@ -85,6 +86,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         archived=archived,
         experiment=experiment,
         experiment_accession=experiment,
+        analysis=analysis,
     )
     ReoSourcesTargets.refresh_view()
-    return (effect_source, effect_target, effect_both)
+    return (effect_source, effect_target, effect_both, experiment)

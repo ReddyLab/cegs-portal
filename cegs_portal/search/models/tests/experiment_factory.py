@@ -10,6 +10,7 @@ from cegs_portal.search.models import (
     ExperimentDataFileInfo,
     TissueType,
 )
+from cegs_portal.search.models.tests.analysis_factory import AnalysisFactory
 
 
 class TissueTypeFactory(DjangoModelFactory):
@@ -74,11 +75,12 @@ class ExperimentFactory(DjangoModelFactory):
     description = Faker("text", max_nb_chars=4096)
     experiment_type = Faker("text", max_nb_chars=100)
     name = Faker("text", max_nb_chars=512)
+    analyses = factory.RelatedFactory(AnalysisFactory, factory_related_name="experiment")
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^", upper=True)
+        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^", upper=True))
         obj.save()
         return obj
 

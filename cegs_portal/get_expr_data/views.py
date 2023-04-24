@@ -22,6 +22,7 @@ from cegs_portal.get_expr_data.view_models import (
     gen_output_filename,
     output_experiment_data_csv_task,
     output_experiment_data_list,
+    validate_an,
     validate_expr,
     validate_filename,
 )
@@ -56,15 +57,19 @@ def try_process_bed(bed_file) -> LocList:
     return loc_list
 
 
-def get_experiments(request) -> list[str]:
+def get_experiments_analyses(request) -> list[str]:
     experiments = request.GET.getlist("expr", [])
-    if len(experiments) == 0:
-        raise Http400("Invalid request; must specify at least one experiment by accession id")
+    analyses = request.GET.getlist("an", [])
+    if len(experiments) == 0 and len(analyses) == 0:
+        raise Http400("Invalid request; must specify at least one experiment or analysis by accession id")
 
     if not all(validate_expr(e) for e in experiments):
         raise Http400("Invalid request; invalid experiment id")
 
-    return experiments
+    if not all(validate_an(a) for a in analyses):
+        raise Http400("Invalid request; invalid analysis id")
+
+    return experiments, analyses
 
 
 def get_region(request) -> Optional[Loc]:
@@ -111,7 +116,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         try:
-            experiments = get_experiments(request)
+            experiments, analyses = get_experiments_analyses(request)
             region = get_region(request)
             data_source = get_data_source(request)
         except Http400 as error:
@@ -126,7 +131,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
         if region[2] - region[1] > MAX_REGION_SIZE:
             return HttpResponseBadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
-        data = output_experiment_data_list([region], experiments, data_source)
+        data = output_experiment_data_list([region], experiments, analyses, data_source)
         return JsonResponse({"experiment data": data})
 
 
@@ -138,14 +143,14 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         try:
-            experiments = get_experiments(request)
+            experiments, analyses = get_experiments_analyses(request)
             regions = get_regions_file(request)
             data_source = get_data_source(request)
         except Http400 as error:
             raise BadRequest() from error
 
-        output_file = gen_output_filename(experiments)
-        task = output_experiment_data_csv_task(regions, experiments, data_source, output_file)
+        output_file = gen_output_filename(experiments, analyses)
+        task = output_experiment_data_csv_task(regions, experiments, analyses, data_source, output_file)
         file_url = reverse("get_expr_data:experimentdata", args=[output_file])
         check_completion_url = reverse("tasks:status", args=[task.id])
         return JsonResponse(
