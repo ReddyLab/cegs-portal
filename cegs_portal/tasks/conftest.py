@@ -2,6 +2,7 @@ import pytest
 
 from cegs_portal.search.conftest import (  # noqa: F401 used as fixtures in test_tasks.py
     login_client,
+    portal_admin_client,
     public_client,
 )
 from cegs_portal.tasks.factories import ThreadTaskFactory

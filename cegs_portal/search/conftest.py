@@ -39,6 +39,7 @@ class SearchClient:
         group_model: Optional[Model] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
+        is_portal_admin: bool = False,
     ):
         self.client = Client()
         self.username = username
@@ -46,6 +47,8 @@ class SearchClient:
 
         if user_model is not None and username is not None and password is not None:
             self.user = user_model.objects.create_user(username=username, password=password)
+            self.user.is_portal_admin = is_portal_admin
+            self.user.save()
             self.client.login(username=username, password=password)
         else:
             self.user = None
@@ -86,6 +89,11 @@ def public_client():
 @pytest.fixture
 def login_client(django_user_model):
     return SearchClient(user_model=django_user_model, username="user2", password="bar")
+
+
+@pytest.fixture
+def portal_admin_client(django_user_model):
+    return SearchClient(user_model=django_user_model, username="user2", password="bar", is_portal_admin=True)
 
 
 @pytest.fixture

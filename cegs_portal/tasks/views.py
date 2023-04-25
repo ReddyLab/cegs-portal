@@ -27,4 +27,4 @@ class TaskStatusView(UserPassesTestMixin, TemplateJsonView):
         try:
             return ThreadTaskSearch.id_search(task_id)
         except ObjectDoesNotExist as e:
-            raise Http404(str(e))
+            raise Http404() from e

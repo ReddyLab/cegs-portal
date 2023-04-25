@@ -99,50 +99,50 @@ def test_non_logged_in_task_json(public_client: SearchClient):
     assert response.status_code == 302
 
 
-def test_unfinished_thread_task_html(login_client: SearchClient, unfinished_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{unfinished_thread_task.id}")
+def test_unfinished_thread_task_html(portal_admin_client: SearchClient, unfinished_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{unfinished_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_unfinished_thread_task_json(login_client: SearchClient, unfinished_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{unfinished_thread_task.id}?accept=application/json")
+def test_unfinished_thread_task_json(portal_admin_client: SearchClient, unfinished_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{unfinished_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(unfinished_thread_task, json_content)
 
 
-def test_finished_thread_task_html(login_client: SearchClient, finished_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{finished_thread_task.id}")
+def test_finished_thread_task_html(portal_admin_client: SearchClient, finished_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{finished_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_finished_thread_task_json(login_client: SearchClient, finished_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{finished_thread_task.id}?accept=application/json")
+def test_finished_thread_task_json(portal_admin_client: SearchClient, finished_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{finished_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(finished_thread_task, json_content)
 
 
-def test_failed_thread_task_html(login_client: SearchClient, failed_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{failed_thread_task.id}")
+def test_failed_thread_task_html(portal_admin_client: SearchClient, failed_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{failed_thread_task.id}")
     assert response.status_code == 200
 
 
-def test_failed_thread_task_json(login_client: SearchClient, failed_thread_task: ThreadTask):
-    response = login_client.get(f"/tasks/task/{failed_thread_task.id}?accept=application/json")
+def test_failed_thread_task_json(portal_admin_client: SearchClient, failed_thread_task: ThreadTask):
+    response = portal_admin_client.get(f"/tasks/task/{failed_thread_task.id}?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
     check_thread_task_response(failed_thread_task, json_content)
 
 
-def test_non_existent_thread_task_html(login_client: SearchClient):
-    response = login_client.get("/tasks/task/1")
+def test_non_existent_thread_task_html(portal_admin_client: SearchClient):
+    response = portal_admin_client.get("/tasks/task/1")
     assert response.status_code == 404
 
 
-def test_non_existent_thread_task_json(login_client: SearchClient):
-    response = login_client.get("/tasks/task/1?accept=application/json")
+def test_non_existent_thread_task_json(portal_admin_client: SearchClient):
+    response = portal_admin_client.get("/tasks/task/1?accept=application/json")
     assert response.status_code == 404
