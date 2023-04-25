@@ -381,6 +381,38 @@ def test_download_experiment_data_success(login_client: SearchClient):
     assert len(content.getvalue()) > 0
 
 
+def test_experiment_data_status_success(login_client: SearchClient):
+    bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
+    bed_file.name = "test.bed"
+    response = login_client.post(
+        "/exp_data/request?expr=DCPEXPR00000002&datasource=both",
+        data={"regions": bed_file},
+        format="multipart/form-data",
+    )
+    assert response.status_code == 200
+    sleep(0.1)
+    json_content = json.loads(response.content)
+    status_response = login_client.get(json_content["file progress"])
+    assert status_response.status_code == 200
+    status = json.loads(status_response.content)
+    assert status["file progress"] == "ready"
+
+
+def test_experiment_data_status_failure(login_client: SearchClient, public_client: SearchClient):
+    bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
+    bed_file.name = "test.bed"
+    response = login_client.post(
+        "/exp_data/request?expr=DCPEXPR00000002&datasource=both",
+        data={"regions": bed_file},
+        format="multipart/form-data",
+    )
+    assert response.status_code == 200
+    sleep(0.1)
+    json_content = json.loads(response.content)
+    status_response = public_client.get(json_content["file progress"])
+    assert status_response.status_code == 302
+
+
 def test_download_experiment_data_fail(login_client: SearchClient):
     response = login_client.get("/exp_data/file/DCPEXPR00000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
     assert response.status_code == 404

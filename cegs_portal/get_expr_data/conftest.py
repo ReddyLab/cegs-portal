@@ -7,6 +7,7 @@ from psycopg2.extras import NumericRange
 from cegs_portal.get_expr_data.models import EXPR_DATA_DIR, ReoSourcesTargets
 from cegs_portal.search.conftest import (  # noqa: F401 used as fixture in tests.py
     login_client,
+    public_client,
 )
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
