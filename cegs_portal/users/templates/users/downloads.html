@@ -1,0 +1,66 @@
+{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+<style>
+    #nav-searchbar {
+        display: none;
+    }
+
+    .content-container {
+        background: #ffffff;
+        padding: 20px 40px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        font-family: sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+        margin-left: 10px;
+        align-items: center;
+    }
+
+    h2 {
+        font-family: sans-serif;
+        font-size: 1.5rem;
+        color: #094474;
+        align-items: center;
+    }
+
+    .file-list {
+        margin-block-start: 1em;
+        margin-block-end: 1em;
+    }
+</style>
+{% endblock %} {% block title %}Downloads{% endblock %} {% block content %}
+<div>
+<h1>Download list</h1>
+<div class="content-container">
+    {% if in_prep|length > 0 %}
+    <div class="file-list">
+        <h2>In Preperation Files</h2>
+        {% for file in in_prep %}
+        <div>{{ file.filename }} ({{ file.created_at }})</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="file-list">
+        <h2>Available Files</h2>
+        {% for file in ready %}
+        <div><a href="{% url 'get_expr_data:experimentdata' file.filename %}">{{ file.filename }}</a> ({{ file.created_at }})</div>
+        {% empty %}
+        <div>No files available for download</div>
+        {% endfor %}
+    </div>
+    {% if deleted|length > 0 %}
+    <div class="file-list">
+        <h2>Deleted Files</h2>
+        {% for file in deleted %}
+        <div>{{ file.filename }} ({{ file.created_at }})</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

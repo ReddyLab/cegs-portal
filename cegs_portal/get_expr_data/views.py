@@ -1,25 +1,21 @@
 import logging
-import os
 import re
 from typing import Optional
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import BadRequest
-from django.core.files.storage import default_storage
-from django.http import (
-    FileResponse,
-    HttpResponseBadRequest,
-    HttpResponseNotFound,
-    JsonResponse,
-)
+from django.http import FileResponse, Http404, JsonResponse
 from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic import View
 
 from cegs_portal.get_expr_data.view_models import (
-    EXPR_DATA_DIR,
+    DataState,
     ReoDataSource,
+    file_exists,
+    file_status,
     gen_output_filename,
+    open_file,
     output_experiment_data_csv_task,
     output_experiment_data_list,
     validate_an,
@@ -123,13 +119,13 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             raise BadRequest() from error
 
         if region[1] >= region[2]:
-            return HttpResponseBadRequest(
+            raise BadRequest(
                 "The lower value in the region must be smaller than the higher value: "
                 f"{region[0]}:{region[1]}-{region[2]}."
             )
 
         if region[2] - region[1] > MAX_REGION_SIZE:
-            return HttpResponseBadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
+            raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
         data = output_experiment_data_list([region], experiments, analyses, data_source)
         return JsonResponse({"experiment data": data})
@@ -150,9 +146,9 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
             raise BadRequest() from error
 
         output_file = gen_output_filename(experiments, analyses)
-        task = output_experiment_data_csv_task(regions, experiments, analyses, data_source, output_file)
+        output_experiment_data_csv_task(request.user, regions, experiments, analyses, data_source, output_file)
         file_url = reverse("get_expr_data:experimentdata", args=[output_file])
-        check_completion_url = reverse("tasks:status", args=[task.id])
+        check_completion_url = reverse("get_expr_data:dataprogress", args=[output_file])
         return JsonResponse(
             {
                 "file location": file_url,
@@ -163,13 +159,25 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
 
 class ExperimentDataView(LoginRequiredMixin, View):
     def get(self, request, filename, *args, **kwargs):
-        if validate_filename(filename):
-            filename = os.path.join(EXPR_DATA_DIR, filename)
-            if default_storage.exists(filename):
-                return FileResponse(default_storage.open(filename, "rb"), as_attachment=True)
+        if not validate_filename(filename):
+            raise BadRequest(f"Invalid filename: {filename}")
 
-            return HttpResponseNotFound(
+        if not file_exists(filename):
+            raise Http404(
                 f"File {filename} not found. Perhaps the file isn't finished being generated. Please try again later."
             )
 
-        return HttpResponseBadRequest(f"Invalid filename: {filename}")
+        return FileResponse(open_file(filename), as_attachment=True)
+
+
+class ExperimentDataProgressView(LoginRequiredMixin, View):
+    def get(self, request, filename, *args, **kwargs):
+        print(request.user)
+        if not validate_filename(filename):
+            raise BadRequest(f"Invalid filename: {filename}")
+
+        match file_status(filename, request.user):
+            case DataState.NOT_FOUND:
+                raise Http404(f"Unable to determine progress on file {filename}")
+            case other_state:
+                return JsonResponse({"file progress": other_state})

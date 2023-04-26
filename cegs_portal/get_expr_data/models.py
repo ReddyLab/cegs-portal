@@ -1,5 +1,11 @@
+import os.path
+
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db import connection, models
+
+EXPR_DATA_DIR = "expr_data_dir"
+EXPR_DATA_BASE_PATH = os.path.join(default_storage.location, EXPR_DATA_DIR)
 
 
 class ExperimentData(models.Model):
@@ -10,7 +16,9 @@ class ExperimentData(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     state = models.CharField(max_length=8, choices=DataState.choices, default=DataState.IN_PREPARATION)
-    data = models.FileField(upload_to="expr_data")
+    filename = models.CharField(max_length=256)
+    file = models.FilePathField(path=EXPR_DATA_BASE_PATH, max_length=512)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 # This is a non-managed table because it's really a "Materialized View" (See
