@@ -6,7 +6,7 @@ onmessage = function (statusURLData) {
             let progress = json["file progress"];
             postMessage(progress);
             if (progress == "in_preparation") {
-                setTimeout(getStatus(url, tries - 1), 500);
+                setTimeout(() => getStatus(url, tries - 1), 500);
             }
         } catch (err) {
             console.log(err);
