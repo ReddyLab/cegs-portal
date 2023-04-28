@@ -201,6 +201,7 @@
                     </form>
                 </div>
 
+                {% if logged_in %}
                 <div class="facet-content-section content-container">
                     <form name="dataDownloadForm">
                         <div>
@@ -210,6 +211,7 @@
                     </form>
                     <div id="dataDownloadLink"></div>
                 </div>
+                {% endif %}
             </div>
 
             <div class="basis-3/4 content-container">
@@ -685,6 +687,7 @@
     });
 </script>
 
+{% if logged_in %}
 <script type="module">
     import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
     function getDownloadRegions() {
@@ -733,6 +736,7 @@
 
     g("dataDownloadInput").addEventListener("change", getDownloadRegions, false);
 </script>
+{% endif %}
 
 <script type="module">
     import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
