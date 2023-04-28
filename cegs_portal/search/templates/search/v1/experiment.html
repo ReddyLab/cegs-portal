@@ -200,6 +200,18 @@
                         </div>
                     </form>
                 </div>
+
+                {% if logged_in %}
+                <div class="facet-content-section content-container">
+                    <form name="dataDownloadForm">
+                        <div>
+                            <label class="font-bold" for="dataDlFile">Download Data</label>
+                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                        </div>
+                    </form>
+                    <div id="dataDownloadLink"></div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="basis-3/4 content-container">
@@ -674,6 +686,58 @@
         });
     });
 </script>
+
+{% if logged_in %}
+<script type="module">
+    import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
+    function getDownloadRegions() {
+        if (this.files.length != 1) {
+            return;
+        }
+        rc(g("dataDownloadLink"), t("Getting your data..."));
+
+        let url = "{% url 'get_expr_data:requestdata' %}?expr={{ experiment.accession_id }}&datasource=both";
+        let requestBody = new FormData();
+        requestBody.set("regions", this.files[0]);
+        requestBody.set("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+        let request = {
+            method: "POST",
+            credentials: "include",
+            mode: "same-origin",
+            body: requestBody
+        }
+
+        let dlDataWorker;
+        fetch(url, request)
+            .then((response) => response.json())
+            .then((json) => {
+                dlDataWorker = new Worker("{% static 'search/js/downloadStatusWorker.js' %}");
+                dlDataWorker.onmessage = (statusData) => {
+                    let status = statusData.data;
+                    if(status == "ready") {
+                        let filePath = json["file location"].split("/");
+                        rc(g("dataDownloadLink"),
+                            e("a",
+                                {href: json["file location"]},
+                                t(filePath[filePath.length - 1])
+                            )
+                        );
+                    } else if(status == "in_preparation") {
+                        // keep spinning
+                    } else {
+                        rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
+                    }
+                }
+                dlDataWorker.postMessage(json["file progress"]);
+            })
+            .catch((err) => console.log(err))
+    }
+
+    g("dataDownloadInput").addEventListener("change", getDownloadRegions, false);
+</script>
+{% endif %}
+
 <script type="module">
     import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
     import {State} from "{% static 'search/js/state.js' %}";

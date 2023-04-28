@@ -36,6 +36,7 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
             request,
             options,
             {
+                "logged_in": not request.user.is_anonymous,
                 "experiment": data[0],
                 "other_experiments": {
                     "id": "other_experiments",
