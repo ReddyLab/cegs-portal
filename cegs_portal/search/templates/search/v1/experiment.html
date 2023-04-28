@@ -456,31 +456,44 @@
     };
 
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => {
-            // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
-            // format.
-            let length = buffer.byteLength;
-            let decoder = new TextDecoder();
-            let data = new DataView(buffer);
-            let offset = 0;
-            let values = [];
-            while (offset < length) {
-                let pVal = data.getFloat32(offset);
-                let avgFC = data.getFloat32(offset + 4);
-                let type = data.getUint8(offset + 8);
-                let symLen = data.getUint8(offset + 9);
-                offset += 10;
-                let symArray = new Uint8Array(buffer, offset, symLen);
-                let sym = decoder.decode(symArray);
-                values.push([pVal, avgFC, type, sym]);
-                offset += symLen;
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
             }
-            return values;
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
+                    // format.
+                    let length = buffer.byteLength;
+                    let decoder = new TextDecoder();
+                    let data = new DataView(buffer);
+                    let offset = 0;
+                    let values = [];
+                    while (offset < length) {
+                        let pVal = data.getFloat32(offset);
+                        let avgFC = data.getFloat32(offset + 4);
+                        let type = data.getUint8(offset + 8);
+                        let symLen = data.getUint8(offset + 9);
+                        offset += 10;
+                        let symArray = new Uint8Array(buffer, offset, symLen);
+                        let sym = decoder.decode(symArray);
+                        values.push([pVal, avgFC, type, sym]);
+                        offset += symLen;
+                    }
+                    return values;
+                })
+                .then((values) => {
+                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                })
+                .catch((err) => console.log(err));
         })
-        .then((values) => {
-            return plot(values, "Crop of Non-Significant, Low Effect Observations");
-        });
+        .catch((err) => console.log(err));
+
 
     //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
     function processHistogramData(buffer) {
@@ -558,11 +571,23 @@
 
     // now you can use the API!
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => processHistogramData(buffer))
-        .then((data) =>
-            createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
-        );
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
 
     // setup API options
     const vegaQqPlotOptions = {
@@ -581,71 +606,83 @@
     // now you can use the API!
 
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => {
-            // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation of the data
-            // format.
-            let data = new DataView(buffer);
-            let decoder = new TextDecoder();
-            let offset = 0;
-            let values = [];
-            let quantileCount = data.getUint32(offset);
-            offset += 4;
-            let categoryCount = data.getUint8(offset);
-            offset += 1;
-            let categoryNames = [];
-            for(let i = 0; i < categoryCount; i++){
-                let nameSize = data.getUint8(offset);
-                offset += 1;
-                let nameArray = new Uint8Array(buffer, offset, nameSize);
-                let name = decoder.decode(nameArray);
-                offset += nameSize;
-                categoryNames.push(name)
-            }
-            let xLabelLen = data.getUint8(offset);
-            offset += 1;
-            let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
-            let xLabel = decoder.decode(xLabelArray);
-            offset += xLabelLen;
-            let yLabelLen = data.getUint8(offset);
-            offset += 1;
-            let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
-            let yLabel = decoder.decode(yLabelArray);
-            offset += yLabelLen;
-
-            for (let i = 0; i < quantileCount; i++) {
-                let x = data.getFloat32(offset);
-                offset += 4;
-                for(let j = 0; j < categoryCount; j++) {
-                    let y = data.getFloat32(offset);
-                    offset += 4;
-                    values.push({t: x, o: y, cat: categoryNames[j]});
+        .then((response) => {
+                if (!response.ok && response.status == 404) {
+                    return; // This is often okay and expected, not every analysis has this data
                 }
-            }
 
-            return {categoryNames, xLabel, yLabel, values};
-        }).then((data) => {
-            const scale = {
-                domain: data.categoryNames,
-                range: ['#ff8c00', '#777777', '#aec7e8', '#1f77b4', '#9467bd']
-            };
+                if(!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
 
-            return vl.markCircle({tooltip: true})
-            .data(data)
-            .width(500)
-            .height(500)
-            .title('Q-Q Plot')
-            .encode(
-                vl.color().fieldN('cat').scale(scale).title(''),
-                vl.x().fieldQ('t').title(data.xLabel),
-                vl.y().fieldQ('o').title(data.yLabel),
-            )
-            .render()
-        }).then((viewElement) => {
-            // render returns a promise to a DOM element containing the chart
-            // viewElement.value contains the Vega View object instance
-            document.getElementById("uniform_qqplot").appendChild(viewElement);
-        });
+                return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation
+                    // of the data format.
+                    let data = new DataView(buffer);
+                    let decoder = new TextDecoder();
+                    let offset = 0;
+                    let values = [];
+                    let quantileCount = data.getUint32(offset);
+                    offset += 4;
+                    let categoryCount = data.getUint8(offset);
+                    offset += 1;
+                    let categoryNames = [];
+                    for(let i = 0; i < categoryCount; i++){
+                        let nameSize = data.getUint8(offset);
+                        offset += 1;
+                        let nameArray = new Uint8Array(buffer, offset, nameSize);
+                        let name = decoder.decode(nameArray);
+                        offset += nameSize;
+                        categoryNames.push(name)
+                    }
+                    let xLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
+                    let xLabel = decoder.decode(xLabelArray);
+                    offset += xLabelLen;
+                    let yLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
+                    let yLabel = decoder.decode(yLabelArray);
+                    offset += yLabelLen;
+
+                    for (let i = 0; i < quantileCount; i++) {
+                        let x = data.getFloat32(offset);
+                        offset += 4;
+                        for(let j = 0; j < categoryCount; j++) {
+                            let y = data.getFloat32(offset);
+                            offset += 4;
+                            values.push({t: x, o: y, cat: categoryNames[j]});
+                        }
+                    }
+
+                    return {categoryNames, xLabel, yLabel, values};
+                }).then((data) => {
+                    const scale = {
+                        domain: data.categoryNames,
+                        range: ['#ff8c00', '#777777', '#aec7e8', '#1f77b4', '#9467bd']
+                    };
+
+                    return vl.markCircle({tooltip: true})
+                    .data(data)
+                    .width(500)
+                    .height(500)
+                    .title('Q-Q Plot')
+                    .encode(
+                        vl.color().fieldN('cat').scale(scale).title(''),
+                        vl.x().fieldQ('t').title(data.xLabel),
+                        vl.y().fieldQ('o').title(data.yLabel),
+                    )
+                    .render()
+                }).then((viewElement) => {
+                    // render returns a promise to a DOM element containing the chart
+                    // viewElement.value contains the Vega View object instance
+                    document.getElementById("uniform_qqplot").appendChild(viewElement);
+                })
+                .catch((err) => console.log(err));
+            })
+            .catch((err) => console.log(err));
 
     // setup API options
     const vegaCellsHistogramOptions = {
@@ -663,11 +700,23 @@
 
     // now you can use the API!
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => processHistogramData(buffer))
-        .then((data) =>
-            createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
-        );
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
 </script>
 
 <script>
