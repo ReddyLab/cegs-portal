@@ -229,8 +229,8 @@ def retrieve_experiment_data(
                         AND reo_sources_targets.target_loc && %s"""
         inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
     elif data_source == ReoDataSource.BOTH:
-        where = r"""WHERE (reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
-                        OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s)"""
+        where = r"""WHERE ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
+                        OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s))"""
         inputs = [[chrom, NumericRange(start, end), chrom, NumericRange(start, end)] for chrom, start, end in regions]
     else:
         raise InvalidDataSource()
