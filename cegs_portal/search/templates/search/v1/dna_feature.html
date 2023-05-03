@@ -1,26 +1,90 @@
-{% extends "base.html" %}
-{% load static i18n %}
+{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+<style>
+    .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    }
 
-{% block title %}{{ feature_name }}{% endblock %}
+    .profile-table {
+        font-family: Arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
 
-{% block javascript %}
-{{ block.super }}
+    .profile-table td,
+    .profile-table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .profile-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .profile-table tr:hover {
+        background-color: #ddd;
+    }
+
+    .profile-table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #f2f2f2;
+        color: black;
+    }
+    h1 {
+        font-family: "Arial", sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+        margin-left: 40px;
+        display: flex;
+        align-items: center;
+    }
+
+    h1 svg {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+{% endblock %} {% block javascript %} {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
-{% endblock %}
-
-{% block content %}
+{% endblock %}{% block title %}{{ feature_name }}{% endblock %}{% block content %}
 <div>
     {% for feature, sources, targets in feature_reos %}
         <div class="mb-8">
             <div>
-                <span class="text-2xl font-bold">{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span class="text-2xl">({{ feature.ensembl_id }})</span>{% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <h1>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                        </svg>
+                        <span>{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span>({{ feature.ensembl_id }})</span></h1>
+
+                    </h1>
+                </div>
+                {% endif %}
+
+
                 {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.accession_id }}">{{ children_name }}</a></span>{% endif %}
                 {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.accession_id }}">Other Nearby Features</a></span>{% endif %}
-                {% if sources.page.object_list|length > 0 %}<span><a href="#source-for-{{ feature.accession_id }}">Source for Regulatory Effect Observations</a></span>{% endif %}
+                <!-- {% if sources.page.object_list|length > 0 %}<span><a href="#source-for-{{ feature.accession_id }}">Source for Regulatory Effect Observations</a></span>{% endif %} -->
                 {% if targets.page.object_list|length > 0 %}<span><a href="#target-of-{{ feature.accession_id }}">Targeting Regulatory Effect Observations</a></span>{% endif %}
             </div>
             {% if feature.feature_subtype %}<div>Type: {{ feature.feature_subtype }}</div>{% endif %}
-            <table class="data-table">
+            <!-- <table class="data-table">
                 <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
                 <tr>
                     <td>{{ feature.name|default:feature.accession_id }}</td>
@@ -29,7 +93,22 @@
                     <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                     <td>{{ feature.get_feature_type_display }}</td>
                 </tr>
-            </table>
+            </table> -->
+
+
+
+
+            <div class="container">
+                <table class="profile-table">
+                    <tr><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
+                    <tr>
+                        <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
+                        <td>{{ feature.strand }}</td>
+                        <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                        <td>{{ feature.get_feature_type_display }}</td>
+                    </tr>
+                </table>
+            </div>
 
             {% if feature.children.all|length > 0 %}
             <div class="mb-8">
@@ -79,7 +158,7 @@
         {% if sources.page.object_list|length > 0 %}
         <div>
             <a name="source-for-{{ feature.accession_id }}"></a>
-            {% include "search/v1/partials/_paged_nav.html" with data=sources.page name="Source for Regulatory Effect Observations" no_data="" container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
+            {% include "search/v1/partials/_paged_nav.html" with data=sources.page no_data="" container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
         </div>
         {% endif %}
         {% if targets.page.object_list|length > 0 %}
