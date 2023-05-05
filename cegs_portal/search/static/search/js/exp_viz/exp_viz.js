@@ -330,7 +330,60 @@ function getHighlightRegions(regionUploadInput, regionReader) {
     regionReader.readAsText(regionUploadInput.files[0]);
 }
 
-export async function exp_viz(staticRoot, exprAccessionID) {
+function getDownload(url, body) {
+    rc(g("dataDownloadLink"), t("Getting your data..."));
+
+    let request = {
+        method: "POST",
+        credentials: "include",
+        mode: "same-origin",
+        body: body,
+    };
+
+    let dlDataWorker;
+    fetch(url, request)
+        .then((response) => response.json())
+        .then((json) => {
+            dlDataWorker = new Worker("/static/search/js/exp_viz/downloadStatusWorker.js");
+            dlDataWorker.onmessage = (statusData) => {
+                let status = statusData.data;
+                if (status == "ready") {
+                    let filePath = json["file location"].split("/");
+                    rc(g("dataDownloadLink"), e("a", {href: json["file location"]}, t(filePath[filePath.length - 1])));
+                } else if (status == "in_preparation") {
+                    // keep spinning
+                } else {
+                    rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
+                }
+            };
+            dlDataWorker.postMessage(json["file progress"]);
+        })
+        .catch((err) => console.log(err));
+}
+function getDownloadRegions(facets, dataDownloadInput, exprAccessionID, csrfToken) {
+    if (dataDownloadInput.files.length != 1) {
+        return;
+    }
+
+    let url = `/exp_data/request?expr=${exprAccessionID}&datasource=both`;
+    let requestBody = new FormData();
+    requestBody.set("regions", dataDownloadInput.files[0]);
+    requestBody.set("csrfmiddlewaretoken", csrfToken);
+    requestBody.set("facets", JSON.stringify(facets));
+
+    getDownload(url, requestBody);
+}
+
+function getDownloadAll(facets, exprAccessionID, csrfToken) {
+    let url = `/exp_data/request?expr=${exprAccessionID}&datasource=everything`;
+    let requestBody = new FormData();
+    requestBody.set("csrfmiddlewaretoken", csrfToken);
+    requestBody.set("facets", JSON.stringify(facets));
+
+    getDownload(url, requestBody);
+}
+
+export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) {
     let genome, manifest;
     try {
         [genome, manifest] = await getCoverageData(staticRoot, exprAccessionID);
@@ -338,6 +391,8 @@ export async function exp_viz(staticRoot, exprAccessionID) {
         console.log(error);
         return;
     }
+    rc(g("chrom-data-header"), t("Experiment Coverage"));
+
     const genomeRenderer = new GenomeRenderer(genome);
 
     let state = build_state(manifest.chromosomes, manifest.facets, genomeRenderer, exprAccessionID);
@@ -372,8 +427,6 @@ export async function exp_viz(staticRoot, exprAccessionID) {
             state.u(STATE_ZOOMED, !zoomed);
         }
     };
-
-    rc(g("chrom-data-header"), t("Experiment Coverage"));
 
     countFilterControls(state).forEach((element) => {
         a(g("chrom-data-counts"), element);
@@ -489,11 +542,11 @@ export async function exp_viz(staticRoot, exprAccessionID) {
         setFacetControls(state, discreteFacets, s[key]);
     });
 
+    setFacetControls(state, discreteFacets, state.g(STATE_FACETS));
+
     state.ac(STATE_COVERAGE_DATA, (s, key) => {
         setCountControls(state, s[key]);
     });
-
-    setFacetControls(state, discreteFacets, state.g(STATE_FACETS));
 
     let regionReader = new FileReader();
     regionReader.addEventListener(
@@ -506,4 +559,31 @@ export async function exp_viz(staticRoot, exprAccessionID) {
     let regionUploadInput = g("regionUploadInput");
 
     regionUploadInput.addEventListener("change", () => getHighlightRegions(regionUploadInput, regionReader), false);
+
+    if (loggedIn) {
+        let dataDownloadInput = g("dataDownloadInput");
+        dataDownloadInput.addEventListener(
+            "change",
+            () =>
+                getDownloadRegions(
+                    [state.g(STATE_DISCRETE_FACET_VALUES), state.g(STATE_CONTINUOUS_FACET_VALUES)],
+                    dataDownloadInput,
+                    exprAccessionID,
+                    csrfToken
+                ),
+            false
+        );
+
+        let dataDownloadAll = g("dataDownloadAll");
+        dataDownloadAll.addEventListener(
+            "click",
+            () =>
+                getDownloadAll(
+                    [state.g(STATE_DISCRETE_FACET_VALUES), state.g(STATE_CONTINUOUS_FACET_VALUES)],
+                    exprAccessionID,
+                    csrfToken
+                ),
+            false
+        );
+    }
 }

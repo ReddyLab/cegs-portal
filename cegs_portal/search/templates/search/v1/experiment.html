@@ -205,11 +205,18 @@
                 <div class="facet-content-section content-container">
                     <form name="dataDownloadForm">
                         <div>
-                            <label class="font-bold" for="dataDlFile">Download Data</label>
+                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
+                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                        </div>
+                        <div class="mt-5">
+                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
                             <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                         </div>
                     </form>
-                    <div id="dataDownloadLink"></div>
+                    <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                    <div>
+                    * Data downloads take facet filtering, except for source and target count, into account.
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -736,60 +743,9 @@
     });
 </script>
 
-{% if logged_in %}
-<script type="module">
-    import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
-    function getDownloadRegions() {
-        if (this.files.length != 1) {
-            return;
-        }
-        rc(g("dataDownloadLink"), t("Getting your data..."));
-
-        let url = "{% url 'get_expr_data:requestdata' %}?expr={{ experiment.accession_id }}&datasource=both";
-        let requestBody = new FormData();
-        requestBody.set("regions", this.files[0]);
-        requestBody.set("csrfmiddlewaretoken", "{{ csrf_token }}");
-
-        let request = {
-            method: "POST",
-            credentials: "include",
-            mode: "same-origin",
-            body: requestBody
-        }
-
-        let dlDataWorker;
-        fetch(url, request)
-            .then((response) => response.json())
-            .then((json) => {
-                dlDataWorker = new Worker("{% static 'search/js/downloadStatusWorker.js' %}");
-                dlDataWorker.onmessage = (statusData) => {
-                    let status = statusData.data;
-                    if(status == "ready") {
-                        let filePath = json["file location"].split("/");
-                        rc(g("dataDownloadLink"),
-                            e("a",
-                                {href: json["file location"]},
-                                t(filePath[filePath.length - 1])
-                            )
-                        );
-                    } else if(status == "in_preparation") {
-                        // keep spinning
-                    } else {
-                        rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
-                    }
-                }
-                dlDataWorker.postMessage(json["file progress"]);
-            })
-            .catch((err) => console.log(err))
-    }
-
-    g("dataDownloadInput").addEventListener("change", getDownloadRegions, false);
-</script>
-{% endif %}
-
 <script type="module">
     import {exp_viz} from "{% static 'search/js/exp_viz/exp_viz.js' %}";
-    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}");
+    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
 </script>
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

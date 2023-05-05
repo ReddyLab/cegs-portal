@@ -37,7 +37,27 @@ class ReoSourcesTargets(models.Model):
     @classmethod
     def refresh_view(cls):
         with connection.cursor() as cursor:
+            # Drop indices because refreshing the view may take a long time if they already exist
+            cursor.execute("DROP INDEX idx_rst_reo_accession")
+            cursor.execute("DROP INDEX idx_rst_reo_experiment")
+            cursor.execute("DROP INDEX idx_rst_reo_analysis")
+            cursor.execute("DROP INDEX idx_rst_source_chrom")
+            cursor.execute("DROP INDEX idx_rst_source_loc")
+            cursor.execute("DROP INDEX idx_srs_target_chrom")
+            cursor.execute("DROP INDEX idx_srs_target_loc")
+            cursor.execute("DROP INDEX idx_disc_facet")
+
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets")
+
+            # Add indices back
+            cursor.execute("CREATE INDEX idx_rst_reo_accession ON reo_sources_targets (reo_accession)")
+            cursor.execute("CREATE INDEX idx_rst_reo_experiment ON reo_sources_targets (reo_experiment)")
+            cursor.execute("CREATE INDEX idx_rst_reo_analysis ON reo_sources_targets (reo_analysis)")
+            cursor.execute("CREATE INDEX idx_rst_source_chrom ON reo_sources_targets (source_chrom)")
+            cursor.execute("CREATE INDEX idx_rst_source_loc ON reo_sources_targets USING GIST (source_loc)")
+            cursor.execute("CREATE INDEX idx_srs_target_chrom ON reo_sources_targets (target_chrom)")
+            cursor.execute("CREATE INDEX idx_srs_target_loc ON reo_sources_targets USING GIST (target_loc)")
+            cursor.execute("CREATE INDEX idx_disc_facet ON reo_sources_targets USING GIN (disc_facets)")
 
     @classmethod
     def view_contents(cls):

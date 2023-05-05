@@ -5,6 +5,7 @@ from time import sleep
 import pytest
 
 from cegs_portal.get_expr_data.view_models import (
+    Facets,
     ReoDataSource,
     gen_output_filename,
     output_experiment_data_list,
@@ -99,7 +100,7 @@ def test_parse_target_info(target_info, result):
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_both_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.BOTH
     )
 
     assert len(result) == 3
@@ -108,7 +109,7 @@ def test_retrieve_both_experiment_data():
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_source_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.SOURCES
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.SOURCES
     )
 
     assert len(result) == 2
@@ -117,7 +118,48 @@ def test_retrieve_source_experiment_data():
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_target_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.TARGETS
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.TARGETS
+    )
+
+    assert len(result) == 2
+
+
+@pytest.mark.parametrize(
+    "disc_facets,effect_size,sig,result_count",
+    [
+        ([], (-10, 0), (None, None), 3),
+        ([], (0, 10), (None, None), 0),
+        ([], (None, None), (0.0, 0.00004), 0),
+        ([], (None, None), (0.0, 0.005), 3),
+        ([], (-10, 0), (0.0, 0.005), 3),
+        ([], (0, 10), (0.0, 0.005), 0),
+        ([], (-10, 0), (0.0, 0.00004), 0),
+        ([], (0, 10), (0.0, 0.00004), 0),
+    ],
+)
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_facet_both_experiment_data(disc_facets, effect_size, sig, result_count):
+    facets = Facets(discrete_facets=disc_facets, effect_size_range=effect_size, sig_range=sig)
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == result_count
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_facet_source_experiment_data():
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.SOURCES
+    )
+
+    assert len(result) == 2
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_facet_target_experiment_data():
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.TARGETS
     )
 
     assert len(result) == 2
@@ -308,7 +350,7 @@ def test_write_experiment_data(reg_effects):
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
-            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
+            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.BOTH
         )
     )
     experiment_data.sort()
@@ -328,7 +370,7 @@ def test_write_analysis_data(reg_effects):
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
-            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
+            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], Facets(), ReoDataSource.BOTH
         )
     )
     experiment_data.sort()
