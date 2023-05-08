@@ -138,13 +138,58 @@ def test_retrieve_target_experiment_data():
     ],
 )
 @pytest.mark.usefixtures("reg_effects")
-def test_retrieve_facet_both_experiment_data(disc_facets, effect_size, sig, result_count):
+def test_retrieve_cont_facet_experiment_data(disc_facets, effect_size, sig, result_count):
     facets = Facets(discrete_facets=disc_facets, effect_size_range=effect_size, sig_range=sig)
     result = retrieve_experiment_data(
         [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == result_count
+
+
+def test_retrieve_dics_facet_experiment_data(reg_effects):
+    _, _, _, x, y, z, _ = reg_effects
+    facets = Facets(discrete_facets=[])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 3
+
+    facets = Facets(discrete_facets=[x.id])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[y.id])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[z.id])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[y.id, z.id])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 2
+
+    facets = Facets(discrete_facets=[x.id, y.id, z.id])
+    result = retrieve_experiment_data(
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 3
 
 
 @pytest.mark.usefixtures("reg_effects")
@@ -166,7 +211,7 @@ def test_retrieve_facet_target_experiment_data():
 
 
 def test_list_experiment_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
         [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
@@ -204,7 +249,7 @@ def test_list_experiment_data(reg_effects):
 
 
 def test_list_analysis_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
         [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
@@ -242,7 +287,7 @@ def test_list_analysis_data(reg_effects):
 
 
 def test_location_experiment_data(reg_effects, login_client: SearchClient):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 200
@@ -282,7 +327,7 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
 
 
 def test_location_analysis_data(reg_effects, login_client: SearchClient):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get(f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both")
     assert response.status_code == 200
@@ -346,7 +391,7 @@ def test_location_experiment_data_backwards_region(login_client: SearchClient):
 
 
 def test_write_experiment_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
@@ -366,7 +411,7 @@ def test_write_experiment_data(reg_effects):
 
 
 def test_write_analysis_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
