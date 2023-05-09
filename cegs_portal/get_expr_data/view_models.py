@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+from dataclasses import dataclass, field
 from enum import Enum, StrEnum, auto
 from operator import itemgetter
 from typing import Optional, TypedDict
@@ -42,6 +43,7 @@ class ReoDataSource(Enum):
     SOURCES = 1
     TARGETS = 2
     BOTH = 3
+    EVERYTHING = 4
 
 
 class DataState(StrEnum):
@@ -50,6 +52,13 @@ class DataState(StrEnum):
     DELETED = auto()
     UNKNOWN = auto()
     NOT_FOUND = auto()
+
+
+@dataclass
+class Facets:
+    discrete_facets: list[int] = field(default_factory=list)
+    effect_size_range: tuple = (None, None)
+    sig_range: tuple = (None, None)
 
 
 def validate_expr(expr) -> bool:
@@ -166,9 +175,12 @@ def write_experiment_data_csv(experiment_data, output_file):
 
 
 def output_experiment_data_list(
-    regions: list[tuple[str, int, int]], experiments: list[str], analyses: list[str], data_source: ReoDataSource
+    regions: Optional[list[tuple[str, int, int]]],
+    experiments: list[str],
+    analyses: list[str],
+    data_source: ReoDataSource,
 ) -> list[ExperimentDataJson]:
-    experiment_data = retrieve_experiment_data(regions, experiments, analyses, data_source)
+    experiment_data = retrieve_experiment_data(regions, experiments, analyses, Facets(), data_source)
     exp_data_list = []
     for row in gen_output_rows(experiment_data):
         split_target_info = [target.split(":") for target in row[1]]
@@ -204,11 +216,12 @@ def output_experiment_data_csv(
     experiments: list[str],
     analyses: list[str],
     data_source: ReoDataSource,
+    facets: Facets,
     output_filename: str,
 ):
     experiment_data_info = ExperimentData(user=user, filename=output_filename)
     experiment_data_info.save()
-    experiment_data = retrieve_experiment_data(regions, experiments, analyses, data_source)
+    experiment_data = retrieve_experiment_data(regions, experiments, analyses, facets, data_source)
     full_output_path = os.path.join(EXPR_DATA_BASE_PATH, output_filename)
     with open(full_output_path, "w", encoding="utf-8") as output_file:
         write_experiment_data_csv(experiment_data, output_file)
@@ -218,22 +231,34 @@ def output_experiment_data_csv(
 
 
 def retrieve_experiment_data(
-    regions: list[tuple[str, int, int]], experiments: list[str], analyses: list[str], data_source: ReoDataSource
+    regions: Optional[list[tuple[str, int, int]]],
+    experiments: list[str],
+    analyses: list[str],
+    facets: Facets,
+    data_source: ReoDataSource,
 ):
-    if data_source == ReoDataSource.SOURCES:
-        where = r"""WHERE reo_sources_targets.source_chrom = %s
-                        AND reo_sources_targets.source_loc && %s"""
-        inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
-    elif data_source == ReoDataSource.TARGETS:
-        where = r"""WHERE reo_sources_targets.target_chrom = %s
-                        AND reo_sources_targets.target_loc && %s"""
-        inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
-    elif data_source == ReoDataSource.BOTH:
-        where = r"""WHERE ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
-                        OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s))"""
-        inputs = [[chrom, NumericRange(start, end), chrom, NumericRange(start, end)] for chrom, start, end in regions]
-    else:
-        raise InvalidDataSource()
+    match data_source:
+        case ReoDataSource.SOURCES:
+            where = r"""WHERE reo_sources_targets.source_chrom = %s
+                            AND reo_sources_targets.source_loc && %s"""
+            inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
+        case ReoDataSource.TARGETS:
+            where = r"""WHERE reo_sources_targets.target_chrom = %s
+                            AND reo_sources_targets.target_loc && %s"""
+            inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
+        case ReoDataSource.BOTH:
+            where = r"""WHERE ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
+                            OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s))"""
+            inputs = [
+                [chrom, NumericRange(start, end), chrom, NumericRange(start, end)] for chrom, start, end in regions
+            ]
+        case ReoDataSource.EVERYTHING:
+            # Including "true" where is kind of a hack to avoid complicated logic around whether to start
+            # later additions to the where clause with "AND"
+            where = "WHERE true"
+            inputs = [[]]
+        case _:
+            raise InvalidDataSource()
 
     if len(experiments) > 0 and len(analyses) > 0:
         where = f"""{where} AND (reo_sources_targets.reo_experiment = ANY(%s) OR
@@ -249,6 +274,17 @@ def retrieve_experiment_data(
         where = f"{where} AND reo_sources_targets.reo_analysis = ANY(%s)"
         for i in inputs:
             i.append(analyses)
+
+    if len(facets.discrete_facets) > 0:
+        where = f"{where} AND %s::bigint[] && reo_sources_targets.disc_facets"
+        for i in inputs:
+            i.append(facets.discrete_facets)
+    where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
+    for i in inputs:
+        i.append(NumericRange(*facets.effect_size_range))
+    where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
+    for i in inputs:
+        i.append(NumericRange(*facets.sig_range))
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets.source_chrom,
@@ -275,6 +311,7 @@ def retrieve_experiment_data(
 
         for where_params in inputs:
             cursor.execute(query, where_params)
+            print(cursor.query)
             experiment_data.update(cursor.fetchall())
     return experiment_data
 

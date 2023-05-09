@@ -12,6 +12,7 @@ from cegs_portal.search.conftest import (  # noqa: F401 used as fixture in tests
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
+from cegs_portal.search.models.tests.facet_factory import FacetValueFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 
 
@@ -27,6 +28,9 @@ def cleanup_test_files():
 def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
     experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
     analysis = experiment.analyses.first()
+    facet_source = FacetValueFactory()
+    facet_target = FacetValueFactory()
+    facet_both = FacetValueFactory()
 
     effect_source = RegEffectFactory(
         sources=(
@@ -45,6 +49,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
+        facet_values=[facet_source],
     )
     effect_target = RegEffectFactory(
         targets=(
@@ -62,6 +67,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
+        facet_values=[facet_target],
     )
     effect_both = RegEffectFactory(
         sources=(
@@ -87,6 +93,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
+        facet_values=[facet_both],
     )
     ReoSourcesTargets.refresh_view()
-    return (effect_source, effect_target, effect_both, experiment)
+    return (effect_source, effect_target, effect_both, facet_source, facet_target, facet_both, experiment)

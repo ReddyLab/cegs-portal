@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from typing import Optional
@@ -11,6 +12,7 @@ from django.views.generic import View
 
 from cegs_portal.get_expr_data.view_models import (
     DataState,
+    Facets,
     ReoDataSource,
     file_exists,
     file_status,
@@ -80,11 +82,11 @@ def get_region(request) -> Optional[Loc]:
     return (match[1], int(match[2]), int(match[3]))
 
 
-def get_regions_file(request) -> LocList:
+def get_regions_file(request) -> Optional[LocList]:
     try:
         file = request.FILES["regions"]
-    except MultiValueDictKeyError as mvdke:
-        raise Http400('Invalid request; file variable name should be "regions"') from mvdke
+    except MultiValueDictKeyError:
+        return None
 
     if maybe_bed(file):
         regions = try_process_bed(file)
@@ -95,14 +97,37 @@ def get_regions_file(request) -> LocList:
 
 
 def get_data_source(request) -> ReoDataSource:
-    data_source = request.GET.get("datasource", "both")
-    if data_source == "both":
-        return ReoDataSource.BOTH
-    if data_source == "sources":
-        return ReoDataSource.SOURCES
-    if data_source == "targets":
-        return ReoDataSource.TARGETS
-    raise Http400(f"Invalid data source: {data_source}")
+    match request.GET.get("datasource", "both"):
+        case "both":
+            return ReoDataSource.BOTH
+        case "sources":
+            return ReoDataSource.SOURCES
+        case "targets":
+            return ReoDataSource.TARGETS
+        case "everything":
+            return ReoDataSource.EVERYTHING
+        case invalid_data_source:
+            raise Http400(f"Invalid data source: {invalid_data_source}")
+
+
+def get_facets(request) -> Facets:
+    facets = Facets()
+    try:
+        facets_json = request.POST["facets"]
+    except MultiValueDictKeyError:
+        return facets
+
+    try:
+        facet_array = json.loads(facets_json)
+    except json.JSONDecodeError:
+        return facets
+
+    facets.discrete_facets = facet_array[0]
+    if len(facet_array) == 2:
+        facets.effect_size_range = (facet_array[1][0][0], facet_array[1][0][1])
+        facets.sig_range = (facet_array[1][1][0], facet_array[1][1][1])
+
+    return facets
 
 
 class LocationExperimentDataView(LoginRequiredMixin, View):
@@ -115,16 +140,18 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             experiments, analyses = get_experiments_analyses(request)
             region = get_region(request)
             data_source = get_data_source(request)
+            if region is None and data_source != ReoDataSource.EVERYTHING:
+                raise Http400("Specifying regions and asking for everything are mutually exclusive")
         except Http400 as error:
             raise BadRequest() from error
 
-        if region[1] >= region[2]:
+        if region is not None and region[1] >= region[2]:
             raise BadRequest(
                 "The lower value in the region must be smaller than the higher value: "
                 f"{region[0]}:{region[1]}-{region[2]}."
             )
 
-        if region[2] - region[1] > MAX_REGION_SIZE:
+        if region is not None and region[2] - region[1] > MAX_REGION_SIZE:
             raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
         data = output_experiment_data_list([region], experiments, analyses, data_source)
@@ -142,11 +169,12 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
             experiments, analyses = get_experiments_analyses(request)
             regions = get_regions_file(request)
             data_source = get_data_source(request)
+            facets = get_facets(request)
         except Http400 as error:
             raise BadRequest() from error
 
         output_file = gen_output_filename(experiments, analyses)
-        output_experiment_data_csv_task(request.user, regions, experiments, analyses, data_source, output_file)
+        output_experiment_data_csv_task(request.user, regions, experiments, analyses, data_source, facets, output_file)
         file_url = reverse("get_expr_data:experimentdata", args=[output_file])
         check_completion_url = reverse("get_expr_data:dataprogress", args=[output_file])
         return JsonResponse(
