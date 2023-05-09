@@ -55,6 +55,10 @@
 
 
 
+
+
+
+
 @layer components {
   .bg-color {
     background-color: white;
@@ -80,22 +84,56 @@
     background-color: rgb(249, 250, 251);
   }
 
-  table[class^="data-table"] {
-    @apply bg-blue-100 border-2 rounded-md my-2;
-    border-color: rgba(1, 33, 105, 1);
-  }
+ table.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+table.data-table th {
+  padding: 12px;
+  text-align: left;
+  background-color: #ddd;
+  color: gray;
+  font-weight: bold;
+}
+table.data-table th:first-child,
+table.data-table th:nth-child(4) {
+  border-top-left-radius: 10px 50%;
+  border-bottom-left-radius: 10px 50%;
+}
+table.data-table th:nth-child(3),
+table.data-table th:last-child {
+  border-top-right-radius: 10px 50%;
+  border-bottom-right-radius: 10px 50%;
+}
 
-  table.data-table tr:nth-child(odd) {
-    @apply bg-blue-50;
-  }
+table.data-table th:nth-child(2) {
+  background-color: #b7b5b5;
+  color: white;
+}
 
-  table[class^="data-table"] tr > th {
-    @apply py-2 px-4 text-left;
-  }
+table.data-table th:nth-child(6) {
+  background-color: #b7b5b5;
+  color: white;
+}
 
-  table[class^="data-table"] tr > td {
-    @apply py-2 px-4 text-left;
-  }
+table.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid lightgrey;
+}
+table.data-table tr:hover {
+  background-color: #ddd;
+}
+table.data-table a,
+table.data-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+
+
+}
+
+
+
 
   @media screen {
     div.search-wrapper label {

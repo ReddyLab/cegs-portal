@@ -40,7 +40,8 @@ function featureTable(features, regionID = "dnafeature") {
             ])
         );
     }
-    return newTable;
+    let tableContainer = e("div", {class: "container"}, [newTable]);
+    return tableContainer;
 }
 
 function emptyRETable(emptyString, regionID = "regeffect") {
@@ -80,7 +81,8 @@ function reTable(regeffects, regionID = "regeffect") {
             );
         }
     }
-    return newTable;
+    let tableContainer = e("div", {class: "container"}, [newTable]);
+    return tableContainer;
 }
 
 function reTargetTable(regeffects, regionID = "regeffect") {
@@ -116,7 +118,8 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             );
         }
     }
-    return newTable;
+    let tableContainer = e("div", {class: "container"}, [newTable]);
+    return tableContainer;
 }
 
 function newPagination(paginationID, pageData, idPrefix = "", pageQueryParam = "page") {
