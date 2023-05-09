@@ -106,7 +106,7 @@ function render(state, genomeRenderer) {
     );
 }
 
-function discreteFilterControls(facets) {
+function discreteFilterControls(facets, default_facets) {
     return facets
         .filter((f) => f.facet_type == "FacetType.DISCRETE")
         .map((facet) => {
@@ -117,7 +117,9 @@ function discreteFilterControls(facets) {
                     {class: "flex flex-row flex-wrap gap-1"},
                     Object.entries(facet.values).map((entry) => {
                         return e("div", {class: "ml-1"}, [
-                            e("input", {type: "checkbox", id: entry[0], name: facet.name}, []),
+                            default_facets.includes(parseInt(entry[0]))
+                                ? e("input", {type: "checkbox", id: entry[0], name: facet.name, checked: "true"}, [])
+                                : e("input", {type: "checkbox", id: entry[0], name: facet.name}, []),
                             e("label", {for: entry[0]}, entry[1]),
                         ]);
                     })
@@ -296,9 +298,9 @@ function levelCountInterval(chroms, interval, chromoIndex) {
     return [min, max];
 }
 
-function setFacetControls(state, discreteFacets, facets) {
+function setFacetControls(state, discreteFacets, default_facets, facets) {
     cc(discreteFacets);
-    discreteFilterControls(facets).forEach((element) => {
+    discreteFilterControls(facets, default_facets).forEach((element) => {
         a(discreteFacets, element);
     });
     let facetCheckboxes = discreteFacets.querySelectorAll("input[type=checkbox]");
@@ -539,10 +541,15 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
     let discreteFacets = g("chrom-data-discrete-facets");
 
     state.ac(STATE_FACETS, (s, key) => {
-        setFacetControls(state, discreteFacets, s[key]);
+        setFacetControls(state, discreteFacets, [], s[key]);
     });
 
-    setFacetControls(state, discreteFacets, state.g(STATE_FACETS));
+    setFacetControls(
+        state,
+        discreteFacets,
+        manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [],
+        state.g(STATE_FACETS)
+    );
 
     state.ac(STATE_COVERAGE_DATA, (s, key) => {
         setCountControls(state, s[key]);
