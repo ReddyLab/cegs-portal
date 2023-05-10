@@ -13,7 +13,9 @@ gen_data() {
     local EXPERIMENT=$1
     local GENOME=$2
     local OUTPUT_DIR=$3
+    local DEFAULT_FACETS=$4
 
+    echo $EXPERIMENT
     gen_dir "${OUTPUT_DIR}"
 
     # Install cov_viz from github: https://github.com/ReddyLab/cov_viz
@@ -29,7 +31,7 @@ gen_data() {
     fi
 
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME}
-    cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.bin ${OUTPUT_DIR}
+    cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.bin ${OUTPUT_DIR} ${DEFAULT_FACETS}
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr1
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr2
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chr3
@@ -57,17 +59,19 @@ gen_data() {
     cov_viz ${OUTPUT_DIR} ${EXPERIMENT} ${GENOME} 100000 chrMT
 }
 
-gen_data DCPEXPR00000001 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000001
-gen_data DCPEXPR00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000002
+default_facets=`python manage.py shell -c "from cegs_portal.search.models import FacetValue; print(' '.join(str(facet.id) for facet in FacetValue.objects.filter(value__in=['Depleted Only', 'Enriched Only', 'Mixed']).all()))"`
+
+gen_data DCPEXPR00000001 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000001 "${default_facets}"
+gen_data DCPEXPR00000002 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000002 "${default_facets}"
 
 # gen_data DCPEXPR00000003 needs some changes to the cov_viz and related programs to work. Some
 # of the  REOs have null effect sizes because the "direction" of the effect is "both". Deferring
 # for now. It's also not clear how to surface that in the facet filter.
-# gen_data DCPEXPR00000003 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000003
+# gen_data DCPEXPR00000003 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR00000003 "${default_facets}"
 
-gen_data DCPEXPR00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000004
-gen_data DCPEXPR00000005 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000005
-gen_data DCPEXPR00000006 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000006
-gen_data DCPEXPR00000007 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000007
-gen_data DCPEXPR00000008 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000008
-gen_data DCPEXPR00000009 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000009
+gen_data DCPEXPR00000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000004 "${default_facets}"
+gen_data DCPEXPR00000005 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000005 "${default_facets}"
+gen_data DCPEXPR00000006 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000006 "${default_facets}"
+gen_data DCPEXPR00000007 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000007 "${default_facets}"
+gen_data DCPEXPR00000008 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000008 "${default_facets}"
+gen_data DCPEXPR00000009 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR00000009 "${default_facets}"
