@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
 use crate::filter_data_structures::*;
-use cov_viz_ds::{ChromosomeData, DbID, FacetCoverage, FacetRange};
+use cov_viz_ds::{BucketLoc, ChromosomeData, DbID, FacetCoverage, FacetRange};
 
 fn is_disjoint(a: &Vec<DbID>, b: &Vec<DbID>) -> bool {
     for val_a in a {
@@ -107,174 +107,202 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
         .map(|f| (*f & &coverage_data_disc_facets).into_iter().collect())
         .collect();
 
-    let filtered_data: Vec<(FilteredChromosome, f32, f32, f32, f32)> = data
+    let filtered_data: Vec<(
+        FilteredChromosome,
+        f32,
+        f32,
+        f32,
+        f32,
+        FxHashSet<DbID>,
+        FxHashSet<DbID>,
+        FxHashSet<DbID>,
+    )> = data
         .chromosomes
         .iter()
-        .map(|chromosome| -> (FilteredChromosome, f32, f32, f32, f32) {
-            let mut min_effect = f32::INFINITY;
-            let mut max_effect = f32::NEG_INFINITY;
+        .map(
+            |chromosome| -> (
+                FilteredChromosome,
+                f32,
+                f32,
+                f32,
+                f32,
+                FxHashSet<DbID>,
+                FxHashSet<DbID>,
+                FxHashSet<DbID>,
+            ) {
+                let mut reo_ids = FxHashSet::<DbID>::default();
+                let mut source_ids = FxHashSet::<DbID>::default();
+                let mut target_ids = FxHashSet::<DbID>::default();
+                let mut min_effect = f32::INFINITY;
+                let mut max_effect = f32::NEG_INFINITY;
 
-            let mut min_sig = f32::INFINITY;
-            let mut max_sig = f32::NEG_INFINITY;
+                let mut min_sig = f32::INFINITY;
+                let mut max_sig = f32::NEG_INFINITY;
 
-            let mut chrom_data = FilteredChromosome {
-                chrom: chromosome.chrom.clone(),
-                index: chromosome.index,
-                bucket_size: chromosome.bucket_size,
-                target_intervals: Vec::new(),
-                source_intervals: Vec::new(),
-            };
-            let chrom_info: Vec<(&ChromosomeData, &usize)> =
-                zip(&data.chromosomes, &data.chrom_lengths).collect();
-            let bucket_list = BucketList::new(&chrom_info, chromosome.bucket_size as usize);
-            if skip_cont_facet_check && sf_with_selections.is_empty() {
-                // do no filtering
-                chrom_data.source_intervals = chromosome
-                    .source_intervals
-                    .iter()
-                    .map(|i| {
-                        let interval = &i.values;
-                        FilteredBucket {
-                            start: i.start,
-                            count: interval.len(),
-                            associated_buckets: interval
-                                .iter()
-                                .fold(FxHashSet::default(), |mut acc, f| {
-                                    for bucket in &f.associated_buckets {
-                                        acc.insert(*bucket);
-                                    }
-
-                                    acc
-                                })
-                                .iter()
-                                .fold(Vec::new(), |mut acc, b| {
-                                    acc.push(b.0 as u32);
-                                    acc.push(b.1);
-
-                                    acc
-                                }),
-                        }
-                    })
-                    .collect();
-            } else {
-                for interval in &chromosome.source_intervals {
-                    let sources = &interval.values;
-                    let mut new_source_count: usize = 0;
-                    let mut new_target_buckets = bucket_list.clone();
-
-                    for source in sources {
-                        let mut new_regeffects = false;
-                        for facet in &source.facets {
-                            if skip_disc_facet_check
-                                || selected_sf.iter().all(|sf| !is_disjoint(&facet.0, sf))
-                            {
-                                min_effect = facet.1.min(min_effect);
-                                max_effect = facet.1.max(max_effect);
-                                min_sig = facet.2.min(min_sig);
-                                max_sig = facet.2.max(max_sig);
-
-                                if !new_regeffects
-                                    && (skip_cont_facet_check
-                                        || (facet.1 >= effect_size_interval.0
-                                            && facet.1 <= effect_size_interval.1
-                                            && facet.2 >= sig_interval.0
-                                            && facet.2 <= sig_interval.1))
-                                {
-                                    new_regeffects = true;
-                                }
+                let mut chrom_data = FilteredChromosome {
+                    chrom: chromosome.chrom.clone(),
+                    index: chromosome.index,
+                    bucket_size: chromosome.bucket_size,
+                    target_intervals: Vec::new(),
+                    source_intervals: Vec::new(),
+                };
+                let chrom_info: Vec<(&ChromosomeData, &usize)> =
+                    zip(&data.chromosomes, &data.chrom_lengths).collect();
+                let bucket_list = BucketList::new(&chrom_info, chromosome.bucket_size as usize);
+                if skip_cont_facet_check && sf_with_selections.is_empty() {
+                    // do no filtering
+                    for interval in &chromosome.source_intervals {
+                        let mut associated_bucket = FxHashSet::<BucketLoc>::default();
+                        for feature in &interval.values {
+                            source_ids.insert(feature.id);
+                            associated_bucket.extend(feature.associated_buckets.clone());
+                            for observation in &feature.facets {
+                                reo_ids.insert(observation.reo_id);
                             }
                         }
-                        if new_regeffects {
-                            new_target_buckets.insert_from(&source.associated_buckets);
-                            new_source_count += 1;
-                        }
-                    }
-
-                    if new_source_count > 0 {
                         chrom_data.source_intervals.push(FilteredBucket {
                             start: interval.start,
-                            count: new_source_count,
-                            associated_buckets: new_target_buckets.flat_list(),
-                        })
+                            count: interval.values.len(),
+                            associated_buckets: associated_bucket.iter().fold(
+                                Vec::new(),
+                                |mut acc, b| {
+                                    acc.push(b.chrom as u32);
+                                    acc.push(b.idx);
+
+                                    acc
+                                },
+                            ),
+                        });
                     }
-                }
-            }
+                } else {
+                    for interval in &chromosome.source_intervals {
+                        let sources = &interval.values;
+                        let mut new_source_count: usize = 0;
+                        let mut new_target_buckets = bucket_list.clone();
 
-            if skip_cont_facet_check && tf_with_selections.is_empty() {
-                // do no filtering
-                chrom_data.target_intervals = chromosome
-                    .target_intervals
-                    .iter()
-                    .map(|i| {
-                        let interval = &i.values;
-                        FilteredBucket {
-                            start: i.start,
-                            count: interval.len(),
-                            associated_buckets: interval
-                                .iter()
-                                .fold(FxHashSet::default(), |mut acc, f| {
-                                    for bucket in &f.associated_buckets {
-                                        acc.insert(*bucket);
-                                    }
-
-                                    acc
-                                })
-                                .iter()
-                                .fold(Vec::new(), |mut acc, b| {
-                                    acc.push(b.0 as u32);
-                                    acc.push(b.1);
-
-                                    acc
-                                }),
-                        }
-                    })
-                    .collect();
-            } else {
-                for interval in &chromosome.target_intervals {
-                    let targets = &interval.values;
-                    let mut new_target_count: usize = 0;
-                    let mut new_source_buckets = bucket_list.clone();
-
-                    for target in targets {
-                        let mut new_regeffects = false;
-                        for facet in &target.facets {
-                            if skip_disc_facet_check
-                                || selected_tf.iter().all(|tf| !is_disjoint(&facet.0, tf))
-                            {
-                                min_effect = facet.1.min(min_effect);
-                                max_effect = facet.1.max(max_effect);
-                                min_sig = facet.2.min(min_sig);
-                                max_sig = facet.2.max(max_sig);
-
-                                if !new_regeffects
-                                    && (skip_cont_facet_check
-                                        || (facet.1 >= effect_size_interval.0
-                                            && facet.1 <= effect_size_interval.1
-                                            && facet.2 >= sig_interval.0
-                                            && facet.2 <= sig_interval.1))
+                        for source in sources {
+                            let mut new_regeffects = false;
+                            for facet in &source.facets {
+                                if skip_disc_facet_check
+                                    || selected_sf
+                                        .iter()
+                                        .all(|sf| !is_disjoint(&facet.facet_ids, sf))
                                 {
-                                    new_regeffects = true;
+                                    min_effect = facet.effect_size.min(min_effect);
+                                    max_effect = facet.effect_size.max(max_effect);
+                                    min_sig = facet.significance.min(min_sig);
+                                    max_sig = facet.significance.max(max_sig);
+
+                                    if skip_cont_facet_check
+                                        || (facet.effect_size >= effect_size_interval.0
+                                            && facet.effect_size <= effect_size_interval.1
+                                            && facet.significance >= sig_interval.0
+                                            && facet.significance <= sig_interval.1)
+                                    {
+                                        if !new_regeffects {
+                                            new_regeffects = true;
+                                            source_ids.insert(source.id);
+                                        }
+                                        reo_ids.insert(facet.reo_id);
+                                    }
                                 }
                             }
+                            if new_regeffects {
+                                new_target_buckets.insert_from(&source.associated_buckets);
+                                new_source_count += 1;
+                            }
                         }
-                        if new_regeffects {
-                            new_source_buckets.insert_from(&target.associated_buckets);
-                            new_target_count += 1;
-                        }
-                    }
 
-                    if new_target_count > 0 {
-                        chrom_data.target_intervals.push(FilteredBucket {
-                            start: interval.start,
-                            count: new_target_count,
-                            associated_buckets: new_source_buckets.flat_list(),
-                        })
+                        if new_source_count > 0 {
+                            chrom_data.source_intervals.push(FilteredBucket {
+                                start: interval.start,
+                                count: new_source_count,
+                                associated_buckets: new_target_buckets.flat_list(),
+                            })
+                        }
                     }
                 }
-            }
 
-            return (chrom_data, min_effect, max_effect, min_sig, max_sig);
-        })
+                if skip_cont_facet_check && tf_with_selections.is_empty() {
+                    // do no filtering
+                    for interval in &chromosome.target_intervals {
+                        let mut associated_bucket = FxHashSet::<BucketLoc>::default();
+                        for feature in &interval.values {
+                            target_ids.insert(feature.id);
+                            associated_bucket.extend(feature.associated_buckets.clone());
+                            for observation in &feature.facets {
+                                reo_ids.insert(observation.reo_id);
+                            }
+                        }
+                        chrom_data.target_intervals.push(FilteredBucket {
+                            start: interval.start,
+                            count: interval.values.len(),
+                            associated_buckets: associated_bucket.iter().fold(
+                                Vec::new(),
+                                |mut acc, b| {
+                                    acc.push(b.chrom as u32);
+                                    acc.push(b.idx);
+
+                                    acc
+                                },
+                            ),
+                        });
+                    }
+                } else {
+                    for interval in &chromosome.target_intervals {
+                        let targets = &interval.values;
+                        let mut new_target_count: usize = 0;
+                        let mut new_source_buckets = bucket_list.clone();
+
+                        for target in targets {
+                            let mut new_regeffects = false;
+                            for facet in &target.facets {
+                                if skip_disc_facet_check
+                                    || selected_tf
+                                        .iter()
+                                        .all(|tf| !is_disjoint(&facet.facet_ids, tf))
+                                {
+                                    min_effect = facet.effect_size.min(min_effect);
+                                    max_effect = facet.effect_size.max(max_effect);
+                                    min_sig = facet.significance.min(min_sig);
+                                    max_sig = facet.significance.max(max_sig);
+
+                                    if skip_cont_facet_check
+                                        || (facet.effect_size >= effect_size_interval.0
+                                            && facet.effect_size <= effect_size_interval.1
+                                            && facet.significance >= sig_interval.0
+                                            && facet.significance <= sig_interval.1)
+                                    {
+                                        if !new_regeffects {
+                                            target_ids.insert(target.id);
+                                            new_regeffects = true;
+                                        }
+                                        reo_ids.insert(facet.reo_id);
+                                    }
+                                }
+                            }
+                            if new_regeffects {
+                                new_source_buckets.insert_from(&target.associated_buckets);
+                                new_target_count += 1;
+                            }
+                        }
+
+                        if new_target_count > 0 {
+                            chrom_data.target_intervals.push(FilteredBucket {
+                                start: interval.start,
+                                count: new_target_count,
+                                associated_buckets: new_source_buckets.flat_list(),
+                            })
+                        }
+                    }
+                }
+
+                return (
+                    chrom_data, min_effect, max_effect, min_sig, max_sig, reo_ids, source_ids,
+                    target_ids,
+                );
+            },
+        )
         .collect();
 
     let mut min_effect = f32::INFINITY;
@@ -312,12 +340,31 @@ pub fn filter_coverage_data(filters: &Filter, data: &PyCoverageData) -> PyResult
         max_sig
     };
 
+    let item_sets = filtered_data.iter().fold(
+        [
+            FxHashSet::<DbID>::default(),
+            FxHashSet::<DbID>::default(),
+            FxHashSet::<DbID>::default(),
+        ],
+        |mut acc, data| {
+            acc[0].extend(data.5.clone());
+            acc[1].extend(data.6.clone());
+            acc[2].extend(data.7.clone());
+            acc
+        },
+    );
+
     let new_data = FilteredData {
         chromosomes: filtered_data.into_iter().map(|x| x.0).collect(),
         continuous_intervals: FilterIntervals {
             effect: (min_effect, max_effect),
             sig: (min_sig, max_sig),
         },
+        item_counts: [
+            item_sets[0].len() as u64,
+            item_sets[1].len() as u64,
+            item_sets[2].len() as u64,
+        ],
     };
 
     println!("Time to filter data: {}ms", now.elapsed().as_millis());

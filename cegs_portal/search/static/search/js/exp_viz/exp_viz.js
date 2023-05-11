@@ -21,8 +21,15 @@ const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
 const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
 const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
+const STATE_ITEM_COUNTS = "state-item-counts";
 
-function build_state(coverageData, facets, genomeRenderer, exprAccessionID) {
+function build_state(manifest, genomeRenderer, exprAccessionID) {
+    let coverageData = manifest.chromosomes;
+    let facets = manifest.facets;
+    let default_facets = manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [];
+    let reoCount = manifest.reo_count;
+    let sourceCount = manifest.source_count;
+    let targetCount = manifest.target_count;
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
@@ -36,7 +43,7 @@ function build_state(coverageData, facets, genomeRenderer, exprAccessionID) {
         [STATE_SCALE_Y]: 1,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
-        [STATE_DISCRETE_FACET_VALUES]: [],
+        [STATE_DISCRETE_FACET_VALUES]: default_facets,
         [STATE_COVERAGE_DATA]: coverageData,
         [STATE_ALL_FILTERED]: coverageData,
         [STATE_CONTINUOUS_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
@@ -45,6 +52,7 @@ function build_state(coverageData, facets, genomeRenderer, exprAccessionID) {
         [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
         [STATE_HIGHLIGHT_REGIONS]: {},
         [STATE_SELECTED_EXPERIMENTS]: [exprAccessionID],
+        [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
     });
 
     return state;
@@ -77,6 +85,7 @@ function render(state, genomeRenderer) {
     let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
     let sourceCountInterval = countIntervals.source;
     let targetCountInterval = countIntervals.target;
+    let itemCounts = state.g(STATE_ITEM_COUNTS);
 
     rc(
         g("chrom-data"),
@@ -104,6 +113,9 @@ function render(state, genomeRenderer) {
             title: "Target Count",
         })
     );
+    rc(g("reo-count"), t(`Total Observations: ${itemCounts[0]}`));
+    rc(g("source-count"), t(`Total Sources: ${itemCounts[1]}`));
+    rc(g("target-count"), t(`Total Targets: ${itemCounts[2]}`));
 }
 
 function discreteFilterControls(facets, default_facets) {
@@ -298,12 +310,12 @@ function levelCountInterval(chroms, interval, chromoIndex) {
     return [min, max];
 }
 
-function setFacetControls(state, discreteFacets, default_facets, facets) {
-    cc(discreteFacets);
-    discreteFilterControls(facets, default_facets).forEach((element) => {
-        a(discreteFacets, element);
+function setFacetControls(state, discreteFacetControls, defaultFacets, facets) {
+    cc(discreteFacetControls);
+    discreteFilterControls(facets, defaultFacets).forEach((element) => {
+        a(discreteFacetControls, element);
     });
-    let facetCheckboxes = discreteFacets.querySelectorAll("input[type=checkbox]");
+    let facetCheckboxes = discreteFacetControls.querySelectorAll("input[type=checkbox]");
     facetCheckboxes.forEach((checkbox) => {
         checkbox.addEventListener("change", (_) => {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
@@ -397,7 +409,7 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
 
     const genomeRenderer = new GenomeRenderer(genome);
 
-    let state = build_state(manifest.chromosomes, manifest.facets, genomeRenderer, exprAccessionID);
+    let state = build_state(manifest, genomeRenderer, exprAccessionID);
 
     render(state, genomeRenderer);
 
@@ -477,6 +489,7 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
                         [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig],
                         false
                     );
+                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
                 }
             );
         }, 300)
@@ -497,6 +510,7 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
                         STATE_COVERAGE_DATA,
                         mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
                     );
+                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
                 }
             );
         }, 300)
@@ -538,23 +552,21 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
         render(state, genomeRenderer);
     });
 
-    let discreteFacets = g("chrom-data-discrete-facets");
+    let discreteFacetControls = g("chrom-data-discrete-facets");
 
     state.ac(STATE_FACETS, (s, key) => {
-        setFacetControls(state, discreteFacets, [], s[key]);
+        setFacetControls(state, discreteFacetControls, [], s[key]);
     });
 
-    setFacetControls(
-        state,
-        discreteFacets,
-        manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [],
-        state.g(STATE_FACETS)
-    );
+    setFacetControls(state, discreteFacetControls, state.g(STATE_DISCRETE_FACET_VALUES), state.g(STATE_FACETS));
 
     state.ac(STATE_COVERAGE_DATA, (s, key) => {
         setCountControls(state, s[key]);
     });
 
+    //
+    // Highlight regions
+    //
     let regionReader = new FileReader();
     regionReader.addEventListener(
         "load",
@@ -567,6 +579,9 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
 
     regionUploadInput.addEventListener("change", () => getHighlightRegions(regionUploadInput, regionReader), false);
 
+    //
+    // Data downloads
+    //
     if (loggedIn) {
         let dataDownloadInput = g("dataDownloadInput");
         dataDownloadInput.addEventListener(

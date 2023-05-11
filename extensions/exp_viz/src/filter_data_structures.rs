@@ -1,6 +1,6 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use cov_viz_ds::{Bucket, ChromosomeData, CoverageData, DbID};
+use cov_viz_ds::{BucketLoc, ChromosomeData, CoverageData, DbID};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -86,6 +86,8 @@ pub struct FilteredData {
     pub chromosomes: Vec<FilteredChromosome>,
     #[pyo3(get, set)]
     pub continuous_intervals: FilterIntervals,
+    #[pyo3(get, set)]
+    pub item_counts: [u64; 3],
 }
 
 impl FilteredData {
@@ -103,6 +105,7 @@ impl FilteredData {
                 })
                 .collect(),
             continuous_intervals: FilterIntervals::new(),
+            item_counts: [0, 0, 0],
         }
     }
 }
@@ -139,10 +142,10 @@ impl BucketList {
 
     pub fn insert_from<'a, I>(&mut self, from: I)
     where
-        I: IntoIterator<Item = &'a Bucket>,
+        I: IntoIterator<Item = &'a BucketLoc>,
     {
         for bucket in from {
-            self.insert(bucket.0, bucket.1 as usize);
+            self.insert(bucket.chrom, bucket.idx as usize);
         }
     }
 

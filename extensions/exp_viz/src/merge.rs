@@ -166,7 +166,11 @@ pub fn merge_filtered_data(
     );
 
     Ok(FilteredData {
-        chromosomes: chromosomes,
-        continuous_intervals: continuous_intervals,
+        chromosomes,
+        continuous_intervals,
+        item_counts: result_data
+            .get(0)
+            .and_then(|fd| Some(fd.item_counts))
+            .unwrap_or([1, 2, 3]),
     })
 }
