@@ -13,6 +13,7 @@
         padding: 20px 40px;
         margin-bottom: 20px;
         border-radius: 10px;
+
     }
 
     .profile-table {
@@ -130,60 +131,65 @@
         height: 30px;
     }
 
+    .svg-icon-tab {
+
+
+        fill: currentColor;
+        height: 1em;
+    }
+
     .faded-line {
         border-top: 0.5px solid rgb(133, 139, 146);
 
         margin-bottom: 15px;
     }
 
-
+    .subtype-style {
+        color: gray;
+        font-weight: bold;
+        font-size: x-large;
+        margin-right: 40px;
+        font-style: italic;
+    }
+    .tab-bar {
+        background: #ffffff;
+        border-radius: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    }
 </style>
-
-
-
-
-
-
-
 
 
 {% endblock %} {% block javascript %} {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 {% endblock %}{% block title %}{{ feature_name }}{% endblock %}{% block content %}
-<div>
+
+
+
+
+<!--
+HEADER -->
+
     {% for feature, sources, targets in feature_reos %}
-        <div class="mb-8">
-            <div>
+
+
                 <div style="display: flex; justify-content: space-between; align-items: center">
                     <h1>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
                         </svg>
-                        <span>{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span>({{ feature.ensembl_id }})</span></h1>
+                        <span>{{ feature.name|default:feature.accession_id }} </span>{% if feature.ensembl_id %}<span>({{ feature.ensembl_id }})</span>{% endif %}
 
                     </h1>
+                    {% if feature.feature_subtype %}<div class="subtype-style">Type: {{ feature.feature_subtype }}</div>{% endif %}
                 </div>
-                {% endif %}
-
-
+<!--
                 {% if feature.children.all|length > 0 %}<span><a href="#children-{{ feature.accession_id }}">{{ children_name }}</a></span>{% endif %}
                 {% if feature.closest_features.all|length > 0 %}<span><a href="#closest-features-{{ feature.accession_id }}">Other Nearby Features</a></span>{% endif %}
                 {% if sources.page.object_list|length > 0 %}<span><a href="#source-for-{{ feature.accession_id }}">Source for Regulatory Effect Observations</a></span>{% endif %}
-                {% if targets.page.object_list|length > 0 %}<span><a href="#target-of-{{ feature.accession_id }}">Targeting Regulatory Effect Observations</a></span>{% endif %}
-            </div>
-            {% if feature.feature_subtype %}<div>Type: {{ feature.feature_subtype }}</div>{% endif %}
-            <!-- <table class="data-table">
-                <tr><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
-                <tr>
-                    <td>{{ feature.name|default:feature.accession_id }}</td>
-                    <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
-                    <td>{{ feature.strand }}</td>
-                    <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
-                    <td>{{ feature.get_feature_type_display }}</td>
-                </tr>
-            </table> -->
+                {% if targets.page.object_list|length > 0 %}<span><a href="#target-of-{{ feature.accession_id }}">Targeting Regulatory Effect Observations</a></span>{% endif %} -->
 
-
-
+<!-- PROFILE TABLE -->
 
             <div class="container">
                 <table class="profile-table">
@@ -197,93 +203,220 @@
                 </table>
             </div>
 
-            {% if feature.children.all|length > 0 %}
-            <div class="mb-8">
-            <div class="container">  <a name="children-{{ feature.accession_id }}"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-diagram-3-fill svg-icon-tree" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"/>
-                      </svg>
-                    Children
-                </div>
-                <div class="faded-line"></div>
-                <table class="data-table">
-                    <tr><th>ENSEMBL ID</th><th>Type</th><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-                    {% for child in feature.children.all %}
-                    <tr>
-                        <td>{{ child.ensembl_id }}</td>
-                        <td>{{ child.get_feature_type_display }}</td>
-                        <td>{{ child.name }}</td>
-                        <td><span>{{ child.chrom_name }}</span>: <span>{{ child.location.lower }}-{{ child.location.upper|add:"-1" }}</span></td>
-                        <td>{{ child.strand }}</td>
-                        <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-                </div>
-            </div>
-            {% endif %}
-        </div>
     {% endfor %}
 
-    {% for feature in features %}
-        {% if feature.closest_features.all|length > 0 %}
-        <div class="container">
-            <a name="closest-features-{{ feature.accession_id }}"></a>
-            <div class="table-title" style="display: flex; align-items: center; justify-content: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
-                </svg>
 
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
-                </svg>
-                Nearby DNA Features
-            </div>
-            <div class="faded-line"></div>
-            <!-- <div class="text-xl font-bold">Nearby DNA Features</div> -->
-            <table class="data-table">
-                <tr><th>ID</th><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-                {% for close_feature in feature.closest_features.all %}
-                    <tr>
-                        <td><a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a></td>
-                        <td>{{ close_feature.get_feature_type_display }}</td>
-                        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
-                        <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower }}-{{ close_feature.location.upper|add:"-1" }}</span></td>
-                        <td>{{ close_feature.strand|default:"N/A" }}</td>
-                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
-                    </tr>
+<!--Tabs navigation-->
+
+    <div class="min-w-full">
+        <div class="flex flex-column justify-center">
+            <ul
+                class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+                role="tablist"
+                data-te-nav-ref
+            >
+                {% for feature, sources, targets in feature_reos %}
+                {% if feature.children.all|length > 0 %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-coverage"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-coverage"
+                        data-te-nav-active
+                        role="tab"
+                        aria-controls="tabs-coverage"
+                        aria-selected="true"
+                        >Children <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-diagram-3-fill svg-icon-tab" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if sources.page.object_list|length > 0 or targets.page.object_list|length > 0 %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-qc-graphs"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                        id="tabs-qc-graphs-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-qc-graphs"
+                        role="tab"
+                        aria-controls="tabs-qc-graphs"
+                        aria-selected="false"
+                        >Source Effects <i class="bi bi-file-bar-graph-fill"></i
+                    ></a>
+                </li>
+                {% endif %}
                 {% endfor %}
-            </table>
-        </div>
-        {% endif %}
-    {% endfor %}
 
-    {% for feature, sources, targets in feature_reos %}
-        {% if sources.page.object_list|length > 0 %}
-        <div class="container">
-            <a name="source-for-{{ feature.accession_id }}"></a>
-            {% include "search/v1/partials/_paged_nav.html" with data=sources.page no_data="" container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
-        </div>
-        {% endif %}
-        {% if targets.page.object_list|length > 0 %}
-        <div class="container">
-            <a name="target-of-{{ feature.accession_id }}"></a>
-            {% include "search/v1/partials/_paged_nav.html" with data=targets.page no_data="" container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
-        </div>
-        {% endif %}
-    {% endfor %}
+                {% for feature in features %}
+                {% if feature.closest_features.all|length > 0 %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-details"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-details-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-details"
+                        role="tab"
+                        aria-controls="tabs-details"
+                        aria-selected="false"
+                        >Nearby DNA Features<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon-tab ml-2"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                        </svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon-tab ml-2"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                {% endfor %}
 
-        <div class="container">
-        <a name="near_features"></a>
-        <div class="text-xl font-bold">More Nearby DNA Features</div>
-        <div class="text-s font-bold">Measured from each end of the gene</div>
-        <form>
-            <label for="feature-dist">Feature Distance:</label>
-            <input type="text" id="feature-dist" value="1000"/>
-            <input type="button" id="feature-dist-submit" value="Find Features" class="search-button self-end"/>
-        </form>
+                <li role="presentation">
+                    <a
+                        href="#tabs-files"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                        id="tabs-files-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-files"
+                        role="tab"
+                        aria-controls="tabs-files"
+                        aria-selected="false"
+                        >More Nearby DNA Features <i class="bi bi-folder-symlink-fill"></i
+                    ></a>
+                </li>
+            </ul>
         </div>
-        <table id="dnafeature" style="display:none;"></table>
+        <div
+            class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-coverage"
+            role="tabpanel"
+            aria-labelledby="tabs-coverage-tab"
+            data-te-tab-active
+        >
+
+        <!-- Children -->
+                {% for feature, sources, targets in feature_reos %}
+                    {% if feature.children.all|length > 0 %}
+                    <div class="mb-8">
+                        <div class="container">  <a name="children-{{ feature.accession_id }}"></a>
+                            <div class="table-title" style="display: flex; align-items: center; justify-content: center;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-diagram-3-fill svg-icon-tree" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"/>
+                                </svg>
+                                Children
+                            </div>
+                            <div class="faded-line"></div>
+                            <table class="data-table">
+                                <tr><th>ENSEMBL ID</th><th>Type</th><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+                                {% for child in feature.children.all %}
+                                <tr>
+                                    <td>{{ child.ensembl_id }}</td>
+                                    <td>{{ child.get_feature_type_display }}</td>
+                                    <td>{{ child.name }}</td>
+                                    <td><span>{{ child.chrom_name }}</span>: <span>{{ child.location.lower }}-{{ child.location.upper|add:"-1" }}</span></td>
+                                    <td>{{ child.strand }}</td>
+                                    <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+
+
+
+
+
+            </div>
+
+            <div
+                class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+                id="tabs-details"
+                role="tabpanel"
+                aria-labelledby="tabs-details-tab"
+            >
+
+                    {% for feature in features %}
+                        {% if feature.closest_features.all|length > 0 %}
+                            <div class="container">
+                                <a name="closest-features-{{ feature.accession_id }}"></a>
+                                    <div class="table-title" style="display: flex; align-items: center; justify-content: center;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                                        </svg>
+
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                                        </svg>
+                                        Nearby DNA Features
+                                    </div>
+                                <div class="faded-line"></div>
+                                <table class="data-table">
+                                    <tr><th>ID</th><th>Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+                                    {% for close_feature in feature.closest_features.all %}
+                                        <tr>
+                                            <td><a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a></td>
+                                            <td>{{ close_feature.get_feature_type_display }}</td>
+                                            <td>{{ close_feature.cell_line|default:"N/A" }}</td>
+                                            <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower }}-{{ close_feature.location.upper|add:"-1" }}</span></td>
+                                            <td>{{ close_feature.strand|default:"N/A" }}</td>
+                                            <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+            </div>
+
+            <div
+                class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+                id="tabs-files"
+                role="tabpanel"
+                aria-labelledby="tabs-files-tab"
+            >
+
+                    <div class="container">
+                        <a name="near_features"></a>
+                        <div class="text-xl font-bold">More Nearby DNA Features</div>
+                        <div class="text-s font-bold">Measured from each end of the gene</div>
+                        <form>
+                            <label for="feature-dist">Feature Distance:</label>
+                            <input type="text" id="feature-dist" value="1000"/>
+                            <input type="button" id="feature-dist-submit" value="Find Features" class="search-button self-end"/>
+                        </form>
+                    </div>
+                    <table id="dnafeature"></table>
+
+            </div>
+
+            <div
+                class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+                id="tabs-qc-graphs"
+                role="tabpanel"
+                aria-labelledby="tabs-qc-graphs-tab"
+            >
+                    {% for feature, sources, targets in feature_reos %}
+                        {% if sources.page.object_list|length > 0 %}
+                        <div class="container">
+                            <a name="source-for-{{ feature.accession_id }}"></a>
+                            {% include "search/v1/partials/_paged_nav.html" with data=sources.page container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
+                        </div>
+                        {% endif %}
+                        {% if targets.page.object_list|length > 0 %}
+                        <div class="container">
+                            <a name="target-of-{{ feature.accession_id }}"></a>
+                            {% include "search/v1/partials/_paged_nav.html" with data=targets.page container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+
+            </div>
     </div>
+
+
+
 
 {% endblock content %}
 
@@ -377,4 +510,5 @@
 
 
     </script>
+    <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

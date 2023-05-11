@@ -118,7 +118,7 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             );
         }
     }
-    let tableContainer = e("div", {class: "container"}, [newTable]);
+    let tableContainer = e("div", {class: ""}, [newTable]);
     return tableContainer;
 }
 
