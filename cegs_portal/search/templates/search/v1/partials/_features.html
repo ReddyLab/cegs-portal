@@ -2,7 +2,7 @@
         <table class="data-table">
             <tr><th>ID</th><th>Name</th><th>Feature Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
             {% for feature in features %}
-                <tr class="{% cycle 'bg-blue-100' 'bg-blue-50' %}">
+                <tr class="data-row">
                     <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">{{ feature.accession_id }}</a></td>
                     <td>{{ feature.name|default:"N/A" }}</a></td>
                     <td>{{ feature.get_feature_type_display }}</td>

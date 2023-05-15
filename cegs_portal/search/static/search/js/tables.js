@@ -19,7 +19,7 @@ function featureTable(features, regionID = "dnafeature") {
     ]);
     for (const feature of features) {
         newTable.append(
-            e("tr", [
+            e("tr", {class: "data-row"}, [
                 e("td", e("a", {href: `/search/feature/accession/${feature.accession_id}`}, feature.accession_id)),
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
