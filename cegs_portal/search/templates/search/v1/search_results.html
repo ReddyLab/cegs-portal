@@ -6,13 +6,76 @@
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 <style>
-g.tick > text {
-    font-size: 2em;
-}
+    .content-container {
+        background: #ffffff;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px 40px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
 
-svg > g > text {
-    font-size: 2em;
-}
+    g.tick > text {
+        font-size: 2em;
+    }
+
+    svg > g > text {
+        font-size: 2em;
+    }
+
+    .header {
+        font-family: sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+    }
+
+    .header svg {
+        fill: currentColor;
+        height: 1em;
+        display: inline;
+    }
+
+    .search-button {
+        margin-left: 5px;
+        background-color: #ffffff !important;
+        margin-bottom: 10px;
+    }
+
+    .search-button:hover {
+        background-color: rgb(229 231 235) !important;
+    }
+
+    #id_query {
+        border-radius: 0.5rem;
+        height: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .facet-svg {
+        fill: currentColor;
+        height: 1em;
+    }
+
+    table.data-table th {
+        padding: 12px;
+        border-bottom: 1px solid lightgrey;
+    }
+
+    .pagination {
+        margin-top: 10px;
+        font-family: Helvetica, Roboto, sans-serif;
+    }
+
+    .pagination a,
+    .pagination a:visited {
+        color: #3490dc;
+    }
 </style>
 {% endblock %}
 {% block javascript %}
@@ -24,9 +87,55 @@ svg > g > text {
 <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
 {% endblock %}
 {% block content %}
-    <div class="flex flex-row">
-        <div id="filter-bar" class="min-w-fit grid grid-cols-1">
-            <div id="facets" class="w-60">
+    <div class="grow flex flex-col items-center min-w-full">
+        <div class="flex flex-row justify-around search-wrapper">
+            <div class="header">
+                <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 512 512">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                </svg>
+                Search Results
+            </div>
+            {% if location %}
+            <div class="header">
+                <div id="loc-header">{{ location.chromo }}: {{ location.range.lower }}-{{ location.range.upper }}</div>
+            </div>
+            {% endif %}
+            <form action="{% url 'search:results' %}" method="get" class="flex items-center">
+                {{ form }}
+                <input type="submit" value="Search Again" class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm">
+            </form>
+        </div>
+
+        <div>
+            {% if "IGNORE_LOC" in warnings %}
+            <div class="text-red-700">The location in the query has been ignored.</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
+            {% endif %}
+            {% if "TOO_MANY_LOCS" in warnings %}
+            <div class="text-red-700">The query contains more than one location; only the first location is used.</div>
+            {% endif %}
+            {% if "IGNORE_TERMS" in warnings %}
+            <div class="text-red-700">Gene IDs or names in the query were ignored</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if location and assembly %}
+    <div class="p-2" id="genoverse"></div>
+    {% endif %}
+
+    <div class="flex flex-row items-start gap-x-10">
+        <div class="content-container basis-1/4">
+            <div class="w-60">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
+                        <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                    </svg>
+                    <div class="text-xl font-bold text-slate-500">Filter Facets</div>
+                </div>
+                <div class="faded-line"></div>
                 {% for facet in facets.all %}
                     <fieldset name="facetfield">
                         <legend class="font-bold">{{ facet.name }}</legend>
@@ -42,38 +151,14 @@ svg > g > text {
                 {% endfor %}
             </div>
         </div>
-        <div id="main-content" class="min-w-content">
-            <div class="flex search-wrapper">
-                <div class="text-2xl m-2 font-bold self-end align-baseline">Results</div>
-                <div class="flex-grow"></div>
-                <form action="{% url 'search:results' %}" method="get" class="search">
-                    {{ form }}
-                    <input type="submit" value="Search Again" class="search-button self-end">
-                </form>
-            </div>
-            {% if "IGNORE_LOC" in warnings %}
-            <div class="text-red-700">The location in the query has been ignored.</div>
-            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
-            {% endif %}
-            {% if "TOO_MANY_LOCS" in warnings %}
-            <div class="text-red-700">The query contains more than one location; only the first location is used.</div>
-            {% endif %}
-            {% if "IGNORE_TERMS" in warnings %}
-            <div class="text-red-700">Gene IDs or names in the query were ignored</div>
-            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
-            {% endif %}
-            {% if location %}
-            <div id="loc-header" class="text-2xl font-bold my-4">{{ location.chromo }}: {{ location.range.lower }}-{{ location.range.upper }}</div>
-            {% endif %}
-            {% if location and assembly %}
-            <div class="p-2" id="genoverse"></div>
-            {% endif %}
-            {% switch "effect_plot" %}
-            <div id="plot"></div>
-            {% endswitch %}
-            {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="feature_page" table="search/v1/partials/_features.html" %}
+        <div class="content-container">
+        {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="feature_page" table="search/v1/partials/_features.html" %}
         </div>
     </div>
+
+    {% switch "effect_plot" %}
+    <div id="plot"></div>
+    {% endswitch %}
 {% endblock %}
 {% block inline_javascript %}
     <script type="module">
