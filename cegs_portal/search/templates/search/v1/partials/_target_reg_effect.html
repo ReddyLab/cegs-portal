@@ -1,6 +1,52 @@
 <style>
 
+table.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+table.data-table th {
+  padding: 12px;
+  text-align: left;
+  background-color: #ddd;
+  color: gray;
+  font-weight: bold;
+}
+table.data-table th:first-child,
+table.data-table th:nth-child(5) {
+  border-top-left-radius: 10px 50%;
+  border-bottom-left-radius: 10px 50%;
+}
+table.data-table th:nth-child(4),
+table.data-table th:last-child {
+  border-top-right-radius: 10px 50%;
+  border-bottom-right-radius: 10px 50%;
+}
 
+table.data-table th:nth-child(2) {
+  background-color: #b7b5b5;
+  color: white;
+}
+
+table.data-table th:nth-child(6) {
+  background-color: #b7b5b5;
+  color: white;
+}
+
+table.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid lightgrey;
+}
+table.data-table tr:hover {
+  background-color: #ddd;
+}
+table.data-table a,
+table.data-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+
+
+}
 
     .table-title,
     .svg-icon {
@@ -42,7 +88,7 @@
         Targeting Regulatory Effect Observations
     </div>
     <div class="faded-line"></div>
-    <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
+    <tr><th>Accession ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
     {% for regeffect in features %}
         {% for re_source in regeffect.sources.all %}
         <tr>

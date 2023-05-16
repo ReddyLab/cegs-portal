@@ -7,7 +7,7 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Name"),
             e("th", "Feature Type"),
             e("th", "Cell Line"),
@@ -51,7 +51,7 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
@@ -88,7 +88,7 @@ function reTable(regeffects, regionID = "regeffect") {
 function reTargetTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
