@@ -175,12 +175,13 @@ def write_experiment_data_csv(experiment_data, output_file):
 
 
 def output_experiment_data_list(
+    user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
     experiments: list[str],
     analyses: list[str],
     data_source: ReoDataSource,
 ) -> list[ExperimentDataJson]:
-    experiment_data = retrieve_experiment_data(regions, experiments, analyses, Facets(), data_source)
+    experiment_data = retrieve_experiment_data(user_experiments, regions, experiments, analyses, Facets(), data_source)
     exp_data_list = []
     for row in gen_output_rows(experiment_data):
         split_target_info = [target.split(":") for target in row[1]]
@@ -221,7 +222,9 @@ def output_experiment_data_csv(
 ):
     experiment_data_info = ExperimentData(user=user, filename=output_filename)
     experiment_data_info.save()
-    experiment_data = retrieve_experiment_data(regions, experiments, analyses, facets, data_source)
+    experiment_data = retrieve_experiment_data(
+        user.all_experiments(), regions, experiments, analyses, facets, data_source
+    )
     full_output_path = os.path.join(EXPR_DATA_BASE_PATH, output_filename)
     with open(full_output_path, "w", encoding="utf-8") as output_file:
         write_experiment_data_csv(experiment_data, output_file)
@@ -231,32 +234,46 @@ def output_experiment_data_csv(
 
 
 def retrieve_experiment_data(
+    user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
     experiments: list[str],
     analyses: list[str],
     facets: Facets,
     data_source: ReoDataSource,
 ):
+    where = r"""WHERE (reo_sources_targets.archived = false AND (reo_sources_targets.public = true OR
+    reo_sources_targets.reo_experiment = ANY(%s)))"""
+    match data_source:
+        case ReoDataSource.EVERYTHING:
+            inputs = [[user_experiments]]
+        case ReoDataSource.SOURCES | ReoDataSource.TARGETS | ReoDataSource.BOTH:
+            inputs = [[user_experiments] for _ in regions]
+        case _:
+            raise InvalidDataSource()
+
     match data_source:
         case ReoDataSource.SOURCES:
-            where = r"""WHERE reo_sources_targets.source_chrom = %s
-                            AND reo_sources_targets.source_loc && %s"""
-            inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
+            where = f"""{where} AND (reo_sources_targets.source_chrom = %s
+                            AND reo_sources_targets.source_loc && %s)"""
+            for i, (chrom, start, end) in zip(inputs, regions):
+                i.append(chrom)
+                i.append(NumericRange(start, end))
         case ReoDataSource.TARGETS:
-            where = r"""WHERE reo_sources_targets.target_chrom = %s
-                            AND reo_sources_targets.target_loc && %s"""
-            inputs = [[chrom, NumericRange(start, end)] for chrom, start, end in regions]
+            where = f"""{where} AND (reo_sources_targets.target_chrom = %s
+                            AND reo_sources_targets.target_loc && %s)"""
+            for i, (chrom, start, end) in zip(inputs, regions):
+                i.append(chrom)
+                i.append(NumericRange(start, end))
         case ReoDataSource.BOTH:
-            where = r"""WHERE ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
+            where = f"""{where} AND ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
                             OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s))"""
-            inputs = [
-                [chrom, NumericRange(start, end), chrom, NumericRange(start, end)] for chrom, start, end in regions
-            ]
+            for i, (chrom, start, end) in zip(inputs, regions):
+                i.append(chrom)
+                i.append(NumericRange(start, end))
+                i.append(chrom)
+                i.append(NumericRange(start, end))
         case ReoDataSource.EVERYTHING:
-            # Including "true" where is kind of a hack to avoid complicated logic around whether to start
-            # later additions to the where clause with "AND"
-            where = "WHERE true"
-            inputs = [[]]
+            pass
         case _:
             raise InvalidDataSource()
 
@@ -311,7 +328,6 @@ def retrieve_experiment_data(
 
         for where_params in inputs:
             cursor.execute(query, where_params)
-            print(cursor.query)
             experiment_data.update(cursor.fetchall())
     return experiment_data
 

@@ -152,7 +152,7 @@
             </div>
         </div>
         <div class="content-container">
-        {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="feature_page" table="search/v1/partials/_features.html" %}
+        {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" container_id="dnafeature" table="search/v1/partials/_sig_reg_effects.html" %}
         </div>
     </div>
 
@@ -192,13 +192,15 @@
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
-        let featureURL = function(chromosome, start, end, facets=[]) {
+        {% comment %}
+        let sigReoURL = function(chromosome, start, end, facets=[]) {
             let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&');
-            return `/search/featureloc/${chromosome}/${start}/${end}?{% if assembly %}assembly={{ assembly }}{% endif %}&search_type=overlap&feature_type=search_results&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+            return `/get_expr/location?region=${chromosome}:${start}-${end}`;
         }
 
-        {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
+        {% include "search/v1/partials/_paged_nav_js.html" with data=sig_reg_effects no_data="No Relevant Reg Effect Observations Found" container_id="dnafeature" prefix="reo" page_query="reo_page" url_function="_ => sigReoURL(chromo, start, end, facets)" %}
+        {% endcomment %}
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 

@@ -1,0 +1,8 @@
+{% if data|length > 0 %}
+<div id="{{ container_id }}" class="my-4">
+    <div class="text-xl font-bold">{{ name }}</div>
+    {% include table with rows=data %}
+</div>
+{% else %}
+<div id="{{ container_id }}">{{ no_data }}</div>
+{% endif %}

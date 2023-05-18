@@ -24,8 +24,7 @@ def cleanup_test_files():
         default_storage.delete(os.path.join(EXPR_DATA_DIR, file))
 
 
-@pytest.fixture
-def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
+def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
     experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
     analysis = experiment.analyses.first()
     facet_source = FacetValueFactory()
@@ -97,3 +96,13 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
     )
     ReoSourcesTargets.refresh_view()
     return (effect_source, effect_target, effect_both, facet_source, facet_target, facet_both, experiment)
+
+
+@pytest.fixture
+def reg_effects():
+    return _reg_effects()
+
+
+@pytest.fixture
+def private_reg_effects():
+    return _reg_effects(public=False)

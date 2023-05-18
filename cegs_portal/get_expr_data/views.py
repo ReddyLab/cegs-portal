@@ -58,8 +58,6 @@ def try_process_bed(bed_file) -> LocList:
 def get_experiments_analyses(request) -> list[str]:
     experiments = request.GET.getlist("expr", [])
     analyses = request.GET.getlist("an", [])
-    if len(experiments) == 0 and len(analyses) == 0:
-        raise Http400("Invalid request; must specify at least one experiment or analysis by accession id")
 
     if not all(validate_expr(e) for e in experiments):
         raise Http400("Invalid request; invalid experiment id")
@@ -140,7 +138,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             experiments, analyses = get_experiments_analyses(request)
             region = get_region(request)
             data_source = get_data_source(request)
-            if region is None and data_source != ReoDataSource.EVERYTHING:
+            if region is not None and data_source == ReoDataSource.EVERYTHING:
                 raise Http400("Specifying regions and asking for everything are mutually exclusive")
         except Http400 as error:
             raise BadRequest() from error
@@ -154,7 +152,12 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
         if region is not None and region[2] - region[1] > MAX_REGION_SIZE:
             raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
-        data = output_experiment_data_list([region], experiments, analyses, data_source)
+        if request.user.is_anonymous:
+            user_experiments = []
+        else:
+            user_experiments = request.user.all_experiments()
+
+        data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source)
         return JsonResponse({"experiment data": data})
 
 
@@ -167,6 +170,9 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             experiments, analyses = get_experiments_analyses(request)
+            if len(experiments) == 0 and len(analyses) == 0:
+                raise Http400("Invalid request; must specify at least one experiment or analysis by accession id")
+
             regions = get_regions_file(request)
             data_source = get_data_source(request)
             facets = get_facets(request)

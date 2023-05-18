@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL("DROP MATERIALIZED VIEW IF EXISTS reo_sources_targets"),
+        migrations.RunSQL("DROP MATERIALIZED VIEW IF EXISTS reo_sources_targets", ""),
         migrations.RunSQL(
             """CREATE MATERIALIZED VIEW reo_sources_targets AS
                 SELECT sr.id AS reo_id,
