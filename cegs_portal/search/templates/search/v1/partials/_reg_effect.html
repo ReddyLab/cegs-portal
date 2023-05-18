@@ -1,3 +1,4 @@
+{% load humanize %}
 <style>
     .container {
         background: #ffffff;
@@ -86,6 +87,9 @@
     }
 </style>
 
+
+
+
 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="svg-icon">
         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -105,6 +109,7 @@
         <th>Significance</th>
         <th>Experiment</th>
         <th>Target Gene</th>
+        <th>Target Gene Location</th>
     </tr>
     {% for regeffect in features %} {% for re_target in regeffect.targets.all %}
     <tr>
@@ -129,6 +134,9 @@
         {% endif %}
         <td class="target_name">
             <a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a>
+        </td>
+        <td>
+            <span>{{ re_target.chrom_name }}</span>: <span>{{ re_target.location.lower|intcomma }}-{{ re_target.location.upper|add:"-1"|intcomma }}</span>
         </td>
     </tr>
     {% empty %}

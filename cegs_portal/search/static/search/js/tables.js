@@ -15,6 +15,7 @@ function featureTable(features, regionID = "dnafeature") {
             e("th", "Strand"),
             e("th", "Closest Gene"),
             e("th", "Reference Genome"),
+            e("th", "Parent"),
         ]),
     ]);
     for (const feature of features) {
@@ -37,6 +38,17 @@ function featureTable(features, regionID = "dnafeature") {
                         : "N/A"
                 ),
                 e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`),
+                e(
+                    "td",
+                    feature.parent_accession_id
+                      ? e(
+                          "a",
+                          { href: `/search/feature/accession/${feature.parent_accession_id}` },
+                          feature.parent_accession_id
+                        )
+                      : "N/A"
+                  )
+
             ])
         );
     }

@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+{% extends "base.html" %} {% load static i18n %} {% load humanize %} {% block css %} {{ block.super }}
 <style>
     /* .container {
         background-color: white;
@@ -84,7 +84,9 @@
   border-bottom-right-radius: 10px 50%;
 }
 
-.table.data-table th:nth-child(2) {
+.table.data-table th:nth-child(2),
+.table.data-table th:nth-child(9)
+ {
   background-color: #b7b5b5;
   color: white;
 }
@@ -206,7 +208,7 @@ HEADER -->
                 <table class="profile-table">
                     <tr><th>Location</th><th>Strand</th><th>Reference Genome</th><th>Feature Type</th></tr>
                     <tr>
-                        <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
+                        <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span></td>
                         <td>{{ feature.strand }}</td>
                         <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                         <td>{{ feature.get_feature_type_display }}</td>

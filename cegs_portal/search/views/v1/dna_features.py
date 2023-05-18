@@ -61,12 +61,18 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         for feature in data.all():
-            sources = RegEffectSearch.source_search(feature.accession_id)
+            sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             sources = Paginator(sources, 20)
             sources_page = sources.get_page(1)
-            targets = RegEffectSearch.target_search(feature.accession_id)
+            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
             targets = Paginator(targets, 20)
             targets_page = targets.get_page(1)
+
+
+            # print("sources_page:", sources_page)
+            # print("targets_page:", targets_page)
+
+
             feature_reos.append(
                 (
                     feature,
@@ -75,7 +81,9 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 )
             )
         return super().get(
-            request, options, {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos}
+            request,
+            options,
+            {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos},
         )
 
     def get_data(self, options, id_type, feature_id):
@@ -176,3 +184,6 @@ class DNAFeatureLoc(TemplateJsonView):
             raise Http400(e)
 
         return features
+
+
+
