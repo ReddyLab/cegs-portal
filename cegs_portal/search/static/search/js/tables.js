@@ -25,7 +25,8 @@ function featureTable(features, regionID = "dnafeature") {
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
                 e("td", feature.cell_line || "None"),
-                e("td", [e("span", feature.chr), ": ", e("span", `${feature.start}-${feature.end}`)]),
+                e("td", [e("span", feature.chr), ": ", e("span", [`${feature.start}-`, e("br"), `${feature.end}`])
+]),
                 e("td", feature.strand || "None"),
                 e(
                     "td",
@@ -33,7 +34,7 @@ function featureTable(features, regionID = "dnafeature") {
                         ? e(
                               "a",
                               {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`},
-                              `${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})`
+                              `${feature.closest_gene_name}`
                           )
                         : "N/A"
                 ),
