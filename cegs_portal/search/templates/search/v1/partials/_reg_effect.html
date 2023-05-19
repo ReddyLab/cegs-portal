@@ -27,7 +27,7 @@
         color: gray;
         font-weight: bold;
     }
-    /* .reg_data-table th:first-child,
+    .reg_data-table th:first-child,
     .reg_data-table th:nth-child(5) {
         border-top-left-radius: 10px 50%;
         border-bottom-left-radius: 10px 50%;
@@ -36,7 +36,7 @@
     .reg_data-table th:last-child {
         border-top-right-radius: 10px 50%;
         border-bottom-right-radius: 10px 50%;
-    } */
+    }
 
     .reg_data-table th:nth-child(2) {
         background-color: #b7b5b5;
@@ -134,7 +134,7 @@
         </td>
         <td>
             <span>{{ re_target.chrom_name }}</span>:
-            <span>{{ re_target.location.lower|intcomma }}-{{ re_target.location.upper|add:"-1"|intcomma }}</span>
+            <span>{{ re_target.location.lower|intcomma }} - {{ re_target.location.upper|add:"-1"|intcomma }}</span>
         </td>
     </tr>
     {% empty %}
