@@ -61,78 +61,78 @@
         height: 1em;
     }
 
-    .table.data-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-family: Arial, sans-serif;
-}
-.table.data-table th {
-  padding: 12px;
-  text-align: left;
-  background-color: #ddd;
-  color: gray;
-  font-weight: bold;
-}
-.table.data-table th:first-child,
-.table.data-table th:nth-child(4) {
-  border-top-left-radius: 10px 50%;
-  border-bottom-left-radius: 10px 50%;
-}
-.table.data-table th:nth-child(3),
-.table.data-table th:last-child {
-  border-top-right-radius: 10px 50%;
-  border-bottom-right-radius: 10px 50%;
-}
-
-.table.data-table th:nth-child(2),
-.table.data-table th:nth-child(9)
- {
-  background-color: #b7b5b5;
-  color: white;
-}
-
-.table.data-table th:nth-child(6) {
-  background-color: #b7b5b5;
-  color: white;
-}
-
-.table.data-table td {
-  padding: 12px;
-  border-bottom: 1px solid lightgrey;
-}
-.table.data-table tr:hover {
-  background-color: #ddd;
-}
-.table.data-table a,
-.table.data-table a:visited {
-  color: #3490dc;
-  text-decoration: none;
-  /* font-weight: bold; */
-}
-
-.table-title {
-        text-align: center;
-        font-family: Arial, sans-serif;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: rgb(107, 107, 107);
+    table.data-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, sans-serif;
+    }
+    table.data-table th {
+    padding: 12px;
+    text-align: left;
+    background-color: #ddd;
+    color: gray;
+    font-weight: bold;
+    }
+    table.data-table th:first-child,
+    table.data-table th:nth-child(4) {
+    border-top-left-radius: 10px 50%;
+    border-bottom-left-radius: 10px 50%;
+    }
+    table.data-table th:nth-child(3),
+    table.data-table th:last-child {
+    border-top-right-radius: 10px 50%;
+    border-bottom-right-radius: 10px 50%;
     }
 
-.table-title,
-.svg-icon {
-        margin-right: 10px;
-        fill: currentColor;
-        height: 1em;
+    table.data-table th:nth-child(2),
+    table.data-table th:nth-child(9)
+    {
+    background-color: #b7b5b5;
+    color: white;
     }
 
-
-.svg-icon-tree {
-        margin-right: 10px;
-        fill: currentColor;
-        width: 30px;
-        height: 30px;
+    table.data-table th:nth-child(6) {
+    background-color: #b7b5b5;
+    color: white;
     }
+
+    table.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid lightgrey;
+    }
+    table.data-table tr:hover {
+    background-color: #ddd;
+    }
+    table.data-table a,
+    table.data-table a:visited {
+    color: #3490dc;
+    text-decoration: none;
+    /* font-weight: bold; */
+    }
+
+    .table-title {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: rgb(107, 107, 107);
+        }
+
+    .table-title,
+    .svg-icon {
+            margin-right: 10px;
+            fill: currentColor;
+            height: 1em;
+        }
+
+
+    .svg-icon-tree {
+            margin-right: 10px;
+            fill: currentColor;
+            width: 30px;
+            height: 30px;
+        }
 
     .svg-icon-tab {
 
@@ -229,7 +229,7 @@ HEADER -->
                 data-te-nav-ref
             >
                 {% for feature, sources, targets in feature_reos %}
-                <!-- {% if feature.children.all|length > 0 %}
+                {% if feature.children.all|length > 0 %}
                 <li role="presentation">
                     <a
                         href="#tabs-coverage"
@@ -243,7 +243,7 @@ HEADER -->
                         >Children<i class="bi bi-diagram-3-fill"></i>
                     </a>
                 </li>
-                {% endif %} -->
+                {% endif %}
 
 
 
@@ -309,7 +309,7 @@ HEADER -->
         >
 
         <!-- Children -->
-                <!-- {% for feature, sources, targets in feature_reos %}
+                {% for feature, sources, targets in feature_reos %}
                     {% if feature.children.all|length > 0 %}
                     <div class="mb-8">
                         <div class="container">  <a name="children-{{ feature.accession_id }}"></a>
@@ -320,24 +320,24 @@ HEADER -->
                                 Children
                             </div>
                             <div class="faded-line"></div>
-                            <table class="data-table">
-                                <tr><th>ENSEMBL ID</th><th>Type</th><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
-                                {% for child in feature.children.all %}
-                                <tr>
-                                    <td>{{ child.ensembl_id }}</td>
-                                    <td>{{ child.get_feature_type_display }}</td>
-                                    <td>{{ child.name }}</td>
-                                    <td><span>{{ child.chrom_name }}</span>: <span>{{ child.location.lower }}-{{ child.location.upper|add:"-1" }}</span></td>
-                                    <td>{{ child.strand }}</td>
-                                    <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </table>
-                            </div>
+                                <table class="data-table">
+                                    <tr><th>ENSEMBL ID</th><th>Type</th><th>Symbol</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+                                    {% for child in feature.children.all %}
+                                    <tr>
+                                        <td>{{ child.ensembl_id }}</td>
+                                        <td>{{ child.get_feature_type_display }}</td>
+                                        <td>{{ child.name }}</td>
+                                        <td><span>{{ child.chrom_name }}</span>: <span>{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}</span></td>
+                                        <td>{{ child.strand }}</td>
+                                        <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+
                         </div>
                     </div>
                     {% endif %}
-                {% endfor %} -->
+                {% endfor %}
 
 
 
@@ -373,7 +373,7 @@ HEADER -->
                                             <td><a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a></td>
                                             <td>{{ close_feature.get_feature_type_display }}</td>
                                             <td>{{ close_feature.cell_line|default:"N/A" }}</td>
-                                            <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower }}-{{ close_feature.location.upper|add:"-1" }}</span></td>
+                                            <td><span>{{ close_feature.chrom_name }}</span>: <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span></td>
                                             <td>{{ close_feature.strand|default:"N/A" }}</td>
                                             <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
                                         </tr>
