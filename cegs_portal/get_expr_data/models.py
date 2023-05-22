@@ -38,30 +38,29 @@ class ReoSourcesTargets(models.Model):
     def refresh_view(cls):
         with connection.cursor() as cursor:
             # Drop indices because refreshing the view may take a long time if they already exist
-            cursor.execute("DROP INDEX reo_sources_targets.idx_reo_accession")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_reo_experiment")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_reo_analysis")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_source_chrom")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_source_loc")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_target_chrom")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_target_loc")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_disc_facet")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_public")
-            cursor.execute("DROP INDEX reo_sources_targets.idx_archived")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_reo_accession")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_source_loc")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_target_loc")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_disc_facet")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_pval_asc")
 
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets")
 
             # Add indices back
-            cursor.execute("CREATE INDEX idx_reo_accession ON reo_sources_targets (reo_accession)")
-            cursor.execute("CREATE INDEX idx_reo_experiment ON reo_sources_targets (reo_experiment)")
-            cursor.execute("CREATE INDEX idx_reo_analysis ON reo_sources_targets (reo_analysis)")
-            cursor.execute("CREATE INDEX idx_source_chrom ON reo_sources_targets (source_chrom)")
-            cursor.execute("CREATE INDEX idx_source_loc ON reo_sources_targets USING GIST (source_loc)")
-            cursor.execute("CREATE INDEX idx_target_chrom ON reo_sources_targets (target_chrom)")
-            cursor.execute("CREATE INDEX idx_target_loc ON reo_sources_targets USING GIST (target_loc)")
-            cursor.execute("CREATE INDEX idx_disc_facet ON reo_sources_targets USING GIN (disc_facets)")
-            cursor.execute("CREATE INDEX idx_public ON reo_sources_targets (public)")
-            cursor.execute("CREATE INDEX idx_archived ON reo_sources_targets (archived)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rst_reo_accession ON reo_sources_targets (reo_accession)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rst_source_loc ON reo_sources_targets USING GIST (source_loc)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rst_target_loc ON reo_sources_targets USING GIST (target_loc)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rst_disc_facet ON reo_sources_targets USING GIN (disc_facets)"
+            )
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rst_pval_asc
+                       ON reo_sources_targets (((reo_facets->>'Raw p value')::numeric) ASC)"""
+            )
 
             cursor.execute("ANALYZE reo_sources_targets")
 
@@ -94,30 +93,35 @@ class ReoSourcesTargetsSigOnly(models.Model):
     def refresh_view(cls):
         with connection.cursor() as cursor:
             # Drop indices because refreshing the view may take a long time if they already exist
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_reo_accession")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_reo_experiment")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_reo_analysis")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_source_chrom")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_source_loc")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_target_chrom")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_target_loc")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_disc_facet")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_public")
-            cursor.execute("DROP INDEX reo_sources_targets_sig_only.idx_archived")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_reo_accession")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_source_loc")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_target_loc")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_disc_facet")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_pval_asc")
 
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets_sig_only")
 
             # Add indices back
-            cursor.execute("CREATE INDEX idx_reo_accession ON reo_sources_targets_sig_only (reo_accession)")
-            cursor.execute("CREATE INDEX idx_reo_experiment ON reo_sources_targets_sig_only (reo_experiment)")
-            cursor.execute("CREATE INDEX idx_reo_analysis ON reo_sources_targets_sig_only (reo_analysis)")
-            cursor.execute("CREATE INDEX idx_source_chrom ON reo_sources_targets_sig_only (source_chrom)")
-            cursor.execute("CREATE INDEX idx_source_loc ON reo_sources_targets_sig_only USING GIST (source_loc)")
-            cursor.execute("CREATE INDEX idx_target_chrom ON reo_sources_targets_sig_only (target_chrom)")
-            cursor.execute("CREATE INDEX idx_target_loc ON reo_sources_targets_sig_only USING GIST (target_loc)")
-            cursor.execute("CREATE INDEX idx_disc_facet ON reo_sources_targets_sig_only USING GIN (disc_facets)")
-            cursor.execute("CREATE INDEX idx_public ON reo_sources_targets_sig_only (public)")
-            cursor.execute("CREATE INDEX idx_archived ON reo_sources_targets_sig_only (archived)")
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rstso_reo_accession
+                       ON reo_sources_targets_sig_only (reo_accession)"""
+            )
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rstso_source_loc
+                       ON reo_sources_targets_sig_only USING GIST (source_loc)"""
+            )
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rstso_target_loc
+                       ON reo_sources_targets_sig_only USING GIST (target_loc)"""
+            )
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rstso_disc_facet
+                       ON reo_sources_targets_sig_only USING GIN (disc_facets)"""
+            )
+            cursor.execute(
+                """CREATE INDEX IF NOT EXISTS idx_rstso_pval_asc
+                       ON reo_sources_targets_sig_only (((reo_facets->>'Raw p value')::numeric) ASC)"""
+            )
 
             cursor.execute("ANALYZE reo_sources_targets_sig_only")
 
