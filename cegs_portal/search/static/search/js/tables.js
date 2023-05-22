@@ -25,18 +25,29 @@ function featureTable(features, regionID = "dnafeature") {
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
                 e("td", feature.cell_line || "None"),
-                e("td", [e("span", feature.chr), ": ", e("span", [`${feature.start}-`, e("br"), `${feature.end}`])
-]),
+                e("td", [
+                    e("span", feature.chr),
+                    ": ",
+                    e(
+                      "span",
+                      [
+                        `${feature.start.toLocaleString()}-`,
+                        e("br"),
+                        `${feature.end.toLocaleString()}`,
+                      ]
+                    ),
+                  ]),
                 e("td", feature.strand || "None"),
                 e(
                     "td",
+                    {class: "closest-gene"},
                     feature.closest_gene_ensembl_id
                         ? e(
                               "a",
                               {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`},
                               `${feature.closest_gene_name}`
                           )
-                        : "N/A"
+                        : ""
                 ),
                 e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`),
                 e(
