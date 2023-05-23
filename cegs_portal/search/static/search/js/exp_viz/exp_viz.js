@@ -64,9 +64,6 @@ async function getCoverageData(staticRoot, exprAccessionID) {
     try {
         manifest = await getJson(`${staticRoot}search/experiments/${exprAccessionID}/coverage_manifest.json`);
         genome = await getJson(`${staticRoot}search/experiments/${exprAccessionID}/${manifest.genome.file}`);
-        // genomeName = manifest.genome.name;
-        // coverageData = manifest.chromosomes;
-        // facets = manifest.facets;
     } catch (error) {
         throw new Error("Files necessary to load coverage not found");
     }
@@ -405,6 +402,8 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
         console.log(error);
         return;
     }
+    let genomeName = manifest.genome.name;
+
     rc(g("chrom-data-header"), t("Experiment Coverage"));
 
     const genomeRenderer = new GenomeRenderer(genome);
