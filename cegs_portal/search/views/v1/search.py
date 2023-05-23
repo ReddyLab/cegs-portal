@@ -149,8 +149,8 @@ def parse_source_locs_json(source_locs: str) -> list[str]:
     locs = []
     while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
         chrom = match[1]
-        start = match[2]
-        end = match[3]
+        start = int(match[2])
+        end = int(match[3])
         locs.append((chrom, start, end))
         source_locs = source_locs[match.end() :]
 
@@ -207,7 +207,6 @@ class SearchView(TemplateJsonView):
         return super().get(request, options, data, *args, **kwargs)
 
     def get_json(self, request, options, data, *args, **kwargs):
-        data["form"] = SearchForm()
         data["sig_reg_effects"] = [
             (k, [parse_source_target_data_json(reo_data) for reo_data in reo_group])
             for k, reo_group in data["sig_reg_effects"]

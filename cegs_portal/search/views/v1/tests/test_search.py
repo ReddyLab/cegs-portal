@@ -6,7 +6,17 @@ from django.test import Client
 
 from cegs_portal.search.models import ChromosomeLocation, DNAFeature
 from cegs_portal.search.models.utils import IdType
-from cegs_portal.search.views.v1.search import ParseWarning, SearchType, parse_query
+from cegs_portal.search.views.v1.search import (
+    ParseWarning,
+    SearchType,
+    parse_query,
+    parse_source_locs_html,
+    parse_source_locs_json,
+    parse_source_target_data_html,
+    parse_source_target_data_json,
+    parse_target_info_html,
+    parse_target_info_json,
+)
 from cegs_portal.users.models import GroupExtension
 
 
@@ -615,3 +625,58 @@ def test_experiment_no_query_html(client: Client):
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here
     assert response.status_code == 400
+
+
+def test_parse_source_locs_html():
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\")}') == "chr1:1-2"
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == "chr1:1-2, chr2:2-4"
+
+
+def test_parse_source_locs_json():
+    assert parse_source_locs_json('{(chr1,\\"[1,2)\\")}') == [("chr1", 1, 2)]
+    assert parse_source_locs_json('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == [("chr1", 1, 2), ("chr2", 2, 4)]
+
+
+def test_parse_source_target_data_html():
+    test_data = {
+        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+        "source_locs": '{(chr1,\\"[1,2)\\")}',
+        "asdf": 1234,
+    }
+    assert parse_source_target_data_html(test_data) == {
+        "target_info": "ZBTB12",
+        "source_locs": "chr1:1-2",
+        "asdf": 1234,
+    }
+
+
+def test_parse_source_target_data_json():
+    test_data = {
+        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+        "source_locs": '{(chr1,\\"[1,2)\\")}',
+        "asdf": 1234,
+    }
+    assert parse_source_target_data_json(test_data) == {
+        "target_info": [("ZBTB12", "ENSG00000204366")],
+        "source_locs": [("chr1", 1, 2)],
+        "asdf": 1234,
+    }
+
+
+def test_parse_target_info_html():
+    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == "ZBTB12"
+    assert (
+        parse_target_info_html(
+            '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
+        )
+        == "ZBTB12, HLA-A"
+    )
+
+
+def test_parse_target_info_json():
+    assert parse_target_info_json('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == [
+        ("ZBTB12", "ENSG00000204366")
+    ]
+    assert parse_target_info_json(
+        '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
+    ) == [("ZBTB12", "ENSG00000204366"), ("HLA-A", "ENSG00000204367")]
