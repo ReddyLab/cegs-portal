@@ -4,6 +4,10 @@ import pytest
 from django.db.models import Manager
 from psycopg2.extras import NumericRange
 
+from cegs_portal.get_expr_data.conftest import (  # noqa: F401
+    private_reg_effects,
+    reg_effects,
+)
 from cegs_portal.search.json_templates.v1.search_results import SearchResults
 from cegs_portal.search.models import (
     Biosample,

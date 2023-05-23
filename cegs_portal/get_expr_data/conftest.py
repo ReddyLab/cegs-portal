@@ -9,10 +9,16 @@ from cegs_portal.get_expr_data.models import (
     ReoSourcesTargets,
     ReoSourcesTargetsSigOnly,
 )
-from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.models import (
+    EffectObservationDirectionType,
+    RegulatoryEffectObservation,
+)
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
-from cegs_portal.search.models.tests.facet_factory import FacetValueFactory
+from cegs_portal.search.models.tests.facet_factory import (
+    FacetFactory,
+    FacetValueFactory,
+)
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 
 
@@ -25,11 +31,12 @@ def cleanup_test_files():
 
 
 def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    depleted_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
+    nonsig_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
     experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
     analysis = experiment.analyses.first()
-    facet_source = FacetValueFactory()
-    facet_target = FacetValueFactory()
-    facet_both = FacetValueFactory()
 
     effect_source = RegEffectFactory(
         sources=(
@@ -48,7 +55,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_source],
+        facet_values=[enriched_facet],
     )
     effect_target = RegEffectFactory(
         targets=(
@@ -66,7 +73,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_target],
+        facet_values=[depleted_facet],
     )
     effect_both = RegEffectFactory(
         sources=(
@@ -92,12 +99,12 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_both],
+        facet_values=[nonsig_facet],
     )
     ReoSourcesTargets.refresh_view()
     ReoSourcesTargetsSigOnly.refresh_view()
 
-    return (effect_source, effect_target, effect_both, facet_source, facet_target, facet_both, experiment)
+    return (effect_source, effect_target, effect_both, enriched_facet, depleted_facet, nonsig_facet, experiment)
 
 
 @pytest.fixture

@@ -128,7 +128,6 @@ class Search:
 
         with connection.cursor() as cursor:
             cursor.execute(query, inputs)
-            print(cursor.query)
             experiment_data = cursor.fetchall()
 
         return [
