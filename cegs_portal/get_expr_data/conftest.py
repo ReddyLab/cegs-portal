@@ -4,10 +4,10 @@ import pytest
 from django.core.files.storage import default_storage
 from psycopg2.extras import NumericRange
 
-from cegs_portal.get_expr_data.models import EXPR_DATA_DIR, ReoSourcesTargets
-from cegs_portal.search.conftest import (  # noqa: F401 used as fixture in tests.py
-    login_client,
-    public_client,
+from cegs_portal.get_expr_data.models import (
+    EXPR_DATA_DIR,
+    ReoSourcesTargets,
+    ReoSourcesTargetsSigOnly,
 )
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
@@ -95,6 +95,8 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         facet_values=[facet_both],
     )
     ReoSourcesTargets.refresh_view()
+    ReoSourcesTargetsSigOnly.refresh_view()
+
     return (effect_source, effect_target, effect_both, facet_source, facet_target, facet_both, experiment)
 
 

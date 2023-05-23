@@ -4,6 +4,7 @@ from time import sleep
 
 import pytest
 
+from cegs_portal.conftest import SearchClient
 from cegs_portal.get_expr_data.view_models import (
     Facets,
     ReoDataSource,
@@ -16,7 +17,6 @@ from cegs_portal.get_expr_data.view_models import (
     validate_filename,
     write_experiment_data_csv,
 )
-from cegs_portal.search.conftest import SearchClient
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
