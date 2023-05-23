@@ -670,13 +670,13 @@
                 }).then((data) => {
                     const scale = {
                         domain: data.categoryNames,
-                        range: ['#ff8c00', '#777777', '#aec7e8', '#1f77b4', '#9467bd']
+                        range: ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd']
                     };
 
                     return vl.markCircle({tooltip: true})
                     .data(data)
-                    .width(500)
-                    .height(500)
+                    .width(450)
+                    .height(400)
                     .title('Q-Q Plot')
                     .encode(
                         vl.color().fieldN('cat').scale(scale).title(''),
