@@ -52,11 +52,11 @@ function featureTable(features, regionID = "dnafeature") {
                 e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`),
                 e(
                     "td",
-                    feature.parent_accession_id
+                    feature.parent
                       ? e(
                           "a",
                           { href: `/search/feature/accession/${feature.parent_accession_id}` },
-                          feature.parent_accession_id
+                          feature.parent
                         )
                       : "N/A"
                   )
