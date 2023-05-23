@@ -9,13 +9,20 @@ from cegs_portal.utils.pagination_types import Pageable
 
 SearchResults = TypedDict(
     "SearchResults",
-    {"location": ChromosomeLocation, "assembly": str, "features": Pageable[DNAFeature], "facets": Manager[Facet]},
+    {
+        "location": ChromosomeLocation,
+        "assembly": str,
+        "features": Pageable[DNAFeature],
+        "sig_reg_effects": dict[str : list[str]],
+        "facets": Manager[Facet],
+    },
 )
 
 
 def search_results(results: SearchResults, options: Optional[dict[str, Any]] = None):
     response: dict[str, Any] = {
         "features": features(results["features"], options),
+        "sig_reg_effects": dict(results["sig_reg_effects"]),
         "facets": [
             {"name": f.name, "description": f.description, "values": [value.value for value in f.values.all()]}
             for f in results["facets"].all()

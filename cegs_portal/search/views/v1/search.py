@@ -161,7 +161,8 @@ def parse_target_info_json(target_info: str) -> list[str]:
     info = []
     while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
         gene_symbol = match[1]
-        info.append(gene_symbol)
+        ensembl_id = match[2]
+        info.append((gene_symbol, ensembl_id))
         target_info = target_info[match.end() :]
     return info
 
