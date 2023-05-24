@@ -145,38 +145,11 @@ def parse_target_info_html(target_info: str) -> list[str]:
     return ", ".join(info)
 
 
-def parse_source_locs_json(source_locs: str) -> list[str]:
-    locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
-        chrom = match[1]
-        start = int(match[2])
-        end = int(match[3])
-        locs.append((chrom, start, end))
-        source_locs = source_locs[match.end() :]
-
-    return locs
-
-
-def parse_target_info_json(target_info: str) -> list[str]:
-    info = []
-    while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
-        gene_symbol = match[1]
-        ensembl_id = match[2]
-        info.append((gene_symbol, ensembl_id))
-        target_info = target_info[match.end() :]
-    return info
-
-
 def parse_source_target_data_html(reo_data):
-    reo_data["source_locs"] = parse_source_locs_html(reo_data["source_locs"])
-    reo_data["target_info"] = parse_target_info_html(reo_data["target_info"])
-    return reo_data
-
-
-def parse_source_target_data_json(reo_data):
-    reo_data["source_locs"] = parse_source_locs_json(reo_data["source_locs"])
-    reo_data["target_info"] = parse_target_info_json(reo_data["target_info"])
-    return reo_data
+    return reo_data | {
+        "source_locs": parse_source_locs_html(reo_data["source_locs"]),
+        "target_info": parse_target_info_html(reo_data["target_info"]),
+    }
 
 
 def feature_redirect(feature, assembly_name):
@@ -206,13 +179,6 @@ class SearchView(TemplateJsonView):
         ]
         return super().get(request, options, data, *args, **kwargs)
 
-    def get_json(self, request, options, data, *args, **kwargs):
-        data["sig_reg_effects"] = [
-            (k, [parse_source_target_data_json(reo_data) for reo_data in reo_group])
-            for k, reo_group in data["sig_reg_effects"]
-        ]
-        return super().get_json(request, options, data, *args, **kwargs)
-
     def get_data(self, options):
         unquoted_search_query = unquote_plus(options["search_query"])
         search_type, query_terms, location, assembly_name, warnings = parse_query(unquoted_search_query)
@@ -241,6 +207,7 @@ class SearchView(TemplateJsonView):
                 sig_reos = Search.sig_reo_loc_search(location)
             else:
                 sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments())
+            print(sig_reos)
             sig_reos = [
                 (k, list(reo_group))
                 for k, reo_group in groupby(sig_reos, lambda x: (x["expr_accession_id"], x["analysis_accession_id"]))

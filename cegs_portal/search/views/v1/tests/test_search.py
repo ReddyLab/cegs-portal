@@ -12,11 +12,8 @@ from cegs_portal.search.views.v1.search import (
     SearchType,
     parse_query,
     parse_source_locs_html,
-    parse_source_locs_json,
     parse_source_target_data_html,
-    parse_source_target_data_json,
     parse_target_info_html,
-    parse_target_info_json,
 )
 
 
@@ -182,6 +179,24 @@ def test_experiment_feature_loc_with_anonymous_client(
 
     json_content = json.loads(response.content)
     assert len(json_content["features"]) == 1
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sig_reg_loc_with_anonymous_client(client: Client):
+    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")  # noqa: E501
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["sig_reg_effects"]) == 1
+
+
+@pytest.mark.usefixtures("private_reg_effects")
+def test_private_sig_reg_loc_with_anonymous_client(client: Client):
+    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")  # noqa: E501
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert len(json_content["sig_reg_effects"]) == 0
 
 
 def test_experiment_feature_loc_with_authenticated_client(
@@ -536,11 +551,6 @@ def test_parse_source_locs_html():
     assert parse_source_locs_html('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == "chr1:1-2, chr2:2-4"
 
 
-def test_parse_source_locs_json():
-    assert parse_source_locs_json('{(chr1,\\"[1,2)\\")}') == [("chr1", 1, 2)]
-    assert parse_source_locs_json('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == [("chr1", 1, 2), ("chr2", 2, 4)]
-
-
 def test_parse_source_target_data_html():
     test_data = {
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
@@ -554,19 +564,6 @@ def test_parse_source_target_data_html():
     }
 
 
-def test_parse_source_target_data_json():
-    test_data = {
-        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "source_locs": '{(chr1,\\"[1,2)\\")}',
-        "asdf": 1234,
-    }
-    assert parse_source_target_data_json(test_data) == {
-        "target_info": [("ZBTB12", "ENSG00000204366")],
-        "source_locs": [("chr1", 1, 2)],
-        "asdf": 1234,
-    }
-
-
 def test_parse_target_info_html():
     assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == "ZBTB12"
     assert (
@@ -575,12 +572,3 @@ def test_parse_target_info_html():
         )
         == "ZBTB12, HLA-A"
     )
-
-
-def test_parse_target_info_json():
-    assert parse_target_info_json('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == [
-        ("ZBTB12", "ENSG00000204366")
-    ]
-    assert parse_target_info_json(
-        '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
-    ) == [("ZBTB12", "ENSG00000204366"), ("HLA-A", "ENSG00000204367")]
