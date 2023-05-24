@@ -107,12 +107,12 @@ function render(state, genomeRenderer) {
     a(
         g("chrom-data-legend"),
         Legend(d3.scaleSequential(targetCountInterval, targetColors), {
-            title: "Target Count",
+            title: "Gene Count",
         })
     );
-    rc(g("reo-count"), t(`Total Observations: ${itemCounts[0]}`));
-    rc(g("source-count"), t(`Total Sources: ${itemCounts[1]}`));
-    rc(g("target-count"), t(`Total Targets: ${itemCounts[2]}`));
+    rc(g("reo-count"), t(`Observation Total: ${itemCounts[0]}`));
+    rc(g("source-count"), t(`Source Total: ${itemCounts[1]}`));
+    rc(g("target-count"), t(`Gene Total: ${itemCounts[2]}`));
 }
 
 function discreteFilterControls(facets, default_facets) {
@@ -217,7 +217,7 @@ function countFilterControls(state) {
             name = "Source Count";
         } else if (i == 1) {
             range = intervals.target;
-            name = "Target count";
+            name = "Gene Count";
         } else {
             continue;
         }
