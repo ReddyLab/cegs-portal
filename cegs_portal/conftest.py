@@ -70,5 +70,5 @@ def portal_admin_client(django_user_model):
 
 
 @pytest.fixture
-def group_login_client(django_user_model, group_extension):  # # noqa: F811
+def group_login_client(django_user_model, group_extension):  # noqa: F811
     return SearchClient(user_model=django_user_model, group_model=group_extension, username="user3", password="bar")
