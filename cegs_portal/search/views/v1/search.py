@@ -3,7 +3,6 @@ from enum import Enum, auto
 from typing import Optional, TypedDict
 from urllib.parse import unquote_plus
 
-from django.core.paginator import Paginator
 from django.db.models.manager import BaseManager
 from django.urls import reverse
 
@@ -103,9 +102,9 @@ def parse_query(
             token = match.group(1).lower()
 
             # Normalize token
-            if token == "hg19" or token == "grch37":
+            if token in ("hg19", "grch37"):
                 token = "GRCh37"
-            elif token == "hg38" or token == "grch38":
+            elif token in ("hg38", "grch38"):
                 token = "GRCh38"
             assembly = token
             query = query[match.end() :]
@@ -122,6 +121,34 @@ def parse_query(
             continue
 
     return search_type, terms, location, assembly, warnings
+
+
+def parse_source_locs_html(source_locs: str) -> list[str]:
+    locs = []
+    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
+        chrom = match[1]
+        start = match[2]
+        end = match[3]
+        locs.append(f"{chrom}:{start}-{end}")
+        source_locs = source_locs[match.end() :]
+
+    return ", ".join(locs)
+
+
+def parse_target_info_html(target_info: str) -> list[str]:
+    info = []
+    while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
+        gene_symbol = match[1]
+        info.append(gene_symbol)
+        target_info = target_info[match.end() :]
+    return ", ".join(info)
+
+
+def parse_source_target_data_html(reo_data):
+    return reo_data | {
+        "source_locs": parse_source_locs_html(reo_data["source_locs"]),
+        "target_info": parse_target_info_html(reo_data["target_info"]),
+    }
 
 
 def feature_redirect(feature, assembly_name):
@@ -143,14 +170,20 @@ class SearchView(TemplateJsonView):
         options["feature_page"] = int(request.GET.get("feature_page", 1))
         return options
 
-    def get(self, request, options, data):
+    def get(self, request, options, data, *args, **kwargs):
         data["form"] = SearchForm()
-        return super().get(request, options, data)
+        data["sig_reg_effects"] = [
+            (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group])
+            for k, reo_group in data["sig_reg_effects"]
+        ]
+        return super().get(request, options, data, *args, **kwargs)
 
     def get_data(self, options):
         unquoted_search_query = unquote_plus(options["search_query"])
         search_type, query_terms, location, assembly_name, warnings = parse_query(unquoted_search_query)
 
+        sig_reos = []
+        features = []
         if search_type == SearchType.LOCATION:
             assert location is not None
 
@@ -159,6 +192,7 @@ class SearchView(TemplateJsonView):
                     f"Invalid location; lower bound ({location.range.lower}) "
                     f"larger than upper bound ({location.range.upper})"
                 )
+
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_loc_search_public(location, assembly_name, options["facets"])
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -168,8 +202,11 @@ class SearchView(TemplateJsonView):
                     location, assembly_name, options["facets"], self.request.user.all_experiments()
                 )
 
-            feature_paginator = Paginator(features, 20)
-            features = feature_paginator.get_page(options["feature_page"])
+            if self.request.user.is_anonymous:
+                sig_reos = Search.sig_reo_loc_search(location)
+            else:
+                sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments())
+
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
                 feature_redirect(query_terms[0], assembly_name)
@@ -203,6 +240,7 @@ class SearchView(TemplateJsonView):
             "location": location,
             "assembly": assembly_name,
             "features": features,
+            "sig_reg_effects": sig_reos,
             "facets": facets,
             "search_type": search_type.name,
             "query": options["search_query"],

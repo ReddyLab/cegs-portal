@@ -151,8 +151,8 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="content-container">
-        {% include "search/v1/partials/_paged_nav.html" with data=features name="Genome Features" no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="feature_page" table="search/v1/partials/_features.html" %}
+        <div class="content-container" id="sig-reg-effects">
+         {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
         </div>
     </div>
 
@@ -162,9 +162,10 @@
 {% endblock %}
 {% block inline_javascript %}
     <script type="module">
-        import { e, g, rc, t } from "{% static 'search/js/dom.js' %}";
+        import { a, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
+        import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
-        import { dataPages, featureTable, emptyFeatureTable, pageLink } from "{% static 'search/js/tables.js' %}"
+        import { sigReoTable } from "{% static 'search/js/tables.js' %}"
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -192,14 +193,6 @@
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
-        let featureURL = function(chromosome, start, end, facets=[]) {
-            let enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&');
-            return `/search/featureloc/${chromosome}/${start}/${end}?{% if assembly %}assembly={{ assembly }}{% endif %}&search_type=overlap&feature_type=search_results&paginate=true&accept=application/json${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
-        }
-
-        {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Features Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end, facets)" %}
-
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 
         const updateFacetState = function() {
@@ -217,12 +210,22 @@
         updateFacetState();
 
         // Update the chromosome location at the top of the page
-        state.addCallback(STATE_LOCATION, (state, key) => {
-            let location = state[key];
+        state.addCallback(STATE_LOCATION, (s, key) => {
+            let location = state.g(STATE_LOCATION);
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`));
 
-            __genDataPages(location.chr, location.start, location.end, 1,  state[STATE_FACETS])();
+            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}`).then(json => {
+                let sigRegEffects = json["significant reos"]
+                if(sigRegEffects.length == 0) {
+                    rc(g("sig-reg-effects"), t("No Relevant Reg Effect Observations Found"))
+                } else {
+                    let container = g("sig-reg-effects");
+                    rc(container, e("div", {class: "text-xl font-bold"}, t("Most Significant Reg Effect Observations")));
+                    a(container, sigReoTable(sigRegEffects));
+                }
+
+            }).catch(err => console.log(err));
         });
 
         state.addCallback(STATE_FACETS, _.throttle(
@@ -231,7 +234,7 @@
 
                 let location = state[STATE_LOCATION];
 
-                __genDataPages(location.chr, location.start, location.end, 1, state[STATE_FACETS])();
+                // request data with facets
             },
             500,
             { 'leading': true })

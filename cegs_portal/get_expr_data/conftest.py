@@ -4,15 +4,21 @@ import pytest
 from django.core.files.storage import default_storage
 from psycopg2.extras import NumericRange
 
-from cegs_portal.get_expr_data.models import EXPR_DATA_DIR, ReoSourcesTargets
-from cegs_portal.search.conftest import (  # noqa: F401 used as fixture in tests.py
-    login_client,
-    public_client,
+from cegs_portal.get_expr_data.models import (
+    EXPR_DATA_DIR,
+    ReoSourcesTargets,
+    ReoSourcesTargetsSigOnly,
 )
-from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.models import (
+    EffectObservationDirectionType,
+    RegulatoryEffectObservation,
+)
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
-from cegs_portal.search.models.tests.facet_factory import FacetValueFactory
+from cegs_portal.search.models.tests.facet_factory import (
+    FacetFactory,
+    FacetValueFactory,
+)
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 
 
@@ -24,13 +30,13 @@ def cleanup_test_files():
         default_storage.delete(os.path.join(EXPR_DATA_DIR, file))
 
 
-@pytest.fixture
-def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
+def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation]:
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    depleted_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
+    nonsig_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
     experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
     analysis = experiment.analyses.first()
-    facet_source = FacetValueFactory()
-    facet_target = FacetValueFactory()
-    facet_both = FacetValueFactory()
 
     effect_source = RegEffectFactory(
         sources=(
@@ -49,7 +55,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_source],
+        facet_values=[enriched_facet],
     )
     effect_target = RegEffectFactory(
         targets=(
@@ -67,7 +73,7 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_target],
+        facet_values=[depleted_facet],
     )
     effect_both = RegEffectFactory(
         sources=(
@@ -93,7 +99,19 @@ def reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservation
         experiment=experiment,
         experiment_accession=experiment,
         analysis=analysis,
-        facet_values=[facet_both],
+        facet_values=[nonsig_facet],
     )
     ReoSourcesTargets.refresh_view()
-    return (effect_source, effect_target, effect_both, facet_source, facet_target, facet_both, experiment)
+    ReoSourcesTargetsSigOnly.refresh_view()
+
+    return (effect_source, effect_target, effect_both, enriched_facet, depleted_facet, nonsig_facet, experiment)
+
+
+@pytest.fixture
+def reg_effects():
+    return _reg_effects()
+
+
+@pytest.fixture
+def private_reg_effects():
+    return _reg_effects(public=False)

@@ -34,7 +34,7 @@ def as_task(pass_task_id=False, description=None):
                 # pylint: disable-next=broad-exception-caught
                 except Exception as e:  # Who knows what exceptions the wrapped function might throw
                     ThreadTask.fail(task_id, str(e)[:1024])
-                    logger.error("Task <%s> failed", task_id)
+                    logger.error("Task <%s> failed: %s", task_id, e)
                 else:
                     ThreadTask.end(task_id)
                     logger.info("Task <%s> ended", task_id)
