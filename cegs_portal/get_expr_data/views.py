@@ -27,7 +27,7 @@ from cegs_portal.get_expr_data.view_models import (
 )
 from cegs_portal.utils.http_exceptions import Http400
 
-MAX_REGION_SIZE = 100_000
+MAX_REGION_SIZE = 100_000_000
 
 logger = logging.getLogger("django.request")
 

@@ -404,7 +404,7 @@ def test_location_experiment_data_no_region(login_client: SearchClient):
 
 @pytest.mark.usefixtures("reg_effects")
 def test_location_experiment_data_oversize_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?region=chr1:1-1000000&expr=DCPEXPR00000002&datasource=both")
+    response = login_client.get("/exp_data/location?region=chr1:1-10000000000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
@@ -608,7 +608,7 @@ def test_sigdata_no_region(login_client: SearchClient):
 
 @pytest.mark.usefixtures("reg_effects")
 def test_sigdata_oversize_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/sigdata?region=chr1:1-1000000")
+    response = login_client.get("/exp_data/sigdata?region=chr1:1-10000000000")
     assert response.status_code == 400
 
 
