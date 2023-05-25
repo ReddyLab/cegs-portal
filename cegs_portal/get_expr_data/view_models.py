@@ -3,6 +3,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum, StrEnum, auto
+from itertools import groupby
 from operator import itemgetter
 from typing import Optional, TypedDict
 from uuid import UUID, uuid4
@@ -330,6 +331,96 @@ def retrieve_experiment_data(
             cursor.execute(query, where_params)
             experiment_data.update(cursor.fetchall())
     return experiment_data
+
+
+def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_experiments: Optional[list[str]] = None):
+    private_experiments = [] if private_experiments is None else private_experiments
+
+    where = r"""WHERE reo_sources_targets_sig_only.archived = false AND
+                        (reo_sources_targets_sig_only.public = true OR
+                        reo_sources_targets_sig_only.reo_experiment = ANY(%s)) AND
+                        ((reo_sources_targets_sig_only.source_chrom = %s AND
+                        reo_sources_targets_sig_only.source_loc && %s) OR
+                        (reo_sources_targets_sig_only.target_chrom = %s AND
+                        reo_sources_targets_sig_only.target_loc && %s))"""
+    inputs = [
+        private_experiments,
+        location[0],
+        NumericRange(location[1], location[2]),
+        location[0],
+        NumericRange(location[1], location[2]),
+        count,
+    ]
+
+    query = f"""SELECT ARRAY_AGG(DISTINCT
+                            (reo_sources_targets_sig_only.source_chrom,
+                            reo_sources_targets_sig_only.source_loc)) AS sources,
+                        ARRAY_AGG(DISTINCT
+                            (reo_sources_targets_sig_only.target_chrom,
+                            reo_sources_targets_sig_only.target_loc,
+                            reo_sources_targets_sig_only.target_gene_symbol,
+                            reo_sources_targets_sig_only.target_ensembl_id)) AS targets,
+                        reo_sources_targets_sig_only.reo_accession as ai, -- ai = accession id
+                        reo_sources_targets_sig_only.reo_facets ->> 'Effect Size' as effect_size,
+                        reo_sources_targets_sig_only.reo_facets ->> 'Raw p value' as raw_p_value,
+                        reo_sources_targets_sig_only.reo_facets ->> 'Significance' as sig,
+                        reo_sources_targets_sig_only.reo_experiment as eai, -- eai = experiment accession id
+                        se.name as expr_name,
+                        reo_sources_targets_sig_only.reo_analysis as aai -- aai = analysis accession id
+                    FROM reo_sources_targets_sig_only
+                    JOIN search_experiment as se on reo_sources_targets_sig_only.reo_experiment = se.accession_id
+                    WHERE reo_sources_targets_sig_only.reo_accession = ANY(
+                        WITH s AS (
+                            SELECT *, ROW_NUMBER()
+                            OVER (PARTITION BY aai ORDER BY pval ASC)
+                            FROM(SELECT reo_sources_targets_sig_only.reo_accession,
+                                        reo_sources_targets_sig_only.reo_experiment as eai,
+                                        reo_sources_targets_sig_only.reo_analysis as aai,
+                                        (reo_sources_targets_sig_only.reo_facets->>'Raw p value')::numeric as pval
+                                    FROM reo_sources_targets_sig_only
+                                    {where}
+                                ) as s2)
+                        SELECT reo_accession
+                            FROM s
+                            WHERE ROW_NUMBER <= %s
+                    )
+                    GROUP BY ai, reo_sources_targets_sig_only.reo_facets, eai, se.name, aai
+                    ORDER BY eai, aai, raw_p_value
+                    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, inputs)
+        experiment_data = cursor.fetchall()
+
+    result = [
+        {
+            "source_locs": source_locs,
+            "target_info": target_info,
+            "reo_accesion_id": reo_accesion_id,
+            "effect_size": float(effect_size) if effect_size is not None else None,
+            "p_value": float(p_value) if p_value is not None else None,
+            "sig": float(sig) if sig is not None else None,
+            "expr_accession_id": expr_accession_id,
+            "expr_name": expr_name,
+            "analysis_accession_id": analysis_accession_id,
+        }
+        for (
+            source_locs,
+            target_info,
+            reo_accesion_id,
+            effect_size,
+            p_value,
+            sig,
+            expr_accession_id,
+            expr_name,
+            analysis_accession_id,
+        ) in experiment_data
+    ]
+
+    return [
+        (k, list(reo_group))
+        for k, reo_group in groupby(result, lambda x: (x["expr_accession_id"], x["analysis_accession_id"]))
+    ]
 
 
 output_experiment_data_csv_task = as_task(description="Experiment data file creation")(output_experiment_data_csv)

@@ -13,6 +13,7 @@ from cegs_portal.get_expr_data.view_models import (
     parse_source_locs,
     parse_target_info,
     retrieve_experiment_data,
+    sig_reo_loc_search,
     validate_expr,
     validate_filename,
     write_experiment_data_csv,
@@ -314,8 +315,8 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 200
+
     json_content = json.loads(response.content)
-    print(json_content)
     assert json_content == {
         "experiment data": [
             {
@@ -354,8 +355,8 @@ def test_location_analysis_data(reg_effects, login_client: SearchClient):
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get(f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both")
     assert response.status_code == 200
+
     json_content = json.loads(response.content)
-    print(json_content)
     assert json_content == {
         "experiment data": [
             {
@@ -535,4 +536,83 @@ def test_download_experiment_data_fail(login_client: SearchClient):
 
 def test_download_experiment_data_invalid_filename(login_client: SearchClient):
     response = login_client.get("/exp_data/file/DCPEXPR0000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sig_reo_loc_search():
+    result = sig_reo_loc_search(("chr1", 1, 1000000))
+
+    assert len(result[0][1]) == 2
+
+
+def test_private_sig_reo_loc_search(private_reg_effects):
+    _, _, _, _, _, _, experiment = private_reg_effects
+    result = sig_reo_loc_search(("chr1", 1, 1000000))
+
+    assert len(result) == 0
+
+    result = sig_reo_loc_search(("chr1", 1, 1000000), private_experiments=[experiment.accession_id])
+
+    assert len(result[0][1]) == 2
+
+
+def test_sigdata(reg_effects, login_client: SearchClient):
+    effect_source, effect_target, effect_both, _, _, _, experiment = reg_effects
+    analysis_accession_id = experiment.analyses.first().accession_id
+
+    response = login_client.get("/exp_data/sigdata?region=chr1:1-100000")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert "significant reos" in json_content
+    assert len(json_content["significant reos"]) == 1
+    assert len(json_content["significant reos"][0]) == 2
+    assert json_content["significant reos"][0][0] == ["DCPEXPR00000002", analysis_accession_id]
+    assert len(json_content["significant reos"][0][1]) == 2
+    assert {
+        "source_locs": [],
+        "target_info": [["LNLC-1", "ENSG01124619313"]],
+        "reo_accesion_id": effect_target.accession_id,
+        "effect_size": -0.0660384670056446,
+        "p_value": 3.19229500470051e-06,
+        "sig": 0.000427767530629869,
+        "expr_accession_id": "DCPEXPR00000002",
+        "expr_name": experiment.name,
+        "analysis_accession_id": analysis_accession_id,
+    } in json_content["significant reos"][0][1]
+    assert {
+        "source_locs": [["chr1", 10, 1000], ["chr1", 20000, 111000], ["chr2", 22222, 33333]],
+        "target_info": [],
+        "reo_accesion_id": effect_source.accession_id,
+        "effect_size": -0.0660384670056446,
+        "p_value": 3.19229500470051e-06,
+        "sig": 0.000427767530629869,
+        "expr_accession_id": "DCPEXPR00000002",
+        "expr_name": experiment.name,
+        "analysis_accession_id": analysis_accession_id,
+    } in json_content["significant reos"][0][1]
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_invalid_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=ch1:1-100000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_no_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_oversize_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=chr1:1-1000000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_backwards_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=chr1:10000-10")
     assert response.status_code == 400

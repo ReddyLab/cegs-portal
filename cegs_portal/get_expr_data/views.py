@@ -20,6 +20,7 @@ from cegs_portal.get_expr_data.view_models import (
     open_file,
     output_experiment_data_csv_task,
     output_experiment_data_list,
+    sig_reo_loc_search,
     validate_an,
     validate_expr,
     validate_filename,
@@ -72,12 +73,24 @@ def get_region(request) -> Optional[Loc]:
     region = request.GET.get("region", None)
 
     if region is None:
-        raise Http400(f"Region required {region}")
+        return None
 
     match = re.match(r"^(chr\w+):(\d+)-(\d+)$", region)
     if match is None:
         raise Http400(f"Invalid region {region}")
-    return (match[1], int(match[2]), int(match[3]))
+
+    region = (match[1], int(match[2]), int(match[3]))
+
+    if region[1] >= region[2]:
+        raise BadRequest(
+            "The lower value in the region must be smaller than the higher value: "
+            f"{region[0]}:{region[1]}-{region[2]}."
+        )
+
+    if region[2] - region[1] > MAX_REGION_SIZE:
+        raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
+
+    return region
 
 
 def get_regions_file(request) -> Optional[LocList]:
@@ -128,6 +141,35 @@ def get_facets(request) -> Facets:
     return facets
 
 
+def parse_source_locs_json(source_locs: str) -> list[str]:
+    locs = []
+    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
+        chrom = match[1]
+        start = int(match[2])
+        end = int(match[3])
+        locs.append((chrom, start, end))
+        source_locs = source_locs[match.end() :]
+
+    return locs
+
+
+def parse_target_info_json(target_info: str) -> list[str]:
+    info = []
+    while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
+        gene_symbol = match[1]
+        ensembl_id = match[2]
+        info.append((gene_symbol, ensembl_id))
+        target_info = target_info[match.end() :]
+    return info
+
+
+def parse_source_target_data_json(reo_data):
+    return reo_data | {
+        "source_locs": parse_source_locs_json(reo_data["source_locs"]),
+        "target_info": parse_target_info_json(reo_data["target_info"]),
+    }
+
+
 class LocationExperimentDataView(LoginRequiredMixin, View):
     """
     Pull experiment data for a single region from the DB
@@ -140,17 +182,12 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             data_source = get_data_source(request)
             if region is not None and data_source == ReoDataSource.EVERYTHING:
                 raise Http400("Specifying regions and asking for everything are mutually exclusive")
+
+            if region is None and data_source != ReoDataSource.EVERYTHING:
+                raise Http400("Must specify regions if not asking for everything")
+
         except Http400 as error:
             raise BadRequest() from error
-
-        if region is not None and region[1] >= region[2]:
-            raise BadRequest(
-                "The lower value in the region must be smaller than the higher value: "
-                f"{region[0]}:{region[1]}-{region[2]}."
-            )
-
-        if region is not None and region[2] - region[1] > MAX_REGION_SIZE:
-            raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
         if request.user.is_anonymous:
             user_experiments = []
@@ -159,6 +196,37 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
 
         data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source)
         return JsonResponse({"experiment data": data})
+
+
+class SignificantExperimentDataView(LoginRequiredMixin, View):
+    """
+    Pull experiment data for a single region from the DB
+    """
+
+    def get(self, request, *args, **kwargs):
+        top_num = request.GET.get("num", 5)
+
+        try:
+            region = get_region(request)
+            if region is None:
+                raise Http400("Must speify a region")
+
+        except Http400 as error:
+            raise BadRequest() from error
+
+        if request.user.is_anonymous:
+            user_experiments = []
+        else:
+            user_experiments = request.user.all_experiments()
+
+        results = sig_reo_loc_search(region, top_num, user_experiments)
+        return JsonResponse(
+            {
+                "significant reos": [
+                    (k, [parse_source_target_data_json(reo_data) for reo_data in reo_group]) for k, reo_group in results
+                ]
+            }
+        )
 
 
 class RequestExperimentDataView(LoginRequiredMixin, View):

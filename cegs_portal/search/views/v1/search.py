@@ -1,6 +1,5 @@
 import re
 from enum import Enum, auto
-from itertools import groupby
 from typing import Optional, TypedDict
 from urllib.parse import unquote_plus
 
@@ -207,11 +206,7 @@ class SearchView(TemplateJsonView):
                 sig_reos = Search.sig_reo_loc_search(location)
             else:
                 sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments())
-            print(sig_reos)
-            sig_reos = [
-                (k, list(reo_group))
-                for k, reo_group in groupby(sig_reos, lambda x: (x["expr_accession_id"], x["analysis_accession_id"]))
-            ]
+
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
                 feature_redirect(query_terms[0], assembly_name)
