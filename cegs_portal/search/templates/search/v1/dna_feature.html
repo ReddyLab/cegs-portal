@@ -1,11 +1,5 @@
 {% extends "base.html" %} {% load static i18n %} {% load humanize %} {% block css %} {{ block.super }}
 <style>
-    /* .container {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-    } */
 
     .closest-gene {
         font-weight: bold;
@@ -159,6 +153,7 @@
         font-style: italic;
         margin-top: 15px;
     }
+
     .tab-bar {
         background: #ffffff;
         border-radius: 10px;
@@ -173,21 +168,66 @@
 
     .search-button {
     margin-left: 5px;
-    background-color: #ffffff !important;
+    background-color: rgb(244, 245, 247) !important;
     margin-bottom: 10px;
+    }
 
-}
-
-.search-button:hover {
+    .search-button:hover {
         background-color: rgb(229 231 235) !important;
-
     }
 
     #feature-dist {
     border-radius: 0.5rem;
     height: 2.5rem;
     margin-bottom: 10px;
- }
+    }
+
+    .facet-svg {
+    fill: currentColor;
+    height: 1em;
+    }
+
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    }
+
+  .table-title {
+    display: flex;
+    align-items: center;
+  }
+
+  .table-title svg {
+    margin-right: 10px;
+  }
+
+  .centered-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .find-feature {
+    display: flex;
+    align-items: center;
+  }
+
+  .find-feature svg {
+    margin-right: 10px;
+  }
+
+  .find-feature-title {
+    font-family: "Arial", sans-serif;
+    font-size: 1.5rem;
+    color: #094474;
+    text-shadow: 2px 2px #e3f2fd;
+    margin-bottom: 10px;
+    margin-left: 40px;
+    display: flex;
+    align-items: center;
+    }
 
 </style>
 
@@ -333,9 +373,8 @@ HEADER -->
                         >Find Nearby DNA Features
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon-tab">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path
-                                d="M315.4 15.5C309.7 5.9 299.2 0 288 0s-21.7 5.9-27.4 15.5l-96 160c-5.9 9.9-6.1 22.2-.4 32.2s16.3 16.2 27.8 16.2H384c11.5 0 22.2-6.2 27.8-16.2s5.5-22.3-.4-32.2l-96-160zM288 312V456c0 22.1 17.9 40 40 40H472c22.1 0 40-17.9 40-40V312c0-22.1-17.9-40-40-40H328c-22.1 0-40 17.9-40 40zM128 512a128 128 0 1 0 0-256 128 128 0 1 0 0 256z"
-                            /></svg></a>
+                            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                        </svg></a>
                 </li>
             </ul>
         </div>
@@ -460,21 +499,29 @@ HEADER -->
             role="tabpanel"
             aria-labelledby="tabs-files-tab"
         >
-            <div class="container">
-                <a name="near_features"></a>
-                <div class="table-title">Find Nearby DNA Features</div>
-                <div class="text-s font-bold">Measured from each end of the gene</div>
-                <form>
-                    <label for="feature-dist">Feature Distance:</label>
-                    <input type="text" id="feature-dist" value="1000" />
-                    <input
-                        type="button"
-                        id="feature-dist-submit"
-                        value="Find Features"
-                        class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
-                    />
-                </form>
+        <div class="container centered-container">
+            <a name="near_features"></a>
+            <div class="find-feature find-feature-title">
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                </svg>
+                Find Nearby DNA Features
+
             </div>
+            <div class="text-s font-bold">Measured from each end of the gene</div>
+            <form>
+                <label for="feature-dist">Feature Distance in base pairs:</label>
+                <input type="text" id="feature-dist" value="1000" />
+                <input
+                    type="button"
+                    id="feature-dist-submit"
+                    value="Find Features"
+                    class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
+                />
+            </form>
+          </div>
             <table id="dnafeature"></table>
         </div>
 
