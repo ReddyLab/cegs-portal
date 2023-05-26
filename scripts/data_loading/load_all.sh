@@ -48,3 +48,4 @@ DATA_DIR=$1
   ${DATA_DIR}/DCPEXPR00000009_mccutcheon_scCERES_cd8_CRISPRi_2022/features.tsv
 
 python manage.py shell -c "from cegs_portal.get_expr_data.models import ReoSourcesTargets; ReoSourcesTargets.refresh_view()"
+python manage.py shell -c "from cegs_portal.get_expr_data.models import ReoSourcesTargetsSigOnly; ReoSourcesTargetsSigOnly.refresh_view()"
