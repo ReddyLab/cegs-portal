@@ -371,6 +371,7 @@ function getDownload(url, body) {
         })
         .catch((err) => console.log(err));
 }
+
 function getDownloadRegions(facets, dataDownloadInput, exprAccessionID, csrfToken) {
     if (dataDownloadInput.files.length != 1) {
         return;
@@ -571,6 +572,12 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
         "load",
         () => {
             state.u(STATE_HIGHLIGHT_REGIONS, getRegions(regionReader.result));
+            let highlightResetButton = e("input", {type: "button", value: "Reset Highlights"}, []);
+            highlightResetButton.addEventListener("click", () => {
+                state.u(STATE_HIGHLIGHT_REGIONS, {});
+                cc(g("regionUploadInputReset"));
+            });
+            rc(g("regionUploadInputReset"), highlightResetButton);
         },
         false
     );
