@@ -8,7 +8,7 @@ FROM ghcr.io/pyo3/maturin@sha256:8abfe13660da007d878fbadcf3b11eb6f49a677de6ccb8a
 WORKDIR /exp_viz
 
 COPY ./extensions/exp_viz .
-RUN maturin build -b pyo3 -i 3.11
+RUN maturin build -b pyo3 -i 3.11 --release
 
 # Python build stage
 FROM python as python-build-stage
@@ -62,7 +62,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.1.3-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.1.4-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
