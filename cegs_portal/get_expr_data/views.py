@@ -198,7 +198,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
         return JsonResponse({"experiment data": data})
 
 
-class SignificantExperimentDataView(LoginRequiredMixin, View):
+class SignificantExperimentDataView(View):
     """
     Pull experiment data for a single region from the DB
     """
