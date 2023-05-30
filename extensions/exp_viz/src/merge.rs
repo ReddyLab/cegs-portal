@@ -2,11 +2,12 @@ use pyo3::prelude::*;
 use rustc_hash::FxHashSet;
 
 use crate::filter_data_structures::*;
+use exp_viz::FilteredBucket;
 
 fn merge_chromosomes(
-    result_data: &Vec<FilteredData>,
+    result_data: &Vec<PyFilteredData>,
     chromosomes: Vec<String>,
-) -> Vec<FilteredChromosome> {
+) -> Vec<PyFilteredChromosome> {
     if result_data.len() == 0 {
         return Vec::new();
     } else if result_data.len() == 1 {
@@ -17,7 +18,7 @@ fn merge_chromosomes(
     let mut chroms_covered: FxHashSet<String> = FxHashSet::default();
 
     for chrom in chromosomes {
-        let mut new_chromosome = FilteredChromosome {
+        let mut new_chromosome = PyFilteredChromosome {
             chrom: chrom.clone(),
             index: 0,
             bucket_size: 0,
@@ -147,16 +148,16 @@ fn merge_chromosomes(
 
 #[pyfunction]
 pub fn merge_filtered_data(
-    result_data: Vec<FilteredData>,
+    result_data: Vec<PyFilteredData>,
     chromosome_list: Vec<String>,
-) -> PyResult<FilteredData> {
-    let chromosomes: Vec<FilteredChromosome> = merge_chromosomes(&result_data, chromosome_list);
+) -> PyResult<PyFilteredData> {
+    let chromosomes: Vec<PyFilteredChromosome> = merge_chromosomes(&result_data, chromosome_list);
     let continuous_intervals = result_data.iter().map(|d| d.continuous_intervals).fold(
-        FilterIntervals {
+        PyFilterIntervals {
             effect: (f32::MAX, f32::MIN),
             sig: (f32::MAX, f32::MIN),
         },
-        |acc, d| FilterIntervals {
+        |acc, d| PyFilterIntervals {
             effect: (
                 f32::min(acc.effect.0, d.effect.0),
                 f32::max(acc.effect.1, d.effect.1),
@@ -165,7 +166,7 @@ pub fn merge_filtered_data(
         },
     );
 
-    Ok(FilteredData {
+    Ok(PyFilteredData {
         chromosomes,
         continuous_intervals,
         item_counts: result_data

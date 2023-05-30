@@ -1,6 +1,7 @@
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 
-use cov_viz_ds::{BucketLoc, ChromosomeData, CoverageData, DbID};
+use cov_viz_ds::{CoverageData, DbID};
+use exp_viz::{Filter, FilterIntervals, FilteredBucket, FilteredChromosome, FilteredData};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -11,20 +12,20 @@ pub struct PyCoverageData {
     pub wraps: CoverageData,
 }
 
-#[pyclass]
+#[pyclass(name = "Filter")]
 #[derive(Debug)]
-pub struct Filter {
+pub struct PyFilter {
     #[pyo3(get, set)]
     pub discrete_facets: FxHashSet<DbID>,
     #[pyo3(get, set)]
-    pub continuous_intervals: Option<FilterIntervals>,
+    pub continuous_intervals: Option<PyFilterIntervals>,
 }
 
 #[pymethods]
-impl Filter {
+impl PyFilter {
     #[new]
     pub fn new() -> Self {
-        Filter {
+        PyFilter {
             discrete_facets: FxHashSet::default(),
             continuous_intervals: None,
         }
@@ -35,9 +36,18 @@ impl Filter {
     }
 }
 
-#[pyclass]
+impl PyFilter {
+    pub fn as_filter(&self) -> Filter {
+        Filter {
+            discrete_facets: self.discrete_facets.clone(),
+            continuous_intervals: self.continuous_intervals.map(|ci| ci.as_filter_intervals()),
+        }
+    }
+}
+
+#[pyclass(name = "FilterIntervals")]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct FilterIntervals {
+pub struct PyFilterIntervals {
     #[pyo3(get, set)]
     pub effect: (f32, f32),
     #[pyo3(get, set)]
@@ -45,10 +55,10 @@ pub struct FilterIntervals {
 }
 
 #[pymethods]
-impl FilterIntervals {
+impl PyFilterIntervals {
     #[new]
     pub fn new() -> Self {
-        FilterIntervals {
+        PyFilterIntervals {
             effect: (f32::NEG_INFINITY, f32::INFINITY),
             sig: (f32::NEG_INFINITY, f32::INFINITY),
         }
@@ -62,16 +72,25 @@ impl FilterIntervals {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, FromPyObject)]
-pub struct FilteredBucket {
-    pub start: u32,
-    pub count: usize,
-    pub associated_buckets: Vec<u32>,
+impl PyFilterIntervals {
+    fn as_filter_intervals(&self) -> FilterIntervals {
+        FilterIntervals {
+            effect: self.effect,
+            sig: self.sig,
+        }
+    }
+
+    fn from_filter_intervals(fi: &FilterIntervals) -> PyFilterIntervals {
+        PyFilterIntervals {
+            effect: fi.effect,
+            sig: fi.sig,
+        }
+    }
 }
 
-#[pyclass]
+#[pyclass(name = "FilteredChromosome")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct FilteredChromosome {
+pub struct PyFilteredChromosome {
     pub chrom: String,
     pub index: u8,
     pub bucket_size: u32,
@@ -79,24 +98,36 @@ pub struct FilteredChromosome {
     pub source_intervals: Vec<FilteredBucket>,
 }
 
-#[pyclass]
+impl PyFilteredChromosome {
+    fn from_filtered_chromosome(fc: &FilteredChromosome) -> Self {
+        PyFilteredChromosome {
+            chrom: fc.chrom.clone(),
+            index: fc.index,
+            bucket_size: fc.bucket_size,
+            target_intervals: fc.target_intervals.clone(),
+            source_intervals: fc.source_intervals.clone(),
+        }
+    }
+}
+
+#[pyclass(name = "FilteredData")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct FilteredData {
+pub struct PyFilteredData {
     #[pyo3(get, set)]
-    pub chromosomes: Vec<FilteredChromosome>,
+    pub chromosomes: Vec<PyFilteredChromosome>,
     #[pyo3(get, set)]
-    pub continuous_intervals: FilterIntervals,
+    pub continuous_intervals: PyFilterIntervals,
     #[pyo3(get, set)]
     pub item_counts: [u64; 3],
 }
 
-impl FilteredData {
+impl PyFilteredData {
     pub fn from(data: &CoverageData) -> Self {
-        FilteredData {
+        PyFilteredData {
             chromosomes: data
                 .chromosomes
                 .iter()
-                .map(|c| FilteredChromosome {
+                .map(|c| PyFilteredChromosome {
                     chrom: c.chrom.clone(),
                     index: c.index,
                     bucket_size: c.bucket_size,
@@ -104,61 +135,29 @@ impl FilteredData {
                     source_intervals: Vec::new(),
                 })
                 .collect(),
-            continuous_intervals: FilterIntervals::new(),
+            continuous_intervals: PyFilterIntervals::new(),
             item_counts: [0, 0, 0],
+        }
+    }
+
+    pub fn from_filtered_data(data: &FilteredData) -> Self {
+        PyFilteredData {
+            chromosomes: data
+                .chromosomes
+                .iter()
+                .map(|c| PyFilteredChromosome::from_filtered_chromosome(c))
+                .collect(),
+            continuous_intervals: PyFilterIntervals::from_filter_intervals(
+                &data.continuous_intervals,
+            ),
+            item_counts: data.item_counts,
         }
     }
 }
 
 #[pymethods]
-impl FilteredData {
+impl PyFilteredData {
     pub fn to_json(&self) -> PyResult<String> {
         serde_json::to_string(self).map_err(|e| PyRuntimeError::new_err(e.to_string()))
-    }
-}
-
-#[derive(Clone)]
-pub struct BucketList {
-    pub buckets: FxHashMap<u8, Vec<u32>>,
-}
-
-impl BucketList {
-    pub fn new(chrom_info: &Vec<(&ChromosomeData, &usize)>, bucket_size: usize) -> Self {
-        BucketList {
-            buckets: chrom_info
-                .iter()
-                .map(|c| (c.0.index, vec![0; (c.1 / bucket_size) + 1]))
-                .collect(),
-        }
-    }
-
-    pub fn insert(&mut self, chrom: u8, bucket: usize) {
-        let x = self.buckets.get_mut(&chrom);
-        match x {
-            Some(v) => v[bucket] = 1,
-            None => (),
-        };
-    }
-
-    pub fn insert_from<'a, I>(&mut self, from: I)
-    where
-        I: IntoIterator<Item = &'a BucketLoc>,
-    {
-        for bucket in from {
-            self.insert(bucket.chrom, bucket.idx as usize);
-        }
-    }
-
-    pub fn flat_list(&self) -> Vec<u32> {
-        let mut new_list: Vec<u32> = Vec::new();
-        for (i, chrom) in self.buckets.iter() {
-            for (j, bucket) in chrom.iter().enumerate() {
-                if *bucket == 1 {
-                    new_list.push(*i as u32);
-                    new_list.push(j as u32);
-                }
-            }
-        }
-        new_list
     }
 }
