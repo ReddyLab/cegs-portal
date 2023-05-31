@@ -5,7 +5,7 @@ from django.http import Http404
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
@@ -68,10 +68,8 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             targets = Paginator(targets, 20)
             targets_page = targets.get_page(1)
 
-
             # print("sources_page:", sources_page)
             # print("targets_page:", targets_page)
-
 
             feature_reos.append(
                 (
@@ -80,10 +78,27 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                     {"page": targets_page, "nav_prefix": f"target_for_{feature.accession_id}"},
                 )
             )
+
+        if len(feature_reos) == 0:
+            raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
+
+        tabs = []
+        first_feature = feature_reos[0]
+        if len(first_feature[0].children.all()) > 0:
+            tabs.append("children")
+
+        if len(first_feature[1]["page"].object_list) > 0 or len(first_feature[2]["page"].object_list) > 0:
+            tabs.append("source target")
+
+        if len(first_feature[0].closest_features.all()) > 0:
+            tabs.append("closest features")
+
+        tabs.append("find nearby")
+
         return super().get(
             request,
             options,
-            {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos},
+            {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos, "tabs": tabs},
         )
 
     def get_data(self, options, id_type, feature_id):
@@ -184,6 +199,3 @@ class DNAFeatureLoc(TemplateJsonView):
             raise Http400(e)
 
         return features
-
-
-
