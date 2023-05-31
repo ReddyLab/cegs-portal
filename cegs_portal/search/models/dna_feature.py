@@ -8,39 +8,11 @@ from django.db.models.functions import Upper
 
 from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.dna_feature_type import DNAFeatureType
 from cegs_portal.search.models.experiment import Analysis, Experiment
 from cegs_portal.search.models.facets import Faceted, FacetValue
 from cegs_portal.search.models.file import File
 from cegs_portal.search.models.validators import validate_gene_ids
-
-
-class DNAFeatureType(Enum):
-    GENE = "gene"
-    TRANSCRIPT = "transcript"
-    EXON = "exon"
-    CCRE = "ccre"
-    DHS = "dhs"
-    GRNA = "gRNA"
-    CAR = "chromatin accessable region"
-
-    @property
-    def accession_abbreviation(self):
-        if self is DNAFeatureType.GENE:
-            return "GENE"
-        elif self is DNAFeatureType.TRANSCRIPT:
-            return "T"
-        elif self is DNAFeatureType.EXON:
-            return "EXON"
-        elif self is DNAFeatureType.CCRE:
-            return "CCRE"
-        elif self is DNAFeatureType.DHS:
-            return "DHS"
-        elif self is DNAFeatureType.GRNA:
-            return "GRNA"
-        elif self is DNAFeatureType.CAR:
-            return "CAR"
-        else:
-            raise Exception(f"No accession abbreviation defined for {self}")
 
 
 class DNAFeature(Accessioned, Faceted, AccessControlled):
