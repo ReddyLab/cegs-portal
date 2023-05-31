@@ -144,6 +144,11 @@
         margin-bottom: 15px;
     }
 
+    .profile-feature-faded-line {
+        border-top: 1px solid rgb(133, 139, 146);
+        margin-bottom: 15px;
+    }
+
     .subtype-style {
         color: gray;
         font-weight: bold;
@@ -220,7 +225,7 @@
 <!--
 HEADER -->
 <div>
-    <div class="feature-faded-line"></div>
+    <div class="profile-feature-faded-line"></div>
     {% for feature, sources, targets in feature_reos %}
 
     <div style="display: flex; justify-content: space-between">
@@ -235,13 +240,10 @@ HEADER -->
                 >({{ feature.ensembl_id }})</span
             >{% endif %}
         </h1>
-        {% if feature.feature_subtype %}
-        <div class="subtype-style">Type: {{ feature.feature_subtype }}</div>
-        {% endif %}
     </div>
     {% endfor %}
 
-    <div class="feature-faded-line"></div>
+    <div class="profile-feature-faded-line"></div>
     <div class="container">
         <table class="profile-table">
             <tr>
@@ -250,6 +252,13 @@ HEADER -->
                 <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
+
+        {% for feature, sources, targets in feature_reos %}
+            {% if feature.feature_subtype %}
+                <th>Feature Subtype</th>
+            {% endif %}
+        {% endfor %}
+
             </tr>
             {% for feature, sources, targets in feature_reos %}
             <tr>
@@ -261,6 +270,9 @@ HEADER -->
                 <td>{{ feature.strand }}</td>
                 <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                 <td>{{ feature.get_feature_type_display }}</td>
+                {% if feature.feature_subtype %}
+                <td> {{ feature.feature_subtype }}</td>
+                {% endif %}
             </tr>
             {% endfor %}
         </table>
