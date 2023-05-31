@@ -216,6 +216,10 @@
     align-items: center;
     }
 
+    .hidden {
+  display: none;
+}
+
 </style>
 
 {% endblock %} {% block javascript %} {{ block.super }}
@@ -252,13 +256,11 @@ HEADER -->
                 <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
-
         {% for feature, sources, targets in feature_reos %}
             {% if feature.feature_subtype %}
                 <th>Feature Subtype</th>
             {% endif %}
         {% endfor %}
-
             </tr>
             {% for feature, sources, targets in feature_reos %}
             <tr>
@@ -288,16 +290,16 @@ HEADER -->
                 data-te-nav-ref
             >
                 {% for feature, sources, targets in feature_reos %}
-                {% if feature.children.all|length > 0 and forloop.first %}
+                {% if forloop.first %}
                 <li role="presentation">
                     <a
-                        href="#tabs-coverage"
-                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        href="#tabs-children"
+                        class="{% if not feature.children.all|length > 0%}hidden{% endif %} my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-coverage"
+                        data-te-target="#tabs-children"
                         data-te-nav-active
                         role="tab"
-                        aria-controls="tabs-coverage"
+                        aria-controls="tabs-children"
                         aria-selected="true"
                         >Children<i class="bi bi-diagram-3-fill"></i>
                     </a>
@@ -307,13 +309,13 @@ HEADER -->
                 {% if forloop.first %}
                 <li role="presentation">
                     <a
-                        href="#tabs-qc-graphs"
+                        href="#tabs-source-target"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-qc-graphs-tab"
+                        id="tabs-source-target-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-qc-graphs"
+                        data-te-target="#tabs-source-target"
                         role="tab"
-                        aria-controls="tabs-qc-graphs"
+                        aria-controls="tabs-source-target"
                         aria-selected="false"
                         >Source Effects
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon-tab">
@@ -326,13 +328,13 @@ HEADER -->
                 {% if feature.closest_features.all|length > 0 and forloop.first %}
                 <li role="presentation">
                     <a
-                        href="#tabs-details"
+                        href="#tabs-closest-features"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-details-tab"
+                        id="tabs-closest-features-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-details"
+                        data-te-target="#tabs-closest-features"
                         role="tab"
-                        aria-controls="tabs-details"
+                        aria-controls="tabs-closest-features"
                         aria-selected="false"
                         >Closest DNA Features<svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -355,13 +357,13 @@ HEADER -->
 
                 <li role="presentation">
                     <a
-                        href="#tabs-files"
+                        href="#tabs-find-features"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-files-tab"
+                        id="tabs-find-features-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-files"
+                        data-te-target="#tabs-find-features"
                         role="tab"
-                        aria-controls="tabs-files"
+                        aria-controls="tabs-find-features"
                         aria-selected="false"
                         >Find Nearby DNA Features
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon-tab">
@@ -373,9 +375,9 @@ HEADER -->
         </div>
         <div
             class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-coverage"
+            id="tabs-children"
             role="tabpanel"
-            aria-labelledby="tabs-coverage-tab"
+            aria-labelledby="tabs-children-tab"
             data-te-tab-active
         >
             <!-- Children -->
@@ -431,62 +433,86 @@ HEADER -->
 
         <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-details"
+            id="tabs-source-target"
             role="tabpanel"
-            aria-labelledby="tabs-details-tab"
+            aria-labelledby="tabs-source-target"
         >
-            {% for feature in features %} {% if feature.closest_features.all|length > 0 %}
-            <div class="container">
-                <a name="closest-features-{{ feature.accession_id }}"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
-                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                        <path
-                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
-                    </svg>
 
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
-                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                        <path
-                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
-                    </svg>
-                    Closest DNA Features
-                </div>
-                <div class="feature-faded-line"></div>
-                <table class="data-table">
-                    <tr>
-                        <th>Accession ID</th>
-                        <th>Type</th>
-                        <th>Cell Line</th>
-                        <th>Location</th>
-                        <th>Strand</th>
-                        <th>Reference Genome</th>
-                    </tr>
-                    {% for close_feature in feature.closest_features.all %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
-                        </td>
-                        <td>{{ close_feature.get_feature_type_display }}</td>
-                        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
-                        <td>
-                            <span>{{ close_feature.chrom_name }}</span>:
-                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span>
-                        </td>
-                        <td>{{ close_feature.strand|default:"N/A" }}</td>
-                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
-            {% endif %} {% endfor %}
+        {% for feature, sources, targets in feature_reos %} {% if sources.page.object_list|length > 0 %}
+        <div class="container">
+            <a name="source-for-{{ feature.accession_id }}"></a>
+            {% include "search/v1/partials/_paged_nav.html" with data=sources.page container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
+        </div>
+        {% endif %} {% if targets.page.object_list|length > 0 %}
+        <div class="container">
+            <a name="target-of-{{ feature.accession_id }}"></a>
+            {% include "search/v1/partials/_paged_nav.html" with data=targets.page container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
+        </div>
+        {% endif %} {% endfor %}
+
         </div>
 
         <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-files"
+            id="tabs-closest-features"
             role="tabpanel"
-            aria-labelledby="tabs-files-tab"
+            aria-labelledby="tabs-files-closest-features"
+        >
+
+        {% for feature in features %} {% if feature.closest_features.all|length > 0 %}
+        <div class="container">
+            <a name="closest-features-{{ feature.accession_id }}"></a>
+            <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path
+                        d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                </svg>
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path
+                        d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                </svg>
+                Closest DNA Features
+            </div>
+            <div class="feature-faded-line"></div>
+            <table class="data-table">
+                <tr>
+                    <th>Accession ID</th>
+                    <th>Type</th>
+                    <th>Cell Line</th>
+                    <th>Location</th>
+                    <th>Strand</th>
+                    <th>Reference Genome</th>
+                </tr>
+                {% for close_feature in feature.closest_features.all %}
+                <tr>
+                    <td>
+                        <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
+                    </td>
+                    <td>{{ close_feature.get_feature_type_display }}</td>
+                    <td>{{ close_feature.cell_line|default:"N/A" }}</td>
+                    <td>
+                        <span>{{ close_feature.chrom_name }}</span>:
+                        <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span>
+                    </td>
+                    <td>{{ close_feature.strand|default:"N/A" }}</td>
+                    <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %} {% endfor %}
+
+
+        </div>
+
+        <div
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-find-features"
+            role="tabpanel"
+            aria-labelledby="tabs-find-features-tab"
         >
         <div class="container centered-container">
             <a name="near_features"></a>
@@ -512,25 +538,6 @@ HEADER -->
             </form>
           </div>
             <table id="dnafeature"></table>
-        </div>
-
-        <div
-            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-qc-graphs"
-            role="tabpanel"
-            aria-labelledby="tabs-qc-graphs-tab"
-        >
-            {% for feature, sources, targets in feature_reos %} {% if sources.page.object_list|length > 0 %}
-            <div class="container">
-                <a name="source-for-{{ feature.accession_id }}"></a>
-                {% include "search/v1/partials/_paged_nav.html" with data=sources.page container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
-            </div>
-            {% endif %} {% if targets.page.object_list|length > 0 %}
-            <div class="container">
-                <a name="target-of-{{ feature.accession_id }}"></a>
-                {% include "search/v1/partials/_paged_nav.html" with data=targets.page container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
-            </div>
-            {% endif %} {% endfor %}
         </div>
     </div>
 </div>
