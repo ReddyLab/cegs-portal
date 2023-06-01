@@ -66,7 +66,6 @@ DJANGO_APPS = [
     "django.contrib.admin",
     "django.forms",
     "channels",
-
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
