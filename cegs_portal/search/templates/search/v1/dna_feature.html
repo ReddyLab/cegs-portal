@@ -258,7 +258,7 @@ HEADER -->
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
         {% for feature, sources, targets in feature_reos %}
-            {% if feature.feature_subtype %}
+            {% if feature.feature_subtype and forloop.first %}
                 <th>Feature Subtype</th>
             {% endif %}
         {% endfor %}
@@ -440,7 +440,7 @@ HEADER -->
                         </tr>
                         {% for child in feature.children.all %}
                         <tr>
-                            <td>{{ child.ensembl_id }}</td>
+                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
                             <td>{{ child.get_feature_type_display }}</td>
                             <td>{{ child.name }}</td>
                             <td>
