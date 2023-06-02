@@ -28,15 +28,8 @@ function featureTable(features, regionID = "dnafeature") {
                 e("td", [
                     e("span", feature.chr),
                     ": ",
-                    e(
-                      "span",
-                      [
-                        `${feature.start.toLocaleString()}-`,
-                        e("br"),
-                        `${feature.end.toLocaleString()}`,
-                      ]
-                    ),
-                  ]),
+                    e("span", [`${feature.start.toLocaleString()}-`, e("br"), `${feature.end.toLocaleString()}`]),
+                ]),
                 e("td", feature.strand || "None"),
                 e(
                     "td",
@@ -53,14 +46,9 @@ function featureTable(features, regionID = "dnafeature") {
                 e(
                     "td",
                     feature.parent
-                      ? e(
-                          "a",
-                          { href: `/search/feature/accession/${feature.parent_accession_id}` },
-                          feature.parent
-                        )
-                      : "N/A"
-                  )
-
+                        ? e("a", {href: `/search/feature/accession/${feature.parent_accession_id}`}, feature.parent)
+                        : "N/A"
+                ),
             ])
         );
     }
@@ -100,12 +88,12 @@ function reTable(regeffects, regionID = "regeffect") {
                     ),
                     target == null
                         ? e("td", "-")
-                        : e("td", e("a", {href: `/search/feature/ensemble/${target}`}, target)),
+                        : e("td", e("a", {href: `/search/feature/accession/${target}`}, target)),
                 ])
             );
         }
     }
-    let tableContainer = e("div", {class: "container"}, [newTable]);
+    let tableContainer = e("div", {}, [newTable]);
     return tableContainer;
 }
 
@@ -137,12 +125,12 @@ function reTargetTable(regeffects, regionID = "regeffect") {
                     ),
                     source == null
                         ? e("td", "-")
-                        : e("td", e("a", {href: `/search/feature/ensemble/${source}`}, source)),
+                        : e("td", e("a", {href: `/search/feature/accession/${source}`}, source)),
                 ])
             );
         }
     }
-    let tableContainer = e("div", {class: ""}, [newTable]);
+    let tableContainer = e("div", {}, [newTable]);
     return tableContainer;
 }
 

@@ -268,12 +268,6 @@ class DNAFeatureSearch:
             .with_facet_values()
             .filter(sources__accession_id=source_id)
             .exclude(facet_values__value="Non-significant")
-            .prefetch_related(
-                "experiment",
-                "sources",
-                "targets",
-            )
-            .order_by("accession_id")
         )
 
         return reg_effects
@@ -285,12 +279,6 @@ class DNAFeatureSearch:
             .with_facet_values()
             .filter(targets__accession_id=source_id)
             .exclude(facet_values__value="Non-significant")
-            .prefetch_related(
-                "experiment",
-                "sources",
-                "targets",
-            )
-            .order_by("accession_id")
         )
 
         return reg_effects
