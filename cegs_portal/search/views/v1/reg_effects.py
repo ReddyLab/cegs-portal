@@ -96,6 +96,7 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
+        options["sig_only"] = int(request.GET.get("sig_only", True))
         return options
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
@@ -112,6 +113,12 @@ class SourceEffectsView(FeatureEffectsView):
             reg_effects = RegEffectSearch.source_search(feature_id)
         else:
             reg_effects = RegEffectSearch.source_search_with_private(feature_id, self.request.user.all_experiments())
+
+
+        if options.get("sig_only"):
+            reg_effects = reg_effects.exclude(facet_values__value = "Non-significant")
+
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
@@ -127,6 +134,12 @@ class TargetEffectsView(FeatureEffectsView):
             reg_effects = RegEffectSearch.target_search(feature_id)
         else:
             reg_effects = RegEffectSearch.target_search_with_private(feature_id, self.request.user.all_experiments())
+
+
+        if options.get("sig_only"):
+            reg_effects = reg_effects.exclude(facet_values__value = "Non-significant")
+
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
