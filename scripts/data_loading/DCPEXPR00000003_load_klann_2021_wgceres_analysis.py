@@ -107,7 +107,9 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
                 RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: float(line["pValue"]),
+                # line[pValue] is -log10(actual p-value), but we want significance between 0 and 1
+                # we perform the inverse operation.
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: pow(10, -float(line["pValue"])),
             },
         )
         effects.append(effect)
