@@ -22,8 +22,9 @@ const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
 const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
 const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
 const STATE_ITEM_COUNTS = "state-item-counts";
+const STATE_SOURCE_TYPE = "state-source-type";
 
-function build_state(manifest, genomeRenderer, exprAccessionID) {
+function build_state(manifest, genomeRenderer, exprAccessionID, sourceType) {
     let coverageData = manifest.chromosomes;
     let facets = manifest.facets;
     let default_facets = manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [];
@@ -53,6 +54,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID) {
         [STATE_HIGHLIGHT_REGIONS]: {},
         [STATE_SELECTED_EXPERIMENTS]: [exprAccessionID],
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
+        [STATE_SOURCE_TYPE]: sourceType,
     });
 
     return state;
@@ -101,18 +103,18 @@ function render(state, genomeRenderer) {
     rc(
         g("chrom-data-legend"),
         Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
-            title: "Source Count",
+            title: `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
         })
     );
     a(
         g("chrom-data-legend"),
         Legend(d3.scaleSequential(targetCountInterval, targetColors), {
-            title: "Gene Count",
+            title: "Number of Genes Assayed",
         })
     );
-    rc(g("reo-count"), t(`Observation Total: ${itemCounts[0]}`));
-    rc(g("source-count"), t(`Source Total: ${itemCounts[1]}`));
-    rc(g("target-count"), t(`Gene Total: ${itemCounts[2]}`));
+    rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
+    rc(g("source-count"), t(`${state.g(STATE_SOURCE_TYPE)}s: ${itemCounts[1].toLocaleString()}`));
+    rc(g("target-count"), t(`Genes: ${itemCounts[2].toLocaleString()}`));
 }
 
 function discreteFilterControls(facets, default_facets) {
@@ -214,10 +216,10 @@ function countFilterControls(state) {
 
         if (i == 0) {
             range = intervals.source;
-            name = "Source Count";
+            name = `Number of ${state.g(STATE_SOURCE_TYPE)}s`;
         } else if (i == 1) {
             range = intervals.target;
-            name = "Gene Count";
+            name = "Number of Genes Assayed";
         } else {
             continue;
         }
@@ -395,7 +397,7 @@ function getDownloadAll(facets, exprAccessionID, csrfToken) {
     getDownload(url, requestBody);
 }
 
-export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) {
+export async function exp_viz(staticRoot, exprAccessionID, csrfToken, sourceType, loggedIn) {
     let genome, manifest;
     try {
         [genome, manifest] = await getCoverageData(staticRoot, exprAccessionID);
@@ -409,7 +411,7 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, loggedIn) 
 
     const genomeRenderer = new GenomeRenderer(genome);
 
-    let state = build_state(manifest, genomeRenderer, exprAccessionID);
+    let state = build_state(manifest, genomeRenderer, exprAccessionID, sourceType);
 
     render(state, genomeRenderer);
 

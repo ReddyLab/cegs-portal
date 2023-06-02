@@ -1,6 +1,7 @@
 from . import signals
 from .accession import Accessioned, AccessionIdLog, AccessionIds
-from .dna_feature import DNAFeature, DNAFeatureType
+from .dna_feature import DNAFeature
+from .dna_feature_type import DNAFeatureSourceType, DNAFeatureType
 from .experiment import (
     Analysis,
     Biosample,

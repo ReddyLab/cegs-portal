@@ -5,6 +5,7 @@ from django.db import models
 
 from cegs_portal.search.models.access_control import AccessControlled
 from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.dna_feature_type import DNAFeatureSourceType
 from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
 
@@ -52,6 +53,9 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     name = models.CharField(max_length=512)
     biosamples = models.ManyToManyField(Biosample, related_name="experiments", blank=True)
     other_files = models.ManyToManyField(File, related_name="experiments", blank=True)
+    source_type = models.CharField(
+        max_length=50, choices=DNAFeatureSourceType.choices, default=DNAFeatureSourceType.GRNA
+    )
 
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
