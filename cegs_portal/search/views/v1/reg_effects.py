@@ -96,7 +96,7 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
-        options["sig_only"] = int(request.GET.get("sig_only", True))
+        options["sig_only"] = request.GET.get("sig_only", True)
         return options
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
