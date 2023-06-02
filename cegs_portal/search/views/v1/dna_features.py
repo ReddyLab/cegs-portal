@@ -62,13 +62,13 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         feature_reos = []
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
-            if sources.count() > 0:
+            if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
             else:
                 sources = None
 
             targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
-            if targets.count() > 0:
+            if targets.exists():
                 targets = {"nav_prefix": f"target_for_{feature.accession_id}"}
             else:
                 targets = None

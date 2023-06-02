@@ -308,7 +308,7 @@
                                     <th class="px-6 py-2 text-xs text-white">Download</th>
                                 </tr>
                             </thead>
-                            {% if experiment.data_files.all|length > 0 %} {% for file in experiment.data_files.all %}
+                            {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
                             <tbody class="bg-white divide-y divide-gray-300">
                                 <tr class="text-center whitespace-nowrap">
                                     <td class="px-6 py-4">
@@ -355,7 +355,7 @@
                                     <th class="px-6 py-2 text-xs text-white">Download</th>
                                 </tr>
                             </thead>
-                            {% if experiment.files.all|length > 0 %} {% for file in experiment.files.all %}
+                            {% if experiment.files.exists %} {% for file in experiment.files.all %}
                             <tbody class="bg-white divide-y divide-gray-300">
                                 <tr class="text-center whitespace-nowrap">
                                     <td class="px-6 py-4">
