@@ -3,7 +3,7 @@ import json
 import pytest
 from django.test import Client
 
-from cegs_portal.search.conftest import SearchClient
+from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import Experiment
 from cegs_portal.utils.pagination_types import Pageable
 

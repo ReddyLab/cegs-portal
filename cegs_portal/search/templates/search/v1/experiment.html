@@ -205,24 +205,36 @@
                             <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
                         </div>
                     </form>
+                    <div id="regionUploadInputReset"></div>
                 </div>
 
                 {% if logged_in %}
                 <div class="facet-content-section content-container">
                     <form name="dataDownloadForm">
                         <div>
-                            <label class="font-bold" for="dataDlFile">Download Data</label>
+                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
+                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                        </div>
+                        <div class="mt-5">
+                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
                             <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                         </div>
                     </form>
-                    <div id="dataDownloadLink"></div>
+                    <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                    <div>
+                    * Data downloads take facet filtering, except for "Number of {{ experiment.get_source_type_display }}s" and "Number of Genes Assayed", into account.
+                    </div>
                 </div>
                 {% endif %}
             </div>
 
             <div class="basis-3/4 content-container">
                 <!-- content section container for ChromCov -->
-                <div id="chrom-data-legend"></div>
+                <div class="flex flex-row gap-x-4 items-center">
+                    <div id="chrom-data-legend"></div>
+                    <div class="flex flex-col">
+                        <div id="reo-count"></div> <div id="source-count"></div> <div id="target-count"></div></div>
+                    </div>
                 <div id="chrom-data"></div>
             </div>
         </div>
@@ -393,9 +405,6 @@
                 <div id="ncells_histogram" class="mr-4"></div>
                 <div id="ngrna_histogram"></div>
             </div>
-            <div class="flex flex-nowrap my-3.5">
-                <div id="uniform_qqplot" class="mr-4"></div>
-            </div>
         </div>
     </div>
     <div
@@ -412,6 +421,7 @@
             <div class="faded-line my-3.5"></div>
             <div class="flex flex-nowrap my-3.5">
                 <div id="volcano"></div>
+                <div id="uniform_qqplot" class="mr-4"></div>
             </div>
         </div>
     </div>
@@ -462,31 +472,44 @@
     };
 
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => {
-            // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
-            // format.
-            let length = buffer.byteLength;
-            let decoder = new TextDecoder();
-            let data = new DataView(buffer);
-            let offset = 0;
-            let values = [];
-            while (offset < length) {
-                let pVal = data.getFloat32(offset);
-                let avgFC = data.getFloat32(offset + 4);
-                let type = data.getUint8(offset + 8);
-                let symLen = data.getUint8(offset + 9);
-                offset += 10;
-                let symArray = new Uint8Array(buffer, offset, symLen);
-                let sym = decoder.decode(symArray);
-                values.push([pVal, avgFC, type, sym]);
-                offset += symLen;
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
             }
-            return values;
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
+                    // format.
+                    let length = buffer.byteLength;
+                    let decoder = new TextDecoder();
+                    let data = new DataView(buffer);
+                    let offset = 0;
+                    let values = [];
+                    while (offset < length) {
+                        let pVal = data.getFloat32(offset);
+                        let avgFC = data.getFloat32(offset + 4);
+                        let type = data.getUint8(offset + 8);
+                        let symLen = data.getUint8(offset + 9);
+                        offset += 10;
+                        let symArray = new Uint8Array(buffer, offset, symLen);
+                        let sym = decoder.decode(symArray);
+                        values.push([pVal, avgFC, type, sym]);
+                        offset += symLen;
+                    }
+                    return values;
+                })
+                .then((values) => {
+                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                })
+                .catch((err) => console.log(err));
         })
-        .then((values) => {
-            return plot(values, "Crop of Non-Significant, Low Effect Observations");
-        });
+        .catch((err) => console.log(err));
+
 
     //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
     function processHistogramData(buffer) {
@@ -564,11 +587,23 @@
 
     // now you can use the API!
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => processHistogramData(buffer))
-        .then((data) =>
-            createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
-        );
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
 
     // setup API options
     const vegaQqPlotOptions = {
@@ -587,71 +622,83 @@
     // now you can use the API!
 
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => {
-            // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation of the data
-            // format.
-            let data = new DataView(buffer);
-            let decoder = new TextDecoder();
-            let offset = 0;
-            let values = [];
-            let quantileCount = data.getUint32(offset);
-            offset += 4;
-            let categoryCount = data.getUint8(offset);
-            offset += 1;
-            let categoryNames = [];
-            for(let i = 0; i < categoryCount; i++){
-                let nameSize = data.getUint8(offset);
-                offset += 1;
-                let nameArray = new Uint8Array(buffer, offset, nameSize);
-                let name = decoder.decode(nameArray);
-                offset += nameSize;
-                categoryNames.push(name)
-            }
-            let xLabelLen = data.getUint8(offset);
-            offset += 1;
-            let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
-            let xLabel = decoder.decode(xLabelArray);
-            offset += xLabelLen;
-            let yLabelLen = data.getUint8(offset);
-            offset += 1;
-            let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
-            let yLabel = decoder.decode(yLabelArray);
-            offset += yLabelLen;
-
-            for (let i = 0; i < quantileCount; i++) {
-                let x = data.getFloat32(offset);
-                offset += 4;
-                for(let j = 0; j < categoryCount; j++) {
-                    let y = data.getFloat32(offset);
-                    offset += 4;
-                    values.push({t: x, o: y, cat: categoryNames[j]});
+        .then((response) => {
+                if (!response.ok && response.status == 404) {
+                    return; // This is often okay and expected, not every analysis has this data
                 }
-            }
 
-            return {categoryNames, xLabel, yLabel, values};
-        }).then((data) => {
-            const scale = {
-                domain: data.categoryNames,
-                range: ['#ff8c00', '#777777', '#aec7e8', '#1f77b4', '#9467bd']
-            };
+                if(!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
 
-            return vl.markCircle({tooltip: true})
-            .data(data)
-            .width(500)
-            .height(500)
-            .title('Q-Q Plot')
-            .encode(
-                vl.color().fieldN('cat').scale(scale).title(''),
-                vl.x().fieldQ('t').title(data.xLabel),
-                vl.y().fieldQ('o').title(data.yLabel),
-            )
-            .render()
-        }).then((viewElement) => {
-            // render returns a promise to a DOM element containing the chart
-            // viewElement.value contains the Vega View object instance
-            document.getElementById("uniform_qqplot").appendChild(viewElement);
-        });
+                return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation
+                    // of the data format.
+                    let data = new DataView(buffer);
+                    let decoder = new TextDecoder();
+                    let offset = 0;
+                    let values = [];
+                    let quantileCount = data.getUint32(offset);
+                    offset += 4;
+                    let categoryCount = data.getUint8(offset);
+                    offset += 1;
+                    let categoryNames = [];
+                    for(let i = 0; i < categoryCount; i++){
+                        let nameSize = data.getUint8(offset);
+                        offset += 1;
+                        let nameArray = new Uint8Array(buffer, offset, nameSize);
+                        let name = decoder.decode(nameArray);
+                        offset += nameSize;
+                        categoryNames.push(name)
+                    }
+                    let xLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
+                    let xLabel = decoder.decode(xLabelArray);
+                    offset += xLabelLen;
+                    let yLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
+                    let yLabel = decoder.decode(yLabelArray);
+                    offset += yLabelLen;
+
+                    for (let i = 0; i < quantileCount; i++) {
+                        let x = data.getFloat32(offset);
+                        offset += 4;
+                        for(let j = 0; j < categoryCount; j++) {
+                            let y = data.getFloat32(offset);
+                            offset += 4;
+                            values.push({t: x, o: y, cat: categoryNames[j]});
+                        }
+                    }
+
+                    return {categoryNames, xLabel, yLabel, values};
+                }).then((data) => {
+                    const scale = {
+                        domain: data.categoryNames,
+                        range: ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd']
+                    };
+
+                    return vl.markCircle({tooltip: true})
+                    .data(data)
+                    .width(450)
+                    .height(400)
+                    .title('Q-Q Plot')
+                    .encode(
+                        vl.color().fieldN('cat').scale(scale).title(''),
+                        vl.x().fieldQ('t').title(data.xLabel),
+                        vl.y().fieldQ('o').title(data.yLabel),
+                    )
+                    .render()
+                }).then((viewElement) => {
+                    // render returns a promise to a DOM element containing the chart
+                    // viewElement.value contains the Vega View object instance
+                    document.getElementById("uniform_qqplot").appendChild(viewElement);
+                })
+                .catch((err) => console.log(err));
+            })
+            .catch((err) => console.log(err));
 
     // setup API options
     const vegaCellsHistogramOptions = {
@@ -669,11 +716,23 @@
 
     // now you can use the API!
     fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => processHistogramData(buffer))
-        .then((data) =>
-            createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
-        );
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
 </script>
 
 <script>
@@ -693,544 +752,9 @@
     });
 </script>
 
-{% if logged_in %}
 <script type="module">
-    import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
-    function getDownloadRegions() {
-        if (this.files.length != 1) {
-            return;
-        }
-        rc(g("dataDownloadLink"), t("Getting your data..."));
-
-        let url = "{% url 'get_expr_data:requestdata' %}?expr={{ experiment.accession_id }}&datasource=both";
-        let requestBody = new FormData();
-        requestBody.set("regions", this.files[0]);
-        requestBody.set("csrfmiddlewaretoken", "{{ csrf_token }}");
-
-        let request = {
-            method: "POST",
-            credentials: "include",
-            mode: "same-origin",
-            body: requestBody
-        }
-
-        let dlDataWorker;
-        fetch(url, request)
-            .then((response) => response.json())
-            .then((json) => {
-                dlDataWorker = new Worker("{% static 'search/js/downloadStatusWorker.js' %}");
-                dlDataWorker.onmessage = (statusData) => {
-                    let status = statusData.data;
-                    if(status == "ready") {
-                        let filePath = json["file location"].split("/");
-                        rc(g("dataDownloadLink"),
-                            e("a",
-                                {href: json["file location"]},
-                                t(filePath[filePath.length - 1])
-                            )
-                        );
-                    } else if(status == "in_preparation") {
-                        // keep spinning
-                    } else {
-                        rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
-                    }
-                }
-                dlDataWorker.postMessage(json["file progress"]);
-            })
-            .catch((err) => console.log(err))
-    }
-
-    g("dataDownloadInput").addEventListener("change", getDownloadRegions, false);
-</script>
-{% endif %}
-
-<script type="module">
-    import {a, cc, e, g, rc, t} from "{% static 'search/js/dom.js' %}";
-    import {State} from "{% static 'search/js/state.js' %}";
-    import {getRegions} from "{% static 'search/js/bed.js' %}";
-    import {getJson, postJson} from "{% static 'search/js/files.js' %}";
-    import {Legend} from "{% static 'search/js/exp_viz/obsLegend.js' %}";
-    import {sourceColors, targetColors, GenomeRenderer} from "{% static 'search/js/exp_viz/chromosomeSvg.js' %}";
-    import {mergeCoverageData, mergeFacets} from "{% static 'search/js/exp_viz/mergeDataStructures.js' %}";
-
-    let genome;
-    let genomeName;
-    let coverageData;
-    let facets;
-    try {
-        let manifest = await getJson(
-            "{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/coverage_manifest.json"
-        );
-        genome = await getJson(
-            `{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/${manifest.genome.file}`
-        );
-        genomeName = manifest.genome.name;
-        coverageData = manifest.chromosomes;
-        facets = manifest.facets;
-    } catch (error) {
-        // If the files can't be loaded we don't want to even try to show the visualization.
-    }
-
-    const genomeRenderer = new GenomeRenderer(genome);
-
-    const STATE_ZOOMED = "state-zoomed";
-    const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
-    const STATE_SCALE = "state-scale";
-    const STATE_SCALE_X = "state-scale-x";
-    const STATE_SCALE_Y = "state-scale-y";
-    const STATE_VIEWBOX = "state-viewbox";
-    const STATE_FACETS = "state-facets";
-    const STATE_DISCRETE_FACET_VALUES = "state-discrete-facets";
-    const STATE_CONTINUOUS_FACET_VALUES = "state-continuous-facets";
-    const STATE_COUNT_FILTER_VALUES = "state-count-filter";
-    const STATE_COVERAGE_DATA = "state-coverage-data";
-    const STATE_ALL_FILTERED = "state-all-filtered";
-    const STATE_CONTINUOUS_FILTER_INTERVALS = "state-continuous-filter-intervals";
-    const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
-    const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
-    const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
-
-    let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
-    let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
-    let effectSizeInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigInterval = facets.filter((f) => f.name === "Significance")[0].range;
-    let state = new State({
-        [STATE_ZOOMED]: false,
-        [STATE_ZOOM_CHROMO_INDEX]: undefined,
-        [STATE_SCALE]: 1,
-        [STATE_SCALE_X]: 1,
-        [STATE_SCALE_Y]: 1,
-        [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
-        [STATE_FACETS]: facets,
-        [STATE_DISCRETE_FACET_VALUES]: [],
-        [STATE_COVERAGE_DATA]: coverageData,
-        [STATE_ALL_FILTERED]: coverageData,
-        [STATE_CONTINUOUS_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
-        [STATE_CONTINUOUS_FACET_VALUES]: [effectSizeInterval, sigInterval],
-        [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
-        [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
-        [STATE_HIGHLIGHT_REGIONS]: {},
-        [STATE_SELECTED_EXPERIMENTS]: ["{{ experiment.accession_id }}"],
-    });
-
-    genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
-        let zoomed = state.g(STATE_ZOOMED);
-        if (zoomed) {
-            window.open(`/search/results/?query=chr${chromName}:${start}-${end}+${genomeName}`, "_blank");
-        } else {
-            state.u(STATE_VIEWBOX, [
-                renderer.renderContext.xInset +
-                    renderer.renderContext.toPx(start) * 30 -
-                    renderer.renderContext.viewHeight / 6,
-                renderer.renderContext.yInset +
-                    (renderer.chromDimensions.chromHeight + renderer.chromDimensions.chromSpacing) * i * 15 -
-                    renderer.renderContext.viewHeight / 6,
-                renderer.renderContext.viewWidth,
-                renderer.renderContext.viewHeight,
-            ]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, i);
-            state.u(STATE_ZOOMED, !zoomed);
-        }
-    };
-
-    genomeRenderer.onBackgroundClick = (rect, renderer) => {
-        let zoomed = state.g(STATE_ZOOMED);
-        if (zoomed) {
-            state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
-            state.u(STATE_ZOOMED, !zoomed);
-        }
-    };
-
-    rc(g("chrom-data-header"), t("Experiment Coverage"));
-
-    function render() {
-        const viewBox = state.g(STATE_VIEWBOX);
-        const scale = state.g(STATE_SCALE);
-        const scaleX = state.g(STATE_SCALE_X);
-        const scaleY = state.g(STATE_SCALE_Y);
-        const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
-        let currentLevel = state.g(STATE_ALL_FILTERED);
-        let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-        let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-        let sourceCountInterval = countIntervals.source;
-        let targetCountInterval = countIntervals.target;
-
-        rc(
-            g("chrom-data"),
-            genomeRenderer.render(
-                currentLevel,
-                focusIndex,
-                sourceCountInterval,
-                targetCountInterval,
-                viewBox,
-                scale,
-                scaleX,
-                scaleY,
-                highlightRegions
-            )
-        );
-        rc(
-            g("chrom-data-legend"),
-            Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
-                title: "Source Count",
-            })
-        );
-        a(
-            g("chrom-data-legend"),
-            Legend(d3.scaleSequential(targetCountInterval, targetColors), {
-                title: "Target Count",
-            })
-        );
-    }
-
-    render();
-
-    function levelCountInterval(chroms, interval, chromoIndex) {
-        if (chromoIndex) {
-            chroms = [chroms[chromoIndex]];
-        }
-        let max = Number.NEGATIVE_INFINITY;
-        let min = Number.POSITIVE_INFINITY;
-        for (const chrom of chroms) {
-            const count = chrom[interval].map((d) => d.count);
-            max = Math.max(max, Math.max(...count));
-            min = Math.min(min, Math.min(...count));
-        }
-
-        if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
-            return [0, 0];
-        }
-
-        return [min, max];
-    }
-
-    let discreteFacets = g("chrom-data-discrete-facets");
-    function discreteFilterControls(facets) {
-        return facets
-            .filter((f) => f.facet_type == "FacetType.DISCRETE")
-            .map((facet) => {
-                return e("fieldset", {name: "facetfield", class: "my-4"}, [
-                    e("legend", {class: "font-bold"}, facet.name),
-                    e(
-                        "div",
-                        {class: "flex flex-row flex-wrap gap-1"},
-                        Object.entries(facet.values).map((entry) => {
-                            return e("div", {class: "ml-1"}, [
-                                e("input", {type: "checkbox", id: entry[0], name: facet.name}, []),
-                                e("label", {for: entry[0]}, entry[1]),
-                            ]);
-                        })
-                    ),
-                ]);
-            });
-    }
-
-    let continuousFacets = g("chrom-data-continuous-facets");
-    function continuousFilterControls(facets) {
-        const contFacets = facets.filter((f) => f.facet_type == "FacetType.CONTINUOUS");
-        let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
-        let filterNodes = [];
-        let intervals = state.g(STATE_CONTINUOUS_FILTER_INTERVALS);
-
-        for (let i = 0; i < contFacets.length; i++) {
-            let facet = contFacets[i];
-            let sliderNode = sliderNodes[i];
-
-            let range;
-
-            if (facet.name === "Effect Size") {
-                range = intervals.effect;
-            } else if (facet.name === "Significance") {
-                range = intervals.sig;
-            } else {
-                continue;
-            }
-
-            noUiSlider.create(sliderNode, {
-                start: [range[0], range[1]],
-                format: {
-                    to: (n) => n.toPrecision(3),
-                    from: (s) => Number.parseFloat(s),
-                },
-                connect: true,
-                range: {
-                    min: range[0],
-                    max: range[1],
-                },
-                pips: {
-                    mode: "range",
-                    density: 5,
-                    format: {
-                        to: (n) => n.toPrecision(3),
-                        from: (s) => Number.parseFloat(s),
-                    },
-                },
-            });
-
-            sliderNode.noUiSlider.on("start", function (values, handle) {
-                sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
-            });
-
-            sliderNode.noUiSlider.on("end", function (values, handle) {
-                sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
-            });
-
-            filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", facet.name), sliderNode]));
-        }
-
-        sliderNodes.forEach((sliderNode) => {
-            sliderNode.noUiSlider.on("slide", function (values, handle) {
-                state.u(
-                    STATE_CONTINUOUS_FACET_VALUES,
-                    sliderNodes.map((n) => n.noUiSlider.get(true))
-                );
-            });
-        });
-
-        return filterNodes;
-    }
-
-    function countFilterControls() {
-        let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
-        let filterNodes = [];
-        let intervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-
-        let range = intervals.source;
-
-        for (let i = 0; i < 2; i++) {
-            let sliderNode = sliderNodes[i];
-
-            let range;
-            let name;
-
-            if (i == 0) {
-                range = intervals.source;
-                name = "Source Count";
-            } else if (i == 1) {
-                range = intervals.target;
-                name = "Target count";
-            } else {
-                continue;
-            }
-
-            noUiSlider.create(sliderNode, {
-                start: [range[0], range[1]],
-                step: 1,
-                connect: true,
-                range: {
-                    min: range[0],
-                    max: range[1],
-                },
-                pips: {
-                    mode: "range",
-                    density: 5,
-                },
-            });
-
-            sliderNode.noUiSlider.on("start", function (values, handle) {
-                sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
-            });
-
-            sliderNode.noUiSlider.on("end", function (values, handle) {
-                sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
-            });
-
-            filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", name), sliderNode]));
-        }
-
-        sliderNodes.forEach((sliderNode) => {
-            sliderNode.noUiSlider.on("slide", function (values, handle) {
-                state.u(
-                    STATE_COUNT_FILTER_VALUES,
-                    sliderNodes.map((n) => n.noUiSlider.get(true))
-                );
-            });
-        });
-
-        return filterNodes;
-    }
-
-    countFilterControls().forEach((element) => {
-        a(g("chrom-data-counts"), element);
-    });
-
-    function getFilterBody(filter_values) {
-        let filters = {
-            filters: filter_values,
-            chromosomes: genome.map((c) => c.chrom),
-        };
-        if (state.g(STATE_ZOOMED)) {
-            let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-            filters.zoom = coverageData[zoomChromoIndex].chrom;
-        }
-
-        return filters;
-    }
-
-    function mergeFilteredData(current_data, response_data) {
-        let resp_obj = response_data.reduce((obj, chrom) => {
-            obj[chrom.chrom] = chrom;
-            return obj;
-        }, {});
-
-        return current_data.map((chrom) => {
-            return chrom.chrom in resp_obj ? resp_obj[chrom.chrom] : chrom;
-        });
-    }
-
-    function experimentsQuery() {
-        let selectedExperiments = state.g(STATE_SELECTED_EXPERIMENTS);
-        return selectedExperiments.map((e) => `exp=${e}`).join("&");
-    }
-
-    state.ac(STATE_ZOOMED, (s, key) => {
-        const zoomed = s[key];
-        state.u(STATE_SCALE, zoomed ? 15 : 1);
-        state.u(STATE_SCALE_X, zoomed ? 30 : 1);
-        state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
-
-        let body = getFilterBody([state.g(STATE_DISCRETE_FACET_VALUES), state.g(STATE_CONTINUOUS_FACET_VALUES)]);
-
-        postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then((response_json) => {
-            state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
-        });
-    });
-
-    state.ac(STATE_ALL_FILTERED, (s, key) => {
-        render();
-    });
-
-    state.ac(
-        STATE_DISCRETE_FACET_VALUES,
-        _.debounce((s, key) => {
-            // Send facet data to server to get filtered data and updated continuous facets
-            let body = getFilterBody([state.g(STATE_DISCRETE_FACET_VALUES)]);
-
-            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then(
-                (response_json) => {
-                    state.u(
-                        STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
-                    );
-                    state.u(STATE_CONTINUOUS_FILTER_INTERVALS, response_json.continuous_intervals);
-                    state.u(
-                        STATE_CONTINUOUS_FACET_VALUES,
-                        [response_json.continuous_intervals.effect, response_json.continuous_intervals.sig],
-                        false
-                    );
-                }
-            );
-        }, 300)
-    );
-
-    state.ac(
-        STATE_CONTINUOUS_FACET_VALUES,
-        _.debounce((s, key) => {
-            // Send facet data to server to get filtered data and updated continuous facets
-            let body = getFilterBody([state.g(STATE_DISCRETE_FACET_VALUES), state.g(STATE_CONTINUOUS_FACET_VALUES)]);
-
-            postJson(`/search/experiment_coverage?${experimentsQuery()}`, JSON.stringify(body)).then(
-                (response_json) => {
-                    state.u(
-                        STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
-                    );
-                }
-            );
-        }, 300)
-    );
-
-    state.ac(STATE_CONTINUOUS_FILTER_INTERVALS, (s, key) => {
-        cc(g("chrom-data-continuous-facets"));
-        continuousFilterControls(state.g(STATE_FACETS)).forEach((element) =>
-            a(g("chrom-data-continuous-facets"), element)
-        );
-    });
-
-    state.ac(STATE_COUNT_FILTER_INTERVALS, (s, key) => {
-        cc(g("chrom-data-counts"));
-        countFilterControls().forEach((element) => a(g("chrom-data-counts"), element));
-    });
-
-    let countFacetWorker;
-    if (window.Worker) {
-        countFacetWorker = new Worker("{% static 'search/js/exp_viz/countFacetFilterWorker.js' %}");
-        countFacetWorker.onmessage = (cf) => {
-            state.u(STATE_ALL_FILTERED, cf.data);
-        };
-    }
-
-    state.ac(
-        STATE_COUNT_FILTER_VALUES,
-        _.debounce((s, key) => {
-            if (countFacetWorker) {
-                countFacetWorker.postMessage({
-                    data: state.g(STATE_COVERAGE_DATA),
-                    countFilters: state.g(STATE_COUNT_FILTER_VALUES),
-                });
-            }
-        }, 60)
-    );
-
-    state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
-        render();
-    });
-
-    function setFacetControls(facets) {
-        cc(discreteFacets);
-        discreteFilterControls(facets).forEach((element) => {
-            a(discreteFacets, element);
-        });
-        let facetCheckboxes = discreteFacets.querySelectorAll("input[type=checkbox]");
-        facetCheckboxes.forEach((checkbox) => {
-            checkbox.addEventListener("change", (_) => {
-                let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-                    .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                    .map((i) => Number(i.id));
-                state.u(STATE_DISCRETE_FACET_VALUES, checkedFacets);
-            });
-        });
-
-        let effectSizeInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-        let sigInterval = facets.filter((f) => f.name === "Significance")[0].range;
-        state.u(STATE_CONTINUOUS_FILTER_INTERVALS, {effect: effectSizeInterval, sig: sigInterval});
-    }
-
-    function setCountControls(coverageData) {
-        let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
-        let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
-        state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
-        state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
-    }
-
-    state.ac(STATE_FACETS, (s, key) => {
-        setFacetControls(s[key]);
-    });
-
-    state.ac(STATE_COVERAGE_DATA, (s, key) => {
-        setCountControls(s[key]);
-    });
-
-    setFacetControls(state.g(STATE_FACETS));
-
-    let regionReader = new FileReader();
-    regionReader.addEventListener(
-        "load",
-        () => {
-            state.u(STATE_HIGHLIGHT_REGIONS, getRegions(regionReader.result));
-        },
-        false
-    );
-
-    function getHighlightRegions() {
-        if (this.files.length != 1) {
-            return;
-        }
-        regionReader.readAsText(this.files[0]);
-    }
-
-    g("regionUploadInput").addEventListener("change", getHighlightRegions, false);
+    import {exp_viz} from "{% static 'search/js/exp_viz/exp_viz.js' %}";
+    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
 </script>
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

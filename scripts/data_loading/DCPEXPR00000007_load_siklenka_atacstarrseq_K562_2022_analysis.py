@@ -104,7 +104,9 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, delimiter=
             analysis=analysis,
             facet_num_values={
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                # significance is -log10(actual significance), but we want significance between 0 and 1
+                # we perform the inverse operation.
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: pow(10, -float(significance)),
                 # significance is -log10(actual p-value), so raw_p_value uses the inverse operation
                 RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(significance)),
                 RegulatoryEffectObservation.Facet.AVG_COUNTS_PER_MILLION.value: float(line["input_avg_counts.cpm"]),

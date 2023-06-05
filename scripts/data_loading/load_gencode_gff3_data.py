@@ -114,7 +114,7 @@ def bulk_feature_save(features, parent_ids=None):
             parents_dict = {p.ensembl_id: p for p in parents.all()}
             for f, pid in zip(features, parent_ids):
                 f.parent = parents_dict[pid]
-                f.parent_assembly = parents_dict[pid]
+                f.parent_accession = parents_dict[pid]
         DNAFeature.objects.bulk_create(features)
 
 

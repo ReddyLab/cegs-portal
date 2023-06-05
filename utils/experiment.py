@@ -10,6 +10,7 @@ from cegs_portal.search.models import (
     Analysis,
     Biosample,
     CellLine,
+    DNAFeatureSourceType,
     Experiment,
     ExperimentDataFileInfo,
     TissueType,
@@ -17,6 +18,20 @@ from cegs_portal.search.models import (
 
 from .file import FileMetadata
 from .misc import get_delimiter
+
+
+def get_source_type(source_type_string) -> DNAFeatureSourceType:
+    match source_type_string.lower():
+        case "car":
+            return DNAFeatureSourceType.CAR
+        case "grna":
+            return DNAFeatureSourceType.GRNA
+        case "dhs":
+            return DNAFeatureSourceType.DHS
+        case "ccre":
+            return DNAFeatureSourceType.CCRE
+        case _:
+            raise Exception(f"Bad source feature string: {source_type_string}")
 
 
 class ExperimentFileMetadata:
@@ -155,12 +170,14 @@ class ExperimentMetadata:
     accession_id: str
     biosamples: list[ExperimentBiosample]
     file_metadata: list[FileMetadata]
+    source_type: str
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
         self.description = experiment_dict.get("description", None)
         self.experiment_type = experiment_dict.get("type", None)
         self.name = experiment_dict["name"]
         self.accession_id = experiment_dict["accession_id"]
+        self.source_type = get_source_type(experiment_dict["source type"])
         self.filename = experiment_filename
         self.file_metadata = []
         self.file_metadata = []
@@ -174,6 +191,7 @@ class ExperimentMetadata:
             accession_id=self.accession_id,
             description=self.description,
             experiment_type=self.experiment_type,
+            source_type=self.source_type,
         )
         experiment.save()
         for file in self.file_metadata:
