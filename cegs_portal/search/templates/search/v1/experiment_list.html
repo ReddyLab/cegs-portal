@@ -80,39 +80,76 @@
             Experiment Index
         </h1>
     </div>
-    <div>
-        {% for experiment in experiments %}
-        <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link">
-            <div class="content-container">
-                <div class="name">{{ experiment.name }}</div>
-                <div class="description">{{ experiment.description }}</div>
-                <div class="flex justify-between">
-                    <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
-                    <div class="accession-id">{{ experiment.accession_id }}</div>
+    <div class="flex gap-x-10 items-start">
+        {% if logged_in %}
+        <div class="content-container">
+            <form name="dataDownloadForm">
+                <div class="mt-5">
+                    <label class="font-bold" for="dataDlFile">Download Data from Selected Experiments</label>
+                    <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                 </div>
-            </div>
-        </a>
-        {% endfor %}
-        <div style="display: flex; justify-content: center; margin-top: 1rem">
-            <div class="pagination">
-                <span class="step-links">
-                    {% if experiments.has_previous %}
-                    <a href="?page=1">&laquo; first</a>
-                    <a href="?page={{ experiments.previous_page_number }}">previous</a>
-                    {% endif %}
+            </form>
+            <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+        </div>
+        {% endif %}
+        <div>
+            {% for experiment in experiments %}
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link">
+                <div class="content-container">
+                    <div class="name">{{ experiment.name }}</div>
+                    <div class="description">{{ experiment.description }}</div>
+                    <div class="flex justify-between">
+                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                        <div class="accession-id">{{ experiment.accession_id }}</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+            <div style="display: flex; justify-content: center; margin-top: 1rem">
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if experiments.has_previous %}
+                        <a href="?page=1">&laquo; first</a>
+                        <a href="?page={{ experiments.previous_page_number }}">previous</a>
+                        {% endif %}
 
-                    <span class="current">
-                        Page {{ experiments.number }} of {{ experiments.paginator.num_pages }}
+                        <span class="current">
+                            Page {{ experiments.number }} of {{ experiments.paginator.num_pages }}
+                        </span>
+
+                        {% if experiments.has_next %}
+                        <a href="?page={{ experiments.next_page_number }}">next</a>
+                        <a href="?page={{ experiments.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
                     </span>
-
-                    {% if experiments.has_next %}
-                    <a href="?page={{ experiments.next_page_number }}">next</a>
-                    <a href="?page={{ experiments.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block inline_javascript %}
+{% if logged_in %}
+{{ experiment_ids|json_script:"experiment_id_list" }}
+
+<script type="module">
+    import { g } from "{% static 'search/js/dom.js' %}";
+    import { getDownloadRegions } from "{% static 'search/js/exp_viz/downloads.js' %}";
+
+    let dataDownloadInput = g("dataDownloadInput");
+    dataDownloadInput.addEventListener(
+        "change",
+        () =>
+            getDownloadRegions(
+                null,
+                dataDownloadInput,
+                JSON.parse(document.getElementById("experiment_id_list").textContent),
+                "{{ csrf_token }}"
+            ),
+        false
+    );
+</script>
+{% endif %}
 {% endblock %}

@@ -58,8 +58,8 @@ class DataState(StrEnum):
 @dataclass
 class Facets:
     discrete_facets: list[int] = field(default_factory=list)
-    effect_size_range: tuple = (None, None)
-    sig_range: tuple = (None, None)
+    effect_size_range: Optional[tuple[float, float]] = None
+    sig_range: Optional[tuple[float, float]] = None
 
 
 def validate_expr(expr) -> bool:
@@ -297,12 +297,14 @@ def retrieve_experiment_data(
         where = f"{where} AND %s::bigint[] && reo_sources_targets.disc_facets"
         for i in inputs:
             i.append(facets.discrete_facets)
-    where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
-    for i in inputs:
-        i.append(NumericRange(*facets.effect_size_range))
-    where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
-    for i in inputs:
-        i.append(NumericRange(*facets.sig_range))
+    if facets.effect_size_range is not None:
+        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
+        for i in inputs:
+            i.append(NumericRange(*facets.effect_size_range))
+    if facets.sig_range is not None:
+        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
+        for i in inputs:
+            i.append(NumericRange(*facets.sig_range))
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets.source_chrom,
