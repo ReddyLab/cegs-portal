@@ -13,6 +13,7 @@ from cegs_portal.search.models import (
     DNAFeatureSourceType,
     Experiment,
     ExperimentDataFileInfo,
+    FacetValue,
     TissueType,
 )
 
@@ -164,7 +165,7 @@ class AnalysisMetadata:
 
 class ExperimentMetadata:
     description: str
-    experiment_type: str
+    assay: str
     name: str
     filename: str
     accession_id: str
@@ -174,7 +175,7 @@ class ExperimentMetadata:
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
         self.description = experiment_dict.get("description", None)
-        self.experiment_type = experiment_dict.get("type", None)
+        self.assay = experiment_dict.get("assay", None)
         self.name = experiment_dict["name"]
         self.accession_id = experiment_dict["accession_id"]
         self.source_type = get_source_type(experiment_dict["source type"])
@@ -190,9 +191,14 @@ class ExperimentMetadata:
             name=self.name,
             accession_id=self.accession_id,
             description=self.description,
-            experiment_type=self.experiment_type,
+            experiment_type=self.assay,
             source_type=self.source_type,
         )
+        experiment.save()
+        assay_facet = FacetValue.objects.get(value=self.assay)
+        source_facet = FacetValue.objects.get(value__iexact=self.source_type)
+        experiment.facet_values.add(assay_facet)
+        experiment.facet_values.add(source_facet)
         experiment.save()
         for file in self.file_metadata:
             file.db_save(experiment)
