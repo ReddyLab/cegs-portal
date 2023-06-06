@@ -3,21 +3,45 @@
     #nav-searchbar {
         display: none;
     }
+
+    .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        font-family: "Arial", sans-serif;
+        color: #094474;
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .container a {
+        color: #2196f3;
+        text-decoration: none;
+    }
+
+    .container a:hover {
+        text-decoration: underline;
+    }
+
+    .searchwrapper div {
+        display: inline;
+    }
 </style>
 {% endblock %} {% block title %}Home{% endblock %} {% block content %}
 <div>
-<div class="bg-blue-50 border-2 border-color rounded-md p-4 min-w-fit max-w-fit">
+<div class="container p-4 min-w-fit max-w-fit">
     <div class="text-2xl font-bold mb-2 whitespace-nowrap">Search for Genes and Regulatory Elements</div>
+    <div class="text-m mb-2">Search for Ensembl IDs, gene names, or chromosome ranges</div>
     <form action="{% url 'search:results' %}" method="get" class="search">
         <div class="searchwrapper">
             {{ form }}
             <input type="submit" value="Go" class="search-button" />
         </div>
     </form>
-    <div class="text-m">Enter Ensembl IDs and chromosome ranges</div>
-</div>
-<div>
-    <a href="{% url 'search:experiments' %}">Experiments</a>
+    or
+    <a href="{% url 'search:experiments' %}"><div class="text-2xl font-bold mb-2 whitespace-nowrap">Browse All Experiments</div></a>
 </div>
 </div>
 {% endblock %}
