@@ -54,6 +54,11 @@
         box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
     }
+    .experiment-icon {
+        fill: currentColor;
+        margin-right: 10px;
+    }
+
 </style>
 {% endblock %} {% block javascript %} {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
@@ -68,10 +73,9 @@
         <table class="min-w-fit max-w-fit">
             <thead class="bg-white border-b">
                 <tr>
-                    <div class="text-2xl font-bold">
-                        <i class="bi bi-funnel-fill" style="color: rgb(11, 11, 107)"></i> {{ experiment.name }}
-                        {{ experiment.get_source_type_display }}
-                        {{ experiment.source_type.label|lower }}
+                    <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="experiment-icon"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
+                        </svg> {{ experiment.name }}
                     </div>
                 </tr>
             </thead>
@@ -245,7 +249,7 @@
             <table class="min-w-full">
                 <thead class="bg-white border-b">
                     <tr>
-                        <div class="text-2xl font-bold"><i class="bi bi-funnel"></i> {{ experiment.name }}</div>
+
                         <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Description</th>
                         <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
                             {{ experiment.description }}
@@ -292,7 +296,7 @@
                 <div class="flex flex-col">
                     <div class="w-full">
                         <table class="divide-y divide-gray-400" id="dataFilesTable">
-                            <div class="text-xl font-bold" style="color: gray">
+                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                                 Data Files <i class="bi bi-folder-symlink-fill"></i>
                             </div>
                             <thead class="bg-gray-700">
@@ -338,7 +342,7 @@
                 <div class="flex flex-col">
                     <div class="w-full">
                         <table class="divide-y divide-gray-300" id="otherFilesTable">
-                            <div class="text-xl font-bold" style="color: gray">
+                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                                 Other Files <i class="bi bi-folder-symlink-fill"></i>
                             </div>
                             <thead class="bg-gray-700">
@@ -393,7 +397,7 @@
     >
         <div
             class="content-container min-w-max max-w-max text-xl font-bold"
-            style="color: gray"
+            style="color: rgb(100 116 139);"
         >
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
             <div class="faded-line my-3.5"></div>
@@ -411,7 +415,7 @@
     >
         <div
             class="content-container min-w-max max-w-max text-xl font-bold"
-            style="color: gray"
+            style="color: rgb(100 116 139);"
         >
             Analysis <i class="bi bi-pie-chart-fill"></i>
             <div class="faded-line my-3.5"></div>
