@@ -3,7 +3,7 @@ from typing import cast
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Q, Value
 
-from cegs_portal.search.models import Experiment
+from cegs_portal.search.models import Experiment, FacetValue
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 
 
@@ -57,3 +57,9 @@ class ExperimentSearch:
     @classmethod
     def all_except(cls, accession_id):
         return Experiment.objects.exclude(accession_id=accession_id).order_by("accession_id")
+
+    @classmethod
+    def experiment_facets(cls):
+        return FacetValue.objects.filter(id__in=Experiment.objects.only("facet_values__id").all()).select_related(
+            "facet"
+        )

@@ -34,7 +34,7 @@ from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 from cegs_portal.search.models.utils import ChromosomeLocation
 from cegs_portal.users.conftest import group_extension  # noqa: F401
-from cegs_portal.utils.pagination_types import MockPaginator, Pageable, Paginateable
+from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 
 @pytest.fixture
@@ -70,7 +70,7 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
 
 
 @pytest.fixture
-def paged_experiments() -> Pageable[Experiment]:
+def experiment_list_data():
     e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e1), _file(experiment=e1, data_file_info=data_file_info()))
     e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
@@ -84,8 +84,9 @@ def paged_experiments() -> Pageable[Experiment]:
     e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e6), _file(experiment=e6, data_file_info=data_file_info()))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
-    pages: Paginateable[Experiment] = MockPaginator(experiments, 3)
-    return pages.page(1)
+    f1 = FacetValueFactory()
+    f2 = FacetValueFactory()
+    return experiments, [f1, f2]
 
 
 def data_file_info() -> ExperimentDataFileInfo:

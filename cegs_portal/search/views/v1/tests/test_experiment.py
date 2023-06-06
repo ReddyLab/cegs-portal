@@ -1,44 +1,24 @@
 import json
+from typing import Any
 
 import pytest
 from django.test import Client
 
 from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import Experiment
-from cegs_portal.utils.pagination_types import Pageable
 
 pytestmark = pytest.mark.django_db
 
 
-def test_experiment_list_json(client: Client, paged_experiments: Pageable[Experiment]):
+def test_experiment_list_json(client: Client, experiment_list_data: tuple[Any, Any]):
     response = client.get("/search/experiment?accept=application/json")
-    paged_experiments.paginator.per_page = 20  # The default number
-    experiments = paged_experiments.paginator.page(1)
+    experiments, _ = experiment_list_data
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
-    assert len(json_content["object_list"]) == len(experiments.object_list)
+    assert len(json_content["experiments"]) == len(experiments)
 
-    for json_expr, expr in zip(json_content["object_list"], experiments.object_list):
-        assert json_expr["accession_id"] == expr.accession_id
-        assert json_expr["name"] == expr.name
-        assert json_expr["description"] == expr.description
-
-
-def test_experiment_list_json_page(client: Client, paged_experiments: Pageable[Experiment]):
-    page = 2
-    response = client.get(
-        f"/search/experiment?accept=application/json&page={page}&per_page={paged_experiments.paginator.per_page}"
-    )
-
-    assert response.status_code == 200
-    json_content = json.loads(response.content)
-
-    experiments = paged_experiments.paginator.page(page)
-
-    assert len(json_content["object_list"]) == len(experiments.object_list)
-
-    for json_expr, expr in zip(json_content["object_list"], experiments.object_list):
+    for json_expr, expr in zip(json_content["experiments"], experiments):
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
         assert json_expr["description"] == expr.description
@@ -58,7 +38,7 @@ def test_experiment_list_with_anonymous_client(client: Client):
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    assert len(json_content["object_list"]) == 1
+    assert len(json_content["experiments"]) == 1
 
 
 @pytest.mark.usefixtures("access_control_experiments")
@@ -67,7 +47,7 @@ def test_experiment_list_with_authenticated_client(login_client: SearchClient):
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    assert len(json_content["object_list"]) == 1
+    assert len(json_content["experiments"]) == 1
 
 
 def test_experiment_list_with_authenticated_authorized_client(
@@ -80,7 +60,7 @@ def test_experiment_list_with_authenticated_authorized_client(
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    assert len(json_content["object_list"]) == 2
+    assert len(json_content["experiments"]) == 2
 
 
 def test_experiment_list_with_authenticated_authorized_group_client(
@@ -93,7 +73,7 @@ def test_experiment_list_with_authenticated_authorized_group_client(
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    assert len(json_content["object_list"]) == 2
+    assert len(json_content["experiments"]) == 2
 
 
 def test_experiment_json(client: Client, experiment: Experiment):

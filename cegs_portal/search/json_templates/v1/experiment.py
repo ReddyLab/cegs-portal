@@ -1,24 +1,20 @@
 from typing import Any, Optional
 
 from cegs_portal.search.models import Biosample, Experiment, File
-from cegs_portal.utils.pagination_types import Pageable
 
 
-def experiments(experiments_obj: Pageable[Experiment], options: Optional[dict[str, Any]] = None):
+def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, Any]] = None):
+    experiments_obj, _ = experiments_data
     return {
-        "object_list": [
+        "experiments": [
             {
                 "accession_id": e.accession_id,
                 "name": e.name,
                 "description": e.description,
                 "biosamples": [biosample(b) for b in e.biosamples.all()],
             }
-            for e in experiments_obj.object_list
+            for e in experiments_obj
         ],
-        "page": experiments_obj.number,
-        "has_next_page": experiments_obj.has_next(),
-        "has_prev_page": experiments_obj.has_previous(),
-        "num_pages": experiments_obj.paginator.num_pages,
     }
 
 
