@@ -81,12 +81,23 @@ class ExperimentListView(TemplateJsonView):
         GET queries used:
             accept
                 * application/json
+            facet (multiple)
+                * Should match a discrete facet value
         """
         options = super().request_options(request)
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         return options
 
     def get(self, request, options, data):
         experiment_objects, facet_values = data
+
+        facets = {}
+        for value in facet_values.all():
+            if value.facet.name in facets:
+                facets[value.facet.name].append(value)
+            else:
+                facets[value.facet.name] = [value]
+
         return super().get(
             request,
             options,
@@ -94,16 +105,17 @@ class ExperimentListView(TemplateJsonView):
                 "logged_in": not request.user.is_anonymous,
                 "experiments": experiment_objects,
                 "experiment_ids": [expr.accession_id for expr in experiment_objects],
+                "facets": facets,
             },
         )
 
     def get_data(self, options):
-        facets = ExperimentSearch.experiment_facets()
+        facet_values = ExperimentSearch.experiment_facet_values()
 
         if self.request.user.is_anonymous:
-            return ExperimentSearch.all_public(), facets
+            return ExperimentSearch.all_public(options["facets"]), facet_values
 
         if self.request.user.is_superuser or self.request.user.is_portal_admin:
-            return ExperimentSearch.all(), facets
+            return ExperimentSearch.all(options["facets"]), facet_values
 
-        return ExperimentSearch.all_with_private(self.request.user.all_experiments()), facets
+        return ExperimentSearch.all_with_private(options["facets"], self.request.user.all_experiments()), facet_values

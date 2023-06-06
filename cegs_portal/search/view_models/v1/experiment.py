@@ -36,30 +36,32 @@ class ExperimentSearch:
         return experiment
 
     @classmethod
-    def all(cls):
-        experiments = (
-            Experiment.objects.annotate(
-                cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
-            )
-            .order_by("accession_id")
-            .all()
-        )
+    def all(cls, facet_ids):
+        experiments = Experiment.objects.annotate(
+            cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
+        ).order_by("accession_id")
+
+        if len(facet_ids) > 0:
+            experiments = experiments.filter(facet_values__id__in=facet_ids)
+
         return experiments
 
     @classmethod
-    def all_public(cls):
-        return cls.all().filter(public=True, archived=False)
+    def all_public(cls, facet_ids):
+        return cls.all(facet_ids).filter(public=True, archived=False)
 
     @classmethod
-    def all_with_private(cls, private_experiments):
-        return cls.all().filter(Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments)))
+    def all_with_private(cls, facet_ids, private_experiments):
+        return cls.all(facet_ids).filter(Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments)))
 
     @classmethod
     def all_except(cls, accession_id):
         return Experiment.objects.exclude(accession_id=accession_id).order_by("accession_id")
 
     @classmethod
-    def experiment_facets(cls):
-        return FacetValue.objects.filter(id__in=Experiment.objects.only("facet_values__id").all()).select_related(
-            "facet"
+    def experiment_facet_values(cls):
+        experiment_facet_value_ids = (
+            Experiment.objects.values_list("facet_values__id").distinct("facet_values__id").all()
         )
+        experiment_facet_value_ids = [fv_id[0] for fv_id in experiment_facet_value_ids if fv_id is not None]
+        return FacetValue.objects.filter(id__in=experiment_facet_value_ids).select_related("facet")

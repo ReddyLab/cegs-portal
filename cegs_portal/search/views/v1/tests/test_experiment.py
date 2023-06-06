@@ -11,8 +11,8 @@ pytestmark = pytest.mark.django_db
 
 
 def test_experiment_list_json(client: Client, experiment_list_data: tuple[Any, Any]):
-    response = client.get("/search/experiment?accept=application/json")
     experiments, _ = experiment_list_data
+    response = client.get("/search/experiment?accept=application/json")
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
@@ -22,6 +22,24 @@ def test_experiment_list_json(client: Client, experiment_list_data: tuple[Any, A
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
         assert json_expr["description"] == expr.description
+
+
+def test_experiment_list_facet_json(client: Client, experiment_list_data: tuple[Any, Any]):
+    _, facets = experiment_list_data
+    response = client.get(f"/search/experiment?accept=application/json&facet={facets[0].id}")
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+
+    assert len(json_content["experiments"]) == 3
+
+
+def test_experiment_list_all_facets_json(client: Client, experiment_list_data: tuple[Any, Any]):
+    experiments, facets = experiment_list_data
+    response = client.get(f"/search/experiment?accept=application/json&facet={facets[0].id}&facet={facets[1].id}")
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+
+    assert len(json_content["experiments"]) == len(experiments)
 
 
 def test_experiment_list_html(client: Client):

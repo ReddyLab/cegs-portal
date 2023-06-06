@@ -86,6 +86,13 @@ def experiment_list_data():
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
     f1 = FacetValueFactory()
     f2 = FacetValueFactory()
+
+    e1.facet_values.add(f1)
+    e2.facet_values.add(f1)
+    e3.facet_values.add(f1)
+    e4.facet_values.add(f2)
+    e5.facet_values.add(f2)
+    e6.facet_values.add(f2)
     return experiments, [f1, f2]
 
 
