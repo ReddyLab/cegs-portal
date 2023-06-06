@@ -4,6 +4,7 @@ import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
 import {Legend} from "./obsLegend.js";
 import {sourceColors, targetColors, GenomeRenderer} from "./chromosomeSvg.js";
+import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 
 const STATE_ZOOMED = "state-zoomed";
 const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
@@ -341,60 +342,6 @@ function getHighlightRegions(regionUploadInput, regionReader) {
         return;
     }
     regionReader.readAsText(regionUploadInput.files[0]);
-}
-
-function getDownload(url, body) {
-    rc(g("dataDownloadLink"), t("Getting your data..."));
-
-    let request = {
-        method: "POST",
-        credentials: "include",
-        mode: "same-origin",
-        body: body,
-    };
-
-    let dlDataWorker;
-    fetch(url, request)
-        .then((response) => response.json())
-        .then((json) => {
-            dlDataWorker = new Worker("/static/search/js/exp_viz/downloadStatusWorker.js");
-            dlDataWorker.onmessage = (statusData) => {
-                let status = statusData.data;
-                if (status == "ready") {
-                    let filePath = json["file location"].split("/");
-                    rc(g("dataDownloadLink"), e("a", {href: json["file location"]}, t(filePath[filePath.length - 1])));
-                } else if (status == "in_preparation") {
-                    // keep spinning
-                } else {
-                    rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
-                }
-            };
-            dlDataWorker.postMessage(json["file progress"]);
-        })
-        .catch((err) => console.log(err));
-}
-
-function getDownloadRegions(facets, dataDownloadInput, exprAccessionID, csrfToken) {
-    if (dataDownloadInput.files.length != 1) {
-        return;
-    }
-
-    let url = `/exp_data/request?expr=${exprAccessionID}&datasource=both`;
-    let requestBody = new FormData();
-    requestBody.set("regions", dataDownloadInput.files[0]);
-    requestBody.set("csrfmiddlewaretoken", csrfToken);
-    requestBody.set("facets", JSON.stringify(facets));
-
-    getDownload(url, requestBody);
-}
-
-function getDownloadAll(facets, exprAccessionID, csrfToken) {
-    let url = `/exp_data/request?expr=${exprAccessionID}&datasource=everything`;
-    let requestBody = new FormData();
-    requestBody.set("csrfmiddlewaretoken", csrfToken);
-    requestBody.set("facets", JSON.stringify(facets));
-
-    getDownload(url, requestBody);
 }
 
 export async function exp_viz(staticRoot, exprAccessionID, csrfToken, sourceType, loggedIn) {

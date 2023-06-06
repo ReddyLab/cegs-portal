@@ -75,7 +75,6 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
 class ExperimentListView(TemplateJsonView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
-    template_data_name = "experiments"
 
     def request_options(self, request):
         """
@@ -95,14 +94,25 @@ class ExperimentListView(TemplateJsonView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         return options
 
+    def get(self, request, options, data):
+        return super().get(
+            request,
+            options,
+            {
+                "logged_in": not request.user.is_anonymous,
+                "experiments": data,
+                "experiment_ids": [expr.accession_id for expr in data.object_list],
+            },
+        )
+
     def get_data(self, options) -> Pageable[Experiment]:
         if self.request.user.is_anonymous:
-            experiments = ExperimentSearch.all_public()
+            experiment_set = ExperimentSearch.all_public()
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            experiments = ExperimentSearch.all()
+            experiment_set = ExperimentSearch.all()
         else:
-            experiments = ExperimentSearch.all_with_private(self.request.user.all_experiments())
+            experiment_set = ExperimentSearch.all_with_private(self.request.user.all_experiments())
 
-        experiments_paginator = Paginator(experiments, options["per_page"])
+        experiments_paginator = Paginator(experiment_set, options["per_page"])
         experiments_page = experiments_paginator.get_page(options["page"])
         return experiments_page
