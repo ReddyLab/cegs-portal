@@ -212,6 +212,10 @@ class ExperimentMetadata:
         for biosample in self.biosamples:
             bios = biosample.db_save()
             experiment.biosamples.add(bios)
+            cell_line_facet = FacetValue.objects.get(value__iexact=biosample.cell_line)
+            tissue_type_facet = FacetValue.objects.get(value__iexact=biosample.tissue_type)
+            experiment.facet_values.add(cell_line_facet)
+            experiment.facet_values.add(tissue_type_facet)
         return experiment
 
     def db_del(self):
