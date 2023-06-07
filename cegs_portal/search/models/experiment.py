@@ -47,6 +47,9 @@ class Experiment(Accessioned, Faceted, AccessControlled):
 
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
+        SOURCE_TYPES = "Experiment Source Type"
+        CELL_LINE = "Cell Line"
+        TISSUE_TYPE = "Tissue Type"
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)
