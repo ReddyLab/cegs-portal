@@ -1,4 +1,8 @@
-{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block css %}
+{{ block.super }}
 <style>
     #nav-searchbar {
         display: none;
@@ -9,10 +13,8 @@
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        font-family: "Arial", sans-serif;
+        font-family: sans-serif;
         color: #094474;
-        max-width: 800px;
-        margin: 0 auto;
         text-align: center;
     }
 
@@ -28,20 +30,49 @@
     .searchwrapper div {
         display: inline;
     }
+
+    h1 {
+        font-family: sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        align-items: center;
+        font-weight: bold;
+    }
+
+    .byline {
+        color: #094474;
+    }
+
+    .byline a:visited {
+        color: #094474;
+    }
 </style>
-{% endblock %} {% block title %}Home{% endblock %} {% block content %}
+{% endblock %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
 <div>
-<div class="container p-4 min-w-fit max-w-fit">
-    <div class="text-2xl font-bold mb-2 whitespace-nowrap">Search for Genes and Regulatory Elements</div>
-    <div class="text-m mb-2">Search for Ensembl IDs, gene names, or chromosome ranges</div>
-    <form action="{% url 'search:results' %}" method="get" class="search">
-        <div class="searchwrapper">
-            {{ form }}
-            <input type="submit" value="Go" class="search-button" />
+    <div class="flex flex-col items-center mb-4">
+        <h1>Explore CCGR Assays</h1>
+    </div>
+    <div  class="flex flex-col items-center gap-y-8">
+        <div class="container p-4 min-w-fit max-w-fit">
+            <div class="text-m mb-2">Enter chromosome ranges, Ensembl IDs, or gene names</div>
+            <form action="{% url 'search:results' %}" method="get" class="search">
+                <div class="searchwrapper">
+                    {{ form }}
+                    <input type="submit" value="Go" class="search-button" />
+                </div>
+            </form>
         </div>
-    </form>
-    or
-    <a href="{% url 'search:experiments' %}"><div class="text-2xl font-bold mb-2 whitespace-nowrap">Browse All Experiments</div></a>
-</div>
+
+        <div class="container min-w-fit max-w-fit">
+            <a href="{% url 'search:experiments' %}"><div class="text-2xl font-bold whitespace-nowrap">Browse All Experiments</div></a>
+        </div>
+
+        <div class="byline">by the <a href="https://ccgr.duke.edu">Duke Center for Combinatorial Gene Regulation</a></div>
+    </div>
 </div>
 {% endblock %}
