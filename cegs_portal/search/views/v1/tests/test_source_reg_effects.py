@@ -34,14 +34,8 @@ def test_sig_only_source_reg_effects_list_json(client: Client, sig_only_source_r
     assert response.status_code == 200
     json_content = json.loads(response.content)
 
-    sig_objects = []
-
     for obj in json_content["object_list"]:
-        if obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT":
-            sig_objects.append(obj)
-
-
-    assert len(sig_objects) == 2
+        assert(obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT")
 
 
 def test_hidden_source_reg_effects_list_json(client: Client, hidden_source_reg_effects):
