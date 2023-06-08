@@ -27,6 +27,23 @@ def test_source_reg_effects_list_json(client: Client, source_reg_effects):
         assert json_reo["significance"] == reo.significance
 
 
+def test_sig_only_source_reg_effects_list_json(client: Client, sig_only_source_reg_effects):
+    source = sig_only_source_reg_effects["source"]
+    response = client.get(f"/search/regeffect/source/{source.accession_id}?accept=application/json&sig_only=True")
+
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+
+    sig_objects = []
+
+    for obj in json_content["object_list"]:
+        if obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT":
+            sig_objects.append(obj)
+
+
+    assert len(sig_objects) == 2
+
+
 def test_hidden_source_reg_effects_list_json(client: Client, hidden_source_reg_effects):
     source = hidden_source_reg_effects["source"]
     response = client.get(f"/search/regeffect/source/{source.accession_id}?accept=application/json")

@@ -299,6 +299,72 @@ def source_reg_effects():
 
 
 @pytest.fixture
+def sig_only_source_reg_effects():
+    source = DNAFeatureFactory(parent=None)
+
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+
+    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
+    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
+    direction_non_significant = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT)
+
+    reo1 = RegEffectFactory(
+        sources=(source,),
+        facet_values=(direction_enriched,),
+    )
+    reo2 = RegEffectFactory(
+        sources=(source,),
+        facet_values=(direction_depleted,),
+    )
+    reo3 = RegEffectFactory(
+        sources=(source,),
+        facet_values=(direction_non_significant,),
+    )
+    reo4 = RegEffectFactory(
+        sources=(source,),
+        facet_values=(direction_non_significant,),
+    )
+
+    return {
+        "source": source,
+        "effects": [reo1, reo2, reo3, reo4],
+    }
+
+
+@pytest.fixture
+def sig_only_target_reg_effects():
+    target = DNAFeatureFactory(parent=None)
+
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+
+    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
+    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
+    direction_non_significant = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT)
+
+    reo1 = RegEffectFactory(
+        targets=(target,),
+        facet_values=(direction_enriched,),
+    )
+    reo2 = RegEffectFactory(
+        targets=(target,),
+        facet_values=(direction_depleted,),
+    )
+    reo3 = RegEffectFactory(
+        targets=(target,),
+        facet_values=(direction_non_significant,),
+    )
+    reo4 = RegEffectFactory(
+        targets=(target,),
+        facet_values=(direction_non_significant,),
+    )
+
+    return {
+        "target": target,
+        "effects": [reo1, reo2, reo3, reo4],
+    }
+
+
+@pytest.fixture
 def hidden_source_reg_effects():
     source = DNAFeatureFactory(parent=None)
 
