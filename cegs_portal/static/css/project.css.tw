@@ -53,12 +53,6 @@
   color: rgb(16, 13, 121)
 }
 
-
-
-
-
-
-
 @layer components {
   .bg-color {
     background-color: white;
@@ -83,11 +77,6 @@
   .th-bg-light-gray {
     background-color: rgb(249, 250, 251);
   }
-
-
-
-
-
 
   @media screen {
     div.search-wrapper label {

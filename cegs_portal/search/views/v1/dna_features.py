@@ -68,9 +68,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             targets = Paginator(targets, 20)
             targets_page = targets.get_page(1)
 
-            # print("sources_page:", sources_page)
-            # print("targets_page:", targets_page)
-
             feature_reos.append(
                 (
                     feature,
