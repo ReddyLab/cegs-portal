@@ -4,7 +4,13 @@ from typing import Any, Optional, cast
 from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType, IdType, RegulatoryEffectObservation, RegulatoryEffectObservationSet, EffectObservationDirectionType
+from cegs_portal.search.models import (
+    DNAFeature,
+    DNAFeatureType,
+    IdType,
+    RegulatoryEffectObservation,
+    RegulatoryEffectObservationSet,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
 
@@ -118,7 +124,6 @@ class DNAFeatureSearch:
         assembly: Optional[str],
         feature_properties: list[str],
     ) -> QuerySet[DNAFeature]:
-
         query = {}
 
         if assembly is not None:
@@ -192,7 +197,6 @@ class DNAFeatureSearch:
         search_type: str,
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
-
         query: dict[str, Any] = {"chrom_name": chromo}
 
         new_feature_types: list[DNAFeatureType] = []
@@ -263,7 +267,7 @@ class DNAFeatureSearch:
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
             .filter(sources__accession_id=source_id)
-            .exclude(facet_values__value = "Non-significant")
+            .exclude(facet_values__value="Non-significant")
             .prefetch_related(
                 "experiment",
                 "sources",
@@ -273,7 +277,6 @@ class DNAFeatureSearch:
         )
 
         return reg_effects
-
 
     @classmethod
     def target_reo_search(cls, source_id: str):
@@ -281,7 +284,7 @@ class DNAFeatureSearch:
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
             .filter(targets__accession_id=source_id)
-            .exclude(facet_values__value = "Non-significant")
+            .exclude(facet_values__value="Non-significant")
             .prefetch_related(
                 "experiment",
                 "sources",
@@ -291,4 +294,3 @@ class DNAFeatureSearch:
         )
 
         return reg_effects
-

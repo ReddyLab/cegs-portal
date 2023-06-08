@@ -37,7 +37,7 @@ def test_sig_only_target_reg_effects_list_json(client: Client, sig_only_target_r
     assert len(json_content["object_list"]) == 2
 
     for obj in json_content["object_list"]:
-        assert(obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT")
+        assert obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT"
 
 
 def test_hidden_target_reg_effects_list_json(client: Client, hidden_target_reg_effects):

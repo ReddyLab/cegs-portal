@@ -306,7 +306,9 @@ def sig_only_source_reg_effects():
 
     direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
-    direction_non_significant = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT)
+    direction_non_significant = FacetValueFactory(
+        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT
+    )
 
     reo1 = RegEffectFactory(
         sources=(source,),
@@ -339,7 +341,9 @@ def sig_only_target_reg_effects():
 
     direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
-    direction_non_significant = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT)
+    direction_non_significant = FacetValueFactory(
+        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT
+    )
 
     reo1 = RegEffectFactory(
         targets=(target,),
