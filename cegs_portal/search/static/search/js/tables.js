@@ -7,7 +7,7 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Name"),
             e("th", "Feature Type"),
             e("th", "Cell Line"),
@@ -15,6 +15,7 @@ function featureTable(features, regionID = "dnafeature") {
             e("th", "Strand"),
             e("th", "Closest Gene"),
             e("th", "Reference Genome"),
+            e("th", "Parent"),
         ]),
     ]);
     for (const feature of features) {
@@ -24,23 +25,47 @@ function featureTable(features, regionID = "dnafeature") {
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
                 e("td", feature.cell_line || "None"),
-                e("td", [e("span", feature.chr), ": ", e("span", `${feature.start}-${feature.end}`)]),
+                e("td", [
+                    e("span", feature.chr),
+                    ": ",
+                    e(
+                      "span",
+                      [
+                        `${feature.start.toLocaleString()}-`,
+                        e("br"),
+                        `${feature.end.toLocaleString()}`,
+                      ]
+                    ),
+                  ]),
                 e("td", feature.strand || "None"),
                 e(
                     "td",
+                    {class: "closest-gene"},
                     feature.closest_gene_ensembl_id
                         ? e(
                               "a",
                               {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`},
-                              `${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})`
+                              `${feature.closest_gene_name}`
                           )
-                        : "N/A"
+                        : ""
                 ),
                 e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`),
+                e(
+                    "td",
+                    feature.parent
+                      ? e(
+                          "a",
+                          { href: `/search/feature/accession/${feature.parent_accession_id}` },
+                          feature.parent
+                        )
+                      : "N/A"
+                  )
+
             ])
         );
     }
-    return newTable;
+    let tableContainer = e("div", {class: "container"}, [newTable]);
+    return tableContainer;
 }
 
 function emptyRETable(emptyString, regionID = "regeffect") {
@@ -50,7 +75,7 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
@@ -80,13 +105,14 @@ function reTable(regeffects, regionID = "regeffect") {
             );
         }
     }
-    return newTable;
+    let tableContainer = e("div", {class: "container"}, [newTable]);
+    return tableContainer;
 }
 
 function reTargetTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "ID"),
+            e("th", "Accession ID"),
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
@@ -116,7 +142,8 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             );
         }
     }
-    return newTable;
+    let tableContainer = e("div", {class: ""}, [newTable]);
+    return tableContainer;
 }
 
 function sigReoTable(reos, regionID = "sig-reg-effects") {

@@ -92,10 +92,22 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
                 * genoverse
             page
                 * an integer > 0
+            sig_only
+                * whether or not to include only significant observations
         """
+
+        def get_sig_only(value):
+            if value == "0" or value == "false" or value == "False":
+                return False
+            else:
+                return True
+
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
+        sig_only = request.GET.get("sig_only", True)
+        options["sig_only"] = get_sig_only(sig_only)
+
         return options
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
@@ -107,11 +119,14 @@ class SourceEffectsView(FeatureEffectsView):
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         if self.request.user.is_anonymous:
-            reg_effects = RegEffectSearch.source_search_public(feature_id)
+            reg_effects = RegEffectSearch.source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            reg_effects = RegEffectSearch.source_search(feature_id)
+            reg_effects = RegEffectSearch.source_search(feature_id, options.get("sig_only"))
         else:
-            reg_effects = RegEffectSearch.source_search_with_private(feature_id, self.request.user.all_experiments())
+            reg_effects = RegEffectSearch.source_search_with_private(
+                feature_id, options.get("sig_only"), self.request.user.all_experiments()
+            )
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
@@ -122,11 +137,14 @@ class TargetEffectsView(FeatureEffectsView):
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         if self.request.user.is_anonymous:
-            reg_effects = RegEffectSearch.target_search_public(feature_id)
+            reg_effects = RegEffectSearch.target_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            reg_effects = RegEffectSearch.target_search(feature_id)
+            reg_effects = RegEffectSearch.target_search(feature_id, options.get("sig_only"))
         else:
-            reg_effects = RegEffectSearch.target_search_with_private(feature_id, self.request.user.all_experiments())
+            reg_effects = RegEffectSearch.target_search_with_private(
+                feature_id, options.get("sig_only"), self.request.user.all_experiments()
+            )
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page

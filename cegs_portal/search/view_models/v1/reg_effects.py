@@ -58,7 +58,7 @@ class RegEffectSearch:
         return reo[0]
 
     @classmethod
-    def source_search(cls, source_id: str):
+    def source_search(cls, source_id: str, sig_only: bool):
         reg_effects = (
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
@@ -70,6 +70,9 @@ class RegEffectSearch:
             )
             .order_by("accession_id")
         )
+
+        if sig_only:
+            reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
 
         return reg_effects
 
@@ -84,7 +87,7 @@ class RegEffectSearch:
         )
 
     @classmethod
-    def target_search(cls, source_id: str):
+    def target_search(cls, source_id: str, sig_only: bool):
         reg_effects = (
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
@@ -96,6 +99,9 @@ class RegEffectSearch:
             )
             .order_by("accession_id")
         )
+
+        if sig_only:
+            reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
 
         return reg_effects
 

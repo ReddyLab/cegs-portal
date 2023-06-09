@@ -53,8 +53,6 @@
   color: rgb(16, 13, 121)
 }
 
-
-
 @layer components {
   .bg-color {
     background-color: white;

@@ -4,7 +4,13 @@ from typing import Any, Optional, cast
 from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType, IdType
+from cegs_portal.search.models import (
+    DNAFeature,
+    DNAFeatureType,
+    IdType,
+    RegulatoryEffectObservation,
+    RegulatoryEffectObservationSet,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
 from cegs_portal.utils.http_exceptions import Http500
 
@@ -118,7 +124,6 @@ class DNAFeatureSearch:
         assembly: Optional[str],
         feature_properties: list[str],
     ) -> QuerySet[DNAFeature]:
-
         query = {}
 
         if assembly is not None:
@@ -192,7 +197,6 @@ class DNAFeatureSearch:
         search_type: str,
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
-
         query: dict[str, Any] = {"chrom_name": chromo}
 
         new_feature_types: list[DNAFeatureType] = []
@@ -219,9 +223,9 @@ class DNAFeatureSearch:
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[)")
 
-        prefetch_values = []
+        prefetch_values = ["parent", "parent_accession"]
         if len(facets) > 0:
-            prefetch_values = ["facet_values", "facet_values__facet"]
+            prefetch_values.extend(["facet_values", "facet_values__facet"])
 
         if "regeffects" in feature_properties:
             # The facet presets are used when getting the "direction" property
@@ -256,3 +260,37 @@ class DNAFeatureSearch:
         return cls.loc_search(*args[:-1], *kwargs).filter(
             Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
         )
+
+    @classmethod
+    def source_reo_search(cls, source_id: str):
+        reg_effects = (
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
+            .filter(sources__accession_id=source_id)
+            .exclude(facet_values__value="Non-significant")
+            .prefetch_related(
+                "experiment",
+                "sources",
+                "targets",
+            )
+            .order_by("accession_id")
+        )
+
+        return reg_effects
+
+    @classmethod
+    def target_reo_search(cls, source_id: str):
+        reg_effects = (
+            cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
+            .with_facet_values()
+            .filter(targets__accession_id=source_id)
+            .exclude(facet_values__value="Non-significant")
+            .prefetch_related(
+                "experiment",
+                "sources",
+                "targets",
+            )
+            .order_by("accession_id")
+        )
+
+        return reg_effects

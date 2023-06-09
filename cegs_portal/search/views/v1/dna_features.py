@@ -5,7 +5,7 @@ from django.http import Http404
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
+from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
@@ -60,22 +60,42 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
-        for feature in data.values().all():
-            sources = RegEffectSearch.source_search(feature["accession_id"])
+        for feature in data.all():
+            sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             sources = Paginator(sources, 20)
             sources_page = sources.get_page(1)
-            targets = RegEffectSearch.target_search(feature["accession_id"])
+            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
             targets = Paginator(targets, 20)
             targets_page = targets.get_page(1)
+
             feature_reos.append(
                 (
                     feature,
-                    {"page": sources_page, "nav_prefix": f"source_for_{feature['accession_id']}"},
-                    {"page": targets_page, "nav_prefix": f"target_for_{feature['accession_id']}"},
+                    {"page": sources_page, "nav_prefix": f"source_for_{feature.accession_id}"},
+                    {"page": targets_page, "nav_prefix": f"target_for_{feature.accession_id}"},
                 )
             )
+
+        if len(feature_reos) == 0:
+            raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
+
+        tabs = []
+        first_feature = feature_reos[0]
+        if len(first_feature[0].children.all()) > 0:
+            tabs.append("children")
+
+        if len(first_feature[1]["page"].object_list) > 0 or len(first_feature[2]["page"].object_list) > 0:
+            tabs.append("source target")
+
+        if len(first_feature[0].closest_features.all()) > 0:
+            tabs.append("closest features")
+
+        tabs.append("find nearby")
+
         return super().get(
-            request, options, {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos}
+            request,
+            options,
+            {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos, "tabs": tabs},
         )
 
     def get_data(self, options, id_type, feature_id):

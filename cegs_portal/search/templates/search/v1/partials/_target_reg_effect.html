@@ -1,26 +1,133 @@
-<table class="data-table">
-    <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
-    {% for regeffect in features %}
-        {% for re_source in regeffect.sources.all %}
-        <tr>
-            {% if forloop.first %}
-            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size|stringformat:".3e" }}</td>
-            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.significance|stringformat:".3e" }}</td>
-            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
-            {% endif %}
-           <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
-        </tr>
-        {% empty %}
-            <tr>
-                <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-                <td>{{ regeffect.effect_size }}</td>
-                <td>{{ regeffect.direction }}</td>
-                <td>{{ regeffect.significance }}</td>
-                <td><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
-                <td>-</td>
-            </tr>
-        {% endfor %}
-    {% endfor %}
+<style>
+    .target_data-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+    }
+    .target_data-table th {
+        padding: 12px;
+        text-align: left;
+        background-color: #ddd;
+        color: gray;
+        font-weight: bold;
+    }
+    .target_data-table th:first-child,
+    .target_data-table th:nth-child(5) {
+        border-top-left-radius: 10px 50%;
+        border-bottom-left-radius: 10px 50%;
+    }
+    .target_data-table th:nth-child(4),
+    .target_data-table th:last-child {
+        border-top-right-radius: 10px 50%;
+        border-bottom-right-radius: 10px 50%;
+    }
+
+    .target_data-table th:nth-child(2) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    .target_data-table th:nth-child(6) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    .target_data-table td {
+        padding: 12px;
+        border-bottom: 1px solid lightgrey;
+    }
+    .target_data-table tr:hover {
+        background-color: #ddd;
+    }
+    .target_data-table a,
+    .target_data-table a:visited {
+        color: #3490dc;
+        text-decoration: none;
+    }
+
+    .table-title,
+    .svg-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+
+    .svg-barcode-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+        transform: rotate(90deg);
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+
+        margin-bottom: 15px;
+    }
+</style>
+
+<table class="target_data-table">
+    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path
+                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
+            />
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-barcode-icon">
+            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path
+                d="M24 32C10.7 32 0 42.7 0 56V456c0 13.3 10.7 24 24 24H40c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H24zm88 0c-8.8 0-16 7.2-16 16V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16zm72 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H184zm96 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H280zM448 56V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H472c-13.3 0-24 10.7-24 24zm-64-8V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16s-16 7.2-16 16z"
+            />
+        </svg>
+        Targeting Regulatory Effect Observations
+    </div>
+    <div class="faded-line"></div>
+    <tr>
+        <th>Accession ID</th>
+        <th>Effect Size</th>
+        <th>Direction</th>
+        <th>Significance</th>
+        <th>Experiment</th>
+        <th>Source</th>
+    </tr>
+    {% for regeffect in features %} {% for re_source in regeffect.sources.all %}
+    <tr>
+        {% if forloop.first %}
+        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+            <a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a>
+        </td>
+        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+            {{ regeffect.effect_size|stringformat:".3e" }}
+        </td>
+        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
+        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+            {{ regeffect.significance|stringformat:".3e" }}
+        </td>
+        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+                >{{ regeffect.experiment.name }}</a
+            >
+        </td>
+        {% endif %}
+        <td>
+            <a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}"
+                >{{ re_source.accession_id }}</a
+            >
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
+        <td>{{ regeffect.effect_size }}</td>
+        <td>{{ regeffect.direction }}</td>
+        <td>{{ regeffect.significance }}</td>
+        <td>
+            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+                >{{ regeffect.experiment.name }}</a
+            >
+        </td>
+        <td>-</td>
+    </tr>
+    {% endfor %} {% endfor %}
 </table>
