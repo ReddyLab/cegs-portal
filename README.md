@@ -64,7 +64,7 @@ This will launch django and the tailwind CSS compiler. When you edit a file the 
 
 ## Loading data
 
-Currently there are scripts to load up the gencode gff3 files, downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz. There's an additional script for loading some wgCERES data (the data is not currently publicly available but will probably become so in the future).
+Currently there are scripts to load up the gencode gff3 files, downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_43/gencode.v43.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz. There's an additional script for loading some wgCERES data (the data is not currently publicly available but will probably become so in the future).
 NOTE: This section is in progress until we have a location the data can be downloaded from.
 
 There are a couple of sets of publicly available data that go into the database
@@ -72,7 +72,7 @@ There are a couple of sets of publicly available data that go into the database
 -   Gencode annotations for hg19 and hg38
 -   Screen cCREs
 
-The gencode gff3 data is downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz and can be added to the database using the [load_gencode_gff3_data.sh](scripts/data_loading/load_gencode_gff3_data.sh) script. See [load_all.sh](scripts/data_loading/load_all.sh) for usage.
+The gencode gff3 data is downloadable from http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz and http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_43/gencode.v43.annotation.gff3.gz and can be added to the database using the [load_gencode_gff3_data.sh](scripts/data_loading/load_gencode_gff3_data.sh) script. See [load_all.sh](scripts/data_loading/load_all.sh) for usage.
 
 The Screen cCREs can be downloaded from https://api.wenglab.org/screen_v13/fdownloads/V3/GRCh38-cCREs.bed The hg19 cCREs are lifted over from this file using the [UCSC liftOver tool](https://genome.ucsc.edu/goldenPath/help/hgTracksHelp.html#Liftover) and the [hg38ToHg19.over.chain](https://github.com/imbforge/liftover/raw/master/hg38ToHg19.over.chain) data file.
 

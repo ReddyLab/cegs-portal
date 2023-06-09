@@ -83,17 +83,17 @@ class ExperimentCoverageView(TemplateJsonView):
         try:
             body = json.loads(request.body)
         except Exception as e:
-            raise Http400(f"Invalid request body:\n{request.body}\n\nError:\n{e}")
+            raise Http400(f"Invalid request body:\n{request.body}") from e
 
         try:
             options["filters"] = body["filters"]
         except Exception as e:
-            raise Http400(f'Invalid request body, no "filters" object:\n{request.body}\n\nError:\n{e}')
+            raise Http400(f'Invalid request body, no "filters" object:\n{request.body}') from e
 
         try:
             options["chromosomes"] = body["chromosomes"]
         except Exception as e:
-            raise Http400(f'Invalid request body, no "chromosomes" object:\n{request.body}\n\nError:\n{e}')
+            raise Http400(f'Invalid request body, no "chromosomes" object:\n{request.body}') from e
 
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")

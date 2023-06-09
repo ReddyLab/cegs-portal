@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("search", "0006_alter_dnafeature_closest_gene_distance_and_more"),
     ]
@@ -16,14 +15,14 @@ class Migration(migrations.Migration):
             name="feature_type",
             field=models.CharField(
                 choices=[
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["GENE"], "gene"),
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["TRANSCRIPT"], "transcript"),
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["EXON"], "exon"),
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["CCRE"], "ccre"),
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["DHS"], "dhs"),
-                    (cegs_portal.search.models.dna_feature.DNAFeatureType["GRNA"], "gRNA"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["GENE"], "gene"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["TRANSCRIPT"], "transcript"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["EXON"], "exon"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["CCRE"], "ccre"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["DHS"], "dhs"),
+                    (cegs_portal.search.models.dna_feature_type.DNAFeatureType["GRNA"], "gRNA"),
                 ],
-                default=cegs_portal.search.models.dna_feature.DNAFeatureType["GENE"],
+                default=cegs_portal.search.models.dna_feature_type.DNAFeatureType["GENE"],
                 max_length=50,
             ),
         ),
