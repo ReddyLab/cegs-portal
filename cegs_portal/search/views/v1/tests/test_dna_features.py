@@ -5,7 +5,7 @@ from urllib.parse import quote_plus
 import pytest
 from django.test import Client
 
-from cegs_portal.search.conftest import SearchClient
+from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
 
 pytestmark = pytest.mark.django_db

@@ -39,7 +39,7 @@ Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
 });
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
-    featureHeight: 5,
+    featureHeight: 10,
     labels: true,
     repeatLabels: true,
     bump: true,
@@ -212,7 +212,6 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     parseData: function (data, chr) {
         for (var i = 0; i < data.length; i++) {
             var feature = data[i];
-            feature.label = feature.accession_id;
 
             this.insertFeature(feature);
         }
@@ -409,7 +408,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
 
 Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
-    name: "DHSs",
+    name: "Regulatory Effect Sources",
     labels: true,
     legend: false,
     model: Genoverse.Track.Model.DHS.Effects,

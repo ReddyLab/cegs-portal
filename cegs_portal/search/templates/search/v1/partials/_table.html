@@ -1,0 +1,6 @@
+{% if data|length > 0 %}
+<div class="text-xl font-bold">{{ name }}</div>
+{% include table with rows=data %}
+{% else %}
+{{ no_data }}
+{% endif %}
