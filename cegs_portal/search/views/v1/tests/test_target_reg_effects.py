@@ -40,6 +40,18 @@ def test_sig_only_target_reg_effects_list_json(client: Client, sig_only_target_r
         assert(obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT")
 
 
+def test_sig_only_false_target_reg_effects_list_json(client: Client, sig_only_target_reg_effects):
+    target = sig_only_target_reg_effects["target"]
+    response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json&sig_only=False")
+
+    assert response.status_code == 200
+    json_content = json.loads(response.content)
+
+    all_objects = json_content["object_list"]
+
+    assert len(all_objects) == 4
+
+
 def test_hidden_target_reg_effects_list_json(client: Client, hidden_target_reg_effects):
     target = hidden_target_reg_effects["target"]
     response = client.get(f"/search/regeffect/target/{target.accession_id}?accept=application/json")
