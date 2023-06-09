@@ -53,7 +53,13 @@ function cc(p) {
 // Replace Children
 function rc(p, c) {
     cc(p);
-    a(p, c);
+    if (Array.isArray(c)) {
+        for (let child of c) {
+            a(p, child);
+        }
+    } else {
+        a(p, c);
+    }
 }
 
 export {a, cc, e, g, rc, t};

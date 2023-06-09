@@ -198,7 +198,6 @@ export class GenomeRenderer {
         const cornerRadius = 2;
         const vMargin = 10;
         const text = "Zoom Out";
-        const textVAdjustment = 7;
         const textHAnchor = "middle";
         const textVAnchor = "central";
         const height = this.chromDimensions.chromSpacing * scales.scaleY - vMargin * 2;
@@ -221,7 +220,7 @@ export class GenomeRenderer {
         let buttonText = buttonGroup.append("text");
         buttonText
             .attr("x", xInset + this.renderContext.viewWidth / 2)
-            .attr("y", top + height / 2 - textVAdjustment)
+            .attr("y", top + height / 2)
             .attr("font-size", fontSize)
             .attr("text-anchor", textHAnchor)
             .attr("dominant-baseline", textVAnchor)

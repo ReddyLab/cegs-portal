@@ -1,4 +1,8 @@
-{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block css %}
+{{ block.super }}
 <style>
     .search-container {
         display: flex;
@@ -52,8 +56,8 @@
 
     label[for="id_query"] {
         display: none;
-    }
-
+  }
+    
     #bg {
         background-size: 800px 100px;
         background-repeat: no-repeat;

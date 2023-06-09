@@ -4,7 +4,7 @@ from time import sleep
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 
-from cegs_portal.search.conftest import SearchClient
+from cegs_portal.conftest import SearchClient
 from cegs_portal.tasks.decorators import as_task
 from cegs_portal.tasks.models import ThreadTask
 

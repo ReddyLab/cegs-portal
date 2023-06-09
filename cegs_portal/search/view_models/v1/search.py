@@ -1,5 +1,6 @@
 from typing import Optional
 
+from cegs_portal.get_expr_data.view_models import sig_reo_loc_search
 from cegs_portal.search.models import ChromosomeLocation, Facet
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
@@ -74,6 +75,10 @@ class Search:
             facets,
             private_experiments,
         )
+
+    @classmethod
+    def sig_reo_loc_search(cls, location: ChromosomeLocation, private_experiments: Optional[list[str]] = None):
+        return sig_reo_loc_search((location.chromo, location.range.lower, location.range.upper), 5, private_experiments)
 
     @classmethod
     def discrete_facet_search(cls):

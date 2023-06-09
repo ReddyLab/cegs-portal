@@ -4,18 +4,20 @@ from time import sleep
 
 import pytest
 
+from cegs_portal.conftest import SearchClient
 from cegs_portal.get_expr_data.view_models import (
+    Facets,
     ReoDataSource,
     gen_output_filename,
     output_experiment_data_list,
     parse_source_locs,
     parse_target_info,
     retrieve_experiment_data,
+    sig_reo_loc_search,
     validate_expr,
     validate_filename,
     write_experiment_data_csv,
 )
-from cegs_portal.search.conftest import SearchClient
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -99,7 +101,30 @@ def test_parse_target_info(target_info, result):
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_both_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.BOTH
+    )
+
+    assert len(result) == 3
+
+
+@pytest.mark.usefixtures("private_reg_effects")
+def test_retrieve_private_experiment_data_no_exprs():
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.BOTH
+    )
+
+    assert len(result) == 0
+
+
+@pytest.mark.usefixtures("private_reg_effects")
+def test_retrieve_private_experiment_data_with_expr():
+    result = retrieve_experiment_data(
+        ["DCPEXPR00000002"],
+        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)],
+        ["DCPEXPR00000002"],
+        [],
+        Facets(),
+        ReoDataSource.BOTH,
     )
 
     assert len(result) == 3
@@ -108,7 +133,7 @@ def test_retrieve_both_experiment_data():
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_source_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.SOURCES
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.SOURCES
     )
 
     assert len(result) == 2
@@ -117,17 +142,103 @@ def test_retrieve_source_experiment_data():
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_target_experiment_data():
     result = retrieve_experiment_data(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.TARGETS
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.TARGETS
+    )
+
+    assert len(result) == 2
+
+
+@pytest.mark.parametrize(
+    "disc_facets,effect_size,sig,result_count",
+    [
+        ([], (-10, 0), (None, None), 3),
+        ([], (0, 10), (None, None), 0),
+        ([], (None, None), (0.0, 0.00004), 0),
+        ([], (None, None), (0.0, 0.005), 3),
+        ([], (-10, 0), (0.0, 0.005), 3),
+        ([], (0, 10), (0.0, 0.005), 0),
+        ([], (-10, 0), (0.0, 0.00004), 0),
+        ([], (0, 10), (0.0, 0.00004), 0),
+    ],
+)
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_cont_facet_experiment_data(disc_facets, effect_size, sig, result_count):
+    facets = Facets(discrete_facets=disc_facets, effect_size_range=effect_size, sig_range=sig)
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == result_count
+
+
+def test_retrieve_dics_facet_experiment_data(reg_effects):
+    _, _, _, x, y, z, _ = reg_effects
+    facets = Facets(discrete_facets=[])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 3
+
+    facets = Facets(discrete_facets=[x.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[y.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[z.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(discrete_facets=[y.id, z.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 2
+
+    facets = Facets(discrete_facets=[x.id, y.id, z.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 3
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_facet_source_experiment_data():
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.SOURCES
+    )
+
+    assert len(result) == 2
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_retrieve_facet_target_experiment_data():
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.TARGETS
     )
 
     assert len(result) == 2
 
 
 def test_list_experiment_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
     )
 
     assert results == [
@@ -162,10 +273,10 @@ def test_list_experiment_data(reg_effects):
 
 
 def test_list_analysis_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
-        [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
     )
 
     assert results == [
@@ -200,12 +311,12 @@ def test_list_analysis_data(reg_effects):
 
 
 def test_location_experiment_data(reg_effects, login_client: SearchClient):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 200
+
     json_content = json.loads(response.content)
-    print(json_content)
     assert json_content == {
         "experiment data": [
             {
@@ -240,12 +351,12 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
 
 
 def test_location_analysis_data(reg_effects, login_client: SearchClient):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get(f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both")
     assert response.status_code == 200
+
     json_content = json.loads(response.content)
-    print(json_content)
     assert json_content == {
         "experiment data": [
             {
@@ -293,7 +404,7 @@ def test_location_experiment_data_no_region(login_client: SearchClient):
 
 @pytest.mark.usefixtures("reg_effects")
 def test_location_experiment_data_oversize_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?region=chr1:1-1000000&expr=DCPEXPR00000002&datasource=both")
+    response = login_client.get("/exp_data/location?region=chr1:1-10000000000&expr=DCPEXPR00000002&datasource=both")
     assert response.status_code == 400
 
 
@@ -304,11 +415,11 @@ def test_location_experiment_data_backwards_region(login_client: SearchClient):
 
 
 def test_write_experiment_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
-            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], ReoDataSource.BOTH
+            [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], Facets(), ReoDataSource.BOTH
         )
     )
     experiment_data.sort()
@@ -324,11 +435,16 @@ def test_write_experiment_data(reg_effects):
 
 
 def test_write_analysis_data(reg_effects):
-    _, _, _, experiment = reg_effects
+    _, _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
-            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
+            [],
+            [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)],
+            [],
+            [analysis_accession_id],
+            Facets(),
+            ReoDataSource.BOTH,
         )
     )
     experiment_data.sort()
@@ -420,4 +536,83 @@ def test_download_experiment_data_fail(login_client: SearchClient):
 
 def test_download_experiment_data_invalid_filename(login_client: SearchClient):
     response = login_client.get("/exp_data/file/DCPEXPR0000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sig_reo_loc_search():
+    result = sig_reo_loc_search(("chr1", 1, 1000000))
+
+    assert len(result[0][1]) == 2
+
+
+def test_private_sig_reo_loc_search(private_reg_effects):
+    _, _, _, _, _, _, experiment = private_reg_effects
+    result = sig_reo_loc_search(("chr1", 1, 1000000))
+
+    assert len(result) == 0
+
+    result = sig_reo_loc_search(("chr1", 1, 1000000), private_experiments=[experiment.accession_id])
+
+    assert len(result[0][1]) == 2
+
+
+def test_sigdata(reg_effects, login_client: SearchClient):
+    effect_source, effect_target, effect_both, _, _, _, experiment = reg_effects
+    analysis_accession_id = experiment.analyses.first().accession_id
+
+    response = login_client.get("/exp_data/sigdata?region=chr1:1-100000")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert "significant reos" in json_content
+    assert len(json_content["significant reos"]) == 1
+    assert len(json_content["significant reos"][0]) == 2
+    assert json_content["significant reos"][0][0] == ["DCPEXPR00000002", analysis_accession_id]
+    assert len(json_content["significant reos"][0][1]) == 2
+    assert {
+        "source_locs": [],
+        "target_info": [["LNLC-1", "ENSG01124619313"]],
+        "reo_accesion_id": effect_target.accession_id,
+        "effect_size": -0.0660384670056446,
+        "p_value": 3.19229500470051e-06,
+        "sig": 0.000427767530629869,
+        "expr_accession_id": "DCPEXPR00000002",
+        "expr_name": experiment.name,
+        "analysis_accession_id": analysis_accession_id,
+    } in json_content["significant reos"][0][1]
+    assert {
+        "source_locs": [["chr1", 10, 1000], ["chr1", 20000, 111000], ["chr2", 22222, 33333]],
+        "target_info": [],
+        "reo_accesion_id": effect_source.accession_id,
+        "effect_size": -0.0660384670056446,
+        "p_value": 3.19229500470051e-06,
+        "sig": 0.000427767530629869,
+        "expr_accession_id": "DCPEXPR00000002",
+        "expr_name": experiment.name,
+        "analysis_accession_id": analysis_accession_id,
+    } in json_content["significant reos"][0][1]
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_invalid_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=ch1:1-100000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_no_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_oversize_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=chr1:1-10000000000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_backwards_region(login_client: SearchClient):
+    response = login_client.get("/exp_data/sigdata?region=chr1:10000-10")
     assert response.status_code == 400
