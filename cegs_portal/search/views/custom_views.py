@@ -94,7 +94,7 @@ class TemplateJsonView(View):
             "json_format": request.GET.get("format", None),
         }
 
-    def get(self, request, options, data, *args, **kwargs):
+    def get(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
             data = {self.__class__.template_data_name: data}
 
@@ -110,7 +110,7 @@ class TemplateJsonView(View):
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
 
-    def post(self, request, options, data, *args, **kwargs):
+    def post(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
             data = {self.__class__.template_data_name: data}
 

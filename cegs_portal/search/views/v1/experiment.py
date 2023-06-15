@@ -1,15 +1,12 @@
-from django.core.paginator import Paginator
 from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
-from cegs_portal.search.models import Experiment
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
 )
-from cegs_portal.utils.pagination_types import Pageable
 
 
 class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
@@ -75,7 +72,6 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
 class ExperimentListView(TemplateJsonView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
-    template_data_name = "experiments"
 
     def request_options(self, request):
         """
@@ -85,24 +81,41 @@ class ExperimentListView(TemplateJsonView):
         GET queries used:
             accept
                 * application/json
-            page
-                * int - the "page" of experiments to return, 1 indexed
-            per_page
-                * int - how many experiments to include per page
+            facet (multiple)
+                * Should match a discrete facet value
         """
         options = super().request_options(request)
-        options["page"] = int(request.GET.get("page", 1))
-        options["per_page"] = int(request.GET.get("per_page", 20))
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         return options
 
-    def get_data(self, options) -> Pageable[Experiment]:
-        if self.request.user.is_anonymous:
-            experiments = ExperimentSearch.all_public()
-        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            experiments = ExperimentSearch.all()
-        else:
-            experiments = ExperimentSearch.all_with_private(self.request.user.all_experiments())
+    def get(self, request, options, data):
+        experiment_objects, facet_values = data
 
-        experiments_paginator = Paginator(experiments, options["per_page"])
-        experiments_page = experiments_paginator.get_page(options["page"])
-        return experiments_page
+        facets = {}
+        for value in facet_values.all():
+            if value.facet.name in facets:
+                facets[value.facet.name].append(value)
+            else:
+                facets[value.facet.name] = [value]
+
+        return super().get(
+            request,
+            options,
+            {
+                "logged_in": not request.user.is_anonymous,
+                "experiments": experiment_objects,
+                "experiment_ids": [expr.accession_id for expr in experiment_objects],
+                "facets": facets,
+            },
+        )
+
+    def get_data(self, options):
+        facet_values = ExperimentSearch.experiment_facet_values()
+
+        if self.request.user.is_anonymous:
+            return ExperimentSearch.all_public(options["facets"]), facet_values
+
+        if self.request.user.is_superuser or self.request.user.is_portal_admin:
+            return ExperimentSearch.all(options["facets"]), facet_values
+
+        return ExperimentSearch.all_with_private(options["facets"], self.request.user.all_experiments()), facet_values

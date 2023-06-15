@@ -9,7 +9,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("search", "0004_remove_dnaregion_dnaregion_srchbl_idx_and_more"),
     ]
@@ -48,13 +47,13 @@ class Migration(migrations.Migration):
                     "feature_type",
                     models.CharField(
                         choices=[
-                            (cegs_portal.search.models.dna_feature.DNAFeatureType["GENE"], "gene"),
-                            (cegs_portal.search.models.dna_feature.DNAFeatureType["TRANSCRIPT"], "transcript"),
-                            (cegs_portal.search.models.dna_feature.DNAFeatureType["EXON"], "exon"),
-                            (cegs_portal.search.models.dna_feature.DNAFeatureType["CCRE"], "ccre"),
-                            (cegs_portal.search.models.dna_feature.DNAFeatureType["DHS"], "dhs"),
+                            (cegs_portal.search.models.dna_feature_type.DNAFeatureType["GENE"], "gene"),
+                            (cegs_portal.search.models.dna_feature_type.DNAFeatureType["TRANSCRIPT"], "transcript"),
+                            (cegs_portal.search.models.dna_feature_type.DNAFeatureType["EXON"], "exon"),
+                            (cegs_portal.search.models.dna_feature_type.DNAFeatureType["CCRE"], "ccre"),
+                            (cegs_portal.search.models.dna_feature_type.DNAFeatureType["DHS"], "dhs"),
                         ],
-                        default=cegs_portal.search.models.dna_feature.DNAFeatureType["GENE"],
+                        default=cegs_portal.search.models.dna_feature_type.DNAFeatureType["GENE"],
                         max_length=50,
                     ),
                 ),

@@ -20,7 +20,7 @@ function featureTable(features, regionID = "dnafeature") {
     ]);
     for (const feature of features) {
         newTable.append(
-            e("tr", [
+            e("tr", {class: "data-row"}, [
                 e("td", e("a", {href: `/search/feature/accession/${feature.accession_id}`}, feature.accession_id)),
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
@@ -146,6 +146,46 @@ function reTargetTable(regeffects, regionID = "regeffect") {
     return tableContainer;
 }
 
+function sigReoTable(reos, regionID = "sig-reg-effects") {
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
+        e("tr", [
+            e("th", "Enahncer/Gene"),
+            e("th", "Effect Size"),
+            e("th", "Significance"),
+            e("th", "Raw p-value"),
+            e("th", "Experiment"),
+        ]),
+    ]);
+    for (const reoSetIdx in reos) {
+        let [accessionIds, reoData] = reos[reoSetIdx];
+        let rowClass = reoSetIdx % 2 == 0 ? "" : "bg-gray-100";
+        for (const reo of reoData) {
+            let sourceLocations = reo["source_locs"]
+                .map((location) => `${location[0]}:${location[1].toLocaleString()}-${location[2].toLocaleString()}`)
+                .join(", ");
+            let targetGenes = reo["target_info"].map((gene) => gene[0]).join(", ");
+            let rowData = e("tr", {class: rowClass}, [
+                e(
+                    "td",
+                    e("a", {href: `/search/regeffect/${reo["reo_accesion_id"]}`}, [
+                        e("div", `Source Locations: ${sourceLocations}`),
+                        e("div", `Target Genes: ${targetGenes}`),
+                    ])
+                ),
+                e("td", reo["effect_size"] != null ? reo["effect_size"].toPrecision(6) : ""),
+                e("td", reo["sig"].toPrecision(6)),
+                e("td", reo["p_value"].toPrecision(6)),
+            ]);
+
+            if (reo == reoData[0]) {
+                rowData.append(e("td", {rowspan: `${reoData.length}`}, accessionIds[0]));
+            }
+            newTable.append(rowData);
+        }
+    }
+    return newTable;
+}
+
 function newPagination(paginationID, pageData, idPrefix = "", pageQueryParam = "page") {
     if (idPrefix != "") {
         idPrefix = `${idPrefix}_`;
@@ -242,4 +282,14 @@ function dataPages(
     return pageFunc.bind(pageFunc);
 }
 
-export {pageLink, dataPages, newPagination, featureTable, emptyFeatureTable, emptyRETable, reTable, reTargetTable};
+export {
+    pageLink,
+    dataPages,
+    newPagination,
+    featureTable,
+    emptyFeatureTable,
+    emptyRETable,
+    reTable,
+    reTargetTable,
+    sigReoTable,
+};

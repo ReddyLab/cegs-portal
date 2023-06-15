@@ -4,7 +4,7 @@ from typing import cast
 import pytest
 from django.test import Client
 
-from cegs_portal.search.conftest import SearchClient
+from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import DNAFeature
 
 pytestmark = pytest.mark.django_db
@@ -37,7 +37,7 @@ def test_sig_only_target_reg_effects_list_json(client: Client, sig_only_target_r
     assert len(json_content["object_list"]) == 2
 
     for obj in json_content["object_list"]:
-        assert obj["direction"] != "EffectObservationDirectionType.NON_SIGNIFICANT"
+        assert obj["direction"] != "Non-significant"
 
 
 def test_sig_only_false_target_reg_effects_list_json(client: Client, sig_only_target_reg_effects):

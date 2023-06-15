@@ -1,10 +1,14 @@
-from typing import Iterable, Optional
+from typing import Iterable
 
 import pytest
-from django.db.models import Manager, Model
-from django.test import Client
+from django.db.models import Manager
 from psycopg2.extras import NumericRange
 
+from cegs_portal.get_expr_data.conftest import (  # noqa: F401
+    private_reg_effects,
+    reg_effects,
+)
+from cegs_portal.search.json_templates.v1.search_results import SearchResults
 from cegs_portal.search.models import (
     Biosample,
     DNAFeature,
@@ -28,77 +32,9 @@ from cegs_portal.search.models.tests.facet_factory import (
 )
 from cegs_portal.search.models.tests.file_factory import FileFactory
 from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
+from cegs_portal.search.models.utils import ChromosomeLocation
 from cegs_portal.users.conftest import group_extension  # noqa: F401
-from cegs_portal.utils.pagination_types import MockPaginator, Pageable, Paginateable
-
-
-class SearchClient:
-    def __init__(
-        self,
-        user_model: Optional[Model] = None,
-        group_model: Optional[Model] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        is_portal_admin: bool = False,
-    ):
-        self.client = Client()
-        self.username = username
-        self.password = password
-
-        if user_model is not None and username is not None and password is not None:
-            self.user = user_model.objects.create_user(username=username, password=password)
-            self.user.is_portal_admin = is_portal_admin
-            self.user.save()
-            self.client.login(username=username, password=password)
-        else:
-            self.user = None
-
-        if group_model is not None:
-            assert user_model is not None
-            self.group = group_model
-            self.user.groups.add(group_model.group)
-        else:
-            self.group = None
-
-    def get(self, *args, **kwargs):
-        return self.client.get(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-        return self.client.post(*args, **kwargs)
-
-    def set_user_experiments(self, experiment_list: list[str]):
-        if self.user is None:
-            return
-
-        self.user.experiments = experiment_list
-        self.user.save()
-
-    def set_group_experiments(self, experiment_list: list[str]):
-        if self.group is None:
-            return
-
-        self.group.experiments = experiment_list
-        self.group.save()
-
-
-@pytest.fixture
-def public_client():
-    return SearchClient()
-
-
-@pytest.fixture
-def login_client(django_user_model):
-    return SearchClient(user_model=django_user_model, username="user2", password="bar")
-
-
-@pytest.fixture
-def portal_admin_client(django_user_model):
-    return SearchClient(user_model=django_user_model, username="user2", password="bar", is_portal_admin=True)
-
-
-@pytest.fixture
-def group_login_client(django_user_model, group_extension):  # # noqa: F811
-    return SearchClient(user_model=django_user_model, group_model=group_extension, username="user3", password="bar")
+from cegs_portal.utils.pagination_types import MockPaginator, Pageable
 
 
 @pytest.fixture
@@ -134,7 +70,7 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
 
 
 @pytest.fixture
-def paged_experiments() -> Pageable[Experiment]:
+def experiment_list_data():
     e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e1), _file(experiment=e1, data_file_info=data_file_info()))
     e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
@@ -148,8 +84,16 @@ def paged_experiments() -> Pageable[Experiment]:
     e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e6), _file(experiment=e6, data_file_info=data_file_info()))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
-    pages: Paginateable[Experiment] = MockPaginator(experiments, 3)
-    return pages.page(1)
+    f1 = FacetValueFactory()
+    f2 = FacetValueFactory()
+
+    e1.facet_values.add(f1)
+    e2.facet_values.add(f1)
+    e3.facet_values.add(f1)
+    e4.facet_values.add(f2)
+    e5.facet_values.add(f2)
+    e6.facet_values.add(f2)
+    return experiments, [f1, f2]
 
 
 def data_file_info() -> ExperimentDataFileInfo:
@@ -197,6 +141,71 @@ def feature_pages() -> Pageable[DNAFeature]:
         3,
     )
     return paginator.page(2)
+
+
+@pytest.fixture
+def reo_source_target():
+    return {
+        "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
+        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+        "reo_accesion_id": "DCPREO00000001",
+        "effect_size": -1.2,
+        "p_value": 0.005,
+        "sig": 0.05,
+        "expr_accession_id": "DCPEXPR00000001",
+        "expr_name": "Test Name",
+        "analysis_accession_id": "DCPAN00000001",
+    }
+
+
+@pytest.fixture
+def reo_source_targets():
+    return [
+        {
+            "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
+            "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+            "reo_accesion_id": "DCPREO000339D6",
+            "effect_size": 0.010958133,
+            "p_value": 0.00000184,
+            "sig": 0.000547435,
+            "expr_accession_id": "DCPEXPR00000002",
+            "expr_name": "Tyler scCERES Experiment 2021",
+            "analysis_accession_id": "DCPAN00000002",
+        },
+        {
+            "source_locs": '{"(chr6,\\"[32182864,32183339)\\")"}',
+            "target_info": '{"(chr6,\\"[31830969,31846824)\\",SLC44A4,ENSG00000204385)"}',
+            "reo_accesion_id": "DCPREO00033A96",
+            "effect_size": -0.005418836,
+            "p_value": 0.001948499,
+            "sig": 0.004785014,
+            "expr_accession_id": "DCPEXPR00000002",
+            "expr_name": "Tyler scCERES Experiment 2021",
+            "analysis_accession_id": "DCPAN00000002",
+        },
+        {
+            "source_locs": '{"(chr13,\\"[40666345,40666366)\\")"}',
+            "target_info": '{"(chr6,\\"[31834608,31839767)\\",SNHG32,ENSG00000204387)"}',
+            "reo_accesion_id": "DCPREO004F45A1",
+            "effect_size": -1.2,
+            "p_value": 0.005,
+            "sig": 0.05,
+            "expr_accession_id": "DCPEXPR00000009",
+            "expr_name": "Test Name",
+            "analysis_accession_id": "DCPAN00000008",
+        },
+    ]
+
+
+@pytest.fixture
+def search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Facet], reo_source_targets) -> SearchResults:
+    return {
+        "location": ChromosomeLocation("chr1", "10000", "15000"),
+        "assembly": "GRCh37",
+        "features": feature_pages,
+        "sig_reg_effects": [(("DCPEXPR00000001", "DCPAN00000001"), reo_source_targets)],
+        "facets": facets,
+    }
 
 
 @pytest.fixture
@@ -304,10 +313,10 @@ def sig_only_source_reg_effects():
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
 
-    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
-    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
+    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
     direction_non_significant = FacetValueFactory(
-        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT
+        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value
     )
 
     reo1 = RegEffectFactory(
@@ -339,10 +348,10 @@ def sig_only_target_reg_effects():
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
 
-    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
-    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED)
+    direction_enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    direction_depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
     direction_non_significant = FacetValueFactory(
-        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT
+        facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value
     )
 
     reo1 = RegEffectFactory(

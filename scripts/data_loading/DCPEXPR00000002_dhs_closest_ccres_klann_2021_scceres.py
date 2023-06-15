@@ -2,8 +2,7 @@ import csv
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, Facet, FacetValue
-from cegs_portal.search.models.dna_feature import DNAFeatureType
+from cegs_portal.search.models import DNAFeature, DNAFeatureType, Facet, FacetValue
 from utils import timer
 
 CCRE_FACET = Facet.objects.get(name="cCRE Category")

@@ -223,9 +223,9 @@ class DNAFeatureSearch:
         field_lookup = join_fields(field, lookup)
         query[field_lookup] = NumericRange(int(start), int(end), "[)")
 
-        prefetch_values = []
+        prefetch_values = ["parent", "parent_accession"]
         if len(facets) > 0:
-            prefetch_values = ["facet_values", "facet_values__facet"]
+            prefetch_values.extend(["facet_values", "facet_values__facet"])
 
         if "regeffects" in feature_properties:
             # The facet presets are used when getting the "direction" property

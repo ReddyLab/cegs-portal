@@ -78,6 +78,34 @@
     background-color: rgb(249, 250, 251);
   }
 
+  table.data-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Helvetica, Roboto, sans-serif;
+  }
+
+  table.data-table th {
+    padding: 12px;
+    text-align: left;
+    color: gray;
+    font-weight: bold;
+  }
+
+  table.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid lightgrey;
+  }
+
+  table.data-table tr.data-row:hover {
+    background-color: #ddd;
+  }
+
+  table.data-table a,
+  table.data-table a:visited {
+    color: #3490dc;
+    text-decoration: none;
+  }
+
   @media screen {
     div.search-wrapper label {
       display: none;
