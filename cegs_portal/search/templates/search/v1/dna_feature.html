@@ -439,6 +439,10 @@ HEADER -->
                             <th>Strand</th>
                             <th>Reference Genome</th>
                         </tr>
+            {% endif %}
+            {% endfor %}
+                        {% for feature, sources, targets in feature_reos %}
+                        {% if feature.children.all|length > 0 %}
                         {% for child in feature.children.all %}
                         <tr>
                             <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
@@ -453,11 +457,13 @@ HEADER -->
                             <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
                         </tr>
                         {% endfor %}
+                        {% endif %}
+                        {% endfor %}
                     </table>
                 </div>
             </div>
-            {% endif %}
-            {% endfor %}
+
+
         </div>
         {% endif %}
         {% if tab == "source target" %}
