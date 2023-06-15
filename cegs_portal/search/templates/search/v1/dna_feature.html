@@ -409,7 +409,7 @@ HEADER -->
         >
             <!-- Children -->
             {% for feature, sources, targets in feature_reos %}
-            {% if feature.children.all|length > 0 %}
+            {% if feature.children.all|length > 0 and forloop.first %}
             <div class="mb-8">
                 <div class="container">
                     <a name="children-{{ feature.accession_id }}"></a>
@@ -506,7 +506,7 @@ HEADER -->
         >
 
             {% for feature in features %}
-            {% if feature.closest_features.all|length > 0 %}
+            {% if feature.closest_features.all|length > 0 and forloop.first %}
             <div class="container">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
                 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
@@ -533,6 +533,10 @@ HEADER -->
                         <th>Strand</th>
                         <th>Reference Genome</th>
                     </tr>
+            {% endif %}
+            {% endfor %}
+                    {% for feature in features %}
+                    {% if feature.closest_features.all|length > 0 %}
                     {% for close_feature in feature.closest_features.all %}
                     <tr>
                         <td>
@@ -548,10 +552,10 @@ HEADER -->
                         <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
                     </tr>
                     {% endfor %}
+                    {% endif %}
+                    {% endfor %}
                 </table>
             </div>
-            {% endif %}
-            {% endfor %}
         </div>
         {% endif %}
 
