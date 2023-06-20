@@ -17,7 +17,7 @@ from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
-CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d+)(-(\d+))?)(\s+|$)", re.IGNORECASE)
+CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})(\s+|$)", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)(\s+|$)", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)(\s+|$)", re.IGNORECASE)
@@ -59,9 +59,9 @@ def parse_query(
     warnings: set[ParseWarning] = set()
     search_type = None
 
-    query = query.replace(",", " ").strip()
+    query = query.strip()
 
-    # Avoid an infinite loop by making sure `query` get shorter
+    # Avoid an infinite loop by making sure `query` gets shorter
     # every iteration and stopping if it doesn't
     old_query_len = len(query) + 1
     while query != "" and old_query_len != len(query):
@@ -73,7 +73,10 @@ def parse_query(
                 warnings.add(ParseWarning.TOO_MANY_LOCS)
             else:
                 search_type = SearchType.LOCATION
-                location = ChromosomeLocation(match.group(2), match.group(3), match.group(5))
+                chromo = match.group(2)
+                start = match.group(3).replace(",", "")
+                end = match.group(5).replace(",", "") if match.group(5) is not None else None
+                location = ChromosomeLocation(chromo, start, end)
 
             query = query[match.end() :]
             continue
