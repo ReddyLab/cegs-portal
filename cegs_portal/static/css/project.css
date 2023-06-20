@@ -705,6 +705,10 @@ input[type="submit"], input[type="button"], button {
   visibility: visible;
 }
 
+.collapse {
+  visibility: collapse;
+}
+
 .static {
   position: static;
 }
@@ -953,6 +957,10 @@ input[type="submit"], input[type="button"], button {
       flex-basis: 75%;
 }
 
+.border-collapse {
+  border-collapse: collapse;
+}
+
 .transform {
   -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
           transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -996,6 +1004,12 @@ input[type="submit"], input[type="button"], button {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+}
+
+.items-baseline {
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
 }
 
 .justify-center {
