@@ -441,8 +441,8 @@ HEADER -->
                         </tr>
             {% endif %}
             {% endfor %}
-                        {% for feature, sources, targets in feature_reos %}
-                        {% if feature.children.exists %}
+            {% for feature, sources, targets in feature_reos %}
+            {% if feature.children.exists %}
                         {% for child in feature.children.all %}
                         <tr>
                             <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
@@ -457,8 +457,8 @@ HEADER -->
                             <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
                         </tr>
                         {% endfor %}
-                        {% endif %}
-                        {% endfor %}
+            {% endif %}
+            {% endfor %}
                     </table>
                 </div>
             </div>
@@ -535,8 +535,8 @@ HEADER -->
                     </tr>
             {% endif %}
             {% endfor %}
-                    {% for feature in features %}
-                    {% if feature.closest_features.exists %}
+            {% for feature in features %}
+            {% if feature.closest_features.exists %}
                     {% for close_feature in feature.closest_features.all %}
                     <tr>
                         <td>
@@ -552,8 +552,8 @@ HEADER -->
                         <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
                     </tr>
                     {% endfor %}
-                    {% endif %}
-                    {% endfor %}
+            {% endif %}
+            {% endfor %}
                 </table>
             </div>
         </div>
