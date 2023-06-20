@@ -442,7 +442,7 @@ HEADER -->
             {% endif %}
             {% endfor %}
                         {% for feature, sources, targets in feature_reos %}
-                        {% if feature.children.all|length > 0 %}
+                        {% if feature.children.exists %}
                         {% for child in feature.children.all %}
                         <tr>
                             <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
