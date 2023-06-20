@@ -76,6 +76,12 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 )
             )
 
+        def sort_key(feature_reo):
+            feature = feature_reo[0]
+            return (feature.ref_genome, int(feature.ref_genome_patch or 0))
+
+        feature_reos.sort(key=sort_key, reverse=True)
+
         if len(feature_reos) == 0:
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
 
