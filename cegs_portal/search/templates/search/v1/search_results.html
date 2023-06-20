@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n %}
 {% load waffle_tags %}
+{% load humanize %}
 {% block title %}Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
@@ -98,7 +99,7 @@
             </div>
             {% if location %}
             <div class="header">
-                <div id="loc-header">{{ location.chromo }}: {{ location.range.lower }}-{{ location.range.upper }}</div>
+                <div id="loc-header">{{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
             </div>
             {% endif %}
             <form action="{% url 'search:results' %}" method="get" class="flex items-center">
@@ -213,7 +214,7 @@
         state.addCallback(STATE_LOCATION, (s, key) => {
             let location = state.g(STATE_LOCATION);
 
-            rc(g("loc-header"), t(`chr${location.chr}: ${location.start}-${location.end}`));
+            rc(g("loc-header"), t(`chr${location.chr}: ${location.start.toLocaleString()} - ${location.end.toLocaleString()}`));
 
             getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}`).then(json => {
                 let sigRegEffects = json["significant reos"]
