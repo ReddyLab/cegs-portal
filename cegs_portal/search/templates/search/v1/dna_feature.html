@@ -409,7 +409,7 @@ HEADER -->
         >
             <!-- Children -->
             {% for feature, sources, targets in feature_reos %}
-            {% if feature.children.all|length > 0 and forloop.first %}
+            {% if feature.children.exists and forloop.first %}
             <div class="mb-8">
                 <div class="container">
                     <a name="children-{{ feature.accession_id }}"></a>
