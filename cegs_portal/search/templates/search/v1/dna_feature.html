@@ -145,7 +145,14 @@
         margin-left: 5px;
     }
 
-    .feature-faded-line {
+    .svg-barcode-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+        transform: rotate(90deg);
+    }
+
+    .faded-line {
         border-top: 0.5px solid rgb(133, 139, 146);
         margin-bottom: 15px;
     }
@@ -429,7 +436,7 @@ HEADER -->
                         </svg>
                         Children
                     </div>
-                    <div class="feature-faded-line"></div>
+                    <div class="faded-line"></div>
                     <table class="data-table">
                         <tr>
                             <th>ENSEMBL ID</th>
@@ -478,16 +485,50 @@ HEADER -->
         >
 
         {% for feature, sources, targets in feature_reos %}
-            {% if sources.page.object_list|length > 0 %}
+            {% if sources %}
             <div class="container">
-                <a name="source-for-{{ feature.accession_id }}"></a>
-                {% include "search/v1/partials/_paged_nav.html" with data=sources.page container_id=sources.nav_prefix prefix=sources.nav_prefix page_query="page" table="search/v1/partials/_reg_effect.html" %}
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
+                        />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-barcode-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M24 32C10.7 32 0 42.7 0 56V456c0 13.3 10.7 24 24 24H40c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H24zm88 0c-8.8 0-16 7.2-16 16V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16zm72 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H184zm96 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H280zM448 56V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H472c-13.3 0-24 10.7-24 24zm-64-8V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16s-16 7.2-16 16z"
+                        />
+                    </svg>
+                    Source for Regulatory Effect Observations
+                </div>
+                <div class="faded-line"></div>
+                <div id="source_for_{{ feature.accession_id }}" class="my-4">
+                </div>
+                <div id="source_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
             </div>
             {% endif %}
-            {% if targets.page.object_list|length > 0 %}
+            {% if targets %}
             <div class="container">
-                <a name="target-of-{{ feature.accession_id }}"></a>
-                {% include "search/v1/partials/_paged_nav.html" with data=targets.page container_id=targets.nav_prefix prefix=targets.nav_prefix page_query="page" table="search/v1/partials/_target_reg_effect.html" %}
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
+                        />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-barcode-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M24 32C10.7 32 0 42.7 0 56V456c0 13.3 10.7 24 24 24H40c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H24zm88 0c-8.8 0-16 7.2-16 16V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16zm72 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H184zm96 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H280zM448 56V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H472c-13.3 0-24 10.7-24 24zm-64-8V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16s-16 7.2-16 16z"
+                        />
+                    </svg>
+                    Targeting Regulatory Effect Observations
+                </div>
+                <div class="faded-line"></div>
+                <div id="target_for_{{ feature.accession_id }}" class="my-4">
+                </div>
+                <div id="target_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
             </div>
             {% endif %}
         {% endfor %}
@@ -659,29 +700,13 @@ HEADER -->
         );
     }
 
-    let __getSourcePages;
-    let __getTargetPages;
-
     {% for feature, sources, targets in feature_reos %}
 
-    __getSourcePages = __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable);
-    __getTargetPages = __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable);
-
-    {% if sources.page.has_previous %}
-    pageLink("{{ sources.nav_prefix }}_first_link", 1, __getSourcePages);
-    pageLink("{{ sources.nav_prefix }}_prev_link", {{ sources.page.previous_page_number }}, __getSourcePages);
+    {% if sources %}
+    __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable)();
     {% endif %}
-    {% if sources.page.has_next %}
-    pageLink("{{ sources.nav_prefix }}_next_link", {{ sources.page.next_page_number }}, __getSourcePages);
-    pageLink("{{ sources.nav_prefix }}_last_link", {{ sources.page.paginator.num_pages }}, __getSourcePages);
-    {% endif %}
-    {% if targets.page.has_previous %}
-    pageLink("{{ targets.nav_prefix }}_first_link", 1, __getTargetPages);
-    pageLink("{{ targets.nav_prefix }}_prev_link", {{ targets.page.previous_page_number }}, __getTargetPages);
-    {% endif %}
-    {% if targets.page.has_next %}
-    pageLink("{{ targets.nav_prefix }}_next_link", {{ targets.page.next_page_number }}, __getTargetPages);
-    pageLink("{{ targets.nav_prefix }}_last_link", {{ targets.page.paginator.num_pages }}, __getTargetPages);
+    {% if targets %}
+    __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable)();
     {% endif %}
 
     {% endfor %}

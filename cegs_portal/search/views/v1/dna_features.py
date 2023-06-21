@@ -62,19 +62,18 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         feature_reos = []
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
-            sources = Paginator(sources, 20)
-            sources_page = sources.get_page(1)
-            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
-            targets = Paginator(targets, 20)
-            targets_page = targets.get_page(1)
+            if sources.exists():
+                sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
+            else:
+                sources = None
 
-            feature_reos.append(
-                (
-                    feature,
-                    {"page": sources_page, "nav_prefix": f"source_for_{feature.accession_id}"},
-                    {"page": targets_page, "nav_prefix": f"target_for_{feature.accession_id}"},
-                )
-            )
+            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
+            if targets.exists():
+                targets = {"nav_prefix": f"target_for_{feature.accession_id}"}
+            else:
+                targets = None
+
+            feature_reos.append((feature, sources, targets))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
@@ -91,13 +90,13 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
         # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
-        if any(bool(f[0].children) for f in feature_reos):
+        if any(bool(f[0].children.all()) for f in feature_reos):
             tabs.append("children")
 
-        if any(bool(f[1]["page"].object_list) or bool(f[2]["page"].object_list) for f in feature_reos):
+        if any(f[1] is not None or f[2] is not None for f in feature_reos):
             tabs.append("source target")
 
-        if any(bool(f[0].closest_features) for f in feature_reos):
+        if any(bool(f[0].closest_features.all()) for f in feature_reos):
             tabs.append("closest features")
 
         tabs.append("find nearby")
