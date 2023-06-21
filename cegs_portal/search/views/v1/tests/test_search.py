@@ -68,17 +68,7 @@ from cegs_portal.search.views.v1.search import (
             ),
         ),
         (
-            "hg19, DCPGENE00000000, ENSG00000001",
-            (
-                SearchType.ID,
-                [IdType.ACCESSION.associate("DCPGENE00000000"), IdType.ENSEMBL.associate("ENSG00000001")],
-                None,
-                "GRCh37",
-                set(),
-            ),
-        ),
-        (
-            "DCPGENE00000000,hg19,ENSG00000001",
+            "DCPGENE00000000 hg19 ENSG00000001",
             (
                 SearchType.ID,
                 [IdType.ACCESSION.associate("DCPGENE00000000"), IdType.ENSEMBL.associate("ENSG00000001")],
