@@ -331,7 +331,7 @@
             chr       : "{{ location.chromo }}".replace("chr", ""),
             start     : {{ location.range.lower }},
             end       : {{ location.range.upper }},
-            plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
+            plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips', 'fileDrop' ],
             useHash   : true,
             hideEmptyTracks: false,
             sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}{% switch "effect_plot" %}{% if search_type == "LOCATION" %}, {% endif %}applyPlot{% endswitch %}],
