@@ -86,14 +86,18 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
 
         tabs = []
-        first_feature = feature_reos[0]
-        if len(first_feature[0].children.all()) > 0:
+        # According to the documentation
+        # (https://docs.djangoproject.com/en/4.2/ref/models/querysets/#django.db.models.query.QuerySet.exists),
+        # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
+        # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
+        # wrap the property access that does the data loading in a `bool` to get basically the same result.
+        if any(bool(f[0].children) for f in feature_reos):
             tabs.append("children")
 
-        if len(first_feature[1]["page"].object_list) > 0 or len(first_feature[2]["page"].object_list) > 0:
+        if any(bool(f[1]["page"].object_list) or bool(f[2]["page"].object_list) for f in feature_reos):
             tabs.append("source target")
 
-        if len(first_feature[0].closest_features.all()) > 0:
+        if any(bool(f[0].closest_features) for f in feature_reos):
             tabs.append("closest features")
 
         tabs.append("find nearby")
