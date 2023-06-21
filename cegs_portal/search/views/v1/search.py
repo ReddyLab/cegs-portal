@@ -23,6 +23,9 @@ ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)(\s+|$)", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)(\s+|$)", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)(\s+|$)", re.IGNORECASE)
 
+GRCH37 = "GRCh37"
+GRCH38 = "GRCh38"
+
 
 class ParseWarning(Enum):
     TOO_MANY_LOCS = auto()
@@ -55,7 +58,7 @@ def parse_query(
 ]:
     terms: list[tuple[IdType, str]] = []
     location: Optional[ChromosomeLocation] = None
-    assembly: Optional[str] = None
+    assembly: str = GRCH38
     warnings: set[ParseWarning] = set()
     search_type = None
 
@@ -106,10 +109,10 @@ def parse_query(
 
             # Normalize token
             if token in ("hg19", "grch37"):
-                token = "GRCh37"
+                assembly = GRCH37
             elif token in ("hg38", "grch38"):
-                token = "GRCh38"
-            assembly = token
+                assembly = GRCH38
+
             query = query[match.end() :]
             continue
 

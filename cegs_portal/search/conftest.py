@@ -220,32 +220,33 @@ def features() -> Iterable[DNAFeature]:
 
 @pytest.fixture
 def feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None)
+    return DNAFeatureFactory(parent=None, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def search_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE)
+    return DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def private_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, public=False)
+    return DNAFeatureFactory(parent=None, public=False, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def archived_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, archived=True)
+    return DNAFeatureFactory(parent=None, archived=True, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
-    pub_feature = DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE)
+    pub_feature = DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
     private_feature = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
+        ref_genome="GRCh38",
         public=False,
     )
     archived_feature = DNAFeatureFactory(
@@ -253,6 +254,7 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
         feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
+        ref_genome="GRCh38",
         archived=True,
     )
 

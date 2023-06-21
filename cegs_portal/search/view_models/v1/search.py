@@ -62,7 +62,7 @@ class Search:
 
     @classmethod
     def dnafeature_loc_search_with_private(
-        cls, location: ChromosomeLocation, assembly: Optional[str], facets: list[int], private_experiments: list[str]
+        cls, location: ChromosomeLocation, assembly: str, facets: list[int], private_experiments: list[str]
     ):
         return DNAFeatureSearch.loc_search_with_private(
             location.chromo,

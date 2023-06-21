@@ -20,24 +20,24 @@ from cegs_portal.search.views.v1.search import (
 @pytest.mark.parametrize(
     "query, result",
     [
-        ("", (None, [], None, None, set())),
+        ("", (None, [], None, "GRCh38", set())),
         ("hg38", (None, [], None, "GRCh38", set())),
         ("hg19", (None, [], None, "GRCh37", set())),
-        ("BRCA2", (SearchType.ID, [(IdType.GENE_NAME, "BRCA2")], None, None, set())),
-        ("brca2", (SearchType.ID, [(IdType.GENE_NAME, "brca2")], None, None, set())),
-        ("chr1:1-100", (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), None, set())),
-        ("ch1:1-100", (None, [], None, None, set())),
+        ("BRCA2", (SearchType.ID, [(IdType.GENE_NAME, "BRCA2")], None, "GRCh38", set())),
+        ("brca2", (SearchType.ID, [(IdType.GENE_NAME, "brca2")], None, "GRCh38", set())),
+        ("chr1:1-100", (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), "GRCh38", set())),
+        ("ch1:1-100", (None, [], None, "GRCh38", set())),
         (
             "chr1:1-100 chr2: 2-200",
-            (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), None, {ParseWarning.TOO_MANY_LOCS}),
+            (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), "GRCh38", {ParseWarning.TOO_MANY_LOCS}),
         ),
         (
             "   chr1:1-100    chr2: 2-200   ",
-            (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), None, {ParseWarning.TOO_MANY_LOCS}),
+            (SearchType.LOCATION, [], ChromosomeLocation("chr1", "1", "100"), "GRCh38", {ParseWarning.TOO_MANY_LOCS}),
         ),
         ("   hg38   ", (None, [], None, "GRCh38", set())),
         ("   hg19 hg38   ", (None, [], None, "GRCh38", set())),
-        ("DCPGENE00000000", (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, None, set())),
+        ("DCPGENE00000000", (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh38", set())),
         (
             "DCPGENE00000000 hg19",
             (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
@@ -160,7 +160,7 @@ def test_experiment_feature_loc_json(client: Client, search_feature: DNAFeature)
     json_content = json.loads(response.content)
 
     assert json_content["location"] == {
-        "assembly": None,
+        "assembly": "GRCh38",
         "chromosome": search_feature.chrom_name,
         "start": search_feature.location.lower - 10,
         "end": search_feature.location.upper + 10,
