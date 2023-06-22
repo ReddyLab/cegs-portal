@@ -63,7 +63,6 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "django.contrib.admin",
     "django.forms",
     "channels",
 ]
@@ -78,6 +77,7 @@ THIRD_PARTY_APPS = [
 
 # Your stuff: custom apps go here
 LOCAL_APPS = [
+    "cegs_portal.hide_admin.apps.HideAdminConfig",
     "cegs_portal.users.apps.UsersConfig",
     "cegs_portal.search.apps.SearchConfig",
     "cegs_portal.uploads.apps.UploadsConfig",
@@ -234,7 +234,7 @@ EMAIL_TIMEOUT = 5
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.
-ADMIN_URL = "admin/"
+ADMIN_URL = "secret_admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [("""Thomas Cowart""", "thomas.cowart@duke.edu")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
