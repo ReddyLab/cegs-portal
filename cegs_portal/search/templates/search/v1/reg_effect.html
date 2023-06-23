@@ -95,7 +95,7 @@
 {% block title %}Regulatory Effect Observation{% endblock %}
 
 {% block content %}
-<div class="container">
+<div>
     <div class="text-2xl font-bold">Regulatory Effect Observation</div>
 
     {% spaceless %}
@@ -110,14 +110,14 @@
     </table>
 
     {% if regulatory_effect.targets.exists %}
-    <div>
+    <div class="container">
         <div class="text-xl font-bold">Target Genes</div>
         {% include "search/v1/partials/_features.html" with features=regulatory_effect.targets.all %}
     </div>
     {% endif %}
 
     {% if regulatory_effect.sources.exists %}
-    <div>
+    <div class="container">
         <div class="text-xl font-bold">Source Features</div>
         {% include "search/v1/partials/_features.html" with features=regulatory_effect.sources.all %}
     </div>
