@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 INPUT_FILE=$1
 GENOME=${2:-GRCh38}
 PATCH=${3:-}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Requires bedtools (https://bedtools.readthedocs.io/en/latest/)

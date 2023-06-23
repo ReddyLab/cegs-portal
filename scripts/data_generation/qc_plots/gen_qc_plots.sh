@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 DATA_DIR=$1
@@ -31,7 +31,7 @@ python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXP
 # DCPEXPR00000003
 echo DCPEXPR00000003
 # python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_portal/static_data/search/experiments/DCPEXPR00000003/vpdata.bin \
-#     --input ${DATA_DIR}/DCPEXPR00000003_klann_wgCERES_K562_2021/supplementary_table_13_DHS_summary_results.txt \
+#     --input ${DATA_DIR}/DCPEXPR00000003_klann_wgCERES_K562_2021/supplementary_table_5_DHS_summary_results.tsv \
 #     -x avg_logFC \
 #     -y pValue \
 #     -g geneSymbol
@@ -43,7 +43,7 @@ echo DCPEXPR00000003
 #     --header \
 #     --input ${DATA_DIR}/DCPEXPR00000003_klann_wgCERES_K562_2021/ipsc.run_negbinom.ngrnas_per_cell.txt \
 #     --bin-size 1
-python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR00000003_klann_wgCERES_K562_2021/supplementary_table_13_DHS_summary_results.txt \
+python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR00000003_klann_wgCERES_K562_2021/supplementary_table_5_DHS_summary_results.tsv \
     --output ./cegs_portal/static_data/search/experiments/DCPEXPR00000003/qqplot.bin \
     -p pValue \
     -q 10_000
