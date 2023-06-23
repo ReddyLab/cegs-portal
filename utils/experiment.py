@@ -130,6 +130,10 @@ class AnalysisMetadata:
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
             self.accession_id = analysis.accession_id
+
+            # Set the new analysis as default
+            experiment.default_analysis = analysis
+            experiment.save()
         for result in self.results:
             result.db_save(experiment, analysis)
 

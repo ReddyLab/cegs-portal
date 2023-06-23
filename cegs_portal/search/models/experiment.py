@@ -59,6 +59,9 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     source_type = models.CharField(
         max_length=50, choices=DNAFeatureSourceType.choices, default=DNAFeatureSourceType.GRNA
     )
+    default_analysis = models.ForeignKey(
+        "Analysis", on_delete=models.SET_NULL, blank=True, null=True, related_name="default_for"
+    )
 
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
