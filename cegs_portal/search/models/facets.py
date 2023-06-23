@@ -4,19 +4,21 @@ from django.db import models
 
 
 class FacetType(Enum):
+    CATEGORICAL = "Categorical"
+    NUMERIC = "Numeric"
     DISCRETE = "Discrete"
     CONTINUOUS = "Continuous"
 
 
 class Facet(models.Model):
     FACET_TYPE = [
-        (str(FacetType.DISCRETE), FacetType.DISCRETE.value),
-        (str(FacetType.CONTINUOUS), FacetType.CONTINUOUS.value),
+        (str(FacetType.CATEGORICAL), FacetType.CATEGORICAL.value),
+        (str(FacetType.NUMERIC), FacetType.NUMERIC.value),
     ]
     facet_type = models.CharField(
         max_length=30,
         choices=FACET_TYPE,
-        default=FacetType.CONTINUOUS,
+        default=FacetType.NUMERIC,
     )
     description = models.CharField(max_length=4096, null=True)
     name = models.CharField(max_length=256)

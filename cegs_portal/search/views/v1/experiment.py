@@ -82,7 +82,7 @@ class ExperimentListView(TemplateJsonView):
             accept
                 * application/json
             facet (multiple)
-                * Should match a discrete facet value
+                * Should match a categorical facet value
         """
         options = super().request_options(request)
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]

@@ -297,7 +297,7 @@
                     "maxItems": 2,
                     "items": {
                       "type": "array",
-                      "description": "0: a list of discrete facet IDs\n1: (optional) [[min effect value, max effect value], [min significance value, max significance value]]",
+                      "description": "0: a list of categorical facet IDs\n1: (optional) [[min effect value, max effect value], [min significance value, max significance value]]",
                       "items": {}
                     }
                   },
@@ -451,7 +451,7 @@
               "$ref": "#/components/schemas/FilteredChromosome"
             }
           },
-          "continuous_intervals": {
+          "numeric_intervals": {
             "type": "object",
             "properties": {
               "effect": {

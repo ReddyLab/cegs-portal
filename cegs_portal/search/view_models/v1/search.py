@@ -81,5 +81,5 @@ class Search:
         return sig_reo_loc_search((location.chromo, location.range.lower, location.range.upper), 5, private_experiments)
 
     @classmethod
-    def discrete_facet_search(cls):
-        return Facet.objects.filter(facet_type="FacetType.DISCRETE").prefetch_related("values").all()
+    def categorical_facet_search(cls):
+        return Facet.objects.filter(facet_type="FacetType.CATEGORICAL").prefetch_related("values").all()

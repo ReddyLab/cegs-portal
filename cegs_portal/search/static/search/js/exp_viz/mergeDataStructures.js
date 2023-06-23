@@ -14,7 +14,7 @@ export function mergeFacets(facetList, cloneFn) {
         for (let facet of facets) {
             if (facet.id in newFacetsDict) {
                 let newFacet = newFacetsDict[facet.id];
-                if (facet.facet_type == "FacetType.CONTINUOUS") {
+                if (facet.facet_type == "FacetType.NUMERIC") {
                     newFacet.range = [
                         Math.min(newFacet.range[0], facet.range[0]),
                         Math.max(newFacet.range[1], facet.range[1]),

@@ -133,7 +133,7 @@ def get_facets(request) -> Facets:
     except json.JSONDecodeError:
         return facets
 
-    facets.discrete_facets = facet_array[0]
+    facets.categorical_facets = facet_array[0]
     if len(facet_array) == 2:
         facets.effect_size_range = (facet_array[1][0][0], facet_array[1][0][1])
         facets.sig_range = (facet_array[1][1][0], facet_array[1][1][1])

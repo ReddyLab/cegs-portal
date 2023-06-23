@@ -11,7 +11,7 @@ class FacetFactory(DjangoModelFactory):
 
     description = Faker("text", max_nb_chars=4096)
     name = Faker("text", max_nb_chars=256)
-    facet_type = FacetType.DISCRETE
+    facet_type = FacetType.CATEGORICAL
 
 
 class FacetValueFactory(DjangoModelFactory):

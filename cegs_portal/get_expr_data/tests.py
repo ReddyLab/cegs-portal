@@ -163,7 +163,7 @@ def test_retrieve_target_experiment_data():
 )
 @pytest.mark.usefixtures("reg_effects")
 def test_retrieve_cont_facet_experiment_data(disc_facets, effect_size, sig, result_count):
-    facets = Facets(discrete_facets=disc_facets, effect_size_range=effect_size, sig_range=sig)
+    facets = Facets(categorical_facets=disc_facets, effect_size_range=effect_size, sig_range=sig)
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
@@ -173,42 +173,42 @@ def test_retrieve_cont_facet_experiment_data(disc_facets, effect_size, sig, resu
 
 def test_retrieve_dics_facet_experiment_data(reg_effects):
     _, _, _, x, y, z, _ = reg_effects
-    facets = Facets(discrete_facets=[])
+    facets = Facets(categorical_facets=[])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 3
 
-    facets = Facets(discrete_facets=[x.id])
+    facets = Facets(categorical_facets=[x.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 1
 
-    facets = Facets(discrete_facets=[y.id])
+    facets = Facets(categorical_facets=[y.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 1
 
-    facets = Facets(discrete_facets=[z.id])
+    facets = Facets(categorical_facets=[z.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 1
 
-    facets = Facets(discrete_facets=[y.id, z.id])
+    facets = Facets(categorical_facets=[y.id, z.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 2
 
-    facets = Facets(discrete_facets=[x.id, y.id, z.id])
+    facets = Facets(categorical_facets=[x.id, y.id, z.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR00000002"], [], facets, ReoDataSource.BOTH
     )
