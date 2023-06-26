@@ -141,13 +141,13 @@ function categoricalFilterControls(facets, default_facets) {
 }
 
 function numericFilterControls(state, facets) {
-    const contFacets = facets.filter((f) => f.facet_type == "FacetType.NUMERIC");
+    const numericFacets = facets.filter((f) => f.facet_type == "FacetType.NUMERIC");
     let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
     let filterNodes = [];
     let intervals = state.g(STATE_NUMERIC_FILTER_INTERVALS);
 
-    for (let i = 0; i < contFacets.length; i++) {
-        let facet = contFacets[i];
+    for (let i = 0; i < numericFacets.length; i++) {
+        let facet = numericFacets[i];
         let sliderNode = sliderNodes[i];
 
         let range;

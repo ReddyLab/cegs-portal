@@ -6,6 +6,9 @@ from django.db import models
 class FacetType(Enum):
     CATEGORICAL = "Categorical"
     NUMERIC = "Numeric"
+
+    # DISCRETE and CONTINUOUS were renamed to CATEGORICAL and NUMERIC, respectively.
+    # They cannot be deleted because it breaks migration. Do not use them.
     DISCRETE = "Discrete"
     CONTINUOUS = "Continuous"
 

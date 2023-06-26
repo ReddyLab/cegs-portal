@@ -26,8 +26,9 @@ class Migration(migrations.Migration):
             WHERE facet_type = 'FacetType.CATEGORICAL'""",
         ),
         migrations.RunSQL(
-            """UPDATE search_facet AS sf SET facet_type = 'FacetType.CONTINUOUS'
+            """UPDATE search_facet AS sf SET facet_type = 'FacetType.NUMERIC'
+            WHERE facet_type = 'FacetType.CONTINUOUS'""",
+            reverse_sql="""UPDATE search_facet AS sf SET facet_type = 'FacetType.CONTINUOUS'
             WHERE facet_type = 'FacetType.NUMERIC'""",
-            reverse_sql="",
         ),
     ]
