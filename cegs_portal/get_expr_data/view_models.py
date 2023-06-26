@@ -294,7 +294,7 @@ def retrieve_experiment_data(
             i.append(analyses)
 
     if len(facets.categorical_facets) > 0:
-        where = f"{where} AND %s::bigint[] && reo_sources_targets.disc_facets"
+        where = f"{where} AND %s::bigint[] && reo_sources_targets.cat_facets"
         for i in inputs:
             i.append(facets.categorical_facets)
     if facets.effect_size_range is not None:

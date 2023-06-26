@@ -41,7 +41,7 @@ class ReoSourcesTargets(models.Model):
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_reo_accession")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_source_loc")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_target_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_disc_facet")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_cat_facet")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_pval_asc")
 
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets")
@@ -54,9 +54,7 @@ class ReoSourcesTargets(models.Model):
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_rst_target_loc ON reo_sources_targets USING GIST (target_loc)"
             )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_rst_disc_facet ON reo_sources_targets USING GIN (disc_facets)"
-            )
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rst_cat_facet ON reo_sources_targets USING GIN (cat_facets)")
             cursor.execute(
                 """CREATE INDEX IF NOT EXISTS idx_rst_pval_asc
                        ON reo_sources_targets (((reo_facets->>'Raw p value')::numeric) ASC)"""
@@ -96,7 +94,7 @@ class ReoSourcesTargetsSigOnly(models.Model):
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_reo_accession")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_source_loc")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_target_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_disc_facet")
+            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_cat_facet")
             cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_pval_asc")
 
             cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets_sig_only")
@@ -115,8 +113,8 @@ class ReoSourcesTargetsSigOnly(models.Model):
                        ON reo_sources_targets_sig_only USING GIST (target_loc)"""
             )
             cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_disc_facet
-                       ON reo_sources_targets_sig_only USING GIN (disc_facets)"""
+                """CREATE INDEX IF NOT EXISTS idx_rstso_cat_facet
+                       ON reo_sources_targets_sig_only USING GIN (cat_facets)"""
             )
             cursor.execute(
                 """CREATE INDEX IF NOT EXISTS idx_rstso_pval_asc
