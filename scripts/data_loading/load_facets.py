@@ -13,7 +13,7 @@ def run(facet_filename):
             name, description, facet_type = row[0], row[1], row[2]
             facet = Facet(name=name, description=description, facet_type=facet_type)
             facets.append(facet)
-            if facet_type == "FacetType.DISCRETE":
+            if facet_type == "FacetType.CATEGORICAL":
                 for value in row[3:]:
                     facet_values.append(FacetValue(value=value, facet=facet))
 

@@ -2,7 +2,7 @@ import {e, g, rc} from "../dom.js";
 import {getJson} from "../files.js";
 
 export function facetFilterSetup() {
-    let facetCheckboxes = g("discrete-facets").querySelectorAll("input[type=checkbox]");
+    let facetCheckboxes = g("categorical-facets").querySelectorAll("input[type=checkbox]");
     facetCheckboxes.forEach((checkbox) => {
         checkbox.addEventListener("change", (_event) => {
             let facetQuery = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.

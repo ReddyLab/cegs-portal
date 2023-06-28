@@ -119,14 +119,14 @@ class ExperimentCoverageView(TemplateJsonView):
         filters = options["filters"]
 
         data_filter = Filter()
-        data_filter.discrete_facets = set(filters[0])
+        data_filter.categorical_facets = set(filters[0])
 
         if len(filters) > 1:
             effect_size_interval, sig_interval = filters[1]
             data_filter_intervals = FilterIntervals()
             data_filter_intervals.effect = (effect_size_interval[0], effect_size_interval[1])
             data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
-            data_filter.continuous_intervals = data_filter_intervals
+            data_filter.numeric_intervals = data_filter_intervals
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {

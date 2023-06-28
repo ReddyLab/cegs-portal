@@ -31,8 +31,8 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cov_viz_ds"
-version = "0.2.0"
-source = "git+https://github.com/ReddyLab/cov_viz_ds?rev=6a93d8fae232fd16a6de025841d30aae6f3493e3#6a93d8fae232fd16a6de025841d30aae6f3493e3"
+version = "0.2.1"
+source = "git+https://github.com/ReddyLab/cov_viz_ds?rev=7197888d485d3b4aaa8de751a4578f0c2912115a#7197888d485d3b4aaa8de751a4578f0c2912115a"
 dependencies = [
  "bincode",
  "rustc-hash",
@@ -41,8 +41,8 @@ dependencies = [
 
 [[package]]
 name = "exp_viz"
-version = "0.1.4"
-source = "git+https://github.com/ReddyLab/exp_viz?rev=817be532f528a6403b604c31a0e7b1ead537b0f8#817be532f528a6403b604c31a0e7b1ead537b0f8"
+version = "0.1.5"
+source = "git+https://github.com/ReddyLab/exp_viz?rev=3d7288ad2e8330df90347b16cf94cd5de336b2d0#3d7288ad2e8330df90347b16cf94cd5de336b2d0"
 dependencies = [
  "bincode",
  "cov_viz_ds",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "exp_viz_extension"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "bincode",
  "cov_viz_ds",

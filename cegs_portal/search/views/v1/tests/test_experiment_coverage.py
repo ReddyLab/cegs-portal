@@ -19,15 +19,15 @@ def mock_load_coverage(exp_acc_id, chrom):
 
 def filter_nothing(zoom_chr=None):
     return [
-        [],  # discrete filter values
-        [[-5, 5], [0.0, 1.0]],  # effect size, significance continuous filter values
+        [],  # categorical filter values
+        [[-5, 5], [0.0, 1.0]],  # effect size, significance numeric filter values
     ]
 
 
 def filter_everything():
     return [
-        [],  # discrete filter values
-        [[10, 11], [2.0, 3.0]],  # effect size, significance continuous filter values
+        [],  # categorical filter values
+        [[10, 11], [2.0, 3.0]],  # effect size, significance numeric filter values
     ]
 
 

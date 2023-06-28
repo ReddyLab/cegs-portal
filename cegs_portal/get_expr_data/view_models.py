@@ -57,7 +57,7 @@ class DataState(StrEnum):
 
 @dataclass
 class Facets:
-    discrete_facets: list[int] = field(default_factory=list)
+    categorical_facets: list[int] = field(default_factory=list)
     effect_size_range: Optional[tuple[float, float]] = None
     sig_range: Optional[tuple[float, float]] = None
 
@@ -293,10 +293,10 @@ def retrieve_experiment_data(
         for i in inputs:
             i.append(analyses)
 
-    if len(facets.discrete_facets) > 0:
-        where = f"{where} AND %s::bigint[] && reo_sources_targets.disc_facets"
+    if len(facets.categorical_facets) > 0:
+        where = f"{where} AND %s::bigint[] && reo_sources_targets.cat_facets"
         for i in inputs:
-            i.append(facets.discrete_facets)
+            i.append(facets.categorical_facets)
     if facets.effect_size_range is not None:
         where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
         for i in inputs:

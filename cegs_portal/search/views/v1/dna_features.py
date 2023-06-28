@@ -128,7 +128,7 @@ class DNAFeatureLoc(TemplateJsonView):
             assembly
                 * Should match a genome assembly that exists in the DB
             facet (multiple)
-                * Should match a discrete facet value
+                * Should match a categorical facet value
             feature_type (multiple)
                 * Should match a feature type (gene, transcript, etc.)
             format

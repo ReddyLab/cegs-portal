@@ -16,9 +16,9 @@ pub struct PyCoverageData {
 #[derive(Debug)]
 pub struct PyFilter {
     #[pyo3(get, set)]
-    pub discrete_facets: FxHashSet<DbID>,
+    pub categorical_facets: FxHashSet<DbID>,
     #[pyo3(get, set)]
-    pub continuous_intervals: Option<PyFilterIntervals>,
+    pub numeric_intervals: Option<PyFilterIntervals>,
 }
 
 #[pymethods]
@@ -26,21 +26,21 @@ impl PyFilter {
     #[new]
     pub fn new() -> Self {
         PyFilter {
-            discrete_facets: FxHashSet::default(),
-            continuous_intervals: None,
+            categorical_facets: FxHashSet::default(),
+            numeric_intervals: None,
         }
     }
 
     pub fn __str__(&self) -> String {
-        format!("Discrete Effects: {:?}", self.discrete_facets)
+        format!("Categorical Effects: {:?}", self.categorical_facets)
     }
 }
 
 impl PyFilter {
     pub fn as_filter(&self) -> Filter {
         Filter {
-            discrete_facets: self.discrete_facets.clone(),
-            continuous_intervals: self.continuous_intervals.map(|ci| ci.as_filter_intervals()),
+            categorical_facets: self.categorical_facets.clone(),
+            numeric_intervals: self.numeric_intervals.map(|ci| ci.as_filter_intervals()),
         }
     }
 }
@@ -116,7 +116,7 @@ pub struct PyFilteredData {
     #[pyo3(get, set)]
     pub chromosomes: Vec<PyFilteredChromosome>,
     #[pyo3(get, set)]
-    pub continuous_intervals: PyFilterIntervals,
+    pub numeric_intervals: PyFilterIntervals,
     #[pyo3(get, set)]
     pub item_counts: [u64; 3],
 }
@@ -135,7 +135,7 @@ impl PyFilteredData {
                     source_intervals: Vec::new(),
                 })
                 .collect(),
-            continuous_intervals: PyFilterIntervals::new(),
+            numeric_intervals: PyFilterIntervals::new(),
             item_counts: [0, 0, 0],
         }
     }
@@ -147,9 +147,7 @@ impl PyFilteredData {
                 .iter()
                 .map(|c| PyFilteredChromosome::from_filtered_chromosome(c))
                 .collect(),
-            continuous_intervals: PyFilterIntervals::from_filter_intervals(
-                &data.continuous_intervals,
-            ),
+            numeric_intervals: PyFilterIntervals::from_filter_intervals(&data.numeric_intervals),
             item_counts: data.item_counts,
         }
     }
