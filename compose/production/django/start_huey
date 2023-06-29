@@ -5,4 +5,4 @@ set -o pipefail
 set -o nounset
 
 
-python /app/manage.py run_hugo
+python /app/manage.py run_huey

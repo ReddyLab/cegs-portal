@@ -77,9 +77,9 @@ COPY --chown=django:root ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY --chown=django:root ./compose/production/django/start_hugo /start_hugo
-RUN sed -i 's/\r$//g' /start_hugo
-RUN chmod +x /start_hugo
+COPY --chown=django:root ./compose/production/django/start_huey /start_huey
+RUN sed -i 's/\r$//g' /start_huey
+RUN chmod +x /start_huey
 
 # copy application code to WORKDIR
 COPY --chown=django:root . ${APP_HOME}
