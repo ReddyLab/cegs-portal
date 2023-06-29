@@ -278,11 +278,11 @@ SOCIALACCOUNT_ADAPTER = "cegs_portal.users.adapters.SocialAccountAdapter"
 # https://docs.djangoproject.com/en/4.1/releases/4.1/#forms-4-1
 FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
 
-
 # huey
 HUEY = {
     "name": "ccgr-portal",
     "url": env.str("REDIS_URL", default="redis://localhost:6379/?db=1"),
+    "immediate": env.bool("HUEY_IMMEDIATE", True),
     "consumer": {
         "workers": 4,
     },
