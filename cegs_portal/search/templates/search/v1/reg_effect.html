@@ -15,7 +15,7 @@
 
     .table-title {
         text-align: center;
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
         font-size: 24px;
         font-weight: bold;
         margin-bottom: 10px;
@@ -25,7 +25,7 @@
     .reg_data-table {
         border-collapse: collapse;
         width: 100%;
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
     }
 
     .reg_data-table th {
@@ -83,7 +83,6 @@
     }
 
     h1 {
-        font-family: "Arial", sans-serif;
         font-size: 2rem;
         color: #094474;
         text-shadow: 2px 2px #e3f2fd;
@@ -95,13 +94,10 @@
 
     .table-title,
     .svg-icon {
-        margin-right: 10px;
         fill: currentColor;
         height: 1em;
-
     }
     h1 svg {
-        margin-right: 10px;
         fill: currentColor;
         height: 1em;
     }
@@ -121,7 +117,7 @@
     }
 
     .profile-table {
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
         border-collapse: collapse;
         width: 100%;
     }
@@ -132,7 +128,7 @@
         padding: 8px;
     }
 
-    .profile-table tr:nth-child(even) {
+    .profile-table tr:nth-child(odd) {
         background-color: #f2f2f2;
     }
 
@@ -148,15 +144,15 @@
         color: black;
     }
 
-    .experiment_name{
+    .experiment_name {
         text-decoration: none;
-        color: rgb(71 85 105);
         margin-right: 5px;
         margin-left: 5px;
     }
 
-    a:visited{
-        color: rgb(71 85 105);
+    a,
+    a:visited {
+        color: #3490dc;
     }
 
     .profile-feature-faded-line {
@@ -166,12 +162,9 @@
 
     .experiment-table-title {
         text-align: center;
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
         font-size: 18px;
         font-weight: bold;
-        margin-bottom: 10px;
-        color: rgb(71 85 105);
-        background-color: #f2f2f2;;
     }
 
     .tab-bar {
@@ -187,7 +180,6 @@
         height: 1em;
         margin-left: 5px;
     }
-
 </style>
 {% endblock %}
 
@@ -196,35 +188,38 @@
 {% block content %}
 <div>
     <div class="profile-feature-faded-line"></div>
-    <div style="display: flex; align-items: center; justify-content: center">
-        <h1>
-        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512" class="svg-icon">
-            <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>
-        </svg> <span>{{ regulatory_effect.accession_id }}</span><span>(Regulatory Effect Observation)</span>
-        <div class="faded-line"></div>
-        </h1>
+    <div class="flex flex-col items-center justify-center mb-3">
+        <div>
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512" class="svg-icon mr-1">
+                    <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>
+                </svg>
+                <span>{{ regulatory_effect.accession_id }}</span> <span class="ml-1">(Regulatory Effect Observation)</span>
+            </h1>
+        </div>
+        <div class="experiment-table-title flex items-center justify-center">
+            Experiment:
+            <a href="{% url 'search:experiment' regulatory_effect.experiment.accession_id %}" class="experiment_name">
+                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="svg-icon inline mr-1">
+                    <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
+                </svg>{{ regulatory_effect.experiment.name }}</a>
+        </div>
     </div>
     <div class="profile-feature-faded-line"></div>
     {% spaceless %}
     <div class="container">
-        <div class="experiment-table-title" style="display: flex; align-items: center; justify-content: center">
-
-       Experiment Observed: <a href="{% url 'search:experiment' regulatory_effect.experiment.accession_id %}" class="experiment_name">{{ regulatory_effect.experiment.name }}</a>
-        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="svg-icon">
-                <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
-            </svg>
-
-        </div>
         <table class="profile-table">
             <tr>
-            <tr><th>Direction</th>
+                <th>Direction</th>
                 <th>Effect Size</th>
                 <th>Significance</th>
                 <th>Raw p-value</th>
                 <th>Cell Lines</th>
-            {% if regulatory_effect.tissue_types.exist %}
+                {% if regulatory_effect.tissue_types.exist %}
                 <th>Tissue Types</th>
-            {% endif %}
+                {% endif %}
             </tr>
             <tr>
                 <td>{{ regulatory_effect.direction }}</td>
@@ -298,17 +293,14 @@
         >
         {% if regulatory_effect.targets.exists %}
         <div class="container">
-            <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+            <div class="table-title flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-1">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path
-                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
-                    />
+                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"/>
                 </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path
-                        d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                    <path d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
                 </svg>
                 Target Genes
             </div>
@@ -326,8 +318,8 @@
         >
         {% if regulatory_effect.sources.exists %}
         <div class="container">
-            <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512" class="svg-icon">
+            <div class="table-title flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512" class="svg-icon mr-1">
                     <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M315.4 15.5C309.7 5.9 299.2 0 288 0s-21.7 5.9-27.4 15.5l-96 160c-5.9 9.9-6.1 22.2-.4 32.2s16.3 16.2 27.8 16.2H384c11.5 0 22.2-6.2 27.8-16.2s5.5-22.3-.4-32.2l-96-160zM288 312V456c0 22.1 17.9 40 40 40H472c22.1 0 40-17.9 40-40V312c0-22.1-17.9-40-40-40H328c-22.1 0-40 17.9-40 40zM128 512a128 128 0 1 0 0-256 128 128 0 1 0 0 256z"/>
                 </svg>
