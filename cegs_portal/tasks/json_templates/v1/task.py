@@ -1,7 +1,4 @@
-from cegs_portal.tasks.models import ThreadTask
-
-
-def task(task_obj: ThreadTask, options):
+def task(task_obj, options):
     return {
         "description": task_obj.description,
         "started_at": task_obj.started_at,
