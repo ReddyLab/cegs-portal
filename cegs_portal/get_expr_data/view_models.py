@@ -12,7 +12,7 @@ from django.core.files.storage import default_storage
 from django.db import connection
 from psycopg2.extras import NumericRange
 
-from cegs_portal.get_expr_data.models import EXPR_DATA_BASE_PATH, ExperimentData
+from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
 from cegs_portal.tasks.decorators import as_task
 
 TargetJson = TypedDict(
@@ -88,11 +88,11 @@ def validate_filename(filename: str) -> bool:
 
 
 def file_exists(filename):
-    return default_storage.exists(os.path.join(EXPR_DATA_BASE_PATH, filename))
+    return default_storage.exists(os.path.join(expr_data_base_path(), filename))
 
 
 def open_file(filename):
-    return default_storage.open(os.path.join(EXPR_DATA_BASE_PATH, filename), "rb")
+    return default_storage.open(os.path.join(expr_data_base_path(), filename), "rb")
 
 
 def file_status(filename, user):
@@ -226,7 +226,7 @@ def output_experiment_data_csv(
     experiment_data = retrieve_experiment_data(
         user.all_experiments(), regions, experiments, analyses, facets, data_source
     )
-    full_output_path = os.path.join(EXPR_DATA_BASE_PATH, output_filename)
+    full_output_path = os.path.join(expr_data_base_path(), output_filename)
     with open(full_output_path, "w", encoding="utf-8") as output_file:
         write_experiment_data_csv(experiment_data, output_file)
         experiment_data_info.file = output_file
