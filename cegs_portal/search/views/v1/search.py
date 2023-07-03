@@ -209,9 +209,9 @@ class SearchView(TemplateJsonView):
                 )
 
             if self.request.user.is_anonymous:
-                sig_reos = Search.sig_reo_loc_search(location)
+                sig_reos = Search.sig_reo_loc_search(location, assembly_name)
             else:
-                sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments())
+                sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments(), assembly_name)
 
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:

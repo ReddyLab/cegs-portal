@@ -181,8 +181,11 @@ def output_experiment_data_list(
     experiments: list[str],
     analyses: list[str],
     data_source: ReoDataSource,
+    assembly: Optional[str] = None,
 ) -> list[ExperimentDataJson]:
-    experiment_data = retrieve_experiment_data(user_experiments, regions, experiments, analyses, Facets(), data_source)
+    experiment_data = retrieve_experiment_data(
+        user_experiments, regions, experiments, analyses, Facets(), data_source, assembly
+    )
     exp_data_list = []
     for row in gen_output_rows(experiment_data):
         split_target_info = [target.split(":") for target in row[1]]
@@ -241,6 +244,7 @@ def retrieve_experiment_data(
     analyses: list[str],
     facets: Facets,
     data_source: ReoDataSource,
+    assembly: Optional[str] = None,
 ):
     where = r"""WHERE (reo_sources_targets.archived = false AND (reo_sources_targets.public = true OR
     reo_sources_targets.reo_experiment = ANY(%s)))"""
@@ -306,6 +310,11 @@ def retrieve_experiment_data(
         for i in inputs:
             i.append(NumericRange(*facets.sig_range))
 
+    if assembly is not None:
+        where = f"{where} AND ref_genome = %s"
+        for i in inputs:
+            i.append(assembly)
+
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets.source_chrom,
                              reo_sources_targets.source_loc)) AS sources,
@@ -335,7 +344,12 @@ def retrieve_experiment_data(
     return experiment_data
 
 
-def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_experiments: Optional[list[str]] = None):
+def sig_reo_loc_search(
+    location: tuple[str, int, int],
+    count: int = 5,
+    private_experiments: Optional[list[str]] = None,
+    assembly: Optional[str] = None,
+):
     private_experiments = [] if private_experiments is None else private_experiments
 
     where = r"""WHERE reo_sources_targets_sig_only.archived = false AND
@@ -351,8 +365,13 @@ def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_e
         NumericRange(location[1], location[2]),
         location[0],
         NumericRange(location[1], location[2]),
-        count,
     ]
+
+    if assembly is not None:
+        where = f"{where} AND ref_genome = %s"
+        inputs.append(assembly)
+
+    inputs.append(count)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.source_chrom,

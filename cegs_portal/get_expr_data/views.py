@@ -28,6 +28,8 @@ from cegs_portal.get_expr_data.view_models import (
 from cegs_portal.utils.http_exceptions import Http400
 
 MAX_REGION_SIZE = 100_000_000
+GRCH37 = "GRCh37"
+GRCH38 = "GRCh38"
 
 logger = logging.getLogger("django.request")
 
@@ -91,6 +93,21 @@ def get_region(request) -> Optional[Loc]:
         raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
     return region
+
+
+def get_assembly(request) -> Optional[str]:
+    assembly = request.GET.get("assembly", None)
+
+    if assembly is None:
+        return None
+
+    match assembly.lower():
+        case "hg19" | "grch37":
+            return GRCH37
+        case "hg38" | "grch38":
+            return GRCH38
+
+    raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
 
 
 def get_regions_file(request) -> Optional[LocList]:
@@ -180,6 +197,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             experiments, analyses = get_experiments_analyses(request)
             region = get_region(request)
             data_source = get_data_source(request)
+            assembly = get_assembly(request)
             if region is not None and data_source == ReoDataSource.EVERYTHING:
                 raise Http400("Specifying regions and asking for everything are mutually exclusive")
 
@@ -194,7 +212,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
         else:
             user_experiments = request.user.all_experiments()
 
-        data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source)
+        data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source, assembly)
         return JsonResponse({"experiment data": data})
 
 
@@ -205,12 +223,12 @@ class SignificantExperimentDataView(View):
 
     def get(self, request, *args, **kwargs):
         top_num = request.GET.get("num", 5)
+        assembly = get_assembly(request)
 
         try:
             region = get_region(request)
             if region is None:
-                raise Http400("Must speify a region")
-
+                raise Http400("Must specify a region")
         except Http400 as error:
             raise BadRequest() from error
 
@@ -219,7 +237,7 @@ class SignificantExperimentDataView(View):
         else:
             user_experiments = request.user.all_experiments()
 
-        results = sig_reo_loc_search(region, top_num, user_experiments)
+        results = sig_reo_loc_search(region, top_num, user_experiments, assembly)
         return JsonResponse(
             {
                 "significant reos": [

@@ -184,7 +184,7 @@
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start.toLocaleString()} - ${location.end.toLocaleString()}`));
 
-            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}`).then(json => {
+            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
                 let sigRegEffects = json["significant reos"]
                 if(sigRegEffects.length == 0) {
                     rc(g("sig-reg-effects"), t("No Relevant Reg Effect Observations Found"))
