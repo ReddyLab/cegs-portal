@@ -10,10 +10,10 @@ from uuid import UUID, uuid4
 
 from django.core.files.storage import default_storage
 from django.db import connection
+from huey.contrib.djhuey import db_task
 from psycopg2.extras import NumericRange
 
 from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
-from cegs_portal.tasks.decorators import as_task
 
 TargetJson = TypedDict(
     "TargetJson",
@@ -425,4 +425,4 @@ def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_e
     ]
 
 
-output_experiment_data_csv_task = as_task(description="Experiment data file creation")(output_experiment_data_csv)
+output_experiment_data_csv_task = db_task()(output_experiment_data_csv)
