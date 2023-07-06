@@ -9,7 +9,7 @@ stages:
 
 include:
   - project: 'utility/project-templates/ci-templates'
-    file: '/docker4_beta.yml'
+    file: '/docker-ci.yml'
 
 flake8:
   stage: lint
