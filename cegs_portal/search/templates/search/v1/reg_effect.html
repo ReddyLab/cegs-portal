@@ -13,66 +13,6 @@
         width: 1100px;
     }
 
-    .table-title {
-        text-align: center;
-        font-family: sans-serif;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: rgb(107, 107, 107);
-    }
-
-    .reg_data-table {
-        border-collapse: collapse;
-        width: 100%;
-        font-family: sans-serif;
-    }
-
-    .reg_data-table th {
-        padding: 12px;
-        text-align: left;
-        background-color: #ddd;
-        color: gray;
-        font-weight: bold;
-    }
-
-    .reg_data-table th:first-child,
-    .reg_data-table th:nth-child(5) {
-        border-top-left-radius: 10px 50%;
-        border-bottom-left-radius: 10px 50%;
-    }
-
-    .reg_data-table th:nth-child(4),
-    .reg_data-table th:last-child {
-        border-top-right-radius: 10px 50%;
-        border-bottom-right-radius: 10px 50%;
-    }
-
-    .reg_data-table th:nth-child(2) {
-        background-color: #b7b5b5;
-        color: white;
-    }
-
-    .reg_data-table th:nth-child(6) {
-        background-color: #b7b5b5;
-        color: white;
-    }
-
-    .reg_data-table td {
-        padding: 12px;
-        border-bottom: 1px solid lightgrey;
-    }
-
-    .reg_data-table tr:hover {
-        background-color: #ddd;
-    }
-
-    .reg_data-table a,
-    .reg_data-table a:visited {
-        color: #3490dc;
-        text-decoration: none;
-    }
-
     .direction {
         font-style: italic;
     }
@@ -160,25 +100,11 @@
         margin-bottom: 15px;
     }
 
-    .experiment-table-title {
+    .experiment-header-title {
         text-align: center;
         font-family: sans-serif;
         font-size: 18px;
         font-weight: bold;
-    }
-
-    .tab-bar {
-        background: #ffffff;
-        border-radius: 10px;
-        padding-left: 10px;
-        padding-right: 10px;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .svg-icon-tab {
-        fill: currentColor;
-        height: 1em;
-        margin-left: 5px;
     }
 </style>
 {% endblock %}
@@ -198,7 +124,7 @@
                 <span>{{ regulatory_effect.accession_id }}</span> <span class="ml-1">(Regulatory Effect Observation)</span>
             </h1>
         </div>
-        <div class="experiment-table-title flex items-center justify-center">
+        <div class="experiment-header-title flex items-center justify-center">
             Experiment:
             <a href="{% url 'search:experiment' regulatory_effect.experiment.accession_id %}" class="experiment_name">
                 <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="svg-icon inline mr-1.5">
