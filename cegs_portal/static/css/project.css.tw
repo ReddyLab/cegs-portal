@@ -114,11 +114,13 @@
       margin-bottom: 10px;
       color: rgb(107, 107, 107);
   }
+
   .reg_data-table {
       border-collapse: collapse;
       width: 100%;
       font-family: Arial, sans-serif;
   }
+
   .reg_data-table th {
       padding: 12px;
       text-align: left;
@@ -126,11 +128,13 @@
       color: gray;
       font-weight: bold;
   }
+
   .reg_data-table th:first-child,
   .reg_data-table th:nth-child(5) {
       border-top-left-radius: 10px 50%;
       border-bottom-left-radius: 10px 50%;
   }
+
   .reg_data-table th:nth-child(4),
   .reg_data-table th:last-child {
       border-top-right-radius: 10px 50%;
