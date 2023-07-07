@@ -2,7 +2,7 @@
 {% load static i18n %}
 {% load waffle_tags %}
 {% load humanize %}
-{% block title %}Search Results{% endblock %}
+{% block title %}Location Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
@@ -36,22 +36,6 @@
         display: inline;
     }
 
-    .search-button {
-        margin-left: 5px;
-        background-color: #ffffff !important;
-        margin-bottom: 10px;
-    }
-
-    .search-button:hover {
-        background-color: rgb(229 231 235) !important;
-    }
-
-    #id_query {
-        border-radius: 0.5rem;
-        height: 2.5rem;
-        margin-bottom: 10px;
-    }
-
     .faded-line {
         border-top: 0.5px solid rgb(133, 139, 146);
         margin-top: 10px;
@@ -67,16 +51,6 @@
         padding: 12px;
         border-bottom: 1px solid lightgrey;
     }
-
-    .pagination {
-        margin-top: 10px;
-        font-family: Helvetica, Roboto, sans-serif;
-    }
-
-    .pagination a,
-    .pagination a:visited {
-        color: #3490dc;
-    }
 </style>
 {% endblock %}
 {% block javascript %}
@@ -89,24 +63,17 @@
 {% endblock %}
 {% block content %}
     <div class="grow flex flex-col items-center min-w-full">
-        <div class="flex flex-row justify-around search-wrapper items-baseline">
+        <div class="flex flex-row min-w-full justify-around">
+            {% if location %}
             <div class="header">
                 <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 512 512">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
                 </svg>
-                Search Results {% if not location %}in {{ assembly }}{% endif %}
-            </div>
-            {% if location %}
-            <div class="header">
                 <div class="inline" id="loc-header">{{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
                 <div class="inline text-2xl">({{ assembly }})</div>
             </div>
             {% endif %}
-            <form action="{% url 'search:results' %}" method="get" class="flex items-center">
-                {{ form }}
-                <input type="submit" value="Search Again" class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm">
-            </form>
         </div>
 
         <div>
