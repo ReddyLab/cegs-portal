@@ -106,6 +106,56 @@
     text-decoration: none;
   }
 
+  .table-title {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: rgb(107, 107, 107);
+  }
+
+  .reg_data-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-family: Arial, sans-serif;
+  }
+
+  .reg_data-table th {
+      padding: 12px;
+      text-align: left;
+      background-color: #ddd;
+      color: gray;
+      font-weight: bold;
+  }
+
+  .reg_data-table th:first-child,
+  .reg_data-table th:nth-child(5) {
+      border-top-left-radius: 10px 50%;
+      border-bottom-left-radius: 10px 50%;
+  }
+
+  .reg_data-table th:nth-child(4),
+  .reg_data-table th:last-child {
+      border-top-right-radius: 10px 50%;
+      border-bottom-right-radius: 10px 50%;
+  }
+
+  .reg_data-table th:nth-child(2) {
+      background-color: #b7b5b5;
+      color: white;
+  }
+
+  .reg_data-table th:nth-child(6) {
+      background-color: #b7b5b5;
+      color: white;
+  }
+
+  .reg_data-table td {
+      padding: 12px;
+      border-bottom: 1px solid lightgrey;
+  }
+
   @media screen {
     div.search-wrapper label {
       display: none;
