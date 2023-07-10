@@ -90,9 +90,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
         # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
-        if any(bool(f[0].children.all()) for f in feature_reos):
-            tabs.append("children")
-
         if any(f[1] is not None or f[2] is not None for f in feature_reos):
             tabs.append("source target")
 
@@ -100,6 +97,9 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             tabs.append("closest features")
 
         tabs.append("find nearby")
+
+        if any(bool(f[0].children.all()) for f in feature_reos):
+            tabs.append("children")
 
         return super().get(
             request,
