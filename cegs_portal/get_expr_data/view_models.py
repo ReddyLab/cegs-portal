@@ -211,7 +211,7 @@ def output_experiment_data_list(
         )
     # Sort so the output is always in the same order. This isn't otherwise guaranteed because the
     # output of retrieve_experiment_data is a set, which is unordered.
-    exp_data_list.sort(key=itemgetter("source locs", "targets"))
+    exp_data_list.sort(key=itemgetter("source locs", "expr id", "analysis id"))
     return exp_data_list
 
 
@@ -442,6 +442,57 @@ def sig_reo_loc_search(
         (k, list(reo_group))
         for k, reo_group in groupby(result, lambda x: (x["expr_accession_id"], x["analysis_accession_id"]))
     ]
+
+
+def for_facet_query_input(facets: list[int]) -> list[list[int]]:
+    query_input = [facets]
+    query = r"""SELECT DISTINCT facet_id FROM search_facetvalue WHERE id = ANY(%s)"""
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, facets)
+        query_input.append([int(fid) for fid, in cursor.fetchall()])
+
+    return query_input
+
+
+def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
+    query = r"""SELECT accession_id
+                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
+                            FROM (SELECT se.accession_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                                FROM search_experiment AS se
+                                JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
+                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
+                                WHERE sfv.facet_id = ANY(%s)
+                                GROUP BY se.accession_id, sefv.facetvalue_id
+                                ORDER BY se.accession_id) AS facet_table
+                            GROUP BY facet_table.accession_id) AS facet_bool_table
+                    WHERE facet_bool_table.facet_match = true
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        experiments = {eid for eid, in cursor.fetchall()}
+
+    return experiments
+
+
+def analyses_for_facets(query_input: list[list[int]]) -> set[str]:
+    query = r"""SELECT accession_id
+                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
+                            FROM (SELECT sa.accession_id, safv.facetvalue_id = ANY(%s) as facet_bool
+                                FROM search_analysis AS sa
+                                JOIN search_analysis_facet_values AS safv ON sa.id = safv.analysis_id
+                                JOIN search_facetvalue AS sfv on sfv.id = safv.facetvalue_id
+                                WHERE sfv.facet_id = ANY(%s)
+                                GROUP BY sa.accession_id, safv.facetvalue_id
+                                ORDER BY sa.accession_id) AS facet_table
+                            GROUP BY facet_table.accession_id) AS facet_bool_table
+                    WHERE facet_bool_table.facet_match = true
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        analyses = {aid for aid, in cursor.fetchall()}
+
+    return analyses
 
 
 output_experiment_data_csv_task = db_task()(output_experiment_data_csv)

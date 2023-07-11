@@ -33,7 +33,10 @@ function getDownload(url, body) {
             };
             dlDataWorker.postMessage(json["file progress"]);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+            rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
+            console.log(err);
+        });
 }
 
 export function getDownloadRegions(facets, dataDownloadInput, exprAccessionIDs, csrfToken) {

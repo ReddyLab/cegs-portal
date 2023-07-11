@@ -14,8 +14,11 @@ from cegs_portal.get_expr_data.view_models import (
     DataState,
     Facets,
     ReoDataSource,
+    analyses_for_facets,
+    experiments_for_facets,
     file_exists,
     file_status,
+    for_facet_query_input,
     gen_output_filename,
     open_file,
     output_experiment_data_csv_task,
@@ -158,6 +161,10 @@ def get_facets(request) -> Facets:
     return facets
 
 
+def get_query_facets(request) -> list[int]:
+    return request.GET.getlist("f", [])
+
+
 def parse_source_locs_json(source_locs: str) -> list[str]:
     locs = []
     while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
@@ -198,6 +205,7 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             region = get_region(request)
             data_source = get_data_source(request)
             assembly = get_assembly(request)
+            facets = get_query_facets(request)
             if region is not None and data_source == ReoDataSource.EVERYTHING:
                 raise Http400("Specifying regions and asking for everything are mutually exclusive")
 
@@ -211,6 +219,15 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             user_experiments = []
         else:
             user_experiments = request.user.all_experiments()
+
+        if len(facets) > 0:
+            facets = for_facet_query_input(facets)
+            facet_experiments = experiments_for_facets(facets)
+            user_experiments = [expr for expr in user_experiments if expr in facet_experiments]
+            experiments = [expr for expr in experiments if expr in facet_experiments]
+
+            facet_analyses = analyses_for_facets(facets)
+            analyses = [a for a in analyses if a in facet_analyses]
 
         data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source, assembly)
         return JsonResponse({"experiment data": data})

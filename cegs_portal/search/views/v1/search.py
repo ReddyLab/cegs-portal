@@ -182,6 +182,7 @@ class SearchView(TemplateJsonView):
             (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group])
             for k, reo_group in data["sig_reg_effects"]
         ]
+        data["logged_in"] = not request.user.is_anonymous
         return super().get(request, options, data, *args, **kwargs)
 
     def get_data(self, options):
@@ -209,9 +210,11 @@ class SearchView(TemplateJsonView):
                 )
 
             if self.request.user.is_anonymous:
-                sig_reos = Search.sig_reo_loc_search(location, assembly_name)
+                sig_reos = Search.sig_reo_loc_search(location, assembly=assembly_name)
             else:
-                sig_reos = Search.sig_reo_loc_search(location, self.request.user.all_experiments(), assembly_name)
+                sig_reos = Search.sig_reo_loc_search(
+                    location, self.request.user.all_experiments(), assembly=assembly_name
+                )
 
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
