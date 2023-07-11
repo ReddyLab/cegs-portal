@@ -9,13 +9,13 @@ hiredis==2.2.2  # https://github.com/redis/hiredis-py
 uvicorn[standard]==0.20.0  # https://github.com/encode/uvicorn
 channels==4.0.0  # https://github.com/django/channels
 daphne==4.0.0  # https://github.com/django/daphne
-requests==2.28.1  # https://docs.python-requests.org/en/master/
+requests==2.31.0  # https://docs.python-requests.org/en/master/
 maturin==0.14.8 # https://maturin.rs
 huey==2.4.5 # https://github.com/coleifer/huey/
 
 # Django
 # ------------------------------------------------------------------------------
-django==4.2  # pyup: < 4.1  # https://www.djangoproject.com/
+django==4.2.3  # pyup: < 4.1  # https://www.djangoproject.com/
 django-environ==0.9.0  # https://github.com/joke2k/django-environ
 django-model-utils==4.2.0  # https://github.com/jazzband/django-model-utils
 django-allauth==0.52.0  # https://github.com/pennersr/django-allauth
