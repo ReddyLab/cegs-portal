@@ -85,6 +85,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
 
         tabs = []
+        child_feature_type = None
         # According to the documentation
         # (https://docs.djangoproject.com/en/4.2/ref/models/querysets/#django.db.models.query.QuerySet.exists),
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
@@ -101,10 +102,20 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         if any(bool(f[0].children.all()) for f in feature_reos):
             tabs.append("children")
 
+            first_feature = feature_reos[0][0]
+            first_child = first_feature.children.first()
+            child_feature_type = first_child.get_feature_type_display()
+
         return super().get(
             request,
             options,
-            {"features": data, "feature_name": "Genome Features", "feature_reos": feature_reos, "tabs": tabs},
+            {
+                "features": data,
+                "feature_name": "Genome Features",
+                "feature_reos": feature_reos,
+                "tabs": tabs,
+                "child_feature_type": child_feature_type,
+            },
         )
 
     def get_data(self, options, id_type, feature_id):
