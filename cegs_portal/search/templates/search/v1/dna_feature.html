@@ -394,12 +394,7 @@ HEADER -->
                         {% else %}
                         aria-selected="false"
                         {% endif %}
-                        >
-                        {% for feature, sources, targets in feature_reos %}
-                        {% if feature.children.exists and forloop.first %}
-                            {{ feature.children.first.get_feature_type_display|upper|add:"S" }}<i class="bi bi-diagram-3-fill"></i>
-                        {% endif %}
-                        {% endfor %}
+                        >{{ child_feature_type }}S<i class="bi bi-diagram-3-fill"></i>
                     </a>
                 </li>
                 {% endif %}
