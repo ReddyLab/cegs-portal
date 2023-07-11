@@ -109,7 +109,13 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         return super().get(
             request,
             options,
-            {"features": data, "feature_name":"Genome Features", "feature_reos": feature_reos, "tabs": tabs,"child_feature_type": child_feature_type,},
+            {
+                "features": data,
+                "feature_name": "Genome Features",
+                "feature_reos": feature_reos,
+                "tabs": tabs,
+                "child_feature_type": child_feature_type,
+            },
         )
 
     def get_data(self, options, id_type, feature_id):
