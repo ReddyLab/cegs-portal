@@ -107,8 +107,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
 
-        profile_header_feature_type = first_feature.get_feature_type_display()
-
         return super().get(
             request,
             options,
@@ -118,7 +116,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 "feature_reos": feature_reos,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
-                "profile_header_feature_type": profile_header_feature_type
             },
         )
 
