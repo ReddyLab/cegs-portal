@@ -172,6 +172,7 @@
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { sigReoTable } from "{% static 'search/js/tables.js' %}"
+        import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -347,12 +348,10 @@
             ]
         });
         {% endif %}
+
+        {% if logged_in %}
+        downloadRegionsSetup(state, "{{ assembly }}");
+        {% endif %}
     </script>
-    {% if logged_in %}
-    <script type="module">
-        import {downloadRegionsSetup} from "{% static 'search/js/search_results/downloads.js' %}";
-        downloadRegionsSetup("{{ location.chromo }}", "{{ location.range.lower }}", "{{ location.range.upper }}", "{{ assembly }}");
-    </script>
-    {% endif %}
     <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

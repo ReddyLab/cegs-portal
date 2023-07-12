@@ -43,12 +43,12 @@ function getDownloadRegions(facets, chromo, lower, upper, assembly) {
     if (facet_queries.length > 0) {
         facet_queries += "&";
     }
-    let url = `/exp_data/location?region=${chromo}:${lower}-${upper}&${facet_queries}datasource=both&assembly=${assembly}`;
+    let url = `/exp_data/location?region=chr${chromo}:${lower}-${upper}&${facet_queries}datasource=both&assembly=${assembly}`;
 
-    getDownload(url, `${chromo}_${lower}_${upper}_${assembly}`);
+    getDownload(url, `chr${chromo}_${lower}_${upper}_${assembly}`);
 }
 
-export function downloadRegionsSetup(chromo, start, end, assembly) {
+export function downloadRegionsSetup(state, assembly) {
     let dataDownloadAll = g("dataDownloadAll");
     dataDownloadAll.addEventListener(
         "click",
@@ -57,7 +57,9 @@ export function downloadRegionsSetup(chromo, start, end, assembly) {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                 .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
                 .map((i) => i.id);
-            getDownloadRegions(checkedFacets, chromo, start, end, assembly);
+
+            let location = state.g("location");
+            getDownloadRegions(checkedFacets, location.chr, location.start, location.end, assembly);
         },
         false
     );
