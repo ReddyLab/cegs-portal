@@ -62,13 +62,20 @@ def try_process_bed(bed_file) -> LocList:
 
 
 def get_experiments_analyses(request) -> list[str]:
-    experiments = request.GET.getlist("expr", [])
-    analyses = request.GET.getlist("an", [])
+    # We want to use "None" as a sentinial value to indicate that a user wants to
+    # search across all experiments or analyses. Unforunately getlist will return an
+    # empty list if None is the default, so we have to set a different default and
+    # then change to None.
+    experiments = request.GET.getlist("expr", 0)
+    analyses = request.GET.getlist("an", 0)
 
-    if not all(validate_expr(e) for e in experiments):
+    experiments = None if experiments == 0 else experiments
+    analyses = None if analyses == 0 else analyses
+
+    if experiments is not None and not all(validate_expr(e) for e in experiments):
         raise Http400("Invalid request; invalid experiment id")
 
-    if not all(validate_an(a) for a in analyses):
+    if analyses is not None and not all(validate_an(a) for a in analyses):
         raise Http400("Invalid request; invalid analysis id")
 
     return experiments, analyses
@@ -162,7 +169,13 @@ def get_facets(request) -> Facets:
 
 
 def get_query_facets(request) -> list[int]:
-    return request.GET.getlist("f", [])
+    try:
+        str_facets = request.GET.getlist("f", [])
+        int_facets = [int(f) for f in str_facets]
+    except ValueError as e:
+        raise BadRequest(f"Invalid facet values: {str_facets}") from e
+
+    return int_facets
 
 
 def parse_source_locs_json(source_locs: str) -> list[str]:
@@ -224,10 +237,19 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             facets = for_facet_query_input(facets)
             facet_experiments = experiments_for_facets(facets)
             user_experiments = [expr for expr in user_experiments if expr in facet_experiments]
-            experiments = [expr for expr in experiments if expr in facet_experiments]
+
+            if experiments is not None:
+                # The interesction of experiments and facet_experiments
+                experiments = [expr for expr in experiments if expr in facet_experiments]
+            else:
+                experiments = facet_experiments
 
             facet_analyses = analyses_for_facets(facets)
-            analyses = [a for a in analyses if a in facet_analyses]
+            if analyses is not None:
+                # The interesction of analyses and facet_analyses
+                analyses = [a for a in analyses if a in facet_analyses]
+            else:
+                analyses = facet_analyses
 
         data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source, assembly)
         return JsonResponse({"experiment data": data})
@@ -273,7 +295,7 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             experiments, analyses = get_experiments_analyses(request)
-            if len(experiments) == 0 and len(analyses) == 0:
+            if experiments is None and analyses is None:
                 raise Http400("Invalid request; must specify at least one experiment or analysis by accession id")
 
             regions = get_regions_file(request)

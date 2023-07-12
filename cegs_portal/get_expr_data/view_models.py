@@ -71,8 +71,8 @@ def validate_an(expr) -> bool:
 
 
 def gen_output_filename(experiments, analyses) -> str:
-    search_items = experiments.copy()
-    search_items.extend(analyses)
+    search_items = experiments.copy() if experiments is not None else []
+    search_items.extend(analyses if analyses is not None else [])
     return f"{'.'.join(search_items)}.{uuid4()}.tsv"
 
 
@@ -178,8 +178,8 @@ def write_experiment_data_csv(experiment_data, output_file):
 def output_experiment_data_list(
     user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     data_source: ReoDataSource,
     assembly: Optional[str] = None,
 ) -> list[ExperimentDataJson]:
@@ -218,8 +218,8 @@ def output_experiment_data_list(
 def output_experiment_data_csv(
     user,
     regions: list[tuple[str, int, int]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     data_source: ReoDataSource,
     facets: Facets,
     output_filename: str,
@@ -240,8 +240,8 @@ def output_experiment_data_csv(
 def retrieve_experiment_data(
     user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     facets: Facets,
     data_source: ReoDataSource,
     assembly: Optional[str] = None,
@@ -282,17 +282,17 @@ def retrieve_experiment_data(
         case _:
             raise InvalidDataSource()
 
-    if len(experiments) > 0 and len(analyses) > 0:
+    if experiments is not None and analyses is not None:
         where = f"""{where} AND (reo_sources_targets.reo_experiment = ANY(%s) OR
         reo_sources_targets.reo_analysis = ANY(%s))"""
         for i in inputs:
             i.append(experiments)
             i.append(analyses)
-    elif len(experiments) > 0:
+    elif experiments is not None:
         where = f"{where} AND reo_sources_targets.reo_experiment = ANY(%s)"
         for i in inputs:
             i.append(experiments)
-    elif len(analyses) > 0:
+    elif analyses is not None:
         where = f"{where} AND reo_sources_targets.reo_analysis = ANY(%s)"
         for i in inputs:
             i.append(analyses)
@@ -449,7 +449,7 @@ def for_facet_query_input(facets: list[int]) -> list[list[int]]:
     query = r"""SELECT DISTINCT facet_id FROM search_facetvalue WHERE id = ANY(%s)"""
 
     with connection.cursor() as cursor:
-        cursor.execute(query, facets)
+        cursor.execute(query, [facets])
         query_input.append([int(fid) for fid, in cursor.fetchall()])
 
     return query_input
@@ -470,7 +470,7 @@ def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
             """
     with connection.cursor() as cursor:
         cursor.execute(query, query_input)
-        experiments = {eid for eid, in cursor.fetchall()}
+        experiments = [eid for eid, in cursor.fetchall()]
 
     return experiments
 
@@ -490,7 +490,7 @@ def analyses_for_facets(query_input: list[list[int]]) -> set[str]:
             """
     with connection.cursor() as cursor:
         cursor.execute(query, query_input)
-        analyses = {aid for aid, in cursor.fetchall()}
+        analyses = [aid for aid, in cursor.fetchall()]
 
     return analyses
 

@@ -10,7 +10,12 @@ function getDownload(url, filename) {
     };
 
     fetch(url, request)
-        .then((response) => response.blob())
+        .then((response) => {
+            if (!response.ok) {
+                throw `Data request failed. Http Status: ${response.status}`;
+            }
+            return response.blob();
+        })
         .then((blob) => {
             // The following code that initiates a download is
             // from https://stackoverflow.com/a/56923508
