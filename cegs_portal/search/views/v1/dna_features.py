@@ -87,7 +87,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         tabs = []
         first_feature = feature_reos[0][0]
         child_feature_type = None
-        profile_header_feature_type = None
         # According to the documentation
         # (https://docs.djangoproject.com/en/4.2/ref/models/querysets/#django.db.models.query.QuerySet.exists),
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
