@@ -232,6 +232,7 @@
         display: flex;
         align-items: center;
     }
+
 </style>
 
 {% endblock %} {% block javascript %} {{ block.super }}
@@ -259,7 +260,9 @@ HEADER -->
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }}
-                        <span class="profile-sub-header">({{ feature.chrom_name  }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }})</span>
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span class="profile-sub-header">({{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }})</span>
+                        </a>
                     {% endif %}
                 </h1>
             </div>
@@ -285,8 +288,10 @@ HEADER -->
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
                 <td>
-                    <span>{{ feature.chrom_name }}</span>:
-                    <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span>
+                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                        <span>{{ feature.chrom_name }}</span>:
+                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span>
+                    </a>
                 </td>
                 <td>{{ feature.strand }}</td>
                 <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
