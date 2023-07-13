@@ -61,7 +61,11 @@ def load_grna(
 
             grna_start = int(grna_start_str)
             grna_end = int(grna_end_str)
-            grna_location = NumericRange(grna_start, grna_end, "[]")
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 

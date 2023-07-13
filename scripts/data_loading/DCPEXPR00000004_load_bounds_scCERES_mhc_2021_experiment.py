@@ -47,6 +47,7 @@ def load_grnas(
         if i % 2 == 0:
             continue
         grna_id = line["grna"]
+        grna_type = line["type"]
 
         if grna_id in grnas:
             guide = grnas[grna_id]
@@ -63,9 +64,22 @@ def load_grnas(
                 chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
                 strand = "-"
 
-            grna_start = int(grna_start_str)
-            grna_end = int(grna_end_str)
-            grna_location = NumericRange(grna_start, grna_start + 20, "[]")
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            if grna_type == "targeting":
+                grna_start = int(grna_start_str)
+                grna_end = int(grna_end_str)
+            else:
+                if strand == "+":
+                    grna_start = int(grna_start_str)
+                    grna_end = int(grna_start_str) + 20
+                elif strand == "-":
+                    grna_start = int(grna_end_str) - 20
+                    grna_end = int(grna_end_str)
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
