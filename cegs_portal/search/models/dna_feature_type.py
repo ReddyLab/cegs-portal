@@ -4,13 +4,13 @@ from django.db import models
 
 
 class DNAFeatureType(Enum):
-    GENE = "gene"
-    TRANSCRIPT = "transcript"
-    EXON = "exon"
-    CCRE = "ccre"
-    DHS = "dhs"
+    GENE = "Gene"
+    TRANSCRIPT = "Transcript"
+    EXON = "Exon"
+    CCRE = "cCRE"
+    DHS = "DHS"
     GRNA = "gRNA"
-    CAR = "chromatin accessable region"
+    CAR = "Chromatin Accessable Region"
 
     @property
     def accession_abbreviation(self) -> str:

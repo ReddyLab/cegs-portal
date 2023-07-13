@@ -85,6 +85,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
 
         tabs = []
+        first_feature = feature_reos[0][0]
         child_feature_type = None
         # According to the documentation
         # (https://docs.djangoproject.com/en/4.2/ref/models/querysets/#django.db.models.query.QuerySet.exists),
@@ -102,7 +103,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         if any(bool(f[0].children.all()) for f in feature_reos):
             tabs.append("children")
 
-            first_feature = feature_reos[0][0]
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
 
