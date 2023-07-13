@@ -63,7 +63,7 @@
   }
 
   a {
-    @apply underline text-blue-600;
+    text-decoration: none;
   }
 
   a:hover {
@@ -71,7 +71,7 @@
   }
 
   a:visited {
-    @apply text-purple-600;
+    color: inherit;
   }
 
   .th-bg-light-gray {
