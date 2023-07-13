@@ -76,7 +76,7 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             closest_gene=closest_gene,
             closest_gene_distance=distance,
             closest_gene_name=gene_name,
-            closest_gene_ensembl_id=closest_gene.ensembl_id,
+            closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
             location=dhs_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
