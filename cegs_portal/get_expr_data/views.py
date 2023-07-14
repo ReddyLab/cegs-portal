@@ -14,8 +14,11 @@ from cegs_portal.get_expr_data.view_models import (
     DataState,
     Facets,
     ReoDataSource,
+    analyses_for_facets,
+    experiments_for_facets,
     file_exists,
     file_status,
+    for_facet_query_input,
     gen_output_filename,
     open_file,
     output_experiment_data_csv_task,
@@ -28,6 +31,8 @@ from cegs_portal.get_expr_data.view_models import (
 from cegs_portal.utils.http_exceptions import Http400
 
 MAX_REGION_SIZE = 100_000_000
+GRCH37 = "GRCh37"
+GRCH38 = "GRCh38"
 
 logger = logging.getLogger("django.request")
 
@@ -57,13 +62,20 @@ def try_process_bed(bed_file) -> LocList:
 
 
 def get_experiments_analyses(request) -> list[str]:
-    experiments = request.GET.getlist("expr", [])
-    analyses = request.GET.getlist("an", [])
+    # We want to use "None" as a sentinial value to indicate that a user wants to
+    # search across all experiments or analyses. Unforunately getlist will return an
+    # empty list if None is the default, so we have to set a different default and
+    # then change to None.
+    experiments = request.GET.getlist("expr", 0)
+    analyses = request.GET.getlist("an", 0)
 
-    if not all(validate_expr(e) for e in experiments):
+    experiments = None if experiments == 0 else experiments
+    analyses = None if analyses == 0 else analyses
+
+    if experiments is not None and not all(validate_expr(e) for e in experiments):
         raise Http400("Invalid request; invalid experiment id")
 
-    if not all(validate_an(a) for a in analyses):
+    if analyses is not None and not all(validate_an(a) for a in analyses):
         raise Http400("Invalid request; invalid analysis id")
 
     return experiments, analyses
@@ -91,6 +103,21 @@ def get_region(request) -> Optional[Loc]:
         raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
 
     return region
+
+
+def get_assembly(request) -> Optional[str]:
+    assembly = request.GET.get("assembly", None)
+
+    if assembly is None:
+        return None
+
+    match assembly.lower():
+        case "hg19" | "grch37":
+            return GRCH37
+        case "hg38" | "grch38":
+            return GRCH38
+
+    raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
 
 
 def get_regions_file(request) -> Optional[LocList]:
@@ -141,6 +168,16 @@ def get_facets(request) -> Facets:
     return facets
 
 
+def get_query_facets(request) -> list[int]:
+    try:
+        str_facets = request.GET.getlist("f", [])
+        int_facets = [int(f) for f in str_facets]
+    except ValueError as e:
+        raise BadRequest(f"Invalid facet values: {str_facets}") from e
+
+    return int_facets
+
+
 def parse_source_locs_json(source_locs: str) -> list[str]:
     locs = []
     while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
@@ -180,6 +217,8 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
             experiments, analyses = get_experiments_analyses(request)
             region = get_region(request)
             data_source = get_data_source(request)
+            assembly = get_assembly(request)
+            facets = get_query_facets(request)
             if region is not None and data_source == ReoDataSource.EVERYTHING:
                 raise Http400("Specifying regions and asking for everything are mutually exclusive")
 
@@ -194,7 +233,25 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
         else:
             user_experiments = request.user.all_experiments()
 
-        data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source)
+        if len(facets) > 0:
+            facets = for_facet_query_input(facets)
+            facet_experiments = experiments_for_facets(facets)
+            user_experiments = [expr for expr in user_experiments if expr in facet_experiments]
+
+            if experiments is not None:
+                # The interesction of experiments and facet_experiments
+                experiments = [expr for expr in experiments if expr in facet_experiments]
+            else:
+                experiments = facet_experiments
+
+            facet_analyses = analyses_for_facets(facets)
+            if analyses is not None:
+                # The interesction of analyses and facet_analyses
+                analyses = [a for a in analyses if a in facet_analyses]
+            else:
+                analyses = facet_analyses
+
+        data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source, assembly)
         return JsonResponse({"experiment data": data})
 
 
@@ -205,12 +262,12 @@ class SignificantExperimentDataView(View):
 
     def get(self, request, *args, **kwargs):
         top_num = request.GET.get("num", 5)
+        assembly = get_assembly(request)
 
         try:
             region = get_region(request)
             if region is None:
-                raise Http400("Must speify a region")
-
+                raise Http400("Must specify a region")
         except Http400 as error:
             raise BadRequest() from error
 
@@ -219,7 +276,7 @@ class SignificantExperimentDataView(View):
         else:
             user_experiments = request.user.all_experiments()
 
-        results = sig_reo_loc_search(region, top_num, user_experiments)
+        results = sig_reo_loc_search(region, top_num, user_experiments, assembly)
         return JsonResponse(
             {
                 "significant reos": [
@@ -238,7 +295,7 @@ class RequestExperimentDataView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             experiments, analyses = get_experiments_analyses(request)
-            if len(experiments) == 0 and len(analyses) == 0:
+            if experiments is None and analyses is None:
                 raise Http400("Invalid request; must specify at least one experiment or analysis by accession id")
 
             regions = get_regions_file(request)

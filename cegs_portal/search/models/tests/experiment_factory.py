@@ -100,7 +100,7 @@ class ExperimentDataFileInfoFactory(DjangoModelFactory):
     class Meta:
         model = ExperimentDataFileInfo
 
-    ref_genome = Faker("text", max_nb_chars=20)
-    ref_genome_patch = Faker("text", max_nb_chars=10)
+    ref_genome = "GRCh38"  # The default ref genome when searching
+    ref_genome_patch = "0"
     significance_measure = Faker("text", max_nb_chars=2048)
     p_value_threshold = 0.05

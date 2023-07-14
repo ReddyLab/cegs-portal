@@ -71,8 +71,8 @@ def validate_an(expr) -> bool:
 
 
 def gen_output_filename(experiments, analyses) -> str:
-    search_items = experiments.copy()
-    search_items.extend(analyses)
+    search_items = experiments.copy() if experiments is not None else []
+    search_items.extend(analyses if analyses is not None else [])
     return f"{'.'.join(search_items)}.{uuid4()}.tsv"
 
 
@@ -178,11 +178,14 @@ def write_experiment_data_csv(experiment_data, output_file):
 def output_experiment_data_list(
     user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     data_source: ReoDataSource,
+    assembly: Optional[str] = None,
 ) -> list[ExperimentDataJson]:
-    experiment_data = retrieve_experiment_data(user_experiments, regions, experiments, analyses, Facets(), data_source)
+    experiment_data = retrieve_experiment_data(
+        user_experiments, regions, experiments, analyses, Facets(), data_source, assembly
+    )
     exp_data_list = []
     for row in gen_output_rows(experiment_data):
         split_target_info = [target.split(":") for target in row[1]]
@@ -208,15 +211,15 @@ def output_experiment_data_list(
         )
     # Sort so the output is always in the same order. This isn't otherwise guaranteed because the
     # output of retrieve_experiment_data is a set, which is unordered.
-    exp_data_list.sort(key=itemgetter("source locs", "targets"))
+    exp_data_list.sort(key=itemgetter("source locs", "expr id", "analysis id"))
     return exp_data_list
 
 
 def output_experiment_data_csv(
     user,
     regions: list[tuple[str, int, int]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     data_source: ReoDataSource,
     facets: Facets,
     output_filename: str,
@@ -237,10 +240,11 @@ def output_experiment_data_csv(
 def retrieve_experiment_data(
     user_experiments,
     regions: Optional[list[tuple[str, int, int]]],
-    experiments: list[str],
-    analyses: list[str],
+    experiments: Optional[list[str]],
+    analyses: Optional[list[str]],
     facets: Facets,
     data_source: ReoDataSource,
+    assembly: Optional[str] = None,
 ):
     where = r"""WHERE (reo_sources_targets.archived = false AND (reo_sources_targets.public = true OR
     reo_sources_targets.reo_experiment = ANY(%s)))"""
@@ -278,17 +282,17 @@ def retrieve_experiment_data(
         case _:
             raise InvalidDataSource()
 
-    if len(experiments) > 0 and len(analyses) > 0:
+    if experiments is not None and analyses is not None:
         where = f"""{where} AND (reo_sources_targets.reo_experiment = ANY(%s) OR
         reo_sources_targets.reo_analysis = ANY(%s))"""
         for i in inputs:
             i.append(experiments)
             i.append(analyses)
-    elif len(experiments) > 0:
+    elif experiments is not None:
         where = f"{where} AND reo_sources_targets.reo_experiment = ANY(%s)"
         for i in inputs:
             i.append(experiments)
-    elif len(analyses) > 0:
+    elif analyses is not None:
         where = f"{where} AND reo_sources_targets.reo_analysis = ANY(%s)"
         for i in inputs:
             i.append(analyses)
@@ -305,6 +309,11 @@ def retrieve_experiment_data(
         where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
         for i in inputs:
             i.append(NumericRange(*facets.sig_range))
+
+    if assembly is not None:
+        where = f"{where} AND ref_genome = %s"
+        for i in inputs:
+            i.append(assembly)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets.source_chrom,
@@ -335,7 +344,12 @@ def retrieve_experiment_data(
     return experiment_data
 
 
-def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_experiments: Optional[list[str]] = None):
+def sig_reo_loc_search(
+    location: tuple[str, int, int],
+    count: int = 5,
+    private_experiments: Optional[list[str]] = None,
+    assembly: Optional[str] = None,
+):
     private_experiments = [] if private_experiments is None else private_experiments
 
     where = r"""WHERE reo_sources_targets_sig_only.archived = false AND
@@ -351,8 +365,13 @@ def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_e
         NumericRange(location[1], location[2]),
         location[0],
         NumericRange(location[1], location[2]),
-        count,
     ]
+
+    if assembly is not None:
+        where = f"{where} AND ref_genome = %s"
+        inputs.append(assembly)
+
+    inputs.append(count)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.source_chrom,
@@ -423,6 +442,57 @@ def sig_reo_loc_search(location: tuple[str, int, int], count: int = 5, private_e
         (k, list(reo_group))
         for k, reo_group in groupby(result, lambda x: (x["expr_accession_id"], x["analysis_accession_id"]))
     ]
+
+
+def for_facet_query_input(facets: list[int]) -> list[list[int]]:
+    query_input = [facets]
+    query = r"""SELECT DISTINCT facet_id FROM search_facetvalue WHERE id = ANY(%s)"""
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, [facets])
+        query_input.append([int(fid) for fid, in cursor.fetchall()])
+
+    return query_input
+
+
+def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
+    query = r"""SELECT accession_id
+                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
+                            FROM (SELECT se.accession_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                                FROM search_experiment AS se
+                                JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
+                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
+                                WHERE sfv.facet_id = ANY(%s)
+                                GROUP BY se.accession_id, sefv.facetvalue_id
+                                ORDER BY se.accession_id) AS facet_table
+                            GROUP BY facet_table.accession_id) AS facet_bool_table
+                    WHERE facet_bool_table.facet_match = true
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        experiments = [eid for eid, in cursor.fetchall()]
+
+    return experiments
+
+
+def analyses_for_facets(query_input: list[list[int]]) -> set[str]:
+    query = r"""SELECT accession_id
+                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
+                            FROM (SELECT sa.accession_id, safv.facetvalue_id = ANY(%s) as facet_bool
+                                FROM search_analysis AS sa
+                                JOIN search_analysis_facet_values AS safv ON sa.id = safv.analysis_id
+                                JOIN search_facetvalue AS sfv on sfv.id = safv.facetvalue_id
+                                WHERE sfv.facet_id = ANY(%s)
+                                GROUP BY sa.accession_id, safv.facetvalue_id
+                                ORDER BY sa.accession_id) AS facet_table
+                            GROUP BY facet_table.accession_id) AS facet_bool_table
+                    WHERE facet_bool_table.facet_match = true
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        analyses = [aid for aid, in cursor.fetchall()]
+
+    return analyses
 
 
 output_experiment_data_csv_task = db_task()(output_experiment_data_csv)

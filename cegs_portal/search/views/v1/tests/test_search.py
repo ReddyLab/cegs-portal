@@ -173,7 +173,7 @@ def test_experiment_feature_loc_with_anonymous_client(
 
 @pytest.mark.usefixtures("reg_effects")
 def test_sig_reg_loc_with_anonymous_client(client: Client):
-    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")  # noqa: E501
+    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
@@ -182,7 +182,7 @@ def test_sig_reg_loc_with_anonymous_client(client: Client):
 
 @pytest.mark.usefixtures("private_reg_effects")
 def test_private_sig_reg_loc_with_anonymous_client(client: Client):
-    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")  # noqa: E501
+    response = client.get("/search/results/?query=chr1%3A1-1000000&accept=application/json")
     assert response.status_code == 200
 
     json_content = json.loads(response.content)

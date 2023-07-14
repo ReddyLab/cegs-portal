@@ -20,6 +20,7 @@ class FileFactory(DjangoModelFactory):
         obj = model_class(*args, **kwargs)
 
         obj.experiment = kwargs.get("experiment", None)
+        obj.analysis = kwargs.get("analysis", None)
 
         obj.save()
         return obj

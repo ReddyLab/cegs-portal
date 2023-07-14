@@ -96,32 +96,69 @@
     {% endif %}
 
     <div class="flex flex-row items-start gap-x-10">
-        <div class="content-container basis-1/4">
-            <div class="w-60">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
-                        <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
-                    </svg>
-                    <div class="text-xl font-bold text-slate-500">Filter Facets</div>
-                </div>
-                <div class="faded-line"></div>
-                {% for facet in facets.all %}
-                    <fieldset name="facetfield">
-                        <legend class="font-bold">{{ facet.name }}</legend>
-                        <div class="flex flex-row flex-wrap gap-1">
-                            {% for value in facet.values.all %}
-                            <div>
-                                <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
-                                <label for="{{ value.id }}">{{ value.value }}</label>
+        <div class="flex flex-col gap-4 basis-1/4">
+            <div class="content-container">
+                <div class="w-60">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
+                            <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                        </svg>
+                        <div class="text-xl font-bold text-slate-500">Filter Facets</div>
+                    </div>
+                    <div class="faded-line"></div>
+                    {% for facet in facets.all %}
+                        <fieldset name="facetfield">
+                            <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
+                            data-te-collapse-init
+                            data-te-collapse-collapsed
+                            data-te-target="#facetCollapse{{ forloop.counter }}"
+                            aria-expanded="false"
+                            aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                            <div
+                                class="-mr-1 ml-auto h-5 w-5 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="h-6 w-6">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
                             </div>
-                            {% endfor %}
-                        </div>
-                    </fieldset>
-                {% endfor %}
+                            </legend>
+                            <div class="flex flex-row flex-wrap gap-1 !visible hidden"
+                                id="facetCollapse{{ forloop.counter }}"
+                                data-te-collapse-item
+                                aria-labelledby="facetHeader{{ forloop.counter }}">
+                                {% for value in facet.values.all %}
+                                <div>
+                                    <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
+                                    <label for="{{ value.id }}">{{ value.value }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+                    {% endfor %}
+                </div>
             </div>
+            {% if logged_in %}
+            <div class="content-container">
+                <form name="dataDownloadForm">
+                    <div>
+                        <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
+                        <div class="text-sm">Includes all observations, filtered by selected facets</div>
+                    </div>
+                </form>
+                <div id="dataDownloadLink" class="mt-5"></div>
+            </div>
+            {% endif %}
         </div>
         <div class="content-container" id="sig-reg-effects">
-         {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
+          {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
         </div>
     </div>
 
@@ -135,6 +172,7 @@
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { sigReoTable } from "{% static 'search/js/tables.js' %}"
+        import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -184,7 +222,7 @@
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start.toLocaleString()} - ${location.end.toLocaleString()}`));
 
-            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}`).then(json => {
+            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
                 let sigRegEffects = json["significant reos"]
                 if(sigRegEffects.length == 0) {
                     rc(g("sig-reg-effects"), t("No Relevant Reg Effect Observations Found"))
@@ -310,5 +348,10 @@
             ]
         });
         {% endif %}
+
+        {% if logged_in %}
+        downloadRegionsSetup(state, "{{ assembly }}");
+        {% endif %}
     </script>
+    <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

@@ -77,8 +77,15 @@ class Search:
         )
 
     @classmethod
-    def sig_reo_loc_search(cls, location: ChromosomeLocation, private_experiments: Optional[list[str]] = None):
-        return sig_reo_loc_search((location.chromo, location.range.lower, location.range.upper), 5, private_experiments)
+    def sig_reo_loc_search(
+        cls,
+        location: ChromosomeLocation,
+        private_experiments: Optional[list[str]] = None,
+        assembly: Optional[str] = None,
+    ):
+        return sig_reo_loc_search(
+            (location.chromo, location.range.lower, location.range.upper), 5, private_experiments, assembly
+        )
 
     @classmethod
     def categorical_facet_search(cls):
