@@ -30,7 +30,7 @@ function getDownload(url, filename) {
 
             // triggers the click event
             fileLink.click();
-            rc(g("dataDownloadLink"), t("Download Complete"));
+            rc(g("dataDownloadLink"), t(""));
         })
         .catch((err) => {
             rc(g("dataDownloadLink"), t("Sorry, something went wrong"));
