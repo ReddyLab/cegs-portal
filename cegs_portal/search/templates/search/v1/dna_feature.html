@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% load static i18n %} {% load humanize %} {% block css %} {{ block.super }}
+{% extends "base.html" %} {% load static i18n %} {% load humanize %} {% load custom_helpers %} {% block css %} {{ block.super }}
 <style>
     .closest-gene {
         font-weight: bold;
@@ -297,7 +297,8 @@ HEADER -->
                 <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                 <td>{{ feature.get_feature_type_display }}</td>
                 {% if feature.feature_subtype %}
-                <td> {{ feature.feature_subtype }}</td>
+                <td>{{ feature.feature_subtype|remove_underscores }}</td>
+
                 {% endif %}
             </tr>
             {% endfor %}
