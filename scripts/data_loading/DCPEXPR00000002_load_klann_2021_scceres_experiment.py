@@ -54,7 +54,10 @@ def load_dhss(
 
         try:
             dhs = DNAFeature.objects.get(
-                chrom_name=chrom_name, feature_type=DNAFeatureType.DHS, location=dhs_location, ref_genome=ref_genome
+                chrom_name=chrom_name,
+                location__overlap=dhs_location,
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.DHS,
             )
         except ObjectDoesNotExist:
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)

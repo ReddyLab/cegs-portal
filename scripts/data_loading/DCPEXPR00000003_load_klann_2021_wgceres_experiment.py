@@ -50,7 +50,12 @@ def load_dhss(
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
         try:
-            dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
+            dhs = DNAFeature.objects.get(
+                chrom_name=chrom_name,
+                location=dhs_location,
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.DHS,
+            )
         except ObjectDoesNotExist:
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
             dhs = DNAFeature(

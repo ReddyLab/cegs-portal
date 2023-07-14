@@ -92,13 +92,11 @@ def load_grnas(
 
             try:
                 region = DNAFeature.objects.get(
-                    cell_line=cell_line,
                     chrom_name=chrom_name,
                     location=grna_location,
                     strand=strand,
-                    misc__grna=grna_id,
                     ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
+                    feature_type=DNAFeatureType.GRNA,
                 )
                 existing_grna_facets[grna_id].update(region.facet_values.all())
             except DNAFeature.DoesNotExist:
@@ -120,6 +118,18 @@ def load_grnas(
                     strand=strand,
                 )
                 grnas_to_save.append(region)
+            except DNAFeature.MultipleObjectsReturned as e:
+                guides = DNAFeature.objects.filter(
+                    chrom_name=chrom_name,
+                    location=grna_location,
+                    ref_genome=ref_genome,
+                    strand=strand,
+                    feature_type=DNAFeatureType.GRNA,
+                )
+                print(f"{chrom_name}: {grna_location}, {grna_id}")
+                for guide in guides.all():
+                    print(guide.misc)
+                raise e
             grnas[grna_id] = region
 
     bulk_save(grnas_to_save)

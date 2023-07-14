@@ -52,7 +52,6 @@ def load_cars(
         try:
             dhs = DNAFeature.objects.get(
                 chrom_name=chrom_name,
-                cell_line=cell_line,
                 location=dhs_location,
                 ref_genome=ref_genome,
                 feature_type__in=[DNAFeatureType.DHS, DNAFeatureType.CCRE],
