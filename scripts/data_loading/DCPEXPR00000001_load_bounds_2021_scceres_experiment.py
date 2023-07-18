@@ -72,6 +72,7 @@ def load_grna(
             region = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.GRNA),
                 experiment_accession=experiment,
+                source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -83,7 +84,6 @@ def load_grna(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.GRNA,
-                source=region_source,
                 strand=strand,
             )
             grnas[grna] = region
@@ -93,7 +93,7 @@ def load_grna(
 def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     for file in experiment.files.all():
-        DNAFeature.objects.filter(source=file).delete()
+        DNAFeature.objects.filter(source_file=file).delete()
     experiment_metadata.db_del()
 
 

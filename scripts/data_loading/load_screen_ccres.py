@@ -82,7 +82,7 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             ref_genome_patch=ref_genome_patch,
             misc={"screen_accession_id": screen_accession_id},
             feature_type=DNAFeatureType.CCRE,
-            source=source_file,
+            source_file=source_file,
         )
         new_sites.append(dhs)
         facets.append(get_facets(ccre_categories))
@@ -95,7 +95,7 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
 
 @timer("Unloading CCREs", level=1)
 def unload_ccres(file_metadata):
-    DNAFeature.objects.filter(source=file_metadata.file).delete()
+    DNAFeature.objects.filter(source_file=file_metadata.file).delete()
     file_metadata.db_del()
 
 

@@ -64,6 +64,7 @@ def load_dhss(
             dhs = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.DHS),
                 experiment_accession_id=experiment.accession_id,
+                source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -74,7 +75,6 @@ def load_dhss(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.DHS,
-                source=region_source,
             )
             new_dhss.append(dhs)
     print(f"DHS Count: {len(new_dhss)}")
@@ -84,7 +84,7 @@ def load_dhss(
 def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     for file in experiment.files.all():
-        DNAFeature.objects.filter(source=file).delete()
+        DNAFeature.objects.filter(source_file=file).delete()
     experiment_metadata.db_del()
 
 

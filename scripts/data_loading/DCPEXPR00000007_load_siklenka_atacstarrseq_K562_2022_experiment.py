@@ -61,6 +61,7 @@ def load_cars(
             dhs = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.CAR),
                 experiment_accession_id=experiment.accession_id,
+                source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
@@ -71,7 +72,6 @@ def load_cars(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.CAR,
-                source=region_source,
             )
             dhss.append(dhs)
     bulk_save(dhss)
@@ -80,7 +80,7 @@ def load_cars(
 def unload_reg_effects(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
     for file in experiment.files.all():
-        DNAFeature.objects.filter(source=file).delete()
+        DNAFeature.objects.filter(source_file=file).delete()
     experiment_metadata.db_del()
 
 
