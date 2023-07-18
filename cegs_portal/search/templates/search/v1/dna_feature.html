@@ -354,11 +354,11 @@ HEADER -->
                     <a
                         href="#tabs-source-target"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-source-target-tab"
+                        id="tabs-nearest-reo-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-source-target"
+                        data-te-target="#tabs-nearest-reo"
                         role="tab"
-                        aria-controls="tabs-source-target"
+                        aria-controls="tabs-nearest-reo"
                         {% if forloop.first %}
                         aria-selected="true"
                         data-te-nav-active
@@ -513,6 +513,36 @@ HEADER -->
             </div>
             {% endif %}
         {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if tab == "nearest reo" %}
+        <div
+            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-nearest-reo"
+            role="tabpanel"
+            aria-labelledby="tabs-nearest-reo-tab"
+            {% if forloop.first %}
+            data-te-tab-active
+            {% endif %}
+        >
+        #TEST TABLE
+            <table>
+                <tr>
+                    <th>Effect Size</th>
+                    <th>Direction</th>
+                    <th>Significance</th>
+                </tr>
+                {% for reo in non_targeting_reos %}
+                    <tr>
+                        <td>{{ reo.effect_size }}</td>
+                        <td>{{ reo.direction }}</td>
+                        <td>{{ reo.significance }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+
         </div>
         {% endif %}
 
@@ -687,27 +717,6 @@ HEADER -->
         </div>
         {% endif %}
         {% endfor %}
-
-        #TEST TABLE
-        <table>
-            <tr>
-                <th>Effect Size</th>
-                <th>Direction</th>
-                <th>Significance</th>
-            </tr>
-            {% for reo in non_targeting_reos %}
-                <tr>
-                    <td>{{ reo.effect_size }}</td>
-                    <td>{{ reo.direction }}</td>
-                    <td>{{ reo.significance }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-
-
-
     </div>
 </div>
 
