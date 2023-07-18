@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Optional, cast
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Subquery
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -282,3 +282,17 @@ class DNAFeatureSearch:
         )
 
         return reg_effects
+
+    @classmethod
+    def non_targeting_reo_search(cls, gene_pk: int):
+        source_features = DNAFeature.objects.filter(closest_gene_id=gene_pk)
+        reg_effects = (
+            RegulatoryEffectObservation.objects.filter(
+                sources__in=Subquery(source_features.values("id")), targets=None
+            )
+        )
+        return reg_effects
+
+
+
+

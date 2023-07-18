@@ -75,6 +75,12 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
             feature_reos.append((feature, sources, targets))
 
+        non_targeting_reos = []
+        for feature in data.all():
+            reos = DNAFeatureSearch.non_targeting_reo_search(feature.pk)
+            if reos.exists():
+                non_targeting_reos.extend(list(reos))
+
         def sort_key(feature_reo):
             feature = feature_reo[0]
             return (feature.ref_genome, int(feature.ref_genome_patch or 0))
@@ -115,6 +121,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 "feature_reos": feature_reos,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
+                "non_targeting_reos": non_targeting_reos,
             },
         )
 

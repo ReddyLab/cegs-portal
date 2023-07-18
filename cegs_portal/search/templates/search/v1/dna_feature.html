@@ -653,6 +653,27 @@ HEADER -->
         </div>
         {% endif %}
         {% endfor %}
+
+        #TEST TABLE
+        <table>
+            <tr>
+                <th>Effect Size</th>
+                <th>Direction</th>
+                <th>Significance</th>
+            </tr>
+            {% for reo in non_targeting_reos %}
+                <tr>
+                    <td>{{ reo.effect_size }}</td>
+                    <td>{{ reo.direction }}</td>
+                    <td>{{ reo.significance }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+
+
+
     </div>
 </div>
 
