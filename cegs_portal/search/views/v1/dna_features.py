@@ -77,7 +77,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
         non_targeting_reos = []
         for feature in data.all():
-            reos = DNAFeatureSearch.non_targeting_reo_search(feature.pk)
+            reos = DNAFeatureSearch.non_targeting_reo_search(feature)
             if reos.exists():
                 non_targeting_reos.extend(list(reos))
 
