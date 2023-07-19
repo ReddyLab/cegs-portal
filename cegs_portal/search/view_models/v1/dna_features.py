@@ -284,8 +284,8 @@ class DNAFeatureSearch:
         return reg_effects
 
     @classmethod
-    def non_targeting_reo_search(cls, feature: DNAFeature):
-        source_features = DNAFeature.objects.filter(closest_gene_id=feature)
+    def non_targeting_reo_search(cls, genes: list[DNAFeature]):
+        source_features = DNAFeature.objects.filter(closest_gene_id=genes)
         reg_effects = (
             RegulatoryEffectObservation.objects.filter(
                 sources__in=Subquery(source_features.values("id")), targets=None
