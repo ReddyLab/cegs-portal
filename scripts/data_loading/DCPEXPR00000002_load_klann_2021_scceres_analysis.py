@@ -82,7 +82,11 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
         else:
             dhs_location = NumericRange(dhs_start, dhs_end, "[]")
             dhs = DNAFeature.objects.get(
-                chrom_name=chrom_name, feature_type=DNAFeatureType.DHS, location=dhs_location, ref_genome=ref_genome
+                experiment_accession=experiment,
+                chrom_name=chrom_name,
+                location=dhs_location,
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.DHS,
             )
             dhss[dhs_string] = dhs
 

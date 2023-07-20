@@ -1,12 +1,14 @@
 import csv
 
 from django.db import transaction
+from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     AccessionIds,
     AccessionType,
     Analysis,
     DNAFeature,
+    DNAFeatureType,
     Facet,
     FacetValue,
     RegulatoryEffectObservation,
@@ -62,16 +64,39 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
     for line in reader:
         grna = line["grna"]
         if grna in grnas:
-            region = grnas[grna]
+            guide = grnas[grna]
         else:
             # Skip non-targeting guides
             grna_info = grna.split("-")
-            if not grna_info[0].startswith("chr"):
+            if len(grna_info) == 5:
+                chrom_name, grna_start_str, grna_end_str, strand, _grna_seq = grna_info
+            elif len(grna_info) == 6:
+                chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
+                strand = "-"
+
+            # Skip non-targeting guides
+            if not chrom_name.startswith("chr"):
                 continue
 
-            region = DNAFeature.objects.get(experiment_accession_id=experiment.accession_id, misc__grna=grna)
-            grnas[grna] = region
-        sources.append(region)
+            grna_start = int(grna_start_str)
+            grna_end = int(grna_end_str)
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            grna_location = NumericRange(grna_start, grna_end, bounds)
+
+            guide = DNAFeature.objects.get(
+                experiment_accession=experiment,
+                misc__grna=grna,
+                location=grna_location,
+                strand=strand,
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.GRNA,
+            )
+            grnas[grna] = guide
+        sources.append(guide)
 
         significance = float(line["pval_fdr_corrected"])
         effect_size = float(line["avg_logFC"])

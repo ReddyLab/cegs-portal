@@ -8,6 +8,7 @@ from cegs_portal.search.models import (
     AccessionType,
     Analysis,
     DNAFeature,
+    DNAFeatureType,
     Facet,
     FacetValue,
     RegulatoryEffectObservation,
@@ -72,10 +73,11 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
         else:
             dhs_location = NumericRange(dhs_start, dhs_end, "[]")
             dhs = DNAFeature.objects.get(
-                experiment_accession_id=experiment.accession_id,
+                experiment_accession=experiment,
                 chrom_name=chrom_name,
                 location=dhs_location,
                 ref_genome=ref_genome,
+                feature_type=DNAFeatureType.DHS,
             )
             dhss[dhs_string] = dhs
 

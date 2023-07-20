@@ -103,11 +103,17 @@ def load_reg_effects(ceres_file, accession_ids, gene_name_map, analysis, ref_gen
             chrom_name = line["chr"]
             grna_start = int(line["start"])
             grna_end = int(line["end"])
-            grna_location = NumericRange(grna_start, grna_end, "[]")
+
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             try:
                 region = DNAFeature.objects.get(
-                    cell_line=cell_line,
+                    experiment_accession=experiment,
                     chrom_name=chrom_name,
                     location=grna_location,
                     strand=strand,

@@ -81,6 +81,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
         if grna_id in grnas:
             guide = grnas[grna_id]
         else:
+            grna_type = line["type"]
             existing_grna_facets[grna_id] = set()
 
             grna_info = grna_id.split("-")
@@ -89,20 +90,36 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
                 continue
 
             if len(grna_info) == 5:
-                chrom_name, grna_start_str, _grna_end_str, _strand, _grna_seq = grna_info
+                chrom_name, grna_start_str, grna_end_str, strand, _grna_seq = grna_info
             elif len(grna_info) == 6:
-                chrom_name, grna_start_str, _grna_end_str, _x, _y, _grna_seq = grna_info
+                chrom_name, grna_start_str, grna_end_str, _x, _y, _grna_seq = grna_info
+                strand = "-"
 
-            grna_start = int(grna_start_str)
-            grna_location = NumericRange(grna_start, grna_start + 20, "[]")
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            if grna_type == "targeting":
+                grna_start = int(grna_start_str)
+                grna_end = int(grna_end_str)
+            else:
+                if strand == "+":
+                    grna_start = int(grna_start_str)
+                    grna_end = int(grna_start_str) + 20
+                elif strand == "-":
+                    grna_start = int(grna_end_str) - 20
+                    grna_end = int(grna_end_str)
+
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             try:
                 guide = DNAFeature.objects.get(
+                    experiment_accession=experiment,
                     misc__grna=grna_id,
-                    cell_line=cell_line,
                     location=grna_location,
+                    strand=strand,
                     ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
                     feature_type=DNAFeatureType.GRNA,
                 )
             except DNAFeature.MultipleObjectsReturned as e:
@@ -114,25 +131,14 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             grnas[grna_id] = guide
         sources.append(guide)
 
-        grna_type = line["type"]
         grna_facets = set()
 
         if grna_type == "targeting":
             grna_facets.add(GRNA_FACET_VALUES["Targeting"])
         elif grna_type == "nontargeting":
-            grna_facets.add(GRNA_FACET_VALUES["Non-targeting"])
-        elif grna_type == "positive_control_ipsc":
+            grna_facets.add(GRNA_FACET_VALUES["Negative Control"])
+        elif grna_type.startswith("positive_control"):
             grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control (iPSC)"])
-        elif grna_type == "positive_control_k562":
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control (k562)"])
-        elif grna_type == "positive_control_npc":
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control (NPC)"])
-        elif grna_type == "positive_control_other":
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control"])
-            grna_facets.add(GRNA_FACET_VALUES["Positive Control (other)"])
         source_facets.append(grna_facets - existing_grna_facets[grna_id])
         existing_grna_facets[grna_id].update(grna_facets)
 
