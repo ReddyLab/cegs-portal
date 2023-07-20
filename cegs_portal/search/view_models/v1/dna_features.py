@@ -292,8 +292,3 @@ class DNAFeatureSearch:
             )
         )
         return reg_effects
-
-
-
-
-
