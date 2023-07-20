@@ -101,7 +101,8 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         if any(f[1] is not None or f[2] is not None for f in feature_reos):
             tabs.append("source target")
 
-        tabs.append("nearest reo")
+        if any(bool(r.sources.all()) for r in non_targeting_reos):
+            tabs.append("nearest reo")
 
         if any(bool(f[0].closest_features.all()) for f in feature_reos):
             tabs.append("closest features")
