@@ -9,10 +9,22 @@ from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
     Experiment,
+    Facet,
+    FacetValue,
 )
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
+
+GRNA_TYPE_FACET = Facet.objects.get(name="gRNA Type")
+GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
+GRNA_TYPE_POS_CTRL = GRNA_TYPE_FACET_VALUES["Positive Control"]
+GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
+
+PROMOTER_FACET = Facet.objects.get(name="Promoter Classification")
+PROMOTER_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=PROMOTER_FACET.id).all()}
+PROMOTER_PROMOTER = PROMOTER_FACET_VALUES["Promoter"]
+PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES["Non-promoter"]
 
 
 #
@@ -28,10 +40,14 @@ from . import get_closest_gene
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(grnas):
+def bulk_save(grnas, grna_type_facets, grna_promoter_facets):
     with transaction.atomic():
         print("Adding gRNA Regions")
         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
+
+        for grna, type_facet, promoter_facet in zip(grnas, grna_type_facets, grna_promoter_facets):
+            grna.facet_values.add(type_facet)
+            grna.facet_values.add(promoter_facet)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -42,12 +58,15 @@ def load_grnas(
     reader = csv.DictReader(grna_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     grnas = {}
     grnas_to_save = []
+    grna_type_facets = []
+    grna_promoter_facets = []
     for i, line in enumerate(reader):
         # every other line in this file is basically a duplicate of the previous line
         if i % 2 == 0:
             continue
         grna_id = line["grna"]
         grna_type = line["type"]
+        grna_promoter_class = line["annotation_manual"]
 
         if grna_id in grnas:
             guide = grnas[grna_id]
@@ -68,6 +87,16 @@ def load_grnas(
                 bounds = "[)"
             elif strand == "-":
                 bounds = "(]"
+
+            if grna_type == "targeting":
+                grna_type_facets.append(GRNA_TYPE_TARGETING)
+            elif grna_type.startswith("positive_control") == "":
+                grna_type_facets.append(GRNA_TYPE_POS_CTRL)
+
+            if grna_promoter_class == "promoter":
+                grna_promoter_facets.append(PROMOTER_PROMOTER)
+            else:
+                grna_promoter_facets.append(PROMOTER_NON_PROMOTER)
 
             if grna_type == "targeting":
                 grna_start = int(grna_start_str)
@@ -123,7 +152,8 @@ def load_grnas(
                     print(guide.misc)
                 raise e
             grnas[grna_id] = guide
-    bulk_save(grnas_to_save)
+
+    bulk_save(grnas.values(), grna_type_facets, grna_promoter_facets)
 
 
 def unload_experiment(experiment_metadata):

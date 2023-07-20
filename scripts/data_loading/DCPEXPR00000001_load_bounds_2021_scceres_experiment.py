@@ -9,10 +9,16 @@ from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
     Experiment,
+    Facet,
+    FacetValue,
 )
 from utils import ExperimentMetadata, timer
 
 from . import get_closest_gene
+
+GRNA_TYPE_FACET = Facet.objects.get(name="gRNA Type")
+GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
+GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
 
 
 #
@@ -32,6 +38,9 @@ def bulk_save(grnas):
     with transaction.atomic():
         print("Adding gRNA Regions")
         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
+
+        for grna in grnas:
+            grna.facet_values.add(GRNA_TYPE_TARGETING)
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
