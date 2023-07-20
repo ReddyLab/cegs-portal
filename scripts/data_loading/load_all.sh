@@ -30,7 +30,9 @@ echo DCPEXPR00000002
     ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/supplementary_table_17_grna.de.markers.all.filtered.empirical_pvals.w_gene_info.csv \
     ${DATA_DIR}/screen_ccres/GRCh19-cCREs.bed \
     ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
-./scripts/data_loading/DCPEXPR00000002_dhs_closest_ccres_klann_2021_scceres.sh ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
+./scripts/data_loading/DCPEXPR00000002_dhs_closest_ccres_klann_2021_scceres.sh \
+    ${DATA_DIR}/DCPEXPR00000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt \
+    DCPEXPR00000002
 
 echo DCPEXPR00000004
 ./scripts/data_loading/DCPEXPR00000004_load_bounds_scCERES_mhc_2021.sh \
