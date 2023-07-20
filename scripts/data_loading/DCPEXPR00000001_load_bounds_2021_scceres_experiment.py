@@ -92,8 +92,7 @@ def load_grna(
 
 def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    for file in experiment.files.all():
-        DNAFeature.objects.filter(source_file=file).delete()
+    DNAFeature.objects.filter(experiment_accession=experiment).delete()
     experiment_metadata.db_del()
 
 

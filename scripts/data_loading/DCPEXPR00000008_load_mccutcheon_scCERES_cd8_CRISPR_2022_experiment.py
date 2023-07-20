@@ -135,10 +135,9 @@ def load_grnas(
     bulk_save(grnas_to_save)
 
 
-def unload_reg_effects(experiment_metadata):
+def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    for file in experiment.files.all():
-        DNAFeature.objects.filter(source_file=file).delete()
+    DNAFeature.objects.filter(experiment_accession=experiment).delete()
     experiment_metadata.db_del()
 
 
@@ -152,11 +151,11 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_experiment if you want to delete the experiment, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    # unload_experiment() uncommented is not, strictly, idempotent.
+    # unload_experiment(experiment_metadata)
 
     experiment = experiment_metadata.db_save()
 
