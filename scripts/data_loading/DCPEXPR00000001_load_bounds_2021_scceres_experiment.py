@@ -45,16 +45,14 @@ def bulk_save(grnas):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load gRNAS")
-def load_grna(
-    grna_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
-):
+def load_grna(grna_file, accession_ids, experiment, region_source, cell_line, ref_genome, delimiter=","):
     reader = csv.DictReader(grna_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     grnas = {}
 
     for line in reader:
         grna = line["grna"]
         if grna in grnas:
-            region = grnas[grna]
+            guide = grnas[grna]
         else:
             grna_info = grna.split("-")
 
@@ -78,24 +76,23 @@ def load_grna(
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
-            region = DNAFeature(
+            guide = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.GRNA),
                 experiment_accession=experiment,
                 source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
+                location=grna_location,
+                strand=strand,
                 closest_gene=closest_gene,
                 closest_gene_distance=distance,
                 closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id,
-                location=grna_location,
+                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
                 misc={"grna": grna},
                 ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.GRNA,
-                strand=strand,
             )
-            grnas[grna] = region
+            grnas[grna] = guide
     bulk_save(grnas.values())
 
 
@@ -133,6 +130,5 @@ def run(experiment_filename):
             experiment.files.all()[0],
             experiment_metadata.biosamples[0].cell_line,
             file_info.misc["ref_genome"],
-            file_info.misc["ref_genome_patch"],
             delimiter,
         )

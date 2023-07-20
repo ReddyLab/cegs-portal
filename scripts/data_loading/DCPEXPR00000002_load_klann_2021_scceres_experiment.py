@@ -1,6 +1,5 @@
 import csv
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
@@ -39,11 +38,9 @@ def bulk_save(dhss: list[DNAFeature]):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load DHSs")
-def load_dhss(
-    dhs_file, accession_ids, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","
-):
+def load_dhss(dhs_file, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","):
     reader = csv.DictReader(dhs_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_dhss: list[DNAFeature] = []
+    new_dhss: dict[str, DNAFeature] = {}
 
     for line in reader:
         chrom_name = line["dhs_chrom"]
@@ -52,33 +49,29 @@ def load_dhss(
         dhs_end = int(line["dhs_end"])
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
-        try:
-            dhs = DNAFeature.objects.get(
-                chrom_name=chrom_name,
-                location__overlap=dhs_location,
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.DHS,
-            )
-        except ObjectDoesNotExist:
+        dhs_name = f"{chrom_name}:{dhs_location}"
+
+        if dhs_name in new_dhss:
+            dhs = new_dhss[dhs_name]
+        else:
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
             dhs = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.DHS),
-                experiment_accession_id=experiment.accession_id,
+                experiment_accession=experiment,
                 source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
                 closest_gene_distance=distance,
                 closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id,
+                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
                 location=dhs_location,
                 ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.DHS,
             )
-            new_dhss.append(dhs)
+            new_dhss[dhs_name] = dhs
     print(f"DHS Count: {len(new_dhss)}")
-    bulk_save(new_dhss)
+    bulk_save(new_dhss.values())
 
 
 def unload_experiment(experiment_metadata):
@@ -113,7 +106,6 @@ def run(experiment_filename):
                 experiment,
                 experiment_metadata.biosamples[0].cell_line,
                 file_info.misc["ref_genome"],
-                file_info.misc["ref_genome_patch"],
                 experiment.files.all()[0],
                 delimiter,
             )

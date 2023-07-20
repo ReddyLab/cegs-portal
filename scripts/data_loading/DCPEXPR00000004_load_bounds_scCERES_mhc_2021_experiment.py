@@ -52,12 +52,9 @@ def bulk_save(grnas, grna_type_facets, grna_promoter_facets):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load gRNAs")
-def load_grnas(
-    grna_file, accession_ids, experiment, region_source, cell_line, ref_genome, ref_genome_patch, delimiter=","
-):
+def load_grnas(grna_file, accession_ids, experiment, region_source, cell_line, ref_genome, delimiter=","):
     reader = csv.DictReader(grna_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     grnas = {}
-    grnas_to_save = []
     grna_type_facets = []
     grna_promoter_facets = []
     for i, line in enumerate(reader):
@@ -108,49 +105,26 @@ def load_grnas(
                 elif strand == "-":
                     grna_start = int(grna_end_str) - 20
                     grna_end = int(grna_end_str)
+
             grna_location = NumericRange(grna_start, grna_end, bounds)
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
-
-            try:
-                guide = DNAFeature.objects.get(
-                    chrom_name=chrom_name,
-                    location=grna_location,
-                    strand=strand,
-                    ref_genome=ref_genome,
-                    feature_type=DNAFeatureType.GRNA,
-                )
-            except DNAFeature.DoesNotExist:
-                guide = DNAFeature(
-                    accession_id=accession_ids.incr(AccessionType.GRNA),
-                    experiment_accession_id=experiment.accession_id,
-                    source_file=region_source,
-                    cell_line=cell_line,
-                    chrom_name=chrom_name,
-                    closest_gene=closest_gene,
-                    closest_gene_distance=distance,
-                    closest_gene_name=gene_name,
-                    closest_gene_ensembl_id=closest_gene.ensembl_id,
-                    location=grna_location,
-                    misc={"grna": grna_id},
-                    ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
-                    feature_type=DNAFeatureType.GRNA,
-                    strand=strand,
-                )
-                grnas_to_save.append(guide)
-            except DNAFeature.MultipleObjectsReturned as e:
-                guides = DNAFeature.objects.filter(
-                    chrom_name=chrom_name,
-                    location=grna_location,
-                    ref_genome=ref_genome,
-                    strand=strand,
-                    feature_type=DNAFeatureType.GRNA,
-                )
-                print(f"{chrom_name}: {grna_location}, {grna_id}")
-                for guide in guides.all():
-                    print(guide.misc)
-                raise e
+            guide = DNAFeature(
+                accession_id=accession_ids.incr(AccessionType.GRNA),
+                experiment_accession=experiment,
+                source_file=region_source,
+                cell_line=cell_line,
+                chrom_name=chrom_name,
+                location=grna_location,
+                strand=strand,
+                closest_gene=closest_gene,
+                closest_gene_distance=distance,
+                closest_gene_name=gene_name,
+                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
+                misc={"grna": grna_id},
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.GRNA,
+            )
             grnas[grna_id] = guide
 
     bulk_save(grnas.values(), grna_type_facets, grna_promoter_facets)
@@ -196,6 +170,5 @@ def run(experiment_filename):
                 experiment.files.all()[0],
                 experiment_metadata.biosamples[0].cell_line,
                 file_info.misc["ref_genome"],
-                file_info.misc["ref_genome_patch"],
                 delimiter,
             )
