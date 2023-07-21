@@ -53,9 +53,18 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 * "name"
             feature_id
         """
+
+        def get_sig_only(value):
+            if value == "0" or value == "false" or value == "False":
+                return False
+            else:
+                return True
+
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
+        sig_only = request.GET.get("sig_only", True)
+        options["sig_only"] = get_sig_only(sig_only)
         return options
 
     def get(self, request, options, data, id_type, feature_id):
@@ -77,7 +86,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
         non_targeting_reos = []
         for feature in data.all():
-            reos = DNAFeatureSearch.non_targeting_reo_search(feature)
+            reos = DNAFeatureSearch.non_targeting_reo_search(feature, options.get("sig_only"))
             if reos.exists():
                 non_targeting_reos.extend(list(reos))
 

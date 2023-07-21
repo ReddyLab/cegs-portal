@@ -284,11 +284,15 @@ class DNAFeatureSearch:
         return reg_effects
 
     @classmethod
-    def non_targeting_reo_search(cls, genes: list[DNAFeature]):
+    def non_targeting_reo_search(cls, genes: list[DNAFeature], sig_only: bool):
         source_features = DNAFeature.objects.filter(closest_gene_id=genes)
         reg_effects = (
             RegulatoryEffectObservation.objects.filter(
                 sources__in=Subquery(source_features.values("id")), targets=None
             )
         )
+
+        if sig_only:
+          reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
+
         return reg_effects
