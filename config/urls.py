@@ -22,7 +22,6 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
         path("accounts/", include("allauth.urls")),
         path("search/", include("cegs_portal.search.urls")),
         path("exp_data/", include("cegs_portal.get_expr_data.urls")),
-        path("upload/", include("cegs_portal.uploads.urls")),
         path("", include("django_prometheus.urls")),
     ],
 ) + cast(list[Union[URLPattern, URLResolver]], static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
