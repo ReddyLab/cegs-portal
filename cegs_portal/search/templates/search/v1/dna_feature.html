@@ -543,20 +543,24 @@ HEADER -->
                     <div class="faded-line"></div>
                     <table class="data-table">
                         <tr>
-                            <th>Accession ID</th>
                             <th>Effect Size</th>
                             <th>Direction</th>
                             <th>Significance</th>
+                        {% for reo in non_targeting_reos %}
+                        {% if forloop.first %}
+                            <th>Distance from {{ reo.sources.first.closest_gene_name }}</th>
+                        {% endif %}
+                        {% endfor %}
                             <th>Experiment</th>
                         </tr>
             {% endif %}
             {% if non_targeting_reos %}
                         {% for reo in non_targeting_reos %}
                         <tr>
-                            <td><a href="{% url 'search:reg_effect' reo.accession_id %}">{{ reo.accession_id }}</a></td>
                             <td>{{ reo.effect_size }}</td>
                             <td>{{ reo.direction }}</td>
                             <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+                            <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
                             <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
                         </tr>
                         {% endfor %}

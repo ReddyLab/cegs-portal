@@ -290,6 +290,7 @@ class DNAFeatureSearch:
             RegulatoryEffectObservation.objects.filter(
                 sources__in=Subquery(source_features.values("id")), targets=None
             )
+            .order_by('facet_num_values__Significance')
         )
 
         if sig_only:
