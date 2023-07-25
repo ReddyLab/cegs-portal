@@ -117,7 +117,10 @@
     table.data-table a:visited {
         color: #3490dc;
         text-decoration: none;
-        /* font-weight: bold; */
+    }
+
+    tr[data-href]:hover {
+        cursor: pointer;
     }
 
     .table-title {
@@ -543,6 +546,7 @@ HEADER -->
                     <div class="faded-line"></div>
                     <table class="data-table">
                         <tr>
+                            <th>Location</th>
                             <th>Effect Size</th>
                             <th>Direction</th>
                             <th>Significance</th>
@@ -555,15 +559,19 @@ HEADER -->
                         </tr>
             {% endif %}
             {% if non_targeting_reos %}
-                        {% for reo in non_targeting_reos %}
-                        <tr>
-                            <td>{{ reo.effect_size }}</td>
-                            <td>{{ reo.direction }}</td>
-                            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
-                            <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
-                            <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
-                        </tr>
-                        {% endfor %}
+            {% for reo in non_targeting_reos %}
+            <tr data-href="{% url 'search:reg_effect' reo.accession_id %}">
+                <td>
+                    <span>{{ reo.sources.first.chrom_name }}: {{ reo.sources.first.location.lower|intcomma }} - {{ reo.sources.first.location.upper|add:"-1"|intcomma }}</span>
+                </td>
+                <td>{{ reo.effect_size }}</td>
+                <td>{{ reo.direction }}</td>
+                <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+                <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
+                <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
+            </tr>
+        {% endfor %}
+
             {% endif %}
                     </table>
                 </div>
@@ -823,6 +831,15 @@ HEADER -->
         this.value = originalValue;
     }, 10000);
 });
+
+    var rows = document.querySelectorAll('tr[data-href]');
+    var i = 0;
+    while (i < rows.length) {
+        rows[i].addEventListener('click', function() {
+            window.location.href = this.getAttribute('data-href');
+        });
+        i = i + 1;
+    }
 
 
 
