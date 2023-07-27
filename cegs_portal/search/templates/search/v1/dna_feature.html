@@ -246,6 +246,18 @@
         align-items: center;
     }
 
+    .source-file-name:hover {
+    overflow: visible;
+    white-space: normal;
+    background: #ffffff;
+    box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px 40px;
+    border-radius: 10px;
+    width: 550px;
+    position: absolute;
+    left: 500px;
+    }
+
 </style>
 
 {% endblock %} {% block javascript %} {{ block.super }}
@@ -555,6 +567,7 @@ HEADER -->
                             <th>Distance from {{ reo.sources.first.closest_gene_name }}</th>
                         {% endif %}
                         {% endfor %}
+                            <th>Sources</th>
                             <th>Experiment</th>
                         </tr>
             {% endif %}
@@ -568,10 +581,14 @@ HEADER -->
                 <td>{{ reo.direction }}</td>
                 <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
                 <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
+                <td>
+                    <div class="w-[100px]">
+                        <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.sources.first.source }}</p>
+                    </div>
+                </td>
                 <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
             </tr>
         {% endfor %}
-
             {% endif %}
                     </table>
                 </div>
@@ -840,8 +857,6 @@ HEADER -->
         });
         i = i + 1;
     }
-
-
 
 </script>
 
