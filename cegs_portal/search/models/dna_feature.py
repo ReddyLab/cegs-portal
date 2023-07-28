@@ -68,7 +68,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     # gene_type or transcript_type from gencodeannotation.attributes
     feature_subtype = models.CharField(max_length=50, null=True, blank=True)
 
-    source = models.ForeignKey(File, null=True, on_delete=models.SET_NULL, blank=True)
+    source_file = models.ForeignKey(File, null=True, on_delete=models.SET_NULL, blank=True)
 
     misc = models.JSONField(null=True, blank=True)  # exon number, for instance
 

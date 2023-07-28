@@ -103,11 +103,17 @@ def load_reg_effects(ceres_file, accession_ids, gene_name_map, analysis, ref_gen
             chrom_name = line["chr"]
             grna_start = int(line["start"])
             grna_end = int(line["end"])
-            grna_location = NumericRange(grna_start, grna_end, "[]")
+
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             try:
                 region = DNAFeature.objects.get(
-                    cell_line=cell_line,
+                    experiment_accession=experiment,
                     chrom_name=chrom_name,
                     location=grna_location,
                     strand=strand,
@@ -180,7 +186,7 @@ def gene_ensembl_mapping(features_file):
     return gene_name_map
 
 
-def unload_reg_effects(analysis_metadata):
+def unload_analysis(analysis_metadata):
     analysis = Analysis.objects.get(
         experiment_id=analysis_metadata.experiment_accession_id, name=analysis_metadata.name
     )
@@ -198,11 +204,11 @@ def run(analysis_filename, features_file):
         analysis_metadata = AnalysisMetadata.json_load(analysis_file)
     check_filename(analysis_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the analysis, all
+    # Only run unload_analysis if you want to delete the analysis, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(analysis_metadata)
+    # unload_analysis() uncommented is not, strictly, idempotent.
+    # unload_analysis(analysis_metadata)
 
     analysis = analysis_metadata.db_save()
 

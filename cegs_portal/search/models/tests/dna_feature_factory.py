@@ -37,7 +37,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     feature_type = random.choice(list(DNAFeatureType))
     feature_subtype = Faker("text", max_nb_chars=50)
     misc = {"other id": "id value"}
-    source = factory.SubFactory(FileFactory)
+    source_file = factory.SubFactory(FileFactory)
 
     # Be careful when creating a set of DNAFeatureFactory. The "parent" values should be explicit and
     # there should always be a DNAFeatureFactory(parent=None) for each stack of DNAFeatureFactories
