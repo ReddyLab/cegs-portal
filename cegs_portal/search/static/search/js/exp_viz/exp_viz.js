@@ -24,8 +24,9 @@ const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
 const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
 const STATE_ITEM_COUNTS = "state-item-counts";
 const STATE_SOURCE_TYPE = "state-source-type";
+const STATE_ANALYSIS = "state-analysis";
 
-function build_state(manifest, genomeRenderer, exprAccessionID, sourceType) {
+function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType) {
     let coverageData = manifest.chromosomes;
     let facets = manifest.facets;
     let default_facets = manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [];
@@ -56,17 +57,22 @@ function build_state(manifest, genomeRenderer, exprAccessionID, sourceType) {
         [STATE_SELECTED_EXPERIMENTS]: [exprAccessionID],
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
+        [STATE_ANALYSIS]: analysisAccessionID,
     });
 
     return state;
 }
 
-async function getCoverageData(staticRoot, exprAccessionID) {
+async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID) {
     let manifest;
     let genome;
     try {
-        manifest = await getJson(`${staticRoot}search/experiments/${exprAccessionID}/coverage_manifest.json`);
-        genome = await getJson(`${staticRoot}search/experiments/${exprAccessionID}/${manifest.genome.file}`);
+        manifest = await getJson(
+            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`
+        );
+        genome = await getJson(
+            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/${manifest.genome.file}`
+        );
     } catch (error) {
         throw new Error("Files necessary to load coverage not found");
     }
@@ -344,10 +350,10 @@ function getHighlightRegions(regionUploadInput, regionReader) {
     regionReader.readAsText(regionUploadInput.files[0]);
 }
 
-export async function exp_viz(staticRoot, exprAccessionID, csrfToken, sourceType, loggedIn) {
+export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, csrfToken, sourceType, loggedIn) {
     let genome, manifest;
     try {
-        [genome, manifest] = await getCoverageData(staticRoot, exprAccessionID);
+        [genome, manifest] = await getCoverageData(staticRoot, exprAccessionID, analysisAccessionID);
     } catch (error) {
         console.log(error);
         return;
@@ -358,7 +364,7 @@ export async function exp_viz(staticRoot, exprAccessionID, csrfToken, sourceType
 
     const genomeRenderer = new GenomeRenderer(genome);
 
-    let state = build_state(manifest, genomeRenderer, exprAccessionID, sourceType);
+    let state = build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType);
 
     render(state, genomeRenderer);
 
