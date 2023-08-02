@@ -336,109 +336,103 @@ function valueInterval(selector) {
 const levelCountInterval = valueInterval((d) => d.count);
 const sigInterval = valueInterval((d) => d.min_sig);
 
-function getLegendIntervalFunc(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
-        return levelCountInterval;
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return sigInterval;
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return valueInterval((d) => d.max_abs_effect);
-    }
-}
-function sourceLegendTitle(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
-        return `Number of ${state.g(STATE_SOURCE_TYPE)}s`;
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return `${state.g(STATE_SOURCE_TYPE)} Effect Significance`;
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return `${state.g(STATE_SOURCE_TYPE)} Effect Size`;
-    }
+function coverageTypeFunctions(count, sig, effect) {
+    return (state) => {
+        const coverage_type = state.g(STATE_COVERAGE_TYPE);
+        if (coverage_type == COVERAGE_TYPE_COUNT) {
+            return count;
+        } else if (coverage_type == COVERAGE_TYPE_SIG) {
+            return sig;
+        } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+            return effect;
+        }
+    };
 }
 
-function targetLegendTitle(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
-        return "Number of Genes Assayed";
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return "Significance of Effect on Assayed Genes";
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return "Size of Effect on Assayed Genes";
-    }
+function coverageTypeDeferredFunctions(count, sig, effect) {
+    return (state) => {
+        const coverage_type = state.g(STATE_COVERAGE_TYPE);
+        if (coverage_type == COVERAGE_TYPE_COUNT) {
+            return count(state);
+        } else if (coverage_type == COVERAGE_TYPE_SIG) {
+            return sig(state);
+        } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+            return effect(state);
+        }
+    };
 }
 
-function sourceRenderDataTransform(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
+let getLegendIntervalFunc = coverageTypeFunctions(
+    levelCountInterval,
+    sigInterval,
+    valueInterval((d) => d.max_abs_effect)
+);
+
+let sourceLegendTitle = coverageTypeDeferredFunctions(
+    (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
+    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Significance`,
+    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Size`
+);
+
+let targetLegendTitle = coverageTypeFunctions(
+    "Number of Genes Assayed",
+    "Significance of Effect on Assayed Genes",
+    "Size of Effect on Assayed Genes"
+);
+
+let sourceRenderDataTransform = coverageTypeDeferredFunctions(
+    (state) => {
         return (d) => {
-            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-            let sourceCountInterval = countIntervals.source;
+            let sourceCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).source;
             const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
             return (d.count - sourceCountInterval[0]) / sourceCountRange;
         };
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return (d) => d.min_sig / 0.05;
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return (d) => d.max_abs_effect;
-    }
-}
+    },
+    (state) => (d) => d.min_sig / 0.05,
+    (state) => (d) => d.max_abs_effect
+);
 
-function targetRenderDataTransform(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
+let targetRenderDataTransform = coverageTypeDeferredFunctions(
+    (state) => {
         return (d) => {
-            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-            let targetCountInterval = countIntervals.target;
+            let targetCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).target;
             const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
             return (d.count - targetCountInterval[0]) / targetCountRange;
         };
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return (d) => d.min_sig / 0.05;
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return (d) => d.max_abs_effect;
-    }
-}
+    },
+    (state) => (d) => d.min_sig / 0.05,
+    (state) => (d) => d.max_abs_effect
+);
 
-function sourceRenderColors(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
-        return {
-            color: d3.interpolateCool,
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-        };
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return {
-            color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
-        };
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return {
-            color: d3.interpolateCool,
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-        };
+let sourceRenderColors = coverageTypeFunctions(
+    {
+        color: d3.interpolateCool,
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+    },
+    {
+        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
+    },
+    {
+        color: d3.interpolateCool,
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
     }
-}
+);
 
-function targetRenderColors(state) {
-    const coverage_type = state.g(STATE_COVERAGE_TYPE);
-    if (coverage_type == COVERAGE_TYPE_COUNT) {
-        return {
-            color: d3.interpolateWarm,
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-        };
-    } else if (coverage_type == COVERAGE_TYPE_SIG) {
-        return {
-            color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
-        };
-    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-        return {
-            color: d3.interpolateWarm,
-            faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-        };
+let targetRenderColors = coverageTypeFunctions(
+    {
+        color: d3.interpolateWarm,
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+    },
+    {
+        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
+    },
+    {
+        color: d3.interpolateWarm,
+        faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
     }
-}
+);
 
 function setFacetControls(state, categoricalFacetControls, defaultFacets, facets) {
     cc(categoricalFacetControls);
@@ -471,8 +465,6 @@ function setLegendIntervals(state, coverageData) {
     let legendInterval = getLegendIntervalFunc(state);
     let sourceLegendInterval = legendInterval(coverageData, "source_intervals");
     let targetLegendInterval = legendInterval(coverageData, "target_intervals");
-    console.log(sourceLegendInterval);
-    console.log(targetLegendInterval);
     state.u(STATE_LEGEND_INTERVALS, {source: sourceLegendInterval, target: targetLegendInterval});
 }
 
