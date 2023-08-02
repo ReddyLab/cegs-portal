@@ -43,7 +43,16 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
     let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
-    let coverageSelector = g("covSelect");
+    let coverageSelectorValue = g("covSelect").value;
+    let legendIntervalFunc = sigInterval;
+
+    if (coverageSelectorValue == "count") {
+        legendIntervalFunc = levelCountInterval;
+    } else if (coverageSelectorValue == "sig") {
+        legendIntervalFunc = sigInterval;
+    } else if (coverageSelectorValue == "effect") {
+        legendIntervalFunc = effectInterval;
+    }
 
     let state = new State({
         [STATE_ZOOMED]: false,
@@ -65,10 +74,10 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
         [STATE_ANALYSIS]: analysisAccessionID,
-        [STATE_COVERAGE_TYPE]: coverageValue(coverageSelector.value),
+        [STATE_COVERAGE_TYPE]: coverageValue(coverageSelectorValue),
         [STATE_LEGEND_INTERVALS]: {
-            source: sigInterval(coverageData, "source_intervals"),
-            target: sigInterval(coverageData, "target_intervals"),
+            source: legendIntervalFunc(coverageData, "source_intervals"),
+            target: legendIntervalFunc(coverageData, "target_intervals"),
         },
     });
 
@@ -335,6 +344,7 @@ function valueInterval(selector) {
 
 const levelCountInterval = valueInterval((d) => d.count);
 const sigInterval = valueInterval((d) => d.min_sig);
+const effectInterval = valueInterval((d) => d.max_abs_effect);
 
 function coverageTypeFunctions(count, sig, effect) {
     return (state) => {
@@ -362,11 +372,7 @@ function coverageTypeDeferredFunctions(count, sig, effect) {
     };
 }
 
-let getLegendIntervalFunc = coverageTypeFunctions(
-    levelCountInterval,
-    sigInterval,
-    valueInterval((d) => d.max_abs_effect)
-);
+let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterval, effectInterval);
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
