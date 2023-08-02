@@ -390,24 +390,32 @@ let sourceRenderDataTransform = coverageTypeDeferredFunctions(
     (state) => {
         return (d) => {
             let sourceCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).source;
-            const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
+            let sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
             return (d.count - sourceCountInterval[0]) / sourceCountRange;
         };
     },
     (state) => (d) => d.min_sig / 0.05,
-    (state) => (d) => d.max_abs_effect
+    (state) => (d) => {
+        let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
+        let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
+        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
+    }
 );
 
 let targetRenderDataTransform = coverageTypeDeferredFunctions(
     (state) => {
         return (d) => {
             let targetCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).target;
-            const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
+            let targetCountRange = targetCountInterval[1] - targetCountInterval[0];
             return (d.count - targetCountInterval[0]) / targetCountRange;
         };
     },
     (state) => (d) => d.min_sig / 0.05,
-    (state) => (d) => d.max_abs_effect
+    (state) => (d) => {
+        let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
+        let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
+        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
+    }
 );
 
 let sourceRenderColors = coverageTypeFunctions(
