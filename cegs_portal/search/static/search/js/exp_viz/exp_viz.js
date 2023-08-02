@@ -43,6 +43,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
     let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
+    let coverageSelector = g("covSelect");
 
     let state = new State({
         [STATE_ZOOMED]: false,
@@ -64,7 +65,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
         [STATE_ANALYSIS]: analysisAccessionID,
-        [STATE_COVERAGE_TYPE]: COVERAGE_TYPE_SIG,
+        [STATE_COVERAGE_TYPE]: coverageValue(coverageSelector.value),
         [STATE_LEGEND_INTERVALS]: {
             source: sigInterval(coverageData, "source_intervals"),
             target: sigInterval(coverageData, "target_intervals"),
@@ -482,6 +483,16 @@ function getHighlightRegions(regionUploadInput, regionReader) {
     regionReader.readAsText(regionUploadInput.files[0]);
 }
 
+function coverageValue(selectedCoverageType) {
+    if (selectedCoverageType == "count") {
+        return COVERAGE_TYPE_COUNT;
+    } else if (selectedCoverageType == "sig") {
+        return COVERAGE_TYPE_SIG;
+    } else if (selectedCoverageType == "effect") {
+        return COVERAGE_TYPE_EFFECT;
+    }
+}
+
 export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, csrfToken, sourceType, loggedIn) {
     let genome, manifest;
     try {
@@ -711,13 +722,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         "change",
         () => {
             let selectedCoverageType = coverageSelector.value;
-            if (selectedCoverageType == "count") {
-                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_COUNT);
-            } else if (selectedCoverageType == "sig") {
-                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_SIG);
-            } else if (selectedCoverageType == "effect") {
-                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_EFFECT);
-            }
+            state.u(STATE_COVERAGE_TYPE, coverageValue(selectedCoverageType));
         },
         false
     );
