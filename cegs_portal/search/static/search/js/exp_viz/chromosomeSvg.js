@@ -41,18 +41,18 @@ export class Tooltip {
         this.node.appendChild(this._value);
     }
 
-    show(chromIdx, d, scaleX, scaleY, chromName, dataSelector, dataLabel) {
+    show(chromIdx, d, scaleX, scaleY, viewBox, chromName, dataSelector, dataLabel) {
         this.node.removeAttribute("display");
         let scale = 3;
         let minXPadding = 2; // minimum X padding
         // Don't let the left portion of the tooltip get cut off
         let xInset = Math.max(
-            (this.width * scale) / 2 + minXPadding,
+            viewBox[0] + (this.width * scale) / 2 + minXPadding,
             this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX
         );
 
         // Don't let the right portion of the tooltip get cut off
-        xInset = Math.min(xInset, this.renderContext.viewWidth - (this.width * scale) / 2 - minXPadding);
+        xInset = Math.min(xInset, viewBox[0] + viewBox[2] - (this.width * scale) / 2 - minXPadding);
 
         // Render above the chromosome
         let yInset =
@@ -62,7 +62,7 @@ export class Tooltip {
                 scaleY -
             this.height * scale -
             this.renderContext.chromDimensions.chromSpacing;
-        if (yInset < 0) {
+        if (yInset < viewBox[1]) {
             // Oops, that will cut off the top of the tooltip. Render below the chromosome
             yInset =
                 this.renderContext.yInset +
@@ -448,7 +448,16 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY, chromName, tooltipDataSelector, sourceTooltipDataLabel);
+                    this.tooltip.show(
+                        i,
+                        rect,
+                        scaleX,
+                        scaleY,
+                        viewBox,
+                        chromName,
+                        tooltipDataSelector,
+                        sourceTooltipDataLabel
+                    );
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
@@ -492,7 +501,16 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY, chromName, tooltipDataSelector, targetTooltipDataLabel);
+                    this.tooltip.show(
+                        i,
+                        rect,
+                        scaleX,
+                        scaleY,
+                        viewBox,
+                        chromName,
+                        tooltipDataSelector,
+                        targetTooltipDataLabel
+                    );
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
