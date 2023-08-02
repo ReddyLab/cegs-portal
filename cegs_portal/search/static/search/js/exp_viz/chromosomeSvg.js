@@ -17,10 +17,10 @@ const svgns = "http://www.w3.org/2000/svg";
 export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
-        this._count = document.createElementNS(svgns, "text");
-        this._count.setAttribute("y", "-32");
         this._range = document.createElementNS(svgns, "text");
-        this._range.setAttribute("y", "-20");
+        this._range.setAttribute("y", "-36");
+        this._count = document.createElementNS(svgns, "text");
+        this._count.setAttribute("y", "-18");
         this.node = document.createElementNS(svgns, "g");
         this.node.setAttribute("pointer-events", "none");
         this.node.setAttribute("display", "none");
@@ -28,17 +28,19 @@ export class Tooltip {
         this.node.setAttribute("font-size", "12");
         this.node.setAttribute("text-anchor", "middle");
         this._rect = document.createElementNS(svgns, "rect");
-        this._rect.setAttribute("x", "-85");
-        this._rect.setAttribute("width", "170");
+        this._rect.setAttribute("x", "-90");
+        this._rect.setAttribute("width", "180");
         this._rect.setAttribute("y", "-50");
         this._rect.setAttribute("height", "40");
         this._rect.setAttribute("fill", "white");
+        this._rect.setAttribute("rx", "5");
+        this._rect.setAttribute("stroke", "gray");
         this.node.appendChild(this._rect);
-        this.node.appendChild(this._count);
         this.node.appendChild(this._range);
+        this.node.appendChild(this._count);
     }
 
-    show(chomIdx, d, scaleX, scaleY) {
+    show(chomIdx, d, scaleX, scaleY, chromName) {
         this.node.removeAttribute("display");
         this.node.setAttribute(
             "transform",
@@ -47,10 +49,10 @@ export class Tooltip {
                 chomIdx *
                     (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
                     scaleY
-            }) scale(2)`
+            }) scale(3)`
         );
+        this._range.textContent = `chr${chromName}: ${d.start.toLocaleString()} - ${d.end.toLocaleString()}`;
         this._count.textContent = `Ct: ${d.count}`;
-        this._range.textContent = `Loc: (${d.start}, ${d.end})`;
     }
 
     hide() {
@@ -423,7 +425,7 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY);
+                    this.tooltip.show(i, rect, scaleX, scaleY, chromName);
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
@@ -467,7 +469,7 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY);
+                    this.tooltip.show(i, rect, scaleX, scaleY, chromName);
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
