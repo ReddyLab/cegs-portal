@@ -1,6 +1,6 @@
 [package]
 name = "exp_viz_extension"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 bincode = "1.3.3"
 cov_viz_ds = { git = "https://github.com/ReddyLab/cov_viz_ds", rev = "7197888d485d3b4aaa8de751a4578f0c2912115a" }
 # cov_viz_ds = { path = "../cov_viz_ds" }  # For working with a local copy during development
-exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "149e541bae476021144f3efcd289f70eb5e7267e" }
+exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "4adf777ae63cf34d6f9088bea4cfe3bfabda4b74" }
 # exp_viz = { path = "../../../exp_viz" }  # For working with a local copy during development
 pyo3 = { version = "0.17.1", features = ["extension-module"] }
 rustc-hash = "1.1.0"
