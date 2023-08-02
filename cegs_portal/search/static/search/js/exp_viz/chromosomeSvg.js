@@ -40,7 +40,7 @@ export class Tooltip {
         this.node.appendChild(this._count);
     }
 
-    show(chomIdx, d, scaleX, scaleY, chromName) {
+    show(chomIdx, d, scaleX, scaleY, chromName, dataSelector, dataLabel) {
         this.node.removeAttribute("display");
         this.node.setAttribute(
             "transform",
@@ -52,7 +52,7 @@ export class Tooltip {
             }) scale(3)`
         );
         this._range.textContent = `chr${chromName}: ${d.start.toLocaleString()} - ${d.end.toLocaleString()}`;
-        this._count.textContent = `Ct: ${d.count}`;
+        this._count.textContent = `${dataLabel}: ${dataSelector(d)}`;
     }
 
     hide() {
@@ -232,6 +232,9 @@ export class GenomeRenderer {
         targetRenderColors,
         sourceRenderDataTransform,
         targetRenderDataTransform,
+        tooltipDataSelector,
+        sourceTooltipDataLabel,
+        targetTooltipDataLabel,
         viewBox,
         scale,
         scaleX,
@@ -425,7 +428,7 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY, chromName);
+                    this.tooltip.show(i, rect, scaleX, scaleY, chromName, tooltipDataSelector, sourceTooltipDataLabel);
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
@@ -469,7 +472,7 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY, chromName);
+                    this.tooltip.show(i, rect, scaleX, scaleY, chromName, tooltipDataSelector, targetTooltipDataLabel);
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();

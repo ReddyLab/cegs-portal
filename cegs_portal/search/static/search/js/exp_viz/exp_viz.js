@@ -124,6 +124,9 @@ function render(state, genomeRenderer) {
             targetColors,
             sourceRenderDataTransform(state),
             targetRenderDataTransform(state),
+            tooltipDataSelectors(state),
+            sourceTooltipDataLabel(state),
+            targetTooltipDataLabel(state),
             viewBox,
             scale,
             scaleX,
@@ -373,6 +376,21 @@ function coverageTypeDeferredFunctions(count, sig, effect) {
 }
 
 let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterval, effectInterval);
+
+let tooltipDataSelectors = coverageTypeFunctions(
+    (d) => d.count,
+    (d) => d.min_sig,
+    (d) => d.max_abs_effect
+);
+
+let sourceTooltipDataLabel = coverageTypeDeferredFunctions(
+    (state) => {
+        return `${state.g(STATE_SOURCE_TYPE)} Count`;
+    },
+    (state) => "Significance",
+    (state) => "Effect Size"
+);
+let targetTooltipDataLabel = coverageTypeFunctions("Gene Count", "Significance", "Effect Size");
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
