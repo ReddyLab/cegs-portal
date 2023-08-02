@@ -12,10 +12,6 @@ const bandColors = {
     stalk: "#708090",
 };
 
-export const sourceColors = d3.interpolateCool;
-const fadedSourceColors = d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95));
-export const targetColors = d3.interpolateWarm;
-const fadedTargetColors = d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95));
 const svgns = "http://www.w3.org/2000/svg";
 
 export class Tooltip {
@@ -230,8 +226,10 @@ export class GenomeRenderer {
     render(
         coverageData,
         focusIndex,
-        sourceCountInterval,
-        targetCountInterval,
+        sourceRenderColors,
+        targetRenderColors,
+        sourceRenderDataTransform,
+        targetRenderDataTransform,
         viewBox,
         scale,
         scaleX,
@@ -239,8 +237,6 @@ export class GenomeRenderer {
         highlightRegions
     ) {
         const bucketHeight = 44 * scaleY;
-        const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
-        const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
         const scales = {scale, scaleX, scaleY};
 
         const svg = d3
@@ -313,11 +309,11 @@ export class GenomeRenderer {
                 .join("rect")
                 .attr("fill", (source) => {
                     if (Object.keys(highlightRegions).length == 0) {
-                        return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.color(sourceRenderDataTransform(source));
                     }
 
                     if (r == undefined) {
-                        return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.faded(sourceRenderDataTransform(source));
                     }
 
                     if (
@@ -327,9 +323,9 @@ export class GenomeRenderer {
                                 (region[1] >= source.start && region[1] < source.start + bucketSize)
                         )
                     ) {
-                        return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.color(sourceRenderDataTransform(source));
                     } else {
-                        return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.faded(sourceRenderDataTransform(source));
                     }
                 })
                 .attr("x", (source) => this.renderContext.xInset + this.renderContext.toPx(source.start) * scaleX)
@@ -351,11 +347,11 @@ export class GenomeRenderer {
                 .join("rect")
                 .attr("fill", (target) => {
                     if (Object.keys(highlightRegions).length == 0) {
-                        return targetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.color(targetRenderDataTransform(target));
                     }
 
                     if (r == undefined) {
-                        return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.faded(targetRenderDataTransform(target));
                     }
 
                     if (
@@ -365,9 +361,9 @@ export class GenomeRenderer {
                                 (region[1] >= target.start && region[1] < target.start + bucketSize)
                         )
                     ) {
-                        return targetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.color(targetRenderDataTransform(target));
                     } else {
-                        return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.faded(targetRenderDataTransform(target));
                     }
                 })
                 .attr("x", (target) => this.renderContext.xInset + this.renderContext.toPx(target.start) * scaleX)

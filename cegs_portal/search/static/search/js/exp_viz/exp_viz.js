@@ -3,7 +3,7 @@ import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
 import {Legend} from "./obsLegend.js";
-import {sourceColors, targetColors, GenomeRenderer} from "./chromosomeSvg.js";
+import {GenomeRenderer} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 
 const STATE_ZOOMED = "state-zoomed";
@@ -25,6 +25,12 @@ const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
 const STATE_ITEM_COUNTS = "state-item-counts";
 const STATE_SOURCE_TYPE = "state-source-type";
 const STATE_ANALYSIS = "state-analysis";
+const STATE_COVERAGE_TYPE = "state-coverage-type";
+const STATE_LEGEND_INTERVALS = "state-legend-intervals";
+
+const COVERAGE_TYPE_COUNT = "coverage-type-count";
+const COVERAGE_TYPE_SIG = "coverage-type-sig";
+const COVERAGE_TYPE_EFFECT = "coverage-type-effect";
 
 function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType) {
     let coverageData = manifest.chromosomes;
@@ -35,8 +41,8 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
     let targetCount = manifest.target_count;
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
-    let effectSizeInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigInterval = facets.filter((f) => f.name === "Significance")[0].range;
+    let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
+    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
 
     let state = new State({
         [STATE_ZOOMED]: false,
@@ -49,8 +55,8 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
         [STATE_COVERAGE_DATA]: coverageData,
         [STATE_ALL_FILTERED]: coverageData,
-        [STATE_NUMERIC_FILTER_INTERVALS]: {effect: effectSizeInterval, sig: sigInterval},
-        [STATE_NUMERIC_FACET_VALUES]: [effectSizeInterval, sigInterval],
+        [STATE_NUMERIC_FILTER_INTERVALS]: {effect: effectSizeFilterInterval, sig: sigFilterInterval},
+        [STATE_NUMERIC_FACET_VALUES]: [effectSizeFilterInterval, sigFilterInterval],
         [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
         [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
         [STATE_HIGHLIGHT_REGIONS]: {},
@@ -58,6 +64,11 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
         [STATE_ANALYSIS]: analysisAccessionID,
+        [STATE_COVERAGE_TYPE]: COVERAGE_TYPE_SIG,
+        [STATE_LEGEND_INTERVALS]: {
+            source: sigInterval(coverageData, "source_intervals"),
+            target: sigInterval(coverageData, "target_intervals"),
+        },
     });
 
     return state;
@@ -88,18 +99,21 @@ function render(state, genomeRenderer) {
     const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
     let currentLevel = state.g(STATE_ALL_FILTERED);
     let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-    let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-    let sourceCountInterval = countIntervals.source;
-    let targetCountInterval = countIntervals.target;
     let itemCounts = state.g(STATE_ITEM_COUNTS);
+    let legendIntervals = state.g(STATE_LEGEND_INTERVALS);
+
+    let sourceColors = sourceRenderColors(state);
+    let targetColors = targetRenderColors(state);
 
     rc(
         g("chrom-data"),
         genomeRenderer.render(
             currentLevel,
             focusIndex,
-            sourceCountInterval,
-            targetCountInterval,
+            sourceColors,
+            targetColors,
+            sourceRenderDataTransform(state),
+            targetRenderDataTransform(state),
             viewBox,
             scale,
             scaleX,
@@ -109,14 +123,14 @@ function render(state, genomeRenderer) {
     );
     rc(
         g("chrom-data-legend"),
-        Legend(d3.scaleSequential(sourceCountInterval, sourceColors), {
-            title: `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
+        Legend(d3.scaleSequential(legendIntervals.source, sourceColors.color), {
+            title: sourceLegendTitle(state),
         })
     );
     a(
         g("chrom-data-legend"),
-        Legend(d3.scaleSequential(targetCountInterval, targetColors), {
-            title: "Number of Genes Assayed",
+        Legend(d3.scaleSequential(legendIntervals.target, targetColors.color), {
+            title: targetLegendTitle(state),
         })
     );
     rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
@@ -297,23 +311,132 @@ function experimentsQuery(state) {
     return selectedExperiments.map((e) => `exp=${e}`).join("&");
 }
 
-function levelCountInterval(chroms, interval, chromoIndex) {
-    if (chromoIndex) {
-        chroms = [chroms[chromoIndex]];
-    }
-    let max = Number.NEGATIVE_INFINITY;
-    let min = Number.POSITIVE_INFINITY;
-    for (const chrom of chroms) {
-        const count = chrom[interval].map((d) => d.count);
-        max = Math.max(max, Math.max(...count));
-        min = Math.min(min, Math.min(...count));
-    }
+function valueInterval(selector) {
+    return (chroms, interval, chromoIndex) => {
+        if (chromoIndex) {
+            chroms = [chroms[chromoIndex]];
+        }
+        let max = Number.NEGATIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
+        for (const chrom of chroms) {
+            const values = chrom[interval].map(selector);
+            max = Math.max(max, Math.max(...values));
+            min = Math.min(min, Math.min(...values));
+        }
 
-    if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
-        return [0, 0];
-    }
+        if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
+            return [0, 0];
+        }
 
-    return [min, max];
+        return [min, max];
+    };
+}
+
+const levelCountInterval = valueInterval((d) => d.count);
+const sigInterval = valueInterval((d) => d.min_sig);
+
+function getLegendIntervalFunc(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return levelCountInterval;
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return sigInterval;
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return valueInterval((d) => d.max_abs_effect);
+    }
+}
+function sourceLegendTitle(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return `Number of ${state.g(STATE_SOURCE_TYPE)}s`;
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return `${state.g(STATE_SOURCE_TYPE)} Effect Significance`;
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return `${state.g(STATE_SOURCE_TYPE)} Effect Size`;
+    }
+}
+
+function targetLegendTitle(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return "Number of Genes Assayed";
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return "Significance of Effect on Assayed Genes";
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return "Size of Effect on Assayed Genes";
+    }
+}
+
+function sourceRenderDataTransform(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return (d) => {
+            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
+            let sourceCountInterval = countIntervals.source;
+            const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
+            return (d.count - sourceCountInterval[0]) / sourceCountRange;
+        };
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return (d) => d.min_sig / 0.05;
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return (d) => d.max_abs_effect;
+    }
+}
+
+function targetRenderDataTransform(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return (d) => {
+            let countIntervals = state.g(STATE_COUNT_FILTER_INTERVALS);
+            let targetCountInterval = countIntervals.target;
+            const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
+            return (d.count - targetCountInterval[0]) / targetCountRange;
+        };
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return (d) => d.min_sig / 0.05;
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return (d) => d.max_abs_effect;
+    }
+}
+
+function sourceRenderColors(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return {
+            color: d3.interpolateCool,
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+        };
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return {
+            color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
+        };
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return {
+            color: d3.interpolateCool,
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+        };
+    }
+}
+
+function targetRenderColors(state) {
+    const coverage_type = state.g(STATE_COVERAGE_TYPE);
+    if (coverage_type == COVERAGE_TYPE_COUNT) {
+        return {
+            color: d3.interpolateWarm,
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+        };
+    } else if (coverage_type == COVERAGE_TYPE_SIG) {
+        return {
+            color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
+        };
+    } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
+        return {
+            color: d3.interpolateWarm,
+            faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
+        };
+    }
 }
 
 function setFacetControls(state, categoricalFacetControls, defaultFacets, facets) {
@@ -331,9 +454,9 @@ function setFacetControls(state, categoricalFacetControls, defaultFacets, facets
         });
     });
 
-    let effectSizeInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigInterval = facets.filter((f) => f.name === "Significance")[0].range;
-    state.u(STATE_NUMERIC_FILTER_INTERVALS, {effect: effectSizeInterval, sig: sigInterval});
+    let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
+    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
+    state.u(STATE_NUMERIC_FILTER_INTERVALS, {effect: effectSizeFilterInterval, sig: sigFilterInterval});
 }
 
 function setCountControls(state, coverageData) {
@@ -341,6 +464,15 @@ function setCountControls(state, coverageData) {
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
     state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
+}
+
+function setLegendIntervals(state, coverageData) {
+    let legendInterval = getLegendIntervalFunc(state);
+    let sourceLegendInterval = legendInterval(coverageData, "source_intervals");
+    let targetLegendInterval = legendInterval(coverageData, "target_intervals");
+    console.log(sourceLegendInterval);
+    console.log(targetLegendInterval);
+    state.u(STATE_LEGEND_INTERVALS, {source: sourceLegendInterval, target: targetLegendInterval});
 }
 
 function getHighlightRegions(regionUploadInput, regionReader) {
@@ -517,6 +649,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
 
     state.ac(STATE_COVERAGE_DATA, (s, key) => {
         setCountControls(state, s[key]);
+        setLegendIntervals(state, s[key]);
     });
 
     //
@@ -569,4 +702,28 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             false
         );
     }
+
+    //
+    // Coverage Type Selector
+    //
+    let coverageSelector = g("covSelect");
+    coverageSelector.addEventListener(
+        "change",
+        () => {
+            let selectedCoverageType = coverageSelector.value;
+            if (selectedCoverageType == "count") {
+                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_COUNT);
+            } else if (selectedCoverageType == "sig") {
+                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_SIG);
+            } else if (selectedCoverageType == "effect") {
+                state.u(STATE_COVERAGE_TYPE, COVERAGE_TYPE_EFFECT);
+            }
+        },
+        false
+    );
+
+    state.ac(STATE_COVERAGE_TYPE, (s, key) => {
+        setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
+        render(state, genomeRenderer);
+    });
 }

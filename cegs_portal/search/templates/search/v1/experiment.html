@@ -59,6 +59,11 @@
         margin-right: 10px;
     }
 
+    select {
+        font-size: 0.9rem;
+        padding: 5px 5px;
+    }
+
 </style>
 {% endblock %} {% block javascript %} {{ block.super }}
 <script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
@@ -233,8 +238,19 @@
                 <div class="flex flex-row gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
                     <div class="flex flex-col">
-                        <div id="reo-count"></div> <div id="source-count"></div> <div id="target-count"></div></div>
+                        <div id="reo-count"></div>
+                        <div id="source-count"></div>
+                        <div id="target-count"></div>
                     </div>
+                    <div>
+                        <label for="covSelect">Choose a Coverage View:</label>
+                        <select name="views" id="covSelect">
+                            <option value="count">Count</option>
+                            <option value="sig">Significance</option>
+                            <option value="effect">Effect Size</option>
+                        </select>
+                    </div>
+                </div>
                 <div id="chrom-data"></div>
             </div>
         </div>
