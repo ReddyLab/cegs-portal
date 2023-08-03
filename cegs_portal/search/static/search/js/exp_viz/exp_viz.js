@@ -184,11 +184,14 @@ function numericFilterControls(state, facets) {
         let sliderNode = sliderNodes[i];
 
         let range;
+        let sliderLabel;
 
         if (facet.name === "Effect Size") {
             range = intervals.effect;
+            sliderLabel = facet.name;
         } else if (facet.name === "Significance") {
-            range = intervals.sig;
+            range = [intervals.sig[0], intervals.sig[1]];
+            sliderLabel = "Significance (-log10)";
         } else {
             continue;
         }
@@ -222,7 +225,7 @@ function numericFilterControls(state, facets) {
             sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
         });
 
-        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", facet.name), sliderNode]));
+        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", sliderLabel), sliderNode]));
     }
 
     sliderNodes.forEach((sliderNode) => {
@@ -346,7 +349,7 @@ function valueInterval(selector) {
 }
 
 const levelCountInterval = valueInterval((d) => d.count);
-const sigInterval = valueInterval((d) => d.min_sig);
+const sigInterval = valueInterval((d) => d.max_log10_sig);
 const effectInterval = valueInterval((d) => d.max_abs_effect);
 
 function coverageTypeFunctions(count, sig, effect) {
@@ -379,7 +382,7 @@ let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterva
 
 let tooltipDataSelectors = coverageTypeFunctions(
     (d) => d.count,
-    (d) => d.min_sig,
+    (d) => d.max_log10_sig,
     (d) => d.max_abs_effect
 );
 
@@ -412,7 +415,11 @@ let sourceRenderDataTransform = coverageTypeDeferredFunctions(
             return (d.count - sourceCountInterval[0]) / sourceCountRange;
         };
     },
-    (state) => (d) => d.min_sig / 0.05,
+    (state) => (d) => {
+        let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
+        let significanceRange = significanceInterval[1] - significanceInterval[0];
+        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
+    },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
@@ -428,7 +435,11 @@ let targetRenderDataTransform = coverageTypeDeferredFunctions(
             return (d.count - targetCountInterval[0]) / targetCountRange;
         };
     },
-    (state) => (d) => d.min_sig / 0.05,
+    (state) => (d) => {
+        let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
+        let significanceRange = significanceInterval[1] - significanceInterval[0];
+        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
+    },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];

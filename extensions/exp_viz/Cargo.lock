@@ -41,8 +41,8 @@ dependencies = [
 
 [[package]]
 name = "exp_viz"
-version = "0.1.7"
-source = "git+https://github.com/ReddyLab/exp_viz?rev=4adf777ae63cf34d6f9088bea4cfe3bfabda4b74#4adf777ae63cf34d6f9088bea4cfe3bfabda4b74"
+version = "0.1.8"
+source = "git+https://github.com/ReddyLab/exp_viz?rev=3662314ae197187cb792da3c7c0ff8a73e214c87#3662314ae197187cb792da3c7c0ff8a73e214c87"
 dependencies = [
  "bincode",
  "cov_viz_ds",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "exp_viz_extension"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "bincode",
  "cov_viz_ds",
