@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 bincode = "1.3.3"
 cov_viz_ds = { git = "https://github.com/ReddyLab/cov_viz_ds", rev = "7197888d485d3b4aaa8de751a4578f0c2912115a" }
 # cov_viz_ds = { path = "../cov_viz_ds" }  # For working with a local copy during development
-exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "3662314ae197187cb792da3c7c0ff8a73e214c87" }
+exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "86b8fc0b5015e06fb89b1e462f69c7c263d75103" }
 # exp_viz = { path = "../../../exp_viz" }                        # For working with a local copy during development
 pyo3 = { version = "0.17.1", features = ["extension-module"] }
 rustc-hash = "1.1.0"
