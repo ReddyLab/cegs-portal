@@ -18,11 +18,15 @@ export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
         this.width = 180;
-        this.height = 40;
+        this.height = 75;
         this._range = document.createElementNS(svgns, "text");
         this._range.setAttribute("y", "14");
-        this._value = document.createElementNS(svgns, "text");
-        this._value.setAttribute("y", "32");
+        this._count_value = document.createElementNS(svgns, "text");
+        this._count_value.setAttribute("y", "32");
+        this._sig_value = document.createElementNS(svgns, "text");
+        this._sig_value.setAttribute("y", "50");
+        this._effect_value = document.createElementNS(svgns, "text");
+        this._effect_value.setAttribute("y", "68");
         this.node = document.createElementNS(svgns, "g");
         this.node.setAttribute("pointer-events", "none");
         this.node.setAttribute("display", "none");
@@ -38,10 +42,12 @@ export class Tooltip {
         this._rect.setAttribute("stroke", "gray");
         this.node.appendChild(this._rect);
         this.node.appendChild(this._range);
-        this.node.appendChild(this._value);
+        this.node.appendChild(this._count_value);
+        this.node.appendChild(this._sig_value);
+        this.node.appendChild(this._effect_value);
     }
 
-    show(chromIdx, d, scaleX, scaleY, viewBox, chromName, dataSelector, dataLabel) {
+    show(chromIdx, d, scaleX, scaleY, viewBox, chromName, dataSelectors, dataLabels) {
         this.node.removeAttribute("display");
         let scale = 3;
         let minXPadding = 2; // minimum X padding
@@ -72,7 +78,9 @@ export class Tooltip {
         }
         this.node.setAttribute("transform", `translate(${xInset}, ${yInset}) scale(${scale})`);
         this._range.textContent = `chr${chromName}: ${d.start.toLocaleString()} - ${d.end.toLocaleString()}`;
-        this._value.textContent = `${dataLabel}: ${dataSelector(d)}`;
+        this._count_value.textContent = `${dataLabels[0]}: ${dataSelectors[0](d)}`;
+        this._sig_value.textContent = `${dataLabels[1]}: ${dataSelectors[1](d)}`;
+        this._effect_value.textContent = `${dataLabels[2]}: ${dataSelectors[2](d)}`;
     }
 
     hide() {
