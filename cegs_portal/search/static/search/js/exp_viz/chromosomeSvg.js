@@ -17,28 +17,28 @@ const svgns = "http://www.w3.org/2000/svg";
 export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
-        this.width = 180;
-        this.height = 75;
+        this.width = 540;
+        this.height = 225;
         this._range = document.createElementNS(svgns, "text");
-        this._range.setAttribute("y", "14");
+        this._range.setAttribute("y", "42");
         this._count_value = document.createElementNS(svgns, "text");
-        this._count_value.setAttribute("y", "32");
+        this._count_value.setAttribute("y", "96");
         this._sig_value = document.createElementNS(svgns, "text");
-        this._sig_value.setAttribute("y", "50");
+        this._sig_value.setAttribute("y", "150");
         this._effect_value = document.createElementNS(svgns, "text");
-        this._effect_value.setAttribute("y", "68");
+        this._effect_value.setAttribute("y", "204");
         this.node = document.createElementNS(svgns, "g");
         this.node.setAttribute("pointer-events", "none");
         this.node.setAttribute("display", "none");
         this.node.setAttribute("font-family", "sans-serif");
-        this.node.setAttribute("font-size", "12");
+        this.node.setAttribute("font-size", "36");
         this.node.setAttribute("text-anchor", "middle");
         this._rect = document.createElementNS(svgns, "rect");
         this._rect.setAttribute("x", `-${this.width / 2}`);
         this._rect.setAttribute("width", `${this.width}`);
         this._rect.setAttribute("height", `${this.height}`);
         this._rect.setAttribute("fill", "white");
-        this._rect.setAttribute("rx", "5");
+        this._rect.setAttribute("rx", "15");
         this._rect.setAttribute("stroke", "gray");
         this.node.appendChild(this._rect);
         this.node.appendChild(this._range);
@@ -49,16 +49,15 @@ export class Tooltip {
 
     show(chromIdx, d, scaleX, scaleY, viewBox, chromName, dataSelectors, dataLabels) {
         this.node.removeAttribute("display");
-        let scale = 3;
         let minXPadding = 2; // minimum X padding
         // Don't let the left portion of the tooltip get cut off
         let xInset = Math.max(
-            viewBox[0] + (this.width * scale) / 2 + minXPadding,
+            viewBox[0] + this.width / 2 + minXPadding,
             this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX
         );
 
         // Don't let the right portion of the tooltip get cut off
-        xInset = Math.min(xInset, viewBox[0] + viewBox[2] - (this.width * scale) / 2 - minXPadding);
+        xInset = Math.min(xInset, viewBox[0] + viewBox[2] - this.width / 2 - minXPadding);
 
         // Render above the chromosome
         let yInset =
@@ -66,7 +65,7 @@ export class Tooltip {
             chromIdx *
                 (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
                 scaleY -
-            this.height * scale -
+            this.height -
             this.renderContext.chromDimensions.chromSpacing;
         if (yInset < viewBox[1]) {
             // Oops, that will cut off the top of the tooltip. Render below the chromosome
@@ -76,7 +75,7 @@ export class Tooltip {
                     (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
                     scaleY;
         }
-        this.node.setAttribute("transform", `translate(${xInset}, ${yInset}) scale(${scale})`);
+        this.node.setAttribute("transform", `translate(${xInset}, ${yInset})`);
         this._range.textContent = `chr${chromName}: ${d.start.toLocaleString()} - ${d.end.toLocaleString()}`;
         this._count_value.textContent = `${dataLabels[0]}: ${dataSelectors[0](d)}`;
         this._sig_value.textContent = `${dataLabels[1]}: ${dataSelectors[1](d)}`;
