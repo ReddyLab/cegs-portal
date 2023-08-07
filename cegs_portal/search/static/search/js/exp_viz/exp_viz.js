@@ -42,7 +42,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
+    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range64;
     let coverageSelectorValue = g("covSelect").value;
     let legendIntervalFunc = sigInterval;
 
@@ -485,7 +485,7 @@ function setFacetControls(state, categoricalFacetControls, defaultFacets, facets
     });
 
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range;
+    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range64;
     state.u(STATE_NUMERIC_FILTER_INTERVALS, {effect: effectSizeFilterInterval, sig: sigFilterInterval});
 }
 
