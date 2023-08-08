@@ -245,9 +245,9 @@
                     <div>
                         <label for="covSelect">Choose a Coverage View:</label>
                         <select name="views" id="covSelect">
-                            <option value="count">Count</option>
-                            <option value="sig">Significance</option>
-                            <option value="effect">Effect Size</option>
+                            <option value="sig">Largest Significance</option>
+                            <option value="effect">Greatest Effect Size</option>
+                            <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
                         </select>
                     </div>
                 </div>

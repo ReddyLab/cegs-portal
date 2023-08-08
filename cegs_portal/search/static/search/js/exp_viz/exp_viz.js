@@ -399,9 +399,9 @@ let tooltipDataSelectors = [
 ];
 
 function sourceTooltipDataLabel(state) {
-    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Greatest Significance", "Largets Effect Size"];
+    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Greatest Effect Size"];
 }
-let targetTooltipDataLabel = ["Gene Count", "Greatest Significance", "Largest Effect Size"];
+let targetTooltipDataLabel = ["Gene Count", "Largest Significance", "Greatest Effect Size"];
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
