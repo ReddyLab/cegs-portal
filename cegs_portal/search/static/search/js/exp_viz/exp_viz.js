@@ -380,12 +380,28 @@ function coverageTypeDeferredFunctions(count, sig, effect) {
 
 let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterval, effectInterval);
 
-let tooltipDataSelectors = [(d) => d.count, (d) => d.max_log10_sig, (d) => d.max_abs_effect];
+let tooltipDataSelectors = [
+    (d) => d.count,
+    (d) => {
+        if (d.max_log10_sig > 0.0001) {
+            return d.max_log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
+        } else {
+            return d.max_log10_sig.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
+        }
+    },
+    (d) => {
+        if (Math.abs(d.max_abs_effect) > 0.000001) {
+            return d.max_abs_effect.toFixed(3); // e.g., 12.34567890 -> 12.345
+        } else {
+            return d.max_abs_effect.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
+        }
+    },
+];
 
 function sourceTooltipDataLabel(state) {
-    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Significance", "Effect Size"];
+    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Greatest Significance", "Largets Effect Size"];
 }
-let targetTooltipDataLabel = ["Gene Count", "Significance", "Effect Size"];
+let targetTooltipDataLabel = ["Gene Count", "Greatest Significance", "Largest Effect Size"];
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
