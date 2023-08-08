@@ -383,14 +383,14 @@ let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterva
 let tooltipDataSelectors = [
     (d) => d.count,
     (d) => {
-        if (d.max_log10_sig > 0.0001) {
+        if (d.max_log10_sig >= 0.001) {
             return d.max_log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
         } else {
             return d.max_log10_sig.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
         }
     },
     (d) => {
-        if (Math.abs(d.max_abs_effect) > 0.000001) {
+        if (Math.abs(d.max_abs_effect) >= 0.001) {
             return d.max_abs_effect.toFixed(3); // e.g., 12.34567890 -> 12.345
         } else {
             return d.max_abs_effect.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
