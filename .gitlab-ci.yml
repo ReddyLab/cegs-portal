@@ -81,12 +81,6 @@ pytest-test:
   only:
     - main
 
-pytest-prod:
-  extends: .pytest
-  image: ${CI_REGISTRY_IMAGE}:prod
-  only:
-    - production
-
 pytest-qa:
   extends: .pytest
   image: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
