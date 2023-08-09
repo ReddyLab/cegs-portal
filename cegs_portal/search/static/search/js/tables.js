@@ -134,6 +134,37 @@ function reTargetTable(regeffects, regionID = "regeffect") {
     return tableContainer;
 }
 
+function reoNonTargetTable(regeffects, regionID = "regeffect") {
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
+        e("tr", [
+            e("th", "Location"),
+            e("th", "Effect Size"),
+            e("th", "Direction"),
+            e("th", "Significance"),
+            e("th", "Experiment"),
+            e("th", "Source"),
+        ]),
+    ]);
+    for (let effect of regeffects) {
+        if (effect.source_ids == 0) {
+            effect.source_ids = [null];
+        }
+        for (const source of effect.source_ids) {
+            newTable.append(
+                e("tr", [
+                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
+                    e("td", `${effect.effect_size.toExponential(3)}`),
+                    e("td", `${effect.direction}`),
+                    e("td", `${effect.significance.toExponential(3)}`),
+
+                ])
+            );
+        }
+    }
+    let tableContainer = e("div", {}, [newTable]);
+    return tableContainer;
+}
+
 function sigReoTable(reos, regionID = "sig-reg-effects") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
@@ -279,5 +310,6 @@ export {
     emptyRETable,
     reTable,
     reTargetTable,
+    reoNonTargetTable,
     sigReoTable,
 };

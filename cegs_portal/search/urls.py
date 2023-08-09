@@ -54,5 +54,6 @@ urlpatterns = [
     ),
     re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
     re_path(r"v1/regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.TargetEffectsView.as_view()),
+    re_path(r"v1/regeffect/nontarget/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.NonTargetRegEffectsView.as_view()),
     re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))

@@ -105,7 +105,7 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
-        sig_only = request.GET.get("sig_only", True)
+        sig_only = request.GET.get("sig _only", True)
         options["sig_only"] = get_sig_only(sig_only)
 
         return options

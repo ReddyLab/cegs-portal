@@ -774,7 +774,7 @@ HEADER -->
 <script type="module">
     import { g } from "{% static 'search/js/dom.js' %}";
     import { featureTable } from "{% static 'search/js/tables.js' %}"
-    import { dataPages, reTable, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
+    import { dataPages, reTable, reTargetTable, emptyRETable, reoNonTargetTable, pageLink } from "{% static 'search/js/tables.js' %}"
 
     let assemblies = [
         {% for feature in features %}
@@ -813,6 +813,10 @@ HEADER -->
 
     let targetOfURL = function(accessionID) {
         return `/search/regeffect/target/${accessionID}?accept=application/json`;
+    };
+
+    let nonTargetOfURL = function(accessionID) {
+        return `/search/regeffect/nontarget/${accessionID}?accept=application/json`;
     };
 
     let __genDataPages = function(accessionID, page, prefix, urlGen, tableGen) {

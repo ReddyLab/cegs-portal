@@ -65,8 +65,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         options["feature_properties"] = request.GET.getlist("property", [])
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
-        options["page"] = int(request.GET.get("page", 1))
-        options["per_page"] = int(request.GET.get("per_page", 2))
         return options
 
     def get(self, request, options, data, id_type, feature_id):
@@ -91,9 +89,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             reos = DNAFeatureSearch.non_targeting_reo_search(feature, options.get("sig_only"))
             if reos.exists():
                 non_targeting_reos.extend(list(reos))
-
-        non_targeting_paginator = Paginator(non_targeting_reos, options["per_page"])
-        non_targeting_reos = non_targeting_paginator.get_page(options["page"])
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
