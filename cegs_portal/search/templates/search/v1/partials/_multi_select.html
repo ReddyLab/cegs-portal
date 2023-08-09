@@ -1,0 +1,6 @@
+<label for="{{ select_data.id }}" class="font-bold">{{ label }}</label>
+<select id="{{ select_data.id }}" multiple>
+  {% for option in select_data.options %}
+  <option value="{{ option.value }}">{{ option.text }}</option>
+  {% endfor %}
+</select>

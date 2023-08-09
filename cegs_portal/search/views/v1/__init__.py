@@ -1,5 +1,5 @@
-from .dna_regions import DNARegion, DNARegionLoc
-from .experiment import ExperimentView
-from .features import Feature, FeatureEnsembl, FeatureLoc
-from .reg_effects import RegEffectView
+from .dna_features import DNAFeatureId, DNAFeatureLoc
+from .experiment import ExperimentListView, ExperimentView
+from .experiment_coverage import ExperimentCoverageView
+from .reg_effects import RegEffectView, SourceEffectsView, TargetEffectsView
 from .search import SearchView

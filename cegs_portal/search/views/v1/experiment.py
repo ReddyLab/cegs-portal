@@ -1,31 +1,121 @@
 from django.http import Http404
 
-from cegs_portal.search.json_templates.v1.experiment import experiment
+from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import (
+    ExperimentAccessMixin,
+    TemplateJsonView,
+)
 
 
-class ExperimentView(TemplateJsonView):
+class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = experiment
     template = "search/v1/experiment.html"
-    template_data_name = "experiment"
+
+    def get_experiment_accession_id(self):
+        return self.kwargs["exp_id"]
+
+    def is_public(self):
+        try:
+            return ExperimentSearch.is_public(self.kwargs["exp_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return ExperimentSearch.is_archived(self.kwargs["exp_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def get(self, request, options, data, exp_id):
+        return super().get(
+            request,
+            options,
+            {
+                "logged_in": not request.user.is_anonymous,
+                "experiment": data[0],
+                "other_experiments": {
+                    "id": "other_experiments",
+                    "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
+                },
+            },
+        )
+
+    def get_json(self, request, options, data, exp_id):
+        return super().get_json(request, options, data[0])
 
     def get_data(self, options, exp_id):
-        experi = ExperimentSearch.id_search(exp_id)
+        experi = ExperimentSearch.accession_search(exp_id)
+        other_experiments = ExperimentSearch.all_except(exp_id)
 
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
 
-        experi_cell_lines = set()
-        experi_tissue_types = set()
         experi_assemblies = set()
         for f in experi.data_files.all():
-            experi_cell_lines.update(f.cell_lines.all())
-            experi_tissue_types.update(f.tissue_types.all())
             experi_assemblies.add(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
+
+        experi_cell_lines = set()
+        experi_tissue_types = set()
+        for bios in experi.biosamples.all():
+            experi_cell_lines.add(bios.cell_line_name)
+            experi_tissue_types.add(bios.cell_line.tissue_type_name)
 
         setattr(experi, "cell_lines", experi_cell_lines)
         setattr(experi, "tissue_types", experi_tissue_types)
         setattr(experi, "assemblies", experi_assemblies)
 
-        return experi
+        return experi, other_experiments
+
+
+class ExperimentListView(TemplateJsonView):
+    json_renderer = experiments
+    template = "search/v1/experiment_list.html"
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            facet (multiple)
+                * Should match a categorical facet value
+        """
+        options = super().request_options(request)
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        return options
+
+    def get(self, request, options, data):
+        experiment_objects, facet_values = data
+
+        facets = {}
+        for value in facet_values.all():
+            if value.facet.name in facets:
+                facets[value.facet.name].append(value)
+            else:
+                facets[value.facet.name] = [value]
+
+        return super().get(
+            request,
+            options,
+            {
+                "logged_in": not request.user.is_anonymous,
+                "experiments": experiment_objects,
+                "experiment_ids": [expr.accession_id for expr in experiment_objects],
+                "facets": facets,
+            },
+        )
+
+    def get_data(self, options):
+        facet_values = ExperimentSearch.experiment_facet_values()
+
+        if self.request.user.is_anonymous:
+            return ExperimentSearch.all_public(options["facets"]), facet_values
+
+        if self.request.user.is_superuser or self.request.user.is_portal_admin:
+            return ExperimentSearch.all(options["facets"]), facet_values
+
+        return ExperimentSearch.all_with_private(options["facets"], self.request.user.all_experiments()), facet_values

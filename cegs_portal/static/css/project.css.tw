@@ -30,6 +30,29 @@
   background-color: rgba(1, 33, 105, 1);
 }
 
+#bg {
+  background-size: 2000px 1000px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.faded-line {
+      border-top: 0.5px solid rgb(133, 139, 146);
+      /* margin-top: 5px; */
+  }
+
+.form-group .form-control {
+      margin-bottom: 10px;
+      border-radius: 5px;
+      width: 300px;
+      margin-top: 5px;
+  }
+
+.form-header-text {
+  color: rgb(16, 13, 121)
+}
+
 @layer components {
   .bg-color {
     background-color: white;
@@ -40,7 +63,7 @@
   }
 
   a {
-    @apply underline text-blue-600;
+    text-decoration: none;
   }
 
   a:hover {
@@ -48,28 +71,89 @@
   }
 
   a:visited {
-    @apply text-purple-600;
+    color: inherit;
   }
 
   .th-bg-light-gray {
     background-color: rgb(249, 250, 251);
   }
 
-  table[class^="data-table"] {
-    @apply bg-blue-100 border-2 rounded-md my-2;
-    border-color: rgba(1, 33, 105, 1);
+  table.data-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Helvetica, Roboto, sans-serif;
   }
 
-  table.data-table tr:nth-child(odd) {
-    @apply bg-blue-50;
+  table.data-table th {
+    padding: 12px;
+    text-align: left;
+    color: gray;
+    font-weight: bold;
   }
 
-  table[class^="data-table"] tr > th {
-    @apply py-2 px-4 text-left;
+  table.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid lightgrey;
   }
 
-  table[class^="data-table"] tr > td {
-    @apply py-2 px-4 text-left;
+  table.data-table tr.data-row:hover {
+    background-color: #ddd;
+  }
+
+  table.data-table a,
+  table.data-table a:visited {
+    color: #3490dc;
+    text-decoration: none;
+  }
+
+  .table-title {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: rgb(107, 107, 107);
+  }
+
+  .reg_data-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-family: Arial, sans-serif;
+  }
+
+  .reg_data-table th {
+      padding: 12px;
+      text-align: left;
+      background-color: #ddd;
+      color: gray;
+      font-weight: bold;
+  }
+
+  .reg_data-table th:first-child,
+  .reg_data-table th:nth-child(5) {
+      border-top-left-radius: 10px 50%;
+      border-bottom-left-radius: 10px 50%;
+  }
+
+  .reg_data-table th:nth-child(4),
+  .reg_data-table th:last-child {
+      border-top-right-radius: 10px 50%;
+      border-bottom-right-radius: 10px 50%;
+  }
+
+  .reg_data-table th:nth-child(2) {
+      background-color: #b7b5b5;
+      color: white;
+  }
+
+  .reg_data-table th:nth-child(6) {
+      background-color: #b7b5b5;
+      color: white;
+  }
+
+  .reg_data-table td {
+      padding: 12px;
+      border-bottom: 1px solid lightgrey;
   }
 
   @media screen {

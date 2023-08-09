@@ -1,20 +1,17 @@
     <div>
-        <table class="data-table">
-            <tr><th>ENSEMBL ID</th><th>Type</th><th>Name</th><th>Location</th><th>Strand</th><th>Reference Genome</th></tr>
+        <table class="reg_data-table">
+            <tr><th>ID</th><th>Name</th><th>Feature Type</th><th>Cell Line</th><th>Location</th><th>Strand</th><th>Closest Gene</th><th>Reference Genome</th></tr>
             {% for feature in features %}
-            {% cycle 'bg-blue-100' 'bg-blue-50' as rowcolor silent %}
-                {% for assembly in feature.assemblies.all %}
-                    <tr class="{% cycle 'bg-blue-100' 'bg-blue-50' %}">
-                        {% if forloop.first %}
-                        <td rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup"><a href="{% url 'search:features' 'ensembl' feature.ensembl_id %}">{{ feature.ensembl_id }}</a></td>
-                        <td rowspan="{{ feature.assemblies.all|length }}" scope="rowgroup">{{ feature.feature_subtype }}</td>
-                        {% endif %}
-                        <td>{{ assembly.name }}</td>
-                        <td><span>{{ assembly.chrom_name }}</span>: <span>{{ assembly.location.lower }}-{{ assembly.location.upper|add:"-1" }}</span></td>
-                        <td>{{ assembly.strand }}</td>
-                        <td>{{ assembly.ref_genome }}.{{ assembly.ref_genome_patch|default:"0" }}</td>
-                    </tr>
-                {% endfor %}
+                <tr class="data-row">
+                    <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">{{ feature.accession_id }}</a></td>
+                    <td>{{ feature.name|default:"N/A" }}</a></td>
+                    <td>{{ feature.get_feature_type_display }}</td>
+                    <td>{{ feature.cell_line }}</td>
+                    <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}</span></td>
+                    <td>{{ feature.strand }}</td>
+                    <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}">{{ feature.closest_gene_name }} ({{ feature.closest_gene_ensembl_id }})</a>{% else %}N/A{% endif %}</td>
+                    <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                </tr>
             {% endfor %}
         </table>
     </div>

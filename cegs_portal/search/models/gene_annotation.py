@@ -1,8 +1,6 @@
 from django.contrib.postgres.fields import IntegerRangeField
 from django.db import models
 
-from cegs_portal.search.models.features import Feature
-
 
 class GencodeRegion(models.Model):
     chrom_name = models.CharField(max_length=10)
@@ -32,14 +30,7 @@ class GencodeAnnotation(models.Model):
     level = models.IntegerField()
     region = models.ForeignKey(GencodeRegion, on_delete=models.SET_NULL, null=True)
     attributes = models.JSONField(null=True)
-
-    feature = models.ForeignKey(
-        Feature,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="annotation",
-    )
+    version = models.IntegerField()
 
     def __str__(self):
         first_field = f"{self.id_attr}: " if self.id_attr is not None else ""

@@ -55,14 +55,14 @@ ASGI_APPLICATION = "config.asgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "daphne",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
-    "django.contrib.admin",
+    "django.contrib.humanize",
     "django.forms",
     "channels",
 ]
@@ -72,14 +72,17 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "waffle",
+    "django_prometheus",
+    "huey.contrib.djhuey",
 ]
 
+# Your stuff: custom apps go here
 LOCAL_APPS = [
+    "cegs_portal.hide_admin.apps.HideAdminConfig",
     "cegs_portal.users.apps.UsersConfig",
     "cegs_portal.search.apps.SearchConfig",
-    "cegs_portal.uploads.apps.UploadsConfig",
     "cegs_portal.tools.apps.ToolsConfig",
-    # Your stuff: custom apps go here
+    "cegs_portal.get_expr_data.apps.GetExprDataConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -125,6 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -136,6 +140,7 @@ MIDDLEWARE = [
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "waffle.middleware.WaffleMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 # STATIC
@@ -145,7 +150,7 @@ STATIC_ROOT = str(ROOT_DIR / "static_root")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(APPS_DIR / "static"), str(ROOT_DIR / "static_source")]
+STATICFILES_DIRS = [str(APPS_DIR / "static"), str(ROOT_DIR / "static_source"), str(APPS_DIR / "static_data")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -228,7 +233,7 @@ EMAIL_TIMEOUT = 5
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.
-ADMIN_URL = "admin/"
+ADMIN_URL = "secret_admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [("""Thomas Cowart""", "thomas.cowart@duke.edu")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
@@ -268,6 +273,20 @@ ACCOUNT_ADAPTER = "cegs_portal.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "cegs_portal.users.adapters.SocialAccountAdapter"
 
+# https://docs.djangoproject.com/en/4.1/releases/4.1/#forms-4-1
+FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
+
+# huey
+HUEY = {
+    "name": "ccgr-portal",
+    "url": env.str("REDIS_URL", default="redis://localhost:6379/?db=1"),
+    "immediate": env.bool("HUEY_IMMEDIATE", True),
+    "consumer": {
+        "workers": 4,
+    },
+}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+TESTING = False
+PROMETHEUS_EXPORT_MIGRATIONS = False

@@ -1,44 +1,760 @@
-{% extends "base.html" %}
-{% load static i18n %}
+{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite-api@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-tooltip"></script>
+<!-- This CSS modifies the range slider look -->
+<style>
+    .noUi-horizontal {
+        height: 10px;
+    }
 
-{% block title %}Experiment{% endblock %}
-{% block content %}
-    <div class="max-w-5xl">
-    <div class="text-2xl font-bold">{{ experiment.name }}</div>
-    <table class="data-table">
-        <tr><th>Description</th><td>{{ experiment.description }}</td></tr>
-        <tr><th>Assay</th><td>{{ experiment.experiment_type }}</td></tr>
-        <tr><th>Cell Lines</th><td>{{ experiment.cell_lines|join:", " }}</td></tr>
-        <tr><th>Tissue Types</th><td>{{ experiment.tissue_types|join:", " }}</td></tr>
-        <tr><th>Assemblies</th><td>{{ experiment.assemblies|join:", " }}</td></tr>
-    </table>
+    .noUi-horizontal .noUi-handle {
+        width: 20px;
+        height: 20px;
+    }
 
-    {% if experiment.data_files.all|length > 0 %}
-    <div>
-        <div class="text-xl font-bold">Data Files</div>
-        {% for file in experiment.data_files.all %}
-        <table class="data-table">
-            <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
-            <tr><th>Description</th><td>{{ file.description }}</td></tr>
-            <tr><th>Cell Lines</th><td>{{ file.cell_lines.all|join:", " }}</td></tr>
-            <tr><th>Tissue Types</th><td>{{ file.tissue_types.all|join:", " }}</td></tr>
-            <tr><th>Assembly</th><td>{{ file.ref_genome }}.{{ file.ref_genome_patch|default:"0" }}</td></tr>
+    .noUi-handle {
+        border-radius: 10px;
+    }
+
+    .noUi-handle:before,
+    .noUi-handle:after {
+        display: none;
+    }
+
+    .noUi-connect {
+        background: rgba(1, 33, 105, 1);
+    }
+
+    .noUi-pips-horizontal {
+        transform: translate(6px);
+    }
+
+    .tab-bar {
+        background: #ffffff;
+        border-radius: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+        margin-top: 10px;
+    }
+
+    .content-container {
+        background: #ffffff;
+        padding: 20px 40px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .experiment-icon {
+        fill: currentColor;
+        margin-right: 10px;
+    }
+
+</style>
+{% endblock %} {% block javascript %} {{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/exp_viz/vizUtils.js' %}"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+{% endblock %} {% block title %}Experiment{% endblock %} {% block content %}
+<div class="flex flex-column justify-center min-w-full">
+    <div class="experiment-content-section content-container min-w-fit max-w-fit">
+        <table class="min-w-fit max-w-fit">
+            <thead class="bg-white border-b">
+                <tr>
+                    <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="experiment-icon"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
+                        </svg> {{ experiment.name }}
+                    </div>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bg-gray-100 border-b">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                        {{ experiment.experiment_type }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                        {{ experiment.cell_lines|join:", " }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                        {{ experiment.tissue_types|join:", " }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                        {{ experiment.assemblies|join:", " }}
+                    </td>
+                </tr>
+            </tbody>
         </table>
-        {% endfor %}
     </div>
-    {% endif %}
+</div>
 
-    {% if experiment.other_files.all|length > 0 %}
-    <div>
-        <div class="text-xl font-bold">Other Files</div>
-        {% for file in experiment.other_files.all %}
-        <table class="data-table">
-            <tr><th>File Name</th><td>{{ file.filename }}</td></tr>
-            <tr><th>Description</th><td>{{ file.description }}</td></tr>
-            <tr><th>Location</th><td><a href="{{ file.url }}">{{ file.url }}</a></td></tr>
-        </table>
-        {% endfor %}
+<div class="min-w-full">
+    <div class="flex flex-column justify-center">
+        <ul
+            class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+            role="tablist"
+            data-te-nav-ref
+        >
+            <li role="presentation">
+                <a
+                    href="#tabs-coverage"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-coverage"
+                    data-te-nav-active
+                    role="tab"
+                    aria-controls="tabs-coverage"
+                    aria-selected="true"
+                    >Coverage <i class="bi bi-layers-half"></i
+                ></a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-details"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-details-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-details"
+                    role="tab"
+                    aria-controls="tabs-details"
+                    aria-selected="false"
+                    >Details <i class="bi bi-file-text"></i>
+                </a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-files"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-files-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-files"
+                    role="tab"
+                    aria-controls="tabs-files"
+                    aria-selected="false"
+                    >Files <i class="bi bi-folder-symlink-fill"></i
+                ></a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-qc-graphs"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-qc-graphs-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-qc-graphs"
+                    role="tab"
+                    aria-controls="tabs-qc-graphs"
+                    aria-selected="false"
+                    >QC Graphs <i class="bi bi-file-bar-graph-fill"></i
+                ></a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-analysis"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-analysis-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-analysis"
+                    role="tab"
+                    aria-controls="tabs-analysis"
+                    aria-selected="false"
+                    >Analysis <i class="bi bi-pie-chart-fill"></i
+                ></a>
+            </li>
+        </ul>
     </div>
-    {% endif %}
+    <div
+        class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-coverage"
+        role="tabpanel"
+        aria-labelledby="tabs-coverage-tab"
+        data-te-tab-active
+    >
+        <div class="flex flex-row gap-x-10">
+            <div id="chrom-data-filters" class="basis-1/4">
+                <!-- content section container for facet side bar -->
+                <div class="facet-content-section content-container">
+                    <div class="text-slate-500">
+                        <span id="chrom-data-header" class="text-xl font-bold"></span
+                        ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
+                    </div>
+                    <div class="faded-line"></div>
+                    <div id="chrom-data-categorical-facets"></div>
+                    <div id="chrom-data-numeric-facets"></div>
+                    <div id="chrom-data-counts"></div>
+                </div>
+
+                <div class="facet-content-section content-container">
+                    <form name="regionUploadForm">
+                        <div>
+                            <label class="font-bold" for="regionFile">Highlight Regions</label>
+                            <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                        </div>
+                    </form>
+                    <div id="regionUploadInputReset"></div>
+                </div>
+
+                {% if logged_in %}
+                <div class="facet-content-section content-container">
+                    <form name="dataDownloadForm">
+                        <div>
+                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
+                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                        </div>
+                        <div class="mt-5">
+                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
+                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                        </div>
+                    </form>
+                    <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                    <div>
+                    * Data downloads take facet filtering, except for "Number of {{ experiment.get_source_type_display }}s" and "Number of Genes Assayed", into account.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="basis-3/4 content-container">
+                <!-- content section container for ChromCov -->
+                <div class="flex flex-row gap-x-4 items-center">
+                    <div id="chrom-data-legend"></div>
+                    <div class="flex flex-col">
+                        <div id="reo-count"></div> <div id="source-count"></div> <div id="target-count"></div></div>
+                    </div>
+                <div id="chrom-data"></div>
+            </div>
+        </div>
     </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-details"
+        role="tabpanel"
+        aria-labelledby="tabs-details-tab"
+    >
+        <div class="experiment-content-section content-container">
+            <table class="min-w-full">
+                <thead class="bg-white border-b">
+                    <tr>
+
+                        <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Description</th>
+                        <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                            {{ experiment.description }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-gray-100 border-b">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
+                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                            {{ experiment.experiment_type }}
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
+                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                            {{ experiment.cell_lines|join:", " }}
+                        </td>
+                    </tr>
+                    <tr class="bg-gray-100 border-b">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
+                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                            {{ experiment.tissue_types|join:", " }}
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
+                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                            {{ experiment.assemblies|join:", " }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-files"
+        role="tabpanel"
+        aria-labelledby="tabs-files-tab"
+    >
+        <div class="content-container">
+            <div class="container mx-auto">
+                <div class="flex flex-col">
+                    <div class="w-full">
+                        <table class="divide-y divide-gray-400" id="dataFilesTable">
+                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                                Data Files <i class="bi bi-folder-symlink-fill"></i>
+                            </div>
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-2 text-xs text-white">File Name</th>
+                                    <th class="px-6 py-2 text-xs text-white">Description</th>
+                                    <th class="px-6 py-2 text-xs text-white">File Type</th>
+                                    <th class="px-6 py-2 text-xs text-white">File Size</th>
+                                    <th class="px-6 py-2 text-xs text-white">Download</th>
+                                </tr>
+                            </thead>
+                            {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
+                            <tbody class="bg-white divide-y divide-gray-300">
+                                <tr class="text-center whitespace-nowrap">
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-500 w-[100px]">
+                                            <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 w-[600px]">
+                                            <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
+                                    <td class="px-6 py-4">File Size</td>
+                                    <td class="px-6 py-4">
+                                        <a href="#" class="inline-block text-center">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            {% endfor %} {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <div class="container mx-auto">
+                <div class="flex flex-col">
+                    <div class="w-full">
+                        <table class="divide-y divide-gray-300" id="otherFilesTable">
+                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                                Other Files <i class="bi bi-folder-symlink-fill"></i>
+                            </div>
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-2 text-xs text-white">File Name</th>
+                                    <th class="px-6 py-2 text-xs text-white">Description</th>
+                                    <th class="px-6 py-2 text-xs text-white">Location</th>
+                                    <th class="px-6 py-2 text-xs text-white">File Type</th>
+                                    <th class="px-6 py-2 text-xs text-white">File Size</th>
+                                    <th class="px-6 py-2 text-xs text-white">Download</th>
+                                </tr>
+                            </thead>
+                            {% if experiment.files.exists %} {% for file in experiment.files.all %}
+                            <tbody class="bg-white divide-y divide-gray-300">
+                                <tr class="text-center whitespace-nowrap">
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-500 w-[100px]">
+                                            <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 w-[400px]">
+                                            <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">
+                                            <a href="{{ file.url }}">{{ file.url }}</a>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
+                                    <td class="px-6 py-4">File Size</td>
+                                    <td class="px-6 py-4">
+                                        <a href="#" class="inline-block text-center">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            {% endfor %} {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-qc-graphs"
+        role="tabpanel"
+        aria-labelledby="tabs-qc-graphs-tab"
+    >
+        <div
+            class="content-container min-w-max max-w-max text-xl font-bold"
+            style="color: rgb(100 116 139);"
+        >
+            QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
+            <div class="faded-line my-3.5"></div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="ncells_histogram" class="mr-4"></div>
+                <div id="ngrna_histogram"></div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-analysis"
+        role="tabpanel"
+        aria-labelledby="tabs-analysis"
+    >
+        <div
+            class="content-container min-w-max max-w-max text-xl font-bold"
+            style="color: rgb(100 116 139);"
+        >
+            Analysis <i class="bi bi-pie-chart-fill"></i>
+            <div class="faded-line my-3.5"></div>
+            <div class="flex flex-nowrap my-3.5">
+                <div id="volcano"></div>
+                <div id="uniform_qqplot" class="mr-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} {% block inline_javascript %}
+
+<script>
+    // setup API options
+    const vegaVolcanoOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaVolcanoOptions);
+
+    // now you can use the API!
+    plot = (values, subtitle) => {
+        return vl
+            .markCircle()
+            .data(values)
+            .width(450)
+            .height(400)
+            .encode(
+                vl.y().fieldQ("0").title("-log10(p-value)"),
+                vl.x().fieldQ(1).title("log2(FC)"), //.scale({"domain":[0, 2], "clamp": true}),
+                vl
+                    .color()
+                    .fieldN(2)
+                    .title("Gene Type")
+                    .legend({labelExpr: "{0: 'Targeting', 1: 'Non-Targeting'}[datum.label]"}),
+                vl.tooltip(vl.fieldN(3))
+            )
+            .title({text: "Volcano Plot", subtitle: subtitle, anchor: "start"})
+            .render()
+
+            .then((viewElement) => {
+                // render returns a promise to a DOM element containing the chart
+                // viewElement.value contains the Vega View object instance
+                document.getElementById("volcano").appendChild(viewElement);
+            });
+    };
+
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/voclano_plot.py in the source for an explanation of the data
+                    // format.
+                    let length = buffer.byteLength;
+                    let decoder = new TextDecoder();
+                    let data = new DataView(buffer);
+                    let offset = 0;
+                    let values = [];
+                    while (offset < length) {
+                        let pVal = data.getFloat32(offset);
+                        let avgFC = data.getFloat32(offset + 4);
+                        let type = data.getUint8(offset + 8);
+                        let symLen = data.getUint8(offset + 9);
+                        offset += 10;
+                        let symArray = new Uint8Array(buffer, offset, symLen);
+                        let sym = decoder.decode(symArray);
+                        values.push([pVal, avgFC, type, sym]);
+                        offset += symLen;
+                    }
+                    return values;
+                })
+                .then((values) => {
+                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                })
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
+
+
+    //Function to process both Histgrams("Number of Cells per gRNA" and "Number od gRNA per cell" )
+    function processHistogramData(buffer) {
+        // See scripts/data_generation/qc_plots/histogram.py in the source for an explanation of the data
+        // format.
+        let data = new DataView(buffer);
+        let offset = 0;
+        let values = [];
+        let binSize = data.getUint32(offset);
+        let mean = data.getFloat32(offset + 4);
+        let median = data.getFloat32(offset + 8);
+        let binCount = data.getUint32(offset + 12);
+        offset += 16;
+        for (let i = 0; i < binCount; i++, offset += 4) {
+            let binValue = data.getUint32(offset);
+            values.push({
+                bin_start: i * binSize,
+                bin_end: (i + 1) * binSize,
+                count: binValue,
+            });
+        }
+
+        return {binSize, mean, median, values};
+    }
+
+    function createHistogramChart(data, color, chart_title, x_axis_title, elementId) {
+        vl.data(data)
+            .title(chart_title)
+            .width(450)
+            .height(300)
+            .layer(
+                vl
+                    .markBar({tooltip: true, color: color})
+                    .encode(
+                        vl.x().fieldQ("bin_start").bin({step: data.binSize, binned: true}).title(x_axis_title),
+                        vl.x2().fieldQ("bin_end"),
+                        vl.y().fieldQ("count").title("Counts")
+                    ),
+                vl
+                    .markRule({size: 3, color: "red", tooltip: {content: "encoding"}})
+                    .encode(vl.x().datum(data.median), vl.tooltip().value(`Median: ${data.median}`)),
+                vl
+                    .markRule({size: 3, color: "yellow", tooltip: {content: "encoding"}})
+                    .encode(vl.x().datum(data.mean), vl.tooltip().value(`Mean: ${data.mean}`)),
+
+                vl
+                    .markText({align: "center", baseline: "bottom", dx: 0, dy: -5})
+                    .encode(vl.x().datum(data.median), vl.y().value(0), vl.text().value("Median")),
+
+                vl
+                    .markText({align: "center", baseline: "bottom", dx: 20, dy: 15})
+                    .encode(vl.x().datum(data.mean), vl.y().value(0), vl.text().value("Mean"))
+            )
+            .render()
+            .then((viewElement) => {
+                // render returns a promise to a DOM element containing the chart
+                // viewElement.value contains the Vega View object instance
+                document.getElementById(elementId).appendChild(viewElement);
+            });
+    }
+
+    // setup API options
+    const vegaGrnaHistogramOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaGrnaHistogramOptions);
+
+    // now you can use the API!
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "dimgray", "Number of gRNA per cell", "Number of gRNAs", "ngrna_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
+
+    // setup API options
+    const vegaQqPlotOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaQqPlotOptions);
+
+    // now you can use the API!
+
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
+        .then((response) => {
+                if (!response.ok && response.status == 404) {
+                    return; // This is often okay and expected, not every analysis has this data
+                }
+
+                if(!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => {
+                    // See scripts/data_generation/qc_plots/qq_plot.py in the source for an explanation
+                    // of the data format.
+                    let data = new DataView(buffer);
+                    let decoder = new TextDecoder();
+                    let offset = 0;
+                    let values = [];
+                    let quantileCount = data.getUint32(offset);
+                    offset += 4;
+                    let categoryCount = data.getUint8(offset);
+                    offset += 1;
+                    let categoryNames = [];
+                    for(let i = 0; i < categoryCount; i++){
+                        let nameSize = data.getUint8(offset);
+                        offset += 1;
+                        let nameArray = new Uint8Array(buffer, offset, nameSize);
+                        let name = decoder.decode(nameArray);
+                        offset += nameSize;
+                        categoryNames.push(name)
+                    }
+                    let xLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let xLabelArray = new Uint8Array(buffer, offset, xLabelLen);
+                    let xLabel = decoder.decode(xLabelArray);
+                    offset += xLabelLen;
+                    let yLabelLen = data.getUint8(offset);
+                    offset += 1;
+                    let yLabelArray = new Uint8Array(buffer, offset, yLabelLen);
+                    let yLabel = decoder.decode(yLabelArray);
+                    offset += yLabelLen;
+
+                    for (let i = 0; i < quantileCount; i++) {
+                        let x = data.getFloat32(offset);
+                        offset += 4;
+                        for(let j = 0; j < categoryCount; j++) {
+                            let y = data.getFloat32(offset);
+                            offset += 4;
+                            values.push({t: x, o: y, cat: categoryNames[j]});
+                        }
+                    }
+
+                    return {categoryNames, xLabel, yLabel, values};
+                }).then((data) => {
+                    const scale = {
+                        domain: data.categoryNames,
+                        range: ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd']
+                    };
+
+                    return vl.markCircle({tooltip: true})
+                    .data(data)
+                    .width(450)
+                    .height(400)
+                    .title('Q-Q Plot')
+                    .encode(
+                        vl.color().fieldN('cat').scale(scale).title(''),
+                        vl.x().fieldQ('t').title(data.xLabel),
+                        vl.y().fieldQ('o').title(data.yLabel),
+                    )
+                    .render()
+                }).then((viewElement) => {
+                    // render returns a promise to a DOM element containing the chart
+                    // viewElement.value contains the Vega View object instance
+                    document.getElementById("uniform_qqplot").appendChild(viewElement);
+                })
+                .catch((err) => console.log(err));
+            })
+            .catch((err) => console.log(err));
+
+    // setup API options
+    const vegaCellsHistogramOptions = {
+        config: {
+            // Vega-Lite default configuration
+        },
+        init: (view) => {
+            // initialize tooltip handler
+            view.tooltip(new vegaTooltip.Handler().call);
+        },
+    };
+
+    // register vega and vega-lite with the API
+    vl.register(vega, vegaLite, vegaCellsHistogramOptions);
+
+    // now you can use the API!
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
+        .then((response) => {
+            if (!response.ok && response.status == 404) {
+                return; // This is often okay and expected, not every analysis has this data
+            }
+
+            if(!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return new Promise((resolve, reject) => resolve(response.arrayBuffer()))
+                .then((buffer) => processHistogramData(buffer))
+                .then((data) =>
+                    createHistogramChart(data, "#4c7cac", "Number of cells per gRNA", "Number of Cells", "ncells_histogram")
+                )
+                .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
+</script>
+
+<script>
+    $(document).ready(function () {
+        $("#dataFilesTable").DataTable({
+            columns: [null, {orderable: false}, null, {orderable: false}, {orderable: false}],
+            info: false,
+            paging: false,
+            searching: false,
+        });
+        $("#otherFilesTable").DataTable({
+            columns: [null, {orderable: false}, {orderable: false}, null, {orderable: false}, {orderable: false}],
+            info: false,
+            paging: false,
+            searching: false,
+        });
+    });
+</script>
+
+<script type="module">
+    import {exp_viz} from "{% static 'search/js/exp_viz/exp_viz.js' %}";
+    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ experiment.default_analysis.accession_id }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
+</script>
+<script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

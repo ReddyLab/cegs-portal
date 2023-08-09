@@ -2,7 +2,7 @@ import factory
 from factory import Faker
 from factory.django import DjangoModelFactory
 
-from cegs_portal.search.models import Facet, FacetValue
+from cegs_portal.search.models import Facet, FacetType, FacetValue
 
 
 class FacetFactory(DjangoModelFactory):
@@ -11,11 +11,12 @@ class FacetFactory(DjangoModelFactory):
 
     description = Faker("text", max_nb_chars=4096)
     name = Faker("text", max_nb_chars=256)
+    facet_type = FacetType.CATEGORICAL
 
 
 class FacetValueFactory(DjangoModelFactory):
     class Meta:
         model = FacetValue
 
-    value = Faker("text", max_nb_chars=30)
+    value = Faker("text", max_nb_chars=50)
     facet = factory.SubFactory(FacetFactory)

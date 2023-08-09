@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "devDependencies": {
         "autoprefixer": "^10.4.0",
+        "jest": "^28.1.0",
         "postcss": "^8.4.4",
         "tailwindcss": "^3.0.0"
     },
@@ -14,12 +15,23 @@
     ],
     "scripts": {
         "dev": "node scripts/dev.js",
-        "build": ""
+        "build": "",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "prettier": {
         "printWidth": 120,
         "tabWidth": 4,
         "semi": true,
         "bracketSpacing": false
+    },
+    "jest": {
+        "transform": {},
+        "testMatch": [
+            "**/__tests__/**/*.m?[jt]s?(x)",
+            "**/?(*.)+(spec|test).m[jt]s?(x)"
+        ]
+    },
+    "dependencies": {
+        "tw-elements": "^1.0.0-beta1"
     }
 }

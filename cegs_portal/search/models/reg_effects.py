@@ -1,40 +1,93 @@
 from enum import Enum
+from functools import cached_property
+from typing import Optional
 
 from django.db import models
 
-from cegs_portal.search.models.dna_region import DNARegion
-from cegs_portal.search.models.experiment import Experiment
-from cegs_portal.search.models.facets import FacetedModel
-from cegs_portal.search.models.features import Feature, FeatureAssembly
-from cegs_portal.search.models.searchable import Searchable
+from cegs_portal.search.models.access_control import AccessControlled
+from cegs_portal.search.models.accession import Accessioned
+from cegs_portal.search.models.dna_feature import DNAFeature
+from cegs_portal.search.models.experiment import Analysis, Experiment
+from cegs_portal.search.models.facets import Faceted
 
 
-class EffectDirectionType(Enum):
-    DEPLETED = "depleted"
-    ENRICHED = "enriched"
-    NON_SIGNIFICANT = "non_sig"
-    BOTH = "both"
+class EffectObservationDirectionType(Enum):
+    DEPLETED = "Depleted Only"
+    ENRICHED = "Enriched Only"
+    NON_SIGNIFICANT = "Non-significant"
+    BOTH = "Mixed"
 
 
-class RegulatoryEffect(Searchable, FacetedModel):
-    DIRECTION_CHOICES = [
-        (EffectDirectionType.DEPLETED, "depleted"),  # significance < 0.01, effect size -
-        (EffectDirectionType.ENRICHED, "enriched"),  # significance < 0.01, effect size +
-        (EffectDirectionType.BOTH, "both"),
-        (EffectDirectionType.NON_SIGNIFICANT, "non_sig"),  # significance >= 0.01 or value = 0
-    ]
-    direction = models.CharField(
-        max_length=8,
-        choices=DIRECTION_CHOICES,
-        default=EffectDirectionType.NON_SIGNIFICANT,
-    )
+class RegulatoryEffectObservationSet(models.QuerySet):
+    def with_facet_values(self):
+        return self.prefetch_related("facet_values", "facet_values__facet")
+
+
+class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="re_accession_id_index"),
+        ]
+
+    class Facet(Enum):
+        DIRECTION = "Direction"  # EffectObservationDirectionType
+        RAW_P_VALUE = "Raw p value"  # float
+        SIGNIFICANCE = "Significance"  # float
+        EFFECT_SIZE = "Effect Size"  # float
+        AVG_COUNTS_PER_MILLION = "Average Counts per Million"
+
+    objects = RegulatoryEffectObservationSet.as_manager()
+
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
-    effect_size = models.FloatField(null=True)  # log2 fold changes
-    significance = models.FloatField(null=True)  # an adjusted p value
-    raw_p_value = models.FloatField(null=True)  # p value, scaled with -log10
-    sources = models.ManyToManyField(DNARegion, related_name="regulatory_effects")
-    targets = models.ManyToManyField(Feature, related_name="regulatory_effects")
-    target_assemblies = models.ManyToManyField(FeatureAssembly, related_name="regulatory_effects")
+    experiment_accession = models.ForeignKey(
+        Experiment,
+        null=True,
+        to_field="accession_id",
+        db_column="experiment_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+    analysis = models.ForeignKey(
+        Analysis,
+        null=True,
+        to_field="accession_id",
+        db_column="analysis_accession_id",
+        related_name="+",
+        on_delete=models.CASCADE,
+    )
+    analysis_accession_id: Optional[str]
+    sources = models.ManyToManyField(DNAFeature, related_name="source_for", blank=True)
+    targets = models.ManyToManyField(DNAFeature, related_name="target_of", blank=True)
+
+    @cached_property
+    def direction(self):
+        values = [
+            value
+            for value in self.facet_values.all()
+            if value.facet.name == RegulatoryEffectObservation.Facet.DIRECTION.value
+        ]
+        return values[0].value if len(values) == 1 else None
+
+    @property
+    def direction_id(self):
+        values = [
+            value
+            for value in self.facet_values.all()
+            if value.facet.name == RegulatoryEffectObservation.Facet.DIRECTION.value
+        ]
+        return values[0].id if len(values) == 1 else None
+
+    @property
+    def effect_size(self):
+        return self.facet_num_values[RegulatoryEffectObservation.Facet.EFFECT_SIZE.value]
+
+    @property
+    def significance(self):
+        return self.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value]
+
+    @property
+    def raw_p_value(self):
+        return self.facet_num_values[RegulatoryEffectObservation.Facet.RAW_P_VALUE.value]
 
     def __str__(self):
-        return f"{self.direction}: {self.sources.count()} source(s) -> {self.effect_size} on {self.targets.count()} target(s)"  # noqa: E501
+        return f"{self.accession_id}: {self.sources.count()} source(s) -> {self.effect_size} ({self.direction}) on {self.targets.count()} target(s)"  # noqa: E501

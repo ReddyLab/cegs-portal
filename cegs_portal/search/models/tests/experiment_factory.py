@@ -1,27 +1,67 @@
 import factory
 from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
+from faker import Faker as F
 
 from cegs_portal.search.models import (
+    Biosample,
     CellLine,
     Experiment,
-    ExperimentDataFile,
+    ExperimentDataFileInfo,
     TissueType,
 )
-
-
-class CellLineFactory(DjangoModelFactory):
-    class Meta:
-        model = CellLine
-
-    line_name = Faker("text", max_nb_chars=100)
+from cegs_portal.search.models.tests.analysis_factory import AnalysisFactory
 
 
 class TissueTypeFactory(DjangoModelFactory):
     class Meta:
         model = TissueType
 
-    tissue_type = Faker("text", max_nb_chars=100)
+    _faker = F()
+
+    name = Faker("text", max_nb_chars=100)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPTT^^^^^^^^", upper=True)
+        obj.save()
+        return obj
+
+
+class CellLineFactory(DjangoModelFactory):
+    class Meta:
+        model = CellLine
+
+    _faker = F()
+
+    name = Faker("text", max_nb_chars=100)
+    tissue_type = factory.SubFactory(TissueTypeFactory)
+    tissue_type_name = factory.SelfAttribute("tissue_type.name")
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPCL^^^^^^^^", upper=True)
+        obj.save()
+        return obj
+
+
+class BiosampleFactory(DjangoModelFactory):
+    class Meta:
+        model = Biosample
+
+    _faker = F()
+
+    cell_line = factory.SubFactory(CellLineFactory)
+    cell_line_name = factory.SelfAttribute("cell_line.name")
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPBIOS^^^^^^^^", upper=True)
+        obj.save()
+        return obj
 
 
 class ExperimentFactory(DjangoModelFactory):
@@ -29,65 +69,38 @@ class ExperimentFactory(DjangoModelFactory):
         model = Experiment
         django_get_or_create = ("name",)
 
-    archived = Faker("boolean", chance_of_getting_true=90)
+    _faker = F()
+    archived = False
+    public = True
     description = Faker("text", max_nb_chars=4096)
     experiment_type = Faker("text", max_nb_chars=100)
     name = Faker("text", max_nb_chars=512)
+    analyses = factory.RelatedFactory(AnalysisFactory, factory_related_name="experiment")
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^", upper=True))
+        obj.save()
+        return obj
 
     @post_generation
-    def other_files(self, create, extracted, **kwargs):
+    def biosamples(self, create, extracted, **kwargs):
         if not create:
             # Simple build, do nothing.
             return
 
         if extracted:
             # A list of groups were passed in, use them
-            for file in extracted:
-                self.other_files.add(file)  # pylint: disable=no-member
-
-    @post_generation
-    def data_files(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of groups were passed in, use them
-            for file in extracted:
-                self.data_files.add(file)  # pylint: disable=no-member
+            for sample in extracted:
+                self.biosamples.add(sample)  # pylint: disable=no-member
 
 
-class ExperimentDataFileFactory(DjangoModelFactory):
+class ExperimentDataFileInfoFactory(DjangoModelFactory):
     class Meta:
-        model = ExperimentDataFile
-        django_get_or_create = ("filename",)
+        model = ExperimentDataFileInfo
 
-    cell_line = Faker("text", max_nb_chars=100)
-    description = Faker("text", max_nb_chars=4096)
-    experiment = factory.SubFactory(ExperimentFactory)
-    filename = Faker("text", max_nb_chars=512)
-    ref_genome = Faker("text", max_nb_chars=20)
-    ref_genome_patch = Faker("text", max_nb_chars=10)
+    ref_genome = "GRCh38"  # The default ref genome when searching
+    ref_genome_patch = "0"
     significance_measure = Faker("text", max_nb_chars=2048)
-
-    @post_generation
-    def cell_lines(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of groups were passed in, use them
-            for line in extracted:
-                self.cell_lines.add(line)  # pylint: disable=no-member
-
-    @post_generation
-    def tissue_types(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of groups were passed in, use them
-            for tissue in extracted:
-                self.tissue_types.add(tissue)  # pylint: disable=no-member
+    p_value_threshold = 0.05

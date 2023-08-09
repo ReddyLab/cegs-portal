@@ -1,0 +1,743 @@
+{% extends "base.html" %} {% load static i18n %} {% load humanize %} {% load custom_helpers %} {% block css %} {{ block.super }}
+<style>
+    .closest-gene {
+        font-weight: bold;
+    }
+
+    .container {
+        background: #ffffff;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px 40px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        width: 1100px;
+    }
+
+    .profile-sub-header {
+        font-size: 1.5rem;
+    }
+
+    .profile-table {
+        font-family: Arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .profile-table td,
+    .profile-table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .profile-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .profile-table tr:hover {
+        background-color: #ddd;
+    }
+
+    .profile-table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #f2f2f2;
+        color: black;
+    }
+
+    h1 {
+        font-family: "Arial", sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+        margin-left: 40px;
+        display: flex;
+        align-items: center;
+    }
+
+    h1 span:nth-child(3),
+    span:nth-child(4) {
+        font-size: 1.5rem;
+    }
+
+    h1 svg {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+
+    table.data-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+    }
+
+    table.data-table th {
+        padding: 12px;
+        text-align: left;
+        background-color: #ddd;
+        color: gray;
+        font-weight: bold;
+    }
+
+    table.data-table th:first-child,
+    table.data-table th:nth-child(4) {
+        border-top-left-radius: 10px 50%;
+        border-bottom-left-radius: 10px 50%;
+    }
+
+    table.data-table th:nth-child(3),
+    table.data-table th:last-child {
+        border-top-right-radius: 10px 50%;
+        border-bottom-right-radius: 10px 50%;
+    }
+
+    table.data-table th:nth-child(2),
+    table.data-table th:nth-child(9) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    table.data-table th:nth-child(6) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    table.data-table td {
+        padding: 12px;
+        border-bottom: 1px solid lightgrey;
+    }
+
+    table.data-table tr:hover {
+        background-color: #ddd;
+    }
+
+    table.data-table a,
+    table.data-table a:visited {
+        color: #3490dc;
+        text-decoration: none;
+        /* font-weight: bold; */
+    }
+
+    .table-title {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: rgb(107, 107, 107);
+    }
+
+    .table-title,
+    .svg-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+
+    .svg-icon-tree {
+        margin-right: 10px;
+        fill: currentColor;
+        width: 30px;
+        height: 30px;
+    }
+
+    .svg-icon-tab {
+        fill: currentColor;
+        height: 1em;
+        margin-left: 5px;
+    }
+
+    .svg-barcode-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+        transform: rotate(90deg);
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+        margin-bottom: 15px;
+    }
+
+    .profile-feature-faded-line {
+        border-top: 1px solid rgb(133, 139, 146);
+        margin-bottom: 15px;
+    }
+
+    .subtype-style {
+        color: gray;
+        font-weight: bold;
+        font-size: large;
+        margin-right: 40px;
+        font-style: italic;
+        margin-top: 15px;
+    }
+
+    .tab-bar {
+        background: #ffffff;
+        border-radius: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    i {
+        margin-left: 5px;
+    }
+
+    .search-button {
+        margin-left: 5px;
+        background-color: rgb(244, 245, 247) !important;
+        margin-bottom: 10px;
+    }
+
+    .search-button:hover {
+        background-color: rgb(229 231 235) !important;
+    }
+
+    #feature-dist {
+        border-radius: 0.5rem;
+        height: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .facet-svg {
+        fill: currentColor;
+        height: 1em;
+    }
+
+    .centered-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .find-feature {
+        display: flex;
+        align-items: center;
+    }
+
+    .find-feature svg {
+        margin-right: 10px;
+    }
+
+    .find-feature-title {
+        font-family: "Arial", sans-serif;
+        font-size: 1.5rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+</style>
+
+{% endblock %} {% block javascript %} {{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+{% endblock %}{% block title %}{{ feature_name }}{% endblock %}{% block content %}
+
+<!--
+HEADER -->
+<div>
+    <div class="profile-feature-faded-line"></div>
+    {% for feature, sources, targets in feature_reos %}
+        {% if forloop.first %}
+            <div style="display: flex; justify-content: space-between">
+                <h1>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
+                        />
+                    </svg>
+                    {% if feature.name %}
+                        <span>{{ feature.name }}</span>
+                        {% if feature.ensembl_id %}
+                            <span>({{ feature.ensembl_id }})</span>
+                        {% endif %}
+                    {% else %}
+                        {{ feature.get_feature_type_display }}
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span class="profile-sub-header">({{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }})</span>
+                        </a>
+                    {% endif %}
+                </h1>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="profile-feature-faded-line"></div>
+    <div class="container">
+        <table class="profile-table">
+            <tr>
+                <th>DNA Feature Aliases</th>
+                <th>Location</th>
+                <th>Strand</th>
+                <th>Reference Genome</th>
+                <th>Feature Type</th>
+        {% for feature, sources, targets in feature_reos %}
+            {% if feature.feature_subtype and forloop.first %}
+                <th>Feature Subtype</th>
+            {% endif %}
+        {% endfor %}
+            </tr>
+            {% for feature, sources, targets in feature_reos %}
+            <tr>
+                <td>{{ feature.name|default:feature.accession_id }}</td>
+                <td>
+                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                        <span>{{ feature.chrom_name }}</span>:
+                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span>
+                    </a>
+                </td>
+                <td>{{ feature.strand }}</td>
+                <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                <td>{{ feature.get_feature_type_display }}</td>
+                {% if feature.feature_subtype %}
+                <td>{{ feature.feature_subtype|remove_underscores }}</td>
+
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!--Tabs navigation-->
+    <div class="min-w-full">
+
+        <div class="flex flex-column justify-center">
+            <ul
+                class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+                role="tablist"
+                data-te-nav-ref
+            >
+            {% for tab in tabs %}
+                {% if tab == "source target" %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-source-target"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-source-target-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-source-target"
+                        role="tab"
+                        aria-controls="tabs-source-target"
+                        {% if forloop.first %}
+                        aria-selected="true"
+                        data-te-nav-active
+                        {% else %}
+                        aria-selected="false"
+                        {% endif %}
+                        >Regulatory Effects
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon-tab">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                            /></svg></a>
+                </li>
+                {% endif %}
+                {% if tab == "closest features" %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-closest-features"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-closest-features-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-closest-features"
+                        role="tab"
+                        aria-controls="tabs-closest-features"
+                        {% if forloop.first %}
+                        data-te-nav-active
+                        aria-selected="true"
+                        {% else %}
+                        aria-selected="false"
+                        {% endif %}
+                        >Closest DNA Features<svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 448 512"
+                            class="svg-icon-tab"
+                        >
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
+                            /></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon-tab">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
+                            />
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                {% if tab == "find nearby" %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-find-features"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-find-features-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-find-features"
+                        role="tab"
+                        aria-controls="tabs-find-features"
+                        {% if forloop.first %}
+                        aria-selected="true"
+                        data-te-nav-active
+                        {% else %}
+                        aria-selected="false"
+                        {% endif %}
+                        >Find Nearby DNA Features
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon-tab">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                        </svg></a>
+                </li>
+                {% endif %}
+                {% if tab == "children" %}
+                <li role="presentation">
+                    <a
+                        href="#tabs-children"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-children"
+                        role="tab"
+                        aria-controls="tabs-children"
+                        {% if forloop.first %}
+                        aria-selected="true"
+                        data-te-nav-active
+                        {% else %}
+                        aria-selected="false"
+                        {% endif %}
+                        >{{ child_feature_type }}S<i class="bi bi-diagram-3-fill"></i>
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+
+
+        {% for tab in tabs %}
+        {% if tab == "source target" %}
+        <div
+            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-source-target"
+            role="tabpanel"
+            aria-labelledby="tabs-source-target"
+            {% if forloop.first %}
+            data-te-tab-active
+            {% endif %}
+        >
+
+        {% for feature, sources, targets in feature_reos %}
+            {% if sources %}
+            <div class="container">
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
+                        />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-barcode-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M24 32C10.7 32 0 42.7 0 56V456c0 13.3 10.7 24 24 24H40c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H24zm88 0c-8.8 0-16 7.2-16 16V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16zm72 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H184zm96 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H280zM448 56V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H472c-13.3 0-24 10.7-24 24zm-64-8V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16s-16 7.2-16 16z"
+                        />
+                    </svg>
+                    Source for Regulatory Effect Observations
+                </div>
+                <div class="faded-line"></div>
+                <div id="source_for_{{ feature.accession_id }}" class="my-4">
+                </div>
+                <div id="source_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
+            </div>
+            {% endif %}
+            {% if targets %}
+            <div class="container">
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM241 119c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l31 31H120c-13.3 0-24 10.7-24 24s10.7 24 24 24H238.1l-31 31c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l72-72c9.4-9.4 9.4-24.6 0-33.9l-72-72z"
+                        />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-barcode-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M24 32C10.7 32 0 42.7 0 56V456c0 13.3 10.7 24 24 24H40c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H24zm88 0c-8.8 0-16 7.2-16 16V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16zm72 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H184zm96 0c-13.3 0-24 10.7-24 24V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H280zM448 56V456c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24H472c-13.3 0-24 10.7-24 24zm-64-8V464c0 8.8 7.2 16 16 16s16-7.2 16-16V48c0-8.8-7.2-16-16-16s-16 7.2-16 16z"
+                        />
+                    </svg>
+                    Targeting Regulatory Effect Observations
+                </div>
+                <div class="faded-line"></div>
+                <div id="target_for_{{ feature.accession_id }}" class="my-4">
+                </div>
+                <div id="target_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if tab == "closest features" %}
+        <div
+            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-closest-features"
+            role="tabpanel"
+            aria-labelledby="tabs-files-closest-features"
+            {% if forloop.first %}
+            data-te-tab-active
+            {% endif %}
+        >
+
+            {% for feature in features %}
+            {% if feature.closest_features.exists and forloop.first %}
+            <div class="container">
+                <a name="closest-features-{{ feature.accession_id }}"></a>
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                    </svg>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
+                    </svg>
+                    Closest DNA Features
+                </div>
+                <div class="feature-faded-line"></div>
+                <table class="data-table">
+                    <tr>
+                        <th>Accession ID</th>
+                        <th>Type</th>
+                        <th>Cell Line</th>
+                        <th>Location</th>
+                        <th>Strand</th>
+                        <th>Reference Genome</th>
+                    </tr>
+            {% endif %}
+            {% endfor %}
+            {% for feature in features %}
+            {% if feature.closest_features.exists %}
+                    {% for close_feature in feature.closest_features.all %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
+                        </td>
+                        <td>{{ close_feature.get_feature_type_display }}</td>
+                        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
+                        <td>
+                            <span>{{ close_feature.chrom_name }}</span>:
+                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span>
+                        </td>
+                        <td>{{ close_feature.strand|default:"N/A" }}</td>
+                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
+                    </tr>
+                    {% endfor %}
+            {% endif %}
+            {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if tab == "find nearby" %}
+        <div
+            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-find-features"
+            role="tabpanel"
+            aria-labelledby="tabs-find-features-tab"
+            {% if forloop.first %}
+            data-te-tab-active
+            {% endif %}
+        >
+
+        <div class="container centered-container">
+            <a name="near_features"></a>
+            <div class="find-feature find-feature-title">
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                </svg>
+                Find Nearby DNA Features
+
+            </div>
+            <div class="text-s font-bold">Measured from each end of the gene</div>
+            <form>
+                <label for="feature-dist">Feature Distance in base pairs:</label>
+                <input type="text" id="feature-dist" value="1000" />
+                <input
+                    type="button"
+                    id="feature-dist-submit"
+                    value="Find Features"
+                    class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
+                />
+            </form>
+          </div>
+            <table id="dnafeature"></table>
+        </div>
+        {% endif %}
+
+        {% if tab == "children" %}
+        <div
+            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-children"
+            role="tabpanel"
+            aria-labelledby="tabs-children-tab"
+            {% if forloop.first %}
+            data-te-tab-active
+            {% endif %}
+        >
+            <!-- Children -->
+            {% for feature, sources, targets in feature_reos %}
+            {% if feature.children.exists and forloop.first %}
+            <div class="mb-8">
+                <div class="container">
+                    <a name="children-{{ feature.accession_id }}"></a>
+                    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="30"
+                            height="30"
+                            fill="currentColor"
+                            class="bi bi-diagram-3-fill svg-icon-tree"
+                            viewBox="0 0 16 16"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"
+                            />
+                        </svg>
+                        {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
+                    </div>
+                    <div class="faded-line"></div>
+                    <table class="data-table">
+                        <tr>
+                            <th>ENSEMBL ID</th>
+                            <th>Type</th>
+                            <th>Symbol</th>
+                            <th>Location</th>
+                            <th>Strand</th>
+                            <th>Reference Genome</th>
+                        </tr>
+            {% endif %}
+            {% endfor %}
+            {% for feature, sources, targets in feature_reos %}
+            {% if feature.children.exists %}
+                        {% for child in feature.children.all %}
+                        <tr>
+                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
+                            <td>{{ child.get_feature_type_display }}</td>
+                            <td>{{ child.name }}</td>
+                            <td>
+                                <span>{{ child.chrom_name }}</span>:
+                                <span
+                                    >{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}</span>
+                            </td>
+                            <td>{{ child.strand }}</td>
+                            <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
+                        </tr>
+                        {% endfor %}
+            {% endif %}
+            {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %} {% block inline_javascript %}
+<script type="module">
+    import { g } from "{% static 'search/js/dom.js' %}";
+    import { featureTable } from "{% static 'search/js/tables.js' %}"
+    import { dataPages, reTable, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
+
+    let assemblies = [
+        {% for feature in features %}
+        {
+            assembly: "{{ feature.ref_genome }}",
+            chromo: "{{ feature.chrom_name }}",
+            start: {{ feature.location.lower }},
+            end: {{ feature.location.upper|add:"-1" }},
+        },
+        {% endfor %}
+    ];
+
+    g("feature-dist-submit").onclick = function() {
+        let dist = Number(g("feature-dist").value);
+        let fetches = assemblies.map(a => {
+            let search_start = Math.max(a.start - dist, 0);
+            let search_end = a.end + dist;
+            return fetch(`/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
+                .then(response => {
+                    return response.json()
+                });
+        })
+        Promise.all(fetches)
+            .then(data => {
+                let features = [];
+                for (const d of data) {
+                    features.push(...d);
+                }
+                g("dnafeature").replaceWith(featureTable(features, "No nearby DNA Features"))
+            });
+    }
+
+    let sourceForURL = function(accessionID) {
+        return `/search/regeffect/source/${accessionID}?accept=application/json`;
+    };
+
+    let targetOfURL = function(accessionID) {
+        return `/search/regeffect/target/${accessionID}?accept=application/json`;
+    };
+
+    let __genDataPages = function(accessionID, page, prefix, urlGen, tableGen) {
+        return dataPages(
+            page,
+            _ => urlGen(accessionID),
+            tableGen,
+            emptyRETable,
+            feature => true,
+            "",
+            prefix,
+            `${prefix}_pagination`,
+            prefix,
+            "page"
+        );
+    }
+
+    {% for feature, sources, targets in feature_reos %}
+
+    {% if sources %}
+    __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable)();
+    {% endif %}
+    {% if targets %}
+    __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable)();
+    {% endif %}
+
+    {% endfor %}
+
+    document.getElementById("feature-dist-submit").addEventListener("click", function() {
+    var originalValue = this.value;
+    this.value = "Searching...";
+    setTimeout(() => {
+        this.value = originalValue;
+    }, 10000);
+});
+
+
+
+</script>
+
+<script src="{% static 'js/tw-elements/index.min.js' %}"></script>
+{% endblock %}

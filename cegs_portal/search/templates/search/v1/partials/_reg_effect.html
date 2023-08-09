@@ -1,0 +1,154 @@
+{% load humanize %}
+<style>
+    .container {
+        background: #ffffff;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px 40px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+    .table-title {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: rgb(107, 107, 107);
+    }
+    .reg_data-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+    }
+    .reg_data-table th {
+        padding: 12px;
+        text-align: left;
+        background-color: #ddd;
+        color: gray;
+        font-weight: bold;
+    }
+    .reg_data-table th:first-child,
+    .reg_data-table th:nth-child(5) {
+        border-top-left-radius: 10px 50%;
+        border-bottom-left-radius: 10px 50%;
+    }
+    .reg_data-table th:nth-child(4),
+    .reg_data-table th:last-child {
+        border-top-right-radius: 10px 50%;
+        border-bottom-right-radius: 10px 50%;
+    }
+
+    .reg_data-table th:nth-child(2) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    .reg_data-table th:nth-child(6) {
+        background-color: #b7b5b5;
+        color: white;
+    }
+
+    .reg_data-table td {
+        padding: 12px;
+        border-bottom: 1px solid lightgrey;
+    }
+    .reg_data-table tr:hover {
+        background-color: #ddd;
+    }
+    .reg_data-table a,
+    .reg_data-table a:visited {
+        color: #3490dc;
+        text-decoration: none;
+        /* font-weight: bold; */
+    }
+
+    .direction {
+        font-style: italic;
+    }
+    .experiment-name,
+    .accession-id {
+        font-weight: 300;
+    }
+    .table-title,
+    .svg-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+
+    .target_name {
+        font-weight: bold;
+    }
+
+    .faded-line {
+        border-top: 0.5px solid rgb(133, 139, 146);
+
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="table-title" style="display: flex; align-items: center; justify-content: center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="svg-icon">
+        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+        <path
+            d="M137.4 502.6c12.5 12.5 32.8 12.5 45.3 0l96-96c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 402.7V288H544c17.7 0 32-14.3 32-32s-14.3-32-32-32H448V109.3l41.4 41.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L384 109.3V224H192 128 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96V402.7L86.6 361.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l96 96zM128 192h64V64c0-17.7-14.3-32-32-32s-32 14.3-32 32V192zM448 320H384V448c0 17.7 14.3 32 32 32s32-14.3 32-32V320z"
+        />
+    </svg>
+    Source for Regulatory Effect Observations
+</div>
+<div class="faded-line"></div>
+
+<table class="reg_data-table">
+    <tr>
+        <th>Accession ID</th>
+        <th>Effect Size</th>
+        <th>Direction</th>
+        <th>Significance</th>
+        <th>Experiment</th>
+        <th>Target Gene</th>
+        <th>Target Gene Location</th>
+    </tr>
+    {% for regeffect in features %} {% for re_target in regeffect.targets.all %}
+    <tr>
+        {% if forloop.first %}
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="accession-id">
+            <a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a>
+        </td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
+            {{ regeffect.effect_size|stringformat:".3e" }}
+        </td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="direction">
+            {{ regeffect.direction }}
+        </td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
+            {{ regeffect.significance|stringformat:".3e" }}
+        </td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="experiment-name">
+            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+                >{{ regeffect.experiment.name }}</a
+            >
+        </td>
+        {% endif %}
+        <td class="target_name">
+            <a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a>
+        </td>
+        <td>
+            <span>{{ re_target.chrom_name }}</span>:
+            <span>{{ re_target.location.lower|intcomma }} - {{ re_target.location.upper|add:"-1"|intcomma }}</span>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
+        <td>{{ regeffect.effect_size }}</td>
+        <td>{{ regeffect.direction }}</td>
+        <td>{{ regeffect.significance }}</td>
+        <td>
+            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+                >{{ regeffect.experiment.name }}</a
+            >
+        </td>
+        <td>-</td>
+    </tr>
+    {% endfor %} {% endfor %}
+</table>

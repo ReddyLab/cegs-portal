@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
+{% endblock %}
+{% block css %}
+{{ block.super }}
+<style>
+    .content-container {
+        background: #ffffff;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        align-items: center;
+        padding: 20px 30px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+
+    .content-container-link:hover .content-container {
+        transform: scale(1.02);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .content-container-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        margin-right: 1rem;
+    }
+
+    .accession-id {
+        color: #6e7e98;
+        margin-top: 0.6rem;
+    }
+
+    .name {
+        color: #3490dc;
+        font-weight: bold;
+    }
+
+    .cell-lines {
+        font-style: italic;
+        color: #718096;
+        margin-top: 0.5rem;
+    }
+
+    .description {
+        margin-top: 0.5rem;
+        color: rgb(87, 86, 86);
+    }
+
+    h1 {
+        font-family: "Arial", sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+        margin-left: 40px;
+        display: flex;
+        align-items: center;
+    }
+
+    .header-icon {
+        margin-right: 10px;
+        fill: currentColor;
+        height: 1em;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Experiments{% endblock %}
+
+{% block content %}
+<div class="min-w-full">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="header-icon">
+                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path
+                    d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
+                />
+            </svg>
+            Experiment Index
+        </h1>
+    </div>
+    <div class="flex gap-x-10 items-start">
+        <div class="flex flex-col basis-1/4">
+            <div class="content-container">
+                <div class="text-xl font-bold text-slate-500">Experiment Filters</div>
+                <div class="faded-line"></div>
+                <div id="categorical-facets">
+                    {% for facet, values in facets.items %}
+                    <fieldset class="my-4" name="facetfield">
+                        <legend class="font-bold">{{ facet }}</legend>
+                        <div class="flex flex-row flex-wrap gap-1">
+                            {% for value in values %}
+                                <div class="ml-1">
+                                    <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
+                                    <label for="{{ value.id }}">{{ value.value }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if logged_in %}
+            <div class="content-container">
+                <form name="dataDownloadForm">
+                    <div>
+                        <label class="font-bold" for="dataDlFile">Download Data from Selected Experiments</label>
+                        <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                    </div>
+                </form>
+                <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="experiment-list" class="basis-3/4">
+            {% for experiment in experiments %}
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link">
+                <div class="content-container">
+                    <div class="name">{{ experiment.name }}</div>
+                    <div class="description">{{ experiment.description }}</div>
+                    <div class="flex justify-between">
+                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                        <div class="accession-id">{{ experiment.accession_id }}</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block inline_javascript %}
+<script type="module">
+    import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
+    facetFilterSetup();
+</script>
+{% if logged_in %}
+{{ experiment_ids|json_script:"experiment-id-list" }}
+
+<script type="module">
+    import { downloadDataSetup } from "{% static 'search/js/experiment_list/download_data.js' %}";
+    downloadDataSetup("{{ csrf_token }}");
+</script>
+{% endif %}
+{% endblock %}

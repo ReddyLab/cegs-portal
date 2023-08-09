@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNARegion, EffectDirectionType, RegulatoryEffect
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 from cegs_portal.uploads.forms import UploadFileForm
 
 
@@ -22,24 +22,21 @@ def upload_complete(request):
     return render(request, "uploads/upload_complete.html", {})
 
 
+#  Don't actually use this right now
 def handle_uploaded_file(file):
     for line in file:
-        cell_line, chrom, start, end, name, direction, effect_size = line.decode("utf-8").split(", ")
+        cell_line, chrom, start, end, _name, _direction, _effect_size = line.decode("utf-8").split(", ")
 
         # skip header
         if cell_line == "cell_line":
             continue
 
-        dhs = DNARegion(
-            chromosome_name=chrom,
+        dhs = DNAFeature(
+            chrom_name=chrom,
             location=NumericRange(int(start), int(end)),
             cell_line=cell_line,
         )
-        dhs.save()
+        # dhs.save()
 
-        effect_size = effect_size.strip()
-        if effect_size == "":
-            effect_size = None
-
-        re = RegulatoryEffect(direction=EffectDirectionType(direction).value, effect_size=effect_size, sources=[dhs])
+        re = RegulatoryEffectObservation(sources=[dhs])
         re.save()
