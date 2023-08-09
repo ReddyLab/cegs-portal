@@ -146,7 +146,7 @@ deleteimage-qa:
 updatechart-test:
   extends: .updatechart
   variables:
-    IMAGE_SHA: DEV_IMAGE_SHA
+    IMAGE_SHA: QA_IMAGE_SHA
     TRIGGER_BRANCH: master
   only:
     - main
