@@ -263,8 +263,8 @@ class DNAFeatureNonTargetSearch:
 
 
     @classmethod
-    def non_targeting_regeffect_search(cls, genes: list[DNAFeature], sig_only: bool):
-        source_features = DNAFeature.objects.filter(closest_gene_id=genes)
+    def non_targeting_regeffect_search(cls, feature_accession_id: str, sig_only: bool):
+        source_features = DNAFeature.objects.filter(closest_gene__accession_id=feature_accession_id)
         reg_effects = (
             RegulatoryEffectObservation.objects.filter(
                 sources__in=Subquery(source_features.values("id")), targets=None
