@@ -20,7 +20,7 @@ flake8:
     - pip install -qU pip --no-warn-script-location
     - pip install -q flake8 --no-warn-script-location
   script:
-    - PATH=${PATH}:/tmp/.local/bin flake8
+    - flake8
 
 build-test:
   extends: .kaniko_build
