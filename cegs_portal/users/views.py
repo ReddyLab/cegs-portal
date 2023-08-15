@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
@@ -12,10 +12,16 @@ from cegs_portal.get_expr_data.models import ExperimentData
 User = get_user_model()
 
 
-class UserDetailView(LoginRequiredMixin, DetailView):
+class UserDetailView(UserPassesTestMixin, DetailView):
     model = User
     slug_field = "username"
     slug_url_kwarg = "username"
+
+    def test_func(self):
+        return not (
+            self.request.user.is_anonymous
+            or (self.request.user.username != self.request.resolver_match.captured_kwargs["username"])
+        )
 
 
 user_detail_view = UserDetailView.as_view()
