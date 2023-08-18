@@ -8,9 +8,9 @@ from django.http import HttpRequest
 from django.test import RequestFactory
 from django.urls import reverse
 
+from cegs_portal.conftest import SearchClient
 from cegs_portal.users.forms import UserChangeForm
 from cegs_portal.users.models import User
-from cegs_portal.users.tests.factories import UserFactory
 from cegs_portal.users.views import (
     UserRedirectView,
     UserUpdateView,
@@ -83,13 +83,15 @@ class TestUserRedirectView:
 
 
 class TestUserDetailView:
-    def test_authenticated(self, user: User, rf: RequestFactory):
-        request = rf.get("/fake-url/")
-        request.user = UserFactory()
-
-        response = user_detail_view(request, username=user.username)
+    def test_authenticated(self, login_client: SearchClient):
+        response = login_client.get(f"/users/{login_client.username}/")
 
         assert response.status_code == 200
+
+    def test_authenticated_other_user(self, login_client: SearchClient):
+        response = login_client.get(f"/users/{login_client.username + 'fake'}/")
+
+        assert response.status_code == 403
 
     def test_not_authenticated(self, user: User, rf: RequestFactory):
         request = rf.get("/fake-url/")
