@@ -15,11 +15,12 @@ flake8:
   stage: lint
   tags:
     - kube-executor
-  image: python:3.11.2-bullseye
+  image: python:3.11.4-bookworm
   before_script:
+    - pip install -qU pip --no-warn-script-location
     - pip install -q flake8 --no-warn-script-location
   script:
-    - PATH=${PATH}:/tmp/.local/bin flake8
+    - flake8
 
 build-test:
   extends: .kaniko_build
@@ -146,7 +147,7 @@ deleteimage-qa:
 updatechart-test:
   extends: .updatechart
   variables:
-    IMAGE_SHA: DEV_IMAGE_SHA
+    IMAGE_SHA: QA_IMAGE_SHA
     TRIGGER_BRANCH: master
   only:
     - main

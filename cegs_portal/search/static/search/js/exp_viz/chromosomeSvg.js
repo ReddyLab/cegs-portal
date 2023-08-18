@@ -12,49 +12,74 @@ const bandColors = {
     stalk: "#708090",
 };
 
-export const sourceColors = d3.interpolateCool;
-const fadedSourceColors = d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95));
-export const targetColors = d3.interpolateWarm;
-const fadedTargetColors = d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95));
 const svgns = "http://www.w3.org/2000/svg";
 
 export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
-        this._count = document.createElementNS(svgns, "text");
-        this._count.setAttribute("y", "-32");
+        this.width = 540;
+        this.height = 225;
         this._range = document.createElementNS(svgns, "text");
-        this._range.setAttribute("y", "-20");
+        this._range.setAttribute("y", "42");
+        this._count_value = document.createElementNS(svgns, "text");
+        this._count_value.setAttribute("y", "96");
+        this._sig_value = document.createElementNS(svgns, "text");
+        this._sig_value.setAttribute("y", "150");
+        this._effect_value = document.createElementNS(svgns, "text");
+        this._effect_value.setAttribute("y", "204");
         this.node = document.createElementNS(svgns, "g");
         this.node.setAttribute("pointer-events", "none");
         this.node.setAttribute("display", "none");
         this.node.setAttribute("font-family", "sans-serif");
-        this.node.setAttribute("font-size", "12");
+        this.node.setAttribute("font-size", "36");
         this.node.setAttribute("text-anchor", "middle");
         this._rect = document.createElementNS(svgns, "rect");
-        this._rect.setAttribute("x", "-85");
-        this._rect.setAttribute("width", "170");
-        this._rect.setAttribute("y", "-50");
-        this._rect.setAttribute("height", "40");
+        this._rect.setAttribute("x", `-${this.width / 2}`);
+        this._rect.setAttribute("width", `${this.width}`);
+        this._rect.setAttribute("height", `${this.height}`);
         this._rect.setAttribute("fill", "white");
+        this._rect.setAttribute("rx", "15");
+        this._rect.setAttribute("stroke", "gray");
         this.node.appendChild(this._rect);
-        this.node.appendChild(this._count);
         this.node.appendChild(this._range);
+        this.node.appendChild(this._count_value);
+        this.node.appendChild(this._sig_value);
+        this.node.appendChild(this._effect_value);
     }
 
-    show(chomIdx, d, scaleX, scaleY) {
+    show(chromIdx, d, scaleX, scaleY, viewBox, chromName, dataSelectors, dataLabels) {
         this.node.removeAttribute("display");
-        this.node.setAttribute(
-            "transform",
-            `translate(${this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX}, ${
-                this.renderContext.yInset +
-                chomIdx *
-                    (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
-                    scaleY
-            }) scale(2)`
+        let minXPadding = 2; // minimum X padding
+        // Don't let the left portion of the tooltip get cut off
+        let xInset = Math.max(
+            viewBox[0] + this.width / 2 + minXPadding,
+            this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX
         );
-        this._count.textContent = `Ct: ${d.count}`;
-        this._range.textContent = `Loc: (${d.start}, ${d.end})`;
+
+        // Don't let the right portion of the tooltip get cut off
+        xInset = Math.min(xInset, viewBox[0] + viewBox[2] - this.width / 2 - minXPadding);
+
+        // Render above the chromosome
+        let yInset =
+            this.renderContext.yInset +
+            chromIdx *
+                (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
+                scaleY -
+            this.height -
+            this.renderContext.chromDimensions.chromSpacing;
+        if (yInset < viewBox[1]) {
+            // Oops, that will cut off the top of the tooltip. Render below the chromosome
+            yInset =
+                this.renderContext.yInset +
+                (chromIdx + 1) *
+                    (this.renderContext.chromDimensions.chromHeight + this.renderContext.chromDimensions.chromSpacing) *
+                    scaleY;
+        }
+        this.node.setAttribute("transform", `translate(${xInset}, ${yInset})`);
+        this._range.textContent = `chr${chromName}: ${d.start.toLocaleString()} - ${d.end.toLocaleString()}`;
+        this._count_value.textContent = `${dataLabels[0]}: ${dataSelectors[0](d)}`;
+        this._sig_value.textContent = `${dataLabels[1]}: ${dataSelectors[1](d)}`;
+        this._effect_value.textContent = `${dataLabels[2]}: ${dataSelectors[2](d)}`;
     }
 
     hide() {
@@ -230,8 +255,13 @@ export class GenomeRenderer {
     render(
         coverageData,
         focusIndex,
-        sourceCountInterval,
-        targetCountInterval,
+        sourceRenderColors,
+        targetRenderColors,
+        sourceRenderDataTransform,
+        targetRenderDataTransform,
+        tooltipDataSelector,
+        sourceTooltipDataLabel,
+        targetTooltipDataLabel,
         viewBox,
         scale,
         scaleX,
@@ -239,8 +269,6 @@ export class GenomeRenderer {
         highlightRegions
     ) {
         const bucketHeight = 44 * scaleY;
-        const sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
-        const targetCountRange = targetCountInterval[1] - targetCountInterval[0];
         const scales = {scale, scaleX, scaleY};
 
         const svg = d3
@@ -313,11 +341,11 @@ export class GenomeRenderer {
                 .join("rect")
                 .attr("fill", (source) => {
                     if (Object.keys(highlightRegions).length == 0) {
-                        return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.color(sourceRenderDataTransform(source));
                     }
 
                     if (r == undefined) {
-                        return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.faded(sourceRenderDataTransform(source));
                     }
 
                     if (
@@ -327,9 +355,9 @@ export class GenomeRenderer {
                                 (region[1] >= source.start && region[1] < source.start + bucketSize)
                         )
                     ) {
-                        return sourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.color(sourceRenderDataTransform(source));
                     } else {
-                        return fadedSourceColors((source.count - sourceCountInterval[0]) / sourceCountRange);
+                        return sourceRenderColors.faded(sourceRenderDataTransform(source));
                     }
                 })
                 .attr("x", (source) => this.renderContext.xInset + this.renderContext.toPx(source.start) * scaleX)
@@ -351,11 +379,11 @@ export class GenomeRenderer {
                 .join("rect")
                 .attr("fill", (target) => {
                     if (Object.keys(highlightRegions).length == 0) {
-                        return targetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.color(targetRenderDataTransform(target));
                     }
 
                     if (r == undefined) {
-                        return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.faded(targetRenderDataTransform(target));
                     }
 
                     if (
@@ -365,9 +393,9 @@ export class GenomeRenderer {
                                 (region[1] >= target.start && region[1] < target.start + bucketSize)
                         )
                     ) {
-                        return targetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.color(targetRenderDataTransform(target));
                     } else {
-                        return fadedTargetColors((target.count - targetCountInterval[0]) / targetCountRange);
+                        return targetRenderColors.faded(targetRenderDataTransform(target));
                     }
                 })
                 .attr("x", (target) => this.renderContext.xInset + this.renderContext.toPx(target.start) * scaleX)
@@ -427,7 +455,16 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY);
+                    this.tooltip.show(
+                        i,
+                        rect,
+                        scaleX,
+                        scaleY,
+                        viewBox,
+                        chromName,
+                        tooltipDataSelector,
+                        sourceTooltipDataLabel
+                    );
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();
@@ -471,7 +508,16 @@ export class GenomeRenderer {
                     }
 
                     rect.end = rect.start + bucketSize;
-                    this.tooltip.show(i, rect, scaleX, scaleY);
+                    this.tooltip.show(
+                        i,
+                        rect,
+                        scaleX,
+                        scaleY,
+                        viewBox,
+                        chromName,
+                        tooltipDataSelector,
+                        targetTooltipDataLabel
+                    );
                 })
                 .on("mouseleave", (event, rect) => {
                     mouseLeave();

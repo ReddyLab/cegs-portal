@@ -83,6 +83,18 @@ fn merge_chromosomes(
                             count: filtered_chrom.source_intervals[j].count
                                 + new_chromosome.source_intervals[i].count,
                             associated_buckets: assoc_buckets,
+                            max_log10_sig: filtered_chrom.source_intervals[j]
+                                .max_log10_sig
+                                .max(new_chromosome.source_intervals[i].max_log10_sig),
+                            max_abs_effect: if filtered_chrom.source_intervals[j]
+                                .max_abs_effect
+                                .abs()
+                                > new_chromosome.source_intervals[i].max_abs_effect.abs()
+                            {
+                                filtered_chrom.source_intervals[j].max_abs_effect
+                            } else {
+                                new_chromosome.source_intervals[i].max_abs_effect
+                            },
                         });
                         i += 1;
                         j += 1;
@@ -131,6 +143,18 @@ fn merge_chromosomes(
                             count: filtered_chrom.target_intervals[j].count
                                 + new_chromosome.target_intervals[i].count,
                             associated_buckets: assoc_buckets,
+                            max_log10_sig: filtered_chrom.target_intervals[j]
+                                .max_log10_sig
+                                .max(new_chromosome.target_intervals[i].max_log10_sig),
+                            max_abs_effect: if filtered_chrom.target_intervals[j]
+                                .max_abs_effect
+                                .abs()
+                                > new_chromosome.target_intervals[i].max_abs_effect.abs()
+                            {
+                                filtered_chrom.target_intervals[j].max_abs_effect
+                            } else {
+                                new_chromosome.target_intervals[i].max_abs_effect
+                            },
                         });
                         i += 1;
                         j += 1;
@@ -155,14 +179,14 @@ pub fn merge_filtered_data(
     let numeric_intervals = result_data.iter().map(|d| d.numeric_intervals).fold(
         PyFilterIntervals {
             effect: (f32::MAX, f32::MIN),
-            sig: (f32::MAX, f32::MIN),
+            sig: (f64::MAX, f64::MIN),
         },
         |acc, d| PyFilterIntervals {
             effect: (
                 f32::min(acc.effect.0, d.effect.0),
                 f32::max(acc.effect.1, d.effect.1),
             ),
-            sig: (f32::min(acc.sig.0, d.sig.0), f32::max(acc.sig.1, d.sig.1)),
+            sig: (f64::min(acc.sig.0, d.sig.0), f64::max(acc.sig.1, d.sig.1)),
         },
     );
 
