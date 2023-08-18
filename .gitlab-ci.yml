@@ -17,10 +17,9 @@ flake8:
     - kube-executor
   image: python:3.11.4-bookworm
   before_script:
-    - pip install -qU pip --no-warn-script-location
     - pip install -q flake8 --no-warn-script-location
   script:
-    - flake8
+    - /var/tmp/.local/bin/flake8
 
 build-test:
   extends: .kaniko_build
