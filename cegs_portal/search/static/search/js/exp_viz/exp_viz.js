@@ -5,6 +5,7 @@ import {getJson, postJson} from "../files.js";
 import {Legend} from "./obsLegend.js";
 import {GenomeRenderer} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
+import {debounce} from "../utils.js"
 
 const STATE_ZOOMED = "state-zoomed";
 const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
@@ -614,7 +615,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
 
     state.ac(
         STATE_CATEGORICAL_FACET_VALUES,
-        _.debounce((s, key) => {
+        debounce((s, key) => {
             // Send facet data to server to get filtered data and updated numeric facets
             let body = getFilterBody(state, genome, manifest.chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
 
@@ -638,7 +639,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
 
     state.ac(
         STATE_NUMERIC_FACET_VALUES,
-        _.debounce((s, key) => {
+        debounce((s, key) => {
             // Send facet data to server to get filtered data and updated numeric facets
             let body = getFilterBody(state, genome, manifest.chromosomes, [
                 state.g(STATE_CATEGORICAL_FACET_VALUES),
@@ -679,7 +680,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
 
     state.ac(
         STATE_COUNT_FILTER_VALUES,
-        _.debounce((s, key) => {
+        debounce((s, key) => {
             if (countFacetWorker) {
                 countFacetWorker.postMessage({
                     data: state.g(STATE_COVERAGE_DATA),

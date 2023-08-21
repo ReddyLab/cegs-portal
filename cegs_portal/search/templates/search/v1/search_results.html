@@ -55,7 +55,6 @@
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
@@ -173,6 +172,7 @@
         import { State } from "{% static 'search/js/state.js' %}";
         import { sigReoTable } from "{% static 'search/js/tables.js' %}"
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
+        import { throttle } from "{% static 'search/js/utils.js' %}"
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -235,7 +235,7 @@
             }).catch(err => console.log(err));
         });
 
-        state.addCallback(STATE_FACETS, _.throttle(
+        state.addCallback(STATE_FACETS, throttle(
             (state, key) => {
                 window.history.pushState({}, document.title, searchURL(state[key]));
 
