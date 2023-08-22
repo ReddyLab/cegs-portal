@@ -486,7 +486,7 @@
             });
     };
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -601,7 +601,7 @@
     vl.register(vega, vegaLite, vegaGrnaHistogramOptions);
 
     // now you can use the API!
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -636,7 +636,7 @@
 
     // now you can use the API!
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.pd")
         .then((response) => {
                 if (!response.ok && response.status == 404) {
                     return; // This is often okay and expected, not every analysis has this data
@@ -730,7 +730,7 @@
     vl.register(vega, vegaLite, vegaCellsHistogramOptions);
 
     // now you can use the API!
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data

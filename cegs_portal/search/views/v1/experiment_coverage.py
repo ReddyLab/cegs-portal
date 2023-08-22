@@ -52,9 +52,9 @@ CHROM_NAMES = {
 @lru_cache(maxsize=100)
 def load_coverage(exp_acc_id, analysis_acc_id, chrom):
     if chrom is None:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.bin"))
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd"))
     else:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.bin"))
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd"))
 
     return load_coverage_data_allow_threads(filename)
 
