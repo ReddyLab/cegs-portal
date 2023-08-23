@@ -101,16 +101,45 @@
         border-top: 0.5px solid rgb(133, 139, 146);
         margin-bottom: 15px;
     }
+
     .profile-feature-faded-line {
         border-top: 1px solid rgb(133, 139, 146);
         margin-bottom: 15px;
     }
+
     h1 svg {
         margin-right: 10px;
         fill: currentColor;
         height: 1em;
     }
 
+    .profile-table {
+        font-family: Arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .profile-table td,
+    .profile-table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    .profile-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .profile-table tr:hover {
+        background-color: #ddd;
+    }
+
+    .profile-table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #f2f2f2;
+        color: black;
+    }
 
 </style>
 {% endblock %}{% block content %}
@@ -129,9 +158,6 @@
                     <span>({{ feature.ensembl_id}})</span>
 
         </div>
-
-
-
     <div class="profile-feature-faded-line"></div>
     <div class="container">
         <table class="profile-table">
@@ -141,13 +167,9 @@
                 <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
-        <!-- {% for feature, sources, targets in feature_reos %}
-            {% if feature.feature_subtype and forloop.first %}
                 <th>Feature Subtype</th>
-            {% endif %}
-        {% endfor %} -->
+
             </tr>
-            <!-- {% for feature, sources, targets in feature_reos %}
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
                 <td>
@@ -161,10 +183,8 @@
                 <td>{{ feature.get_feature_type_display }}</td>
                 {% if feature.feature_subtype %}
                 <td>{{ feature.feature_subtype|remove_underscores }}</td>
-
                 {% endif %}
             </tr>
-            {% endfor %} -->
         </table>
     </div>
 {% if non_targeting_reos %}
