@@ -285,50 +285,56 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
         this.base.apply(this, arguments);
     },
-
-    // The url above responds in json format, data is an array
-    // See rest.ensembl.org/documentation/info/overlap_region for more details
     parseData: function (data, chr) {
-        var model = this;
-        var featuresById = this.featuresById;
-        var ids = [];
+        let model = this;
+        let featuresById = this.featuresById;
+        let ids = [];
+        let transcript_parents = {};
+        let exons = new Set();
 
-        data.filter(function (d) {
-            return d.type === "transcript";
-        }).forEach(function (transcript, i) {
-            if (!featuresById[transcript.accession_id]) {
-                model.geneIds[transcript.parent_accession_id] =
-                    model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
+        data.filter(d => d.type === "Transcript")
+            .forEach(function (transcript, i) {
+                transcript_parents[transcript.accession_id] = transcript.parent_accession_id;
 
-                transcript.label =
-                    parseInt(transcript.strand, 10) === 1
-                        ? (transcript.name || transcript.ensembl_id) + " >"
-                        : "< " + (transcript.name || transcript.ensembl_id);
-                transcript.sort =
-                    model.geneIds[transcript.parent_accession_id] * 1e10 +
-                    (transcript.subtype === "protein_coding" ? 0 : 1e9) +
-                    transcript.start +
-                    i;
-                transcript.exons = {};
-                transcript.subFeatures = [];
+                if (!featuresById[transcript.parent_accession_id]) {
+                    model.geneIds[transcript.parent_accession_id] =
+                        model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
+                    geneObj = {
+                        chr: transcript.chr,
+                        id: transcript.parent_accession_id,
+                        accession_id: transcript.parent_accession_id,
+                        start: transcript.start,
+                        end: transcript.end,
+                        strand: transcript.strand,
+                        exons: {},
+                        subFeatures: [],
+                        subtype: transcript.subtype
+                    }
+                    geneObj.label =
+                        parseInt(transcript.strand, 10) === 1
+                            ? (transcript.parent || transcript.ensembl_id) + " >"
+                            : "< " + (transcript.parent || transcript.ensembl_id);
+                    geneObj.sort =
+                        model.geneIds[transcript.parent_accession_id] * 1e10 +
+                        (transcript.subtype === "protein_coding" ? 0 : 1e9) +
+                        transcript.start + i;
 
-                model.insertFeature(transcript);
-            }
+                    // Adds feature to featuresById object
+                    model.insertFeature(geneObj);
+                }
 
-            ids.push(transcript.accession_id);
+                ids.push(geneObj.accession_id);
         });
 
-        data.filter(function (d) {
-            return d.type === "exon" && featuresById[d.parent_accession_id];
-        }).forEach(function (exon) {
-            featuresById[exon.parent_accession_id].subFeatures.push(exon);
-        });
-
-        ids.forEach(function (id) {
-            featuresById[id].subFeatures.sort(function (a, b) {
-                return a.start - b.start;
+        data.filter(d => d.type === "Exon" && featuresById[transcript_parents[d.parent_accession_id]])
+            .forEach(exon => {
+                if (!exons.has(exon.accession_id)) {
+                    featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
+                    exons.add(exon.accession_id);
+                }
             });
-        });
+
+        ids.forEach(id => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
     },
 });
 
