@@ -14,7 +14,6 @@ from cegs_portal.utils.pagination_types import Pageable
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = ""
     template = "search/v1/non_targeting_reos.html"
-    template_data_name = "non_targeting_reos"
     page_title = ""
 
     def get_experiment_accession_id(self):
@@ -60,18 +59,20 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
-        sig_only = request.GET.get("sig _only", True)
+        sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
 
         return options
 
+    def get(self, request, options, data, feature_id):
+        return super().get(request, options, {"non_targeting_reos": data[0], "feature": data[1]})
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []
+        feature = DNAFeatureNonTargetSearch.id_feature_search(feature_id)
         reg_effects = DNAFeatureNonTargetSearch.non_targeting_regeffect_search(feature_id, options.get("sig_only"))
 
         if reg_effects.exists():
             non_targeting_reos.extend(list(reg_effects))
 
-        return non_targeting_reos
-
+        return non_targeting_reos, feature
