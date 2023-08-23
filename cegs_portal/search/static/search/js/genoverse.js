@@ -300,15 +300,19 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                     model.geneIds[transcript.parent_accession_id] =
                         model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
                     geneObj = {
-                        chr: transcript.chr,
                         id: transcript.parent_accession_id,
                         accession_id: transcript.parent_accession_id,
+                        ensembl_id: transcript.parent_ensembl_id,
+                        name: transcript.parent,
+                        chr: transcript.chr,
                         start: transcript.start,
                         end: transcript.end,
                         strand: transcript.strand,
+                        ref_genome: transcript.ref_genome,
                         exons: {},
                         subFeatures: [],
-                        subtype: transcript.subtype
+                        subtype: transcript.subtype,
+                        type: transcript.type
                     }
                     geneObj.label =
                         parseInt(transcript.strand, 10) === 1
@@ -430,13 +434,12 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         name: "Results Legend",
     }),
     populateMenu: function (feature) {
-        if (["gene", "exon", "transcript"].includes(feature.type)) {
-            var url = `/search/feature/ensembl/${feature.ensembl_id}`;
+        if (["Gene", "Exon", "Transcript"].includes(feature.type)) {
+            var url = `/search/feature/accession/${feature.accession_id}`;
             var menu = {
                 title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-                Strand: feature.strand,
-                Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
+                Strand: feature.strand
             };
 
             return menu;

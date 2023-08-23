@@ -39,6 +39,7 @@ def test_feature(feature: DNAFeature):
         "ref_genome_patch": feature.ref_genome_patch,
         "parent": feature.parent if feature.parent is not None else None,
         "parent_accession_id": feature.parent_accession_id if feature.parent is not None else None,
+        "parent_ensembl_id": feature.parent_ensembl_id if feature.parent is not None else None,
         "misc": feature.misc,
     }
     if feature.closest_gene is not None:
