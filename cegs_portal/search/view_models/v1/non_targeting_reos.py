@@ -1,18 +1,10 @@
-from enum import Enum
-from typing import Any, Optional, cast
+from typing import cast
 
-from django.db.models import Q, QuerySet, Subquery
-from psycopg2.extras import NumericRange
+from django.db.models import Subquery
 
-from cegs_portal.search.models import (
-    DNAFeature,
-    DNAFeatureType,
-    IdType,
-    RegulatoryEffectObservation,
-    RegulatoryEffectObservationSet,
-)
-from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
-from cegs_portal.utils.http_exceptions import Http500
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.view_models.errors import ObjectNotFoundError
+
 
 class DNAFeatureNonTargetSearch:
     @classmethod
@@ -45,20 +37,16 @@ class DNAFeatureNonTargetSearch:
 
     @classmethod
     def id_feature_search(cls, feature_accession_id: str):
-
         return DNAFeature.objects.get(accession_id=feature_accession_id)
 
     @classmethod
     def non_targeting_regeffect_search(cls, feature_accession_id: str, sig_only: bool):
         source_features = DNAFeature.objects.filter(closest_gene__accession_id=feature_accession_id)
-        reg_effects = (
-            RegulatoryEffectObservation.objects.filter(
-                sources__in=Subquery(source_features.values("id")), targets=None
-            )
-            .order_by('facet_num_values__Significance')
-        )
+        reg_effects = RegulatoryEffectObservation.objects.filter(
+            sources__in=Subquery(source_features.values("id")), targets=None
+        ).order_by("facet_num_values__Significance")
 
         if sig_only:
             reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
 
-        return reg_effects.prefetch_related("sources")
+        return reg_effects.prefetch_related("sources", "experiment")

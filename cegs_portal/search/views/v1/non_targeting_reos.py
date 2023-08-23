@@ -1,9 +1,8 @@
-from django.core.paginator import Paginator
 from django.http import Http404
 
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import DNAFeatureSearch, DNAFeatureNonTargetSearch
+from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
@@ -65,7 +64,20 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         return options
 
     def get(self, request, options, data, feature_id):
-        return super().get(request, options, {"non_targeting_reos": data[0], "feature": data[1]})
+        reos = []
+        for reo in data[0]:
+            reos.append(
+                {
+                    "accession_id": reo.accession_id,
+                    "effect_size": reo.effect_size,
+                    "direction": reo.direction,
+                    "significance": reo.significance,
+                    "experiment_name": reo.experiment.name,
+                    "experiment_accession_id": reo.experiment.accession_id,
+                    "first_source": reo.sources.all()[0],
+                }
+            )
+        return super().get(request, options, {"non_targeting_reos": reos, "feature": data[1]})
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []
