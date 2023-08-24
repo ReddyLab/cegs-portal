@@ -1117,6 +1117,10 @@ input[type="submit"], input[type="button"], button {
   gap: 1rem;
 }
 
+.gap-5 {
+  gap: 1.25rem;
+}
+
 .gap-x-10 {
   -webkit-column-gap: 2.5rem;
      -moz-column-gap: 2.5rem;
@@ -1158,6 +1162,10 @@ input[type="submit"], input[type="button"], button {
 .self-end {
   -ms-flex-item-align: end;
       align-self: flex-end;
+}
+
+.justify-self-start {
+  justify-self: start;
 }
 
 .overflow-hidden {

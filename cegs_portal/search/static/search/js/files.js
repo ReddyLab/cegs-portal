@@ -1,5 +1,10 @@
 export function getJson(path) {
-    return fetch(path, {credentials: "include"}).then((response) => {
+    return fetch(path, {
+        credentials: "include",
+        headers: {
+            Accept: "application/json",
+        },
+    }).then((response) => {
         if (!response.ok) {
             throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
         }

@@ -37,6 +37,7 @@ urlpatterns = [
         name="target_effects",
     ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
+    path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
     path("v1/results/", views.v1.SearchView.as_view()),
     re_path(
         r"v1/feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)$", views.v1.DNAFeatureId.as_view()
@@ -55,4 +56,5 @@ urlpatterns = [
     re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
     re_path(r"v1/regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.TargetEffectsView.as_view()),
     re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view()),
+    path("v1/feature_counts", views.v1.FeatureCountView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))

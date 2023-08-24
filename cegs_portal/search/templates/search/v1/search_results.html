@@ -94,7 +94,18 @@
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    <div class="flex flex-row items-start gap-x-10">
+    {% if feature_counts %}
+    <div class="content-container" id="feature-counts">
+        <div class="text-xl font-bold">Total DNA Feature Count for {{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
+        <div class="flex flex-row mt-3 gap-5">
+            {% for feature, count in feature_counts %}
+            <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 basis-1/4">
             <div class="content-container">
                 <div class="w-60">
@@ -156,7 +167,7 @@
             </div>
             {% endif %}
         </div>
-        <div class="content-container" id="sig-reg-effects">
+        <div class="content-container basis-3/4" id="sig-reg-effects">
           {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
         </div>
     </div>
@@ -221,6 +232,30 @@
             let location = state.g(STATE_LOCATION);
 
             rc(g("loc-header"), t(`chr${location.chr}: ${location.start.toLocaleString()} - ${location.end.toLocaleString()}`));
+        });
+
+        // Update the dna feature counts
+        state.addCallback(STATE_LOCATION, (s, key) => {
+            let location = state.g(STATE_LOCATION);
+
+            getJson(`/search/feature_counts?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
+                let container = g("feature-counts");
+                rc(container, [
+                    e("div", {class: "text-xl font-bold"}, `Total DNA Feature Count for ${json.region.chromo}: ${json.region.start.toLocaleString()} - ${json.region.end.toLocaleString()}`),
+                    e("div", {class: "flex flex-row mt-3 gap-5"},
+                        json.counts.map(feature_count => e("div", {class: "justify-self-start"}, [
+                            `${feature_count.feature_type}s: `,
+                            e("span", {class: "font-bold"}, feature_count.count.toLocaleString())
+                            ]
+                        ))
+                    )
+                ]);
+            }).catch(err => console.log(err));
+        });
+
+        // Update the signficant effects table
+        state.addCallback(STATE_LOCATION, (s, key) => {
+            let location = state.g(STATE_LOCATION);
 
             getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
                 let sigRegEffects = json["significant reos"]

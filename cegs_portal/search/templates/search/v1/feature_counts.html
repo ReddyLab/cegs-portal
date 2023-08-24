@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% load humanize %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    .content-container {
+        background: #ffffff;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px 40px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+{% block title %}DNA Feature Counts for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }} ({{ assembly }}){% endblock %}
+{% block content %}
+<div>
+    <div class="text-xl font-bold">DNA Feature Counts for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }} ({{ assembly }})</div>
+    <div class="content-container flex flex-row mt-3 gap-5">
+        {% for feature_type, count in counts %}
+        <div class="justify-self-start">{{ feature_type }}s: <span class="font-bold">{{ count }}</span></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

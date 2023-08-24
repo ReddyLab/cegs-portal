@@ -96,7 +96,7 @@ class IdType(StrEnum):
 
 
 class ChromosomeLocation:
-    def __init__(self, chromo: str, start: str, end: Optional[str] = None):
+    def __init__(self, chromo: str, start: str | int, end: Optional[str | int] = None):
         self.chromo = chromo
         if end is None:
             self.range = NumericRange(int(start), int(start), bounds="[]")

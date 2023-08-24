@@ -1,20 +1,23 @@
 import re
 from enum import Enum, auto
-from typing import Optional, TypedDict
+from typing import Optional
 from urllib.parse import unquote_plus
 
-from django.db.models.manager import BaseManager
+from django.core.exceptions import BadRequest
 from django.urls import reverse
 
 from cegs_portal.search.forms import SearchForm
+from cegs_portal.search.json_templates.v1.feature_counts import (
+    feature_counts as fc_json,
+)
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
-from cegs_portal.search.models import ChromosomeLocation, Facet
-from cegs_portal.search.models.dna_feature import DNAFeature
+from cegs_portal.search.models import ChromosomeLocation
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
@@ -26,6 +29,8 @@ POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)(\s+|$)", re.IGNOREC
 GRCH37 = "GRCh37"
 GRCH38 = "GRCh38"
 
+MAX_REGION_SIZE = 100_000_000
+
 
 class ParseWarning(Enum):
     TOO_MANY_LOCS = auto()
@@ -36,19 +41,6 @@ class ParseWarning(Enum):
 class SearchType(Enum):
     LOCATION = auto()
     ID = auto()
-
-
-SearchResult = TypedDict(
-    "SearchResult",
-    {
-        "location": Optional[ChromosomeLocation],
-        "assembly": str,
-        "features": BaseManager[DNAFeature],
-        "facets": BaseManager[Facet],
-        "search_type": str,
-        "warnings": set[str],
-    },
-)
 
 
 def parse_query(
@@ -216,9 +208,12 @@ class SearchView(TemplateJsonView):
                     location, self.request.user.all_experiments(), assembly=assembly_name
                 )
 
+            feature_counts = Search.feature_counts(location, assembly_name)
+
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
                 feature_redirect(query_terms[0], assembly_name)
+
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_ids_search_public(query_terms, assembly_name)
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -240,6 +235,8 @@ class SearchView(TemplateJsonView):
                     str(feature.location.upper + browser_padding),
                 )
                 assembly_name = feature.ref_genome
+
+            feature_counts = None
         else:
             raise Http400(f"Invalid Query: {options['search_query']}")
 
@@ -255,4 +252,75 @@ class SearchView(TemplateJsonView):
             "query": options["search_query"],
             "facets_query": options["facets"],
             "warnings": {w.name for w in warnings},
+            "feature_counts": feature_counts,
+        }
+
+
+def get_region(request) -> Optional[Loc]:
+    region = request.GET.get("region", None)
+
+    if region is None:
+        return None
+
+    match = re.match(r"^(chr\w+):(\d+)-(\d+)$", region)
+    if match is None:
+        raise Http400(f"Invalid region {region}")
+
+    region = (match[1], int(match[2]), int(match[3]))
+
+    if region[1] >= region[2]:
+        raise BadRequest(
+            "The lower value in the region must be smaller than the higher value: "
+            f"{region[0]}:{region[1]}-{region[2]}."
+        )
+
+    if region[2] - region[1] > MAX_REGION_SIZE:
+        raise BadRequest(f"Please request a region smaller than {MAX_REGION_SIZE} base pairs.")
+
+    return ChromosomeLocation(region[0], region[1], region[2])
+
+
+def get_assembly(request) -> Optional[str]:
+    assembly = request.GET.get("assembly", None)
+
+    if assembly is None:
+        return GRCH38
+
+    match assembly.lower():
+        case "hg19" | "grch37":
+            return GRCH37
+        case "hg38" | "grch38":
+            return GRCH38
+
+    raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
+
+
+class FeatureCountView(TemplateJsonView):
+    json_renderer = fc_json
+    template = "search/v1/feature_counts.html"
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            region
+                * a genomic location, in the form of "chrN:start-end"
+            assembly
+                * the reference genome to search against. Defaults to GRCh38
+        """
+        options = super().request_options(request)
+        options["region"] = get_region(request)
+        options["assembly"] = get_assembly(request)
+
+        return options
+
+    def get_data(self, options) -> FeatureCountResult:
+        return {
+            "region": options["region"],
+            "assembly": options["assembly"],
+            "counts": Search.feature_counts(options["region"], options["assembly"]),
         }
