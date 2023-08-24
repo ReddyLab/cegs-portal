@@ -216,18 +216,18 @@
     {% for reo in non_targeting_reos %}
     <tr data-href="{% url 'search:reg_effect' reo.accession_id %}">
         <td>
-            <span>{{ reo.sources.first.chrom_name }}: {{ reo.sources.first.location.lower|intcomma }} - {{ reo.sources.first.location.upper|add:"-1"|intcomma }}</span>
+            <span>{{ reo.first_source.chrom_name }}: {{ reo.first_source.location.lower|intcomma }} - {{ reo.first_source.location.upper|add:"-1"|intcomma }}</span>
         </td>
         <td>{{ reo.effect_size }}</td>
         <td>{{ reo.direction }}</td>
         <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
-        <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
+        <td>{{ reo.first_source.closest_gene_distance|intcomma }}bp</td>
         <td>
             <div class="w-[100px]">
-                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.sources.first.get_feature_type_display }}</p>
+                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.first_source.source }}</p>
             </div>
         </td>
-        <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
+        <td><a href="{% url 'search:experiment' reo.experiment_accession_id %}">{{ reo.experiment_name }}</a></td>
     </tr>
     {% endfor %}
     {% endif %}
