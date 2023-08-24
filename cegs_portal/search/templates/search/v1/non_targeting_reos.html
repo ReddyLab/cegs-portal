@@ -224,7 +224,7 @@
         <td>{{ reo.first_source.closest_gene_distance|intcomma }}bp</td>
         <td>
             <div class="w-[100px]">
-                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.first_source.source }}</p>
+                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.first_source.get_feature_type_display }}</p>
             </div>
         </td>
         <td><a href="{% url 'search:experiment' reo.experiment_accession_id %}">{{ reo.experiment_name }}</a></td>
