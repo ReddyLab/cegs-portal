@@ -198,7 +198,7 @@
                     <path
                         d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
                     /></svg>
-                Nearest Non-Targeting REO's
+                Proximal REO's
             </div>
             <div class="faded-line"></div>
             <table class="data-table">
@@ -207,12 +207,8 @@
                     <th>Effect Size</th>
                     <th>Direction</th>
                     <th>Significance</th>
-                {% for reo in non_targeting_reos %}
-                {% if forloop.first %}
-                    <th>Distance from {{ feature.name }}</th>
-                {% endif %}
-                {% endfor %}
-                    <th>Sources</th>
+                    <th>Distance from Gene</th>
+                    <th>Source</th>
                     <th>Experiment</th>
                 </tr>
     {% endif %}
@@ -228,7 +224,7 @@
         <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
         <td>
             <div class="w-[100px]">
-                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.sources.first.source }}</p>
+                <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.sources.first.get_feature_type_display }}</p>
             </div>
         </td>
         <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
