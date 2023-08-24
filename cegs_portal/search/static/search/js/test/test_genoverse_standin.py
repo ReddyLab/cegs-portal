@@ -112,7 +112,6 @@ def test_genoverse_track_model_transcript_portal(client: Client, genoverse_trans
         assert transcript.get("ensembl_id", None) is not None
         assert transcript.get("subtype", None) is not None
         assert transcript.get("start", None) is not None
-        assert transcript.get("start", None) is not None
         assert transcript.get("parent", None) is not None
         assert transcript.get("parent_accession_id", None) is not None
         assert transcript.get("parent_ensembl_id", None) is not None
