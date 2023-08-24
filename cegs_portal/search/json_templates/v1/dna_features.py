@@ -59,6 +59,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "type": feature_obj.get_feature_type_display(),
         "subtype": feature_obj.feature_subtype,
         "parent_accession_id": feature_obj.parent_accession_id,
+        "parent_ensembl_id": feature_obj.parent.ensembl_id if feature_obj.parent else None,
         "parent": feature_obj.parent.name if feature_obj.parent else None,
         "name": feature_obj.name,
         "ids": feature_obj.ids,
