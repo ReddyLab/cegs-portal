@@ -292,53 +292,54 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
         let transcript_parents = {};
         let exons = new Set();
 
-        data.filter(d => d.type === "Transcript")
-            .forEach(function (transcript, i) {
-                transcript_parents[transcript.accession_id] = transcript.parent_accession_id;
+        data.filter((d) => d.type === "Transcript").forEach(function (transcript, i) {
+            transcript_parents[transcript.accession_id] = transcript.parent_accession_id;
 
-                if (!featuresById[transcript.parent_accession_id]) {
-                    model.geneIds[transcript.parent_accession_id] =
-                        model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
-                    geneObj = {
-                        id: transcript.parent_accession_id,
-                        accession_id: transcript.parent_accession_id,
-                        ensembl_id: transcript.parent_ensembl_id,
-                        name: transcript.parent,
-                        chr: transcript.chr,
-                        start: transcript.start,
-                        end: transcript.end,
-                        strand: transcript.strand,
-                        ref_genome: transcript.ref_genome,
-                        exons: {},
-                        subFeatures: [],
-                        subtype: transcript.subtype,
-                        type: transcript.type
-                    }
-                    geneObj.label =
-                        parseInt(transcript.strand, 10) === 1
-                            ? (transcript.parent || transcript.ensembl_id) + " >"
-                            : "< " + (transcript.parent || transcript.ensembl_id);
-                    geneObj.sort =
-                        model.geneIds[transcript.parent_accession_id] * 1e10 +
-                        (transcript.subtype === "protein_coding" ? 0 : 1e9) +
-                        transcript.start + i;
+            if (!featuresById[transcript.parent_accession_id]) {
+                model.geneIds[transcript.parent_accession_id] =
+                    model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
+                geneObj = {
+                    id: transcript.parent_accession_id,
+                    accession_id: transcript.parent_accession_id,
+                    ensembl_id: transcript.parent_ensembl_id,
+                    name: transcript.parent,
+                    chr: transcript.chr,
+                    start: transcript.start,
+                    end: transcript.end,
+                    strand: transcript.strand,
+                    ref_genome: transcript.ref_genome,
+                    exons: {},
+                    subFeatures: [],
+                    subtype: transcript.subtype,
+                    type: transcript.type,
+                };
+                geneObj.label =
+                    transcript.strand === "+"
+                        ? (transcript.parent || transcript.ensembl_id) + " >"
+                        : "< " + (transcript.parent || transcript.ensembl_id);
+                geneObj.sort =
+                    model.geneIds[transcript.parent_accession_id] * 1e10 +
+                    (transcript.subtype === "protein_coding" ? 0 : 1e9) +
+                    transcript.start +
+                    i;
 
-                    // Adds feature to featuresById object
-                    model.insertFeature(geneObj);
-                }
+                // Adds feature to featuresById object
+                model.insertFeature(geneObj);
+            }
 
-                ids.push(geneObj.accession_id);
+            ids.push(geneObj.accession_id);
         });
 
-        data.filter(d => d.type === "Exon" && featuresById[transcript_parents[d.parent_accession_id]])
-            .forEach(exon => {
+        data.filter((d) => d.type === "Exon" && featuresById[transcript_parents[d.parent_accession_id]]).forEach(
+            (exon) => {
                 if (!exons.has(exon.accession_id)) {
                     featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
                     exons.add(exon.accession_id);
                 }
-            });
+            }
+        );
 
-        ids.forEach(id => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
+        ids.forEach((id) => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
     },
 });
 
@@ -439,7 +440,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
             var menu = {
                 title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
                 Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-                Strand: feature.strand
+                Strand: feature.strand,
             };
 
             return menu;
