@@ -141,8 +141,9 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
-            e("th", "Experiment"),
+            e("th", "Distance from TSS"),
             e("th", "Source"),
+            e("th", "Experiment"),
         ]),
     ]);
     for (let effect of regeffects) {

@@ -268,7 +268,7 @@
 HEADER -->
 <div>
     <div class="profile-feature-faded-line"></div>
-    {% for feature, sources, targets in feature_reos %}
+    {% for feature, sources, targets, reo in feature_reos %}
         {% if forloop.first %}
             <div style="display: flex; justify-content: space-between">
                 <h1>
@@ -303,13 +303,13 @@ HEADER -->
                 <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
-        {% for feature, sources, targets in feature_reos %}
+        {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.feature_subtype and forloop.first %}
                 <th>Feature Subtype</th>
             {% endif %}
         {% endfor %}
             </tr>
-            {% for feature, sources, targets in feature_reos %}
+            {% for feature, sources, targets, reo in feature_reos %}
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
                 <td>
@@ -480,7 +480,7 @@ HEADER -->
             {% endif %}
         >
 
-        {% for feature, sources, targets in feature_reos %}
+        {% for feature, sources, targets, reo in feature_reos %}
             {% if sources %}
             <div class="container">
                 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
@@ -542,54 +542,56 @@ HEADER -->
             {% endif %}
         >
 
-            {% if non_targeting_reos %}
-            <div class="mb-8">
-                <div class="container">
-                    <a name="non-targetig-reos-{{ feature.accession_id }}"></a>
-                    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                        <i class="bi bi-geo-alt-fill location-tab-icon"></i>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon">
-                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path
-                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
-                            /></svg>
-                        Proximal REO's
-                    </div>
-                    <div class="faded-line"></div>
-                    <table class="data-table">
-                        <tr>
-                            <th>Location</th>
-                            <th>Effect Size</th>
-                            <th>Direction</th>
-                            <th>Significance</th>
-                            <th>Distance from Gene</th>
-                            <th>Source</th>
-                            <th>Experiment</th>
-                        </tr>
-            {% endif %}
-            {% if non_targeting_reos %}
-            {% for reo in non_targeting_reos %}
-            <tr data-href="{% url 'search:reg_effect' reo.accession_id %}">
-                <td>
-                    <span>{{ reo.sources.first.chrom_name }}: {{ reo.sources.first.location.lower|intcomma }} - {{ reo.sources.first.location.upper|add:"-1"|intcomma }}</span>
-                </td>
-                <td>{{ reo.effect_size }}</td>
-                <td>{{ reo.direction }}</td>
-                <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
-                <td>{{ reo.sources.first.closest_gene_distance|intcomma }}bp</td>
-                <td>
-                    <div class="w-[100px]">
-                        <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.sources.first.get_feature_type_display }}</p>
-                    </div>
-                </td>
-                <td><a href="{% url 'search:experiment' reo.experiment.accession_id %}">{{ reo.experiment.name }}</a></td>
-            </tr>
-        {% endfor %}
-            {% endif %}
-                    </table>
+        {% for feature, sources, targets, reos in feature_reos %}
+        {% if reos %}
+        <div class="mb-8">
+            <div class="container">
+                <a name="non-targetig-reos-{{ feature.accession_id }}"></a>
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    <i class="bi bi-geo-alt-fill location-tab-icon"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                        /></svg>
+                    Proximal REO's
                 </div>
+                <div class="faded-line"></div>
+                <table class="data-table">
+                    <tr>
+                        <th>Location</th>
+                        <th>Effect Size</th>
+                        <th>Direction</th>
+                        <th>Significance</th>
+                        <th>Distance from TSS</th>
+                        <th>Source</th>
+                        <th>Experiment</th>
+                    </tr>
+        {% endif %}
+        {% if reos %}
+        {% for reo in reos %}
+        <tr data-href="{% url 'search:reg_effect' reo.accession_id %}">
+            <td>
+                <span>{{ reo.first_source.chrom_name }}: {{ reo.first_source.location.lower|intcomma }} - {{ reo.first_source.location.upper|add:"-1"|intcomma }}</span>
+            </td>
+            <td>{{ reo.effect_size }}</td>
+            <td>{{ reo.direction }}</td>
+            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+            <td>{{ reo.first_source.closest_gene_distance|intcomma }}bp</td>
+            <td>
+                <div class="w-[100px]">
+                    <p class="source-file-name text-ellipsis overflow-hidden ...">{{ reo.first_source.get_feature_type_display }}</p>
+                </div>
+            </td>
+            <td><a href="{% url 'search:experiment' reo.experiment_accession_id %}">{{ reo.experiment_name }}</a></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+                </table>
+            </div>
             </div>
         </div>
+        {% endfor %}
         {% endif %}
 
         {% if tab == "closest features" %}
@@ -706,7 +708,7 @@ HEADER -->
             {% endif %}
         >
             <!-- Children -->
-            {% for feature, sources, targets in feature_reos %}
+            {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists and forloop.first %}
             <div class="mb-8">
                 <div class="container">
@@ -739,7 +741,7 @@ HEADER -->
                         </tr>
             {% endif %}
             {% endfor %}
-            {% for feature, sources, targets in feature_reos %}
+            {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
                         <tr>
@@ -830,7 +832,7 @@ HEADER -->
         );
     }
 
-    {% for feature, sources, targets in feature_reos %}
+    {% for feature, sources, targets, reo in feature_reos %}
 
     {% if sources %}
     __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable)();
@@ -838,8 +840,13 @@ HEADER -->
     {% if targets %}
     __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable)();
     {% endif %}
-
+    {% if reos %}
+    __genDataPages("{{ feature.accession_id }}", 1, "{{ nontarget.nav_prefix }}", nonTargetOfURL, reoNonTargetTable)();
+    {% endif %}
     {% endfor %}
+
+
+    {}
 
     document.getElementById("feature-dist-submit").addEventListener("click", function() {
     var originalValue = this.value;

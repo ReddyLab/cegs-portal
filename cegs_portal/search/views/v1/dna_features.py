@@ -69,6 +69,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
+        non_targeting_reos = []
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -82,13 +83,25 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             else:
                 targets = None
 
-            feature_reos.append((feature, sources, targets))
-
-        non_targeting_reos = []
-        for feature in data.all():
             reos = DNAFeatureSearch.non_targeting_reo_search(feature, options.get("sig_only"))
-            if reos.exists():
-                non_targeting_reos.extend(list(reos))
+            if not reos.exists():
+                reos = None
+            else:
+                reos_data = []
+                for reo in reos:
+                    reos_data.append(
+                        {
+                            "accession_id": reo.accession_id,
+                            "effect_size": reo.effect_size,
+                            "direction": reo.direction,
+                            "significance": reo.significance,
+                            "experiment_name": reo.experiment.name,
+                            "experiment_accession_id": reo.experiment.accession_id,
+                            "first_source": reo.sources.all()[0],
+                        }
+                    )
+                reos = reos_data
+            feature_reos.append((feature, sources, targets, reos))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
@@ -110,7 +123,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         if any(f[1] is not None or f[2] is not None for f in feature_reos):
             tabs.append("source target")
 
-        if any(bool(r.sources.all()) for r in non_targeting_reos):
+        if any(f[3] is not None for f in feature_reos):
             tabs.append("nearest reo")
 
         if any(bool(f[0].closest_features.all()) for f in feature_reos):
@@ -133,7 +146,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 "feature_reos": feature_reos,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
-                "non_targeting_reos": non_targeting_reos,
             },
         )
 
