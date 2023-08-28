@@ -145,7 +145,7 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
         ]),
     ]);
     for (const reoSetIdx in reos) {
-        let [accessionIds, reoData] = reos[reoSetIdx];
+        let [_, reoData] = reos[reoSetIdx];
         let rowClass = reoSetIdx % 2 == 0 ? "" : "bg-gray-100";
         for (const reo of reoData) {
             let sourceLocations = reo["source_locs"]
@@ -166,7 +166,13 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
             ]);
 
             if (reo == reoData[0]) {
-                rowData.append(e("td", {rowspan: `${reoData.length}`}, accessionIds[0]));
+                rowData.append(
+                    e(
+                        "td",
+                        {rowspan: `${reoData.length}`},
+                        e("a", {href: `/search/experiment/${reo["expr_accession_id"]}`}, reo["expr_name"])
+                    )
+                );
             }
             newTable.append(rowData);
         }
