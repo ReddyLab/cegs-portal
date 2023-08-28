@@ -16,6 +16,8 @@ from cegs_portal.search.views.v1.search import (
     parse_target_info_html,
 )
 
+pytestmark = pytest.mark.django_db
+
 
 @pytest.mark.parametrize(
     "query, result",
@@ -121,9 +123,6 @@ from cegs_portal.search.views.v1.search import (
 )
 def test_parse_query(query, result):
     assert parse_query(query) == result
-
-
-pytestmark = pytest.mark.django_db
 
 
 def test_experiment_json(client: Client):

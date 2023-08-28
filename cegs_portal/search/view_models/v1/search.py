@@ -1,7 +1,14 @@
 from typing import Optional
 
+from django.db.models import Count
+
 from cegs_portal.get_expr_data.view_models import sig_reo_loc_search
-from cegs_portal.search.models import ChromosomeLocation, Facet
+from cegs_portal.search.models import (
+    ChromosomeLocation,
+    DNAFeature,
+    DNAFeatureType,
+    Facet,
+)
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
@@ -90,3 +97,16 @@ class Search:
     @classmethod
     def categorical_facet_search(cls):
         return Facet.objects.filter(facet_type="FacetType.CATEGORICAL").prefetch_related("values").all()
+
+    @classmethod
+    def feature_counts(cls, region: ChromosomeLocation, assembly: str):
+        counts = (
+            DNAFeature.objects.filter(chrom_name=region.chromo, location__overlap=region.range, ref_genome=assembly)
+            .values("feature_type")
+            .annotate(count=Count("accession_id"))
+        )
+
+        return sorted(
+            [(DNAFeatureType.from_db_str(count["feature_type"]).value, count["count"]) for count in counts],
+            key=lambda x: x[0],
+        )
