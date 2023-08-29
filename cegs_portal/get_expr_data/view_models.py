@@ -375,7 +375,8 @@ def sig_reo_loc_search(
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.source_chrom,
-                            reo_sources_targets_sig_only.source_loc)) AS sources,
+                            reo_sources_targets_sig_only.source_loc,
+                            reo_sources_targets_sig_only.source_accession)) AS sources,
                         ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.target_chrom,
                             reo_sources_targets_sig_only.target_loc,
@@ -416,7 +417,7 @@ def sig_reo_loc_search(
     result = [
         {
             "source_locs": source_locs,
-            "target_info": target_info,
+            "target_info": target_info if target_info != '{"(,,,)"}' else None,
             "reo_accesion_id": reo_accesion_id,
             "effect_size": float(effect_size) if effect_size is not None else None,
             "p_value": float(p_value) if p_value is not None else None,

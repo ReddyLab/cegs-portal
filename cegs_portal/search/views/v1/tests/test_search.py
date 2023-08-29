@@ -536,28 +536,30 @@ def test_experiment_no_query_html(client: Client):
 
 
 def test_parse_source_locs_html():
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\")}') == "chr1:1-2"
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == "chr1:1-2, chr2:2-4"
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001)}') == [("chr1:1-2", "DCPDHS00000001")]
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001),(chr2,\\"[2,4)\\",DCPDHS00000002)}') == [
+        ("chr1:1-2", "DCPDHS00000001"),
+        ("chr2:2-4", "DCPDHS00000002"),
+    ]
 
 
 def test_parse_source_target_data_html():
     test_data = {
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "source_locs": '{(chr1,\\"[1,2)\\")}',
+        "source_locs": '{(chr1,\\"[1,2)\\",DCPDHS00000001)}',
         "asdf": 1234,
     }
     assert parse_source_target_data_html(test_data) == {
-        "target_info": "ZBTB12",
-        "source_locs": "chr1:1-2",
+        "target_info": [("ZBTB12", "ENSG00000204366")],
+        "source_locs": [("chr1:1-2", "DCPDHS00000001")],
         "asdf": 1234,
     }
 
 
 def test_parse_target_info_html():
-    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == "ZBTB12"
-    assert (
-        parse_target_info_html(
-            '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
-        )
-        == "ZBTB12, HLA-A"
-    )
+    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == [
+        ("ZBTB12", "ENSG00000204366")
+    ]
+    assert parse_target_info_html(
+        '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
+    ) == [("ZBTB12", "ENSG00000204366"), ("HLA-A", "ENSG00000204367")]

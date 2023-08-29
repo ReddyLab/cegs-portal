@@ -47,13 +47,25 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     effect_source = RegEffectFactory(
         sources=(
             DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(10, 1_000), experiment_accession=None
+                parent=None,
+                accession_id="DCPDHS00000000",
+                chrom_name="chr1",
+                location=NumericRange(10, 1_000),
+                experiment_accession=None,
             ),
             DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(20_000, 111_000), experiment_accession=None
+                parent=None,
+                accession_id="DCPDHS00000001",
+                chrom_name="chr1",
+                location=NumericRange(20_000, 111_000),
+                experiment_accession=None,
             ),
             DNAFeatureFactory(
-                parent=None, chrom_name="chr2", location=NumericRange(22_222, 33_333), experiment_accession=None
+                parent=None,
+                accession_id="DCPDHS00000002",
+                chrom_name="chr2",
+                location=NumericRange(22_222, 33_333),
+                experiment_accession=None,
             ),
         ),
         public=public,
