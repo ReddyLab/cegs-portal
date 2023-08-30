@@ -148,21 +148,47 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
         let [_, reoData] = reos[reoSetIdx];
         let rowClass = reoSetIdx % 2 == 0 ? "" : "bg-gray-100";
         for (const reo of reoData) {
-            let sourceLocations = reo["source_locs"]
-                .map((location) => `${location[0]}:${location[1].toLocaleString()}-${location[2].toLocaleString()}`)
-                .join(", ");
-            let targetGenes = reo["target_info"].map((gene) => gene[0]).join(", ");
+            let features = [];
+            let sources = ["Source Locations: "];
+            for (let location of reo["source_locs"]) {
+                sources.push(
+                    e(
+                        "a",
+                        {href: `/search/feature/accession/${location[3]}`},
+                        `${location[0]}:\u00A0${location[1].toLocaleString()}-${location[2].toLocaleString()}`
+                    )
+                );
+                sources.push(", ");
+            }
+
+            sources.pop(); // remove that last comma
+
+            features.push(e("div", sources));
+
+            if (reo["target_info"].length > 0) {
+                let targetGene = reo["target_info"][0];
+                features.push(
+                    e("div", [
+                        `Target Genes: `,
+                        e("a", {href: `/search/feature/ensembl/${targetGene[1]}`}, targetGene[0]),
+                    ])
+                );
+            }
+
             let rowData = e("tr", {class: rowClass}, [
+                e("td", features),
                 e(
                     "td",
-                    e("a", {href: `/search/regeffect/${reo["reo_accesion_id"]}`}, [
-                        e("div", `Source Locations: ${sourceLocations}`),
-                        e("div", `Target Genes: ${targetGenes}`),
-                    ])
+                    reo["effect_size"] != null
+                        ? e(
+                              "a",
+                              {href: `/search/regeffect/${reo["reo_accesion_id"]}`},
+                              reo["effect_size"].toPrecision(6)
+                          )
+                        : ""
                 ),
-                e("td", reo["effect_size"] != null ? reo["effect_size"].toPrecision(6) : ""),
-                e("td", reo["sig"].toPrecision(6)),
-                e("td", reo["p_value"].toPrecision(6)),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accesion_id"]}`}, reo["sig"].toPrecision(6))),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accesion_id"]}`}, reo["p_value"].toPrecision(6))),
             ]);
 
             if (reo == reoData[0]) {

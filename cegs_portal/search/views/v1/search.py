@@ -121,25 +121,30 @@ def parse_query(
     return search_type, terms, location, assembly, warnings
 
 
-def parse_source_locs_html(source_locs: str) -> list[str]:
+def parse_source_locs_html(source_locs: str) -> list[tuple[str, str]]:
     locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
+    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\",(\w+)\)', source_locs):
         chrom = match[1]
-        start = match[2]
-        end = match[3]
-        locs.append(f"{chrom}:{start}-{end}")
+        start = int(match[2])
+        end = int(match[3])
+        accession_id = match[4]
+        locs.append((f"{chrom}:{start:,}-{end:,}", accession_id))
         source_locs = source_locs[match.end() :]
 
-    return ", ".join(locs)
+    return locs
 
 
-def parse_target_info_html(target_info: str) -> list[str]:
+def parse_target_info_html(target_info: Optional[str]) -> list[tuple[str, str]]:
+    if target_info is None:
+        return []
+
     info = []
     while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
         gene_symbol = match[1]
-        info.append(gene_symbol)
+        ensembl_id = match[2]
+        info.append((gene_symbol, ensembl_id))
         target_info = target_info[match.end() :]
-    return ", ".join(info)
+    return info
 
 
 def parse_source_target_data_html(reo_data):

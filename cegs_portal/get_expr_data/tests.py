@@ -582,7 +582,11 @@ def test_sigdata(reg_effects, login_client: SearchClient):
         "analysis_accession_id": analysis_accession_id,
     } in json_content["significant reos"][0][1]
     assert {
-        "source_locs": [["chr1", 10, 1000], ["chr1", 20000, 111000], ["chr2", 22222, 33333]],
+        "source_locs": [
+            ["chr1", 10, 1000, "DCPDHS00000000"],
+            ["chr1", 20000, 111000, "DCPDHS00000001"],
+            ["chr2", 22222, 33333, "DCPDHS00000002"],
+        ],
         "target_info": [],
         "reo_accesion_id": effect_source.accession_id,
         "effect_size": -0.0660384670056446,

@@ -20,7 +20,6 @@ class DNAFeatureFactory(DjangoModelFactory):
     archived = False
     public = True
     experiment_accession = factory.SubFactory(ExperimentFactory)
-    accession_id = _faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
     ensembl_id = _faker.unique.numerify(text="ENSG###########")
     name = Faker("lexify", text="????-1", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     cell_line = Faker("text", max_nb_chars=50)
@@ -47,8 +46,9 @@ class DNAFeatureFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
-        obj.save()
+        if "accession_id" not in kwargs:
+            obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
+            obj.save()
         return obj
 
     @post_generation
