@@ -1,4 +1,10 @@
-{% extends "base.html" %} {% load static i18n %} {% load humanize %} {% load custom_helpers %} {% block css %} {{ block.super }}
+{% extends "base.html" %}
+{% load static i18n %}
+{% load humanize %}
+{% load custom_helpers %}
+{% block css %}
+{{ block.super }}
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
 <style>
     .container {
         background: #ffffff;
@@ -152,10 +158,13 @@
     }
 
 </style>
-{% endblock %}{% block content %}{% block javascript %} {{ block.super }}
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/dataTables.jqueryui.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
 {% endblock %}
+{% block javascript %}
+{{ block.super }}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+{% endblock %}
+{% block content %}
 <div>
 <div class="profile-feature-faded-line"></div>
         <div style="display: flex; justify-content: space-between">
