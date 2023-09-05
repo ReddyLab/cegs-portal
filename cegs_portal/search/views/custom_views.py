@@ -90,7 +90,7 @@ class TemplateJsonView(View):
 
     def request_options(self, request):
         return {
-            "is_json": request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME,
+            "is_json": JSON_MIME in request.headers.get("accept") or request.GET.get("accept", None) == JSON_MIME,
             "json_format": request.GET.get("format", None),
         }
 
