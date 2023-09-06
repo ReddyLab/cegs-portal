@@ -12,7 +12,8 @@ from cegs_portal.search.models import (
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
-EXPERIMENT_SOURCES = "Experiment Regulatory Effect Source"
+EXPERIMENT_SOURCES = ["Chromatin Accessable Region", "gRNA", "DHS"]
+EXPERIMENT_SOURCES_TEXT = "Experiment Regulatory Effect Source"
 
 
 class Search:
@@ -112,14 +113,16 @@ class Search:
             DNAFeatureType.CCRE.value: 0,
             DNAFeatureType.EXON.value: 0,
             DNAFeatureType.GENE.value: 0,
-            EXPERIMENT_SOURCES: 0,
+            EXPERIMENT_SOURCES_TEXT: 0,
             DNAFeatureType.TRANSCRIPT.value: 0,
         }
         for count in counts:
             count_value = DNAFeatureType.from_db_str(count["feature_type"]).value
             if count_value in count_dict:
                 count_dict[count_value] += count["count"]
+            elif count_value in EXPERIMENT_SOURCES:
+                count_dict[EXPERIMENT_SOURCES_TEXT] += count["count"]
             else:
-                count_dict[EXPERIMENT_SOURCES] += count["count"]
+                raise ValueError(f'Unknown DNA Feature Type "{count_value}"')
 
         return sorted([(name + "s", count) for name, count in count_dict.items()], key=lambda x: x[0])
