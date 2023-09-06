@@ -27,9 +27,11 @@ def test_feature_counts_json(client: Client):
     assert json_content["region"] == {"chromo": "chr1", "start": 1, "end": 1000000}
     assert json_content["assembly"] == "GRCh38"
     assert json_content["counts"] == [
-        {"feature_type": "Chromatin Accessable Region", "count": 2},
-        {"feature_type": "Gene", "count": 2},
-        {"feature_type": "cCRE", "count": 1},
+        {"feature_type": "Exons", "count": 0},
+        {"feature_type": "Experiment Regulatory Effect Sources", "count": 2},
+        {"feature_type": "Genes", "count": 2},
+        {"feature_type": "Transcripts", "count": 0},
+        {"feature_type": "cCREs", "count": 1},
     ]
 
 
@@ -42,7 +44,9 @@ def test_feature_counts_with_assembly_json(client: Client):
     assert json_content["region"] == {"chromo": "chr1", "start": 1, "end": 1000000}
     assert json_content["assembly"] == "GRCh37"
     assert json_content["counts"] == [
-        {"feature_type": "Chromatin Accessable Region", "count": 2},
-        {"feature_type": "Gene", "count": 2},
-        {"feature_type": "cCRE", "count": 1},
+        {"feature_type": "Exons", "count": 0},
+        {"feature_type": "Experiment Regulatory Effect Sources", "count": 2},
+        {"feature_type": "Genes", "count": 2},
+        {"feature_type": "Transcripts", "count": 0},
+        {"feature_type": "cCREs", "count": 1},
     ]
