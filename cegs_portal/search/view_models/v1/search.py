@@ -12,6 +12,8 @@ from cegs_portal.search.models import (
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 
+EXPERIMENT_SOURCES = "Experiment Regulatory Effect Source"
+
 
 class Search:
     @classmethod
@@ -106,7 +108,18 @@ class Search:
             .annotate(count=Count("accession_id"))
         )
 
-        return sorted(
-            [(DNAFeatureType.from_db_str(count["feature_type"]).value, count["count"]) for count in counts],
-            key=lambda x: x[0],
-        )
+        count_dict = {
+            DNAFeatureType.CCRE.value: 0,
+            DNAFeatureType.EXON.value: 0,
+            DNAFeatureType.GENE.value: 0,
+            EXPERIMENT_SOURCES: 0,
+            DNAFeatureType.TRANSCRIPT.value: 0,
+        }
+        for count in counts:
+            count_value = DNAFeatureType.from_db_str(count["feature_type"]).value
+            if count_value in count_dict:
+                count_dict[count_value] += count["count"]
+            else:
+                count_dict[EXPERIMENT_SOURCES] += count["count"]
+
+        return sorted([(name + "s", count) for name, count in count_dict.items()], key=lambda x: x[0])

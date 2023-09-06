@@ -99,7 +99,7 @@
         <div class="text-xl font-bold">Total DNA Feature Count for {{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
         <div class="flex flex-row mt-3 gap-5">
             {% for feature, count in feature_counts %}
-            <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span></div>
+            <div class="justify-self-start">{{ feature }}: <span class="font-bold">{{ count }}</span></div>
             {% endfor %}
         </div>
     </div>
@@ -244,7 +244,7 @@
                     e("div", {class: "text-xl font-bold"}, `Total DNA Feature Count for ${json.region.chromo}: ${json.region.start.toLocaleString()} - ${json.region.end.toLocaleString()}`),
                     e("div", {class: "flex flex-row mt-3 gap-5"},
                         json.counts.map(feature_count => e("div", {class: "justify-self-start"}, [
-                            `${feature_count.feature_type}s: `,
+                            `${feature_count.feature_type}: `,
                             e("span", {class: "font-bold"}, feature_count.count.toLocaleString())
                             ]
                         ))
