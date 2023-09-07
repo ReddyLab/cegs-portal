@@ -85,11 +85,12 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 targets = None
 
             reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
-            if not reos.exists():
-                reos = None
-            else:
+            if reos.exists():
                 paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
                 reo_page = paginated_reos.page(1)
+            else:
+                reo_page = None
+
             feature_reos.append((feature, sources, targets, reo_page))
 
         def sort_key(feature_reo):

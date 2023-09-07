@@ -17,7 +17,7 @@ def test_genoverse_track_view_DHS(client: Client, genoverse_dhs_features):
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=dhs&feature_type=ccre&property=regeffects"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=regeffects"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -42,7 +42,7 @@ def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_feature
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=dhs&feature_type=ccre&property=regeffects"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=regeffects"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -69,7 +69,7 @@ def test_genoverse_track_model_gene_portal(client: Client, genoverse_gene_featur
     features = genoverse_gene_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=gene"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=Gene"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -92,7 +92,7 @@ def test_genoverse_track_model_transcript_portal(client: Client, genoverse_trans
     features = genoverse_transcript_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=transcript&feature_type=exon"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon"  # noqa: E501
     )
 
     assert response.status_code == 200
