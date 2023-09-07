@@ -3,7 +3,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
-    non_target_regulatory_effect,
+    non_targeting_regulatory_effects,
 )
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
@@ -16,7 +16,7 @@ from cegs_portal.utils.pagination_types import Pageable
 
 
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
-    json_renderer = non_target_regulatory_effect
+    json_renderer = non_targeting_regulatory_effects
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 

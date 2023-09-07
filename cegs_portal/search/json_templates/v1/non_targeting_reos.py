@@ -20,41 +20,40 @@ RegulatoryEffectObservationJson = TypedDict(
 )
 
 
-def non_target_regulatory_effect(
-    non_target_data: tuple[Pageable[RegulatoryEffectObservation], Any], options: Optional[dict[str, Any]] = None
+def non_targeting_regulatory_effects(
+    non_target_data: tuple[Pageable[RegulatoryEffectObservation], Any], _options: Optional[dict[str, Any]] = None
 ) -> PageableJson:
     reg_effects, _ = non_target_data
 
-    results: list[RegulatoryEffectObservationJson] = [
-        {
-            "accession_id": reg_effect.accession_id,
-            "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
-            "direction": reg_effect.direction,
-            "effect_size": reg_effect.effect_size,
-            "significance": reg_effect.significance,
-            "raw_p_value": reg_effect.raw_p_value,
-            "source_ids": [
-                {
-                    "accession_id": source.accesion_id,
-                    "location": {
-                        "chromo": source.chromo_name,
-                        "strand": source.strand,
-                        "lower": source.location.lower,
-                        "upper": source.location.upper,
-                    },
-                    "tss_distance": source.closest_gene_distance,
-                    "type": source.feature_type,
-                }
-                for source in reg_effect.sources.all()
-            ],
-        }
-        for reg_effect in reg_effects
-    ]
-
     return {
-        "object_list": results,
+        "object_list": [regulatory_effect(reo) for reo in reg_effects],
         "page": reg_effects.number,
         "has_next_page": reg_effects.has_next(),
         "has_prev_page": reg_effects.has_previous(),
         "num_pages": reg_effects.paginator.num_pages,
+    }
+
+
+def regulatory_effect(reg_effect: RegulatoryEffectObservation) -> RegulatoryEffectObservationJson:
+    return {
+        "accession_id": reg_effect.accession_id,
+        "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
+        "direction": reg_effect.direction,
+        "effect_size": reg_effect.effect_size,
+        "significance": reg_effect.significance,
+        "raw_p_value": reg_effect.raw_p_value,
+        "source_ids": [
+            {
+                "accession_id": source.accession_id,
+                "location": {
+                    "chromo": source.chrom_name,
+                    "strand": source.strand,
+                    "lower": source.location.lower,
+                    "upper": source.location.upper,
+                },
+                "tss_distance": source.closest_gene_distance,
+                "type": source.feature_type,
+            }
+            for source in reg_effect.sources.all()
+        ],
     }
