@@ -12,6 +12,8 @@ from cegs_portal.search.views.custom_views import (
 )
 from cegs_portal.utils.http_exceptions import Http400
 
+DEFAULT_TABLE_LENGTH = 20
+
 
 class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = features
@@ -69,7 +71,6 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
-        non_targeting_reos = []
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -83,25 +84,13 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             else:
                 targets = None
 
-            reos = DNAFeatureSearch.non_targeting_reo_search(feature, options.get("sig_only"))
+            reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
             if not reos.exists():
                 reos = None
             else:
-                reos_data = []
-                for reo in reos:
-                    reos_data.append(
-                        {
-                            "accession_id": reo.accession_id,
-                            "effect_size": reo.effect_size,
-                            "direction": reo.direction,
-                            "significance": reo.significance,
-                            "experiment_name": reo.experiment.name,
-                            "experiment_accession_id": reo.experiment.accession_id,
-                            "first_source": reo.sources.all()[0],
-                        }
-                    )
-                reos = reos_data
-            feature_reos.append((feature, sources, targets, reos))
+                paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
+                reo_page = paginated_reos.page(1)
+            feature_reos.append((feature, sources, targets, reo_page))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]

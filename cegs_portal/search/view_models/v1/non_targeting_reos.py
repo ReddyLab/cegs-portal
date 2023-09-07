@@ -42,11 +42,14 @@ class DNAFeatureNonTargetSearch:
     @classmethod
     def non_targeting_regeffect_search(cls, feature_accession_id: str, sig_only: bool):
         source_features = DNAFeature.objects.filter(closest_gene__accession_id=feature_accession_id)
-        reg_effects = RegulatoryEffectObservation.objects.filter(
-            sources__in=Subquery(source_features.values("id")), targets=None
-        ).order_by("facet_num_values__Significance")
+        reg_effects = (
+            RegulatoryEffectObservation.objects.filter(sources__in=Subquery(source_features.values("id")), targets=None)
+            .order_by("facet_num_values__Significance")
+            .select_related("experiment")
+            .prefetch_related("sources", "facet_values", "facet_values__facet")
+        )
 
         if sig_only:
             reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
 
-        return reg_effects.prefetch_related("sources", "experiment")
+        return reg_effects

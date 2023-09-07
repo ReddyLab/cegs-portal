@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Optional, cast
 
-from django.db.models import Q, QuerySet, Subquery
+from django.db.models import Q, QuerySet
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -12,6 +12,9 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservationSet,
 )
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
+from cegs_portal.search.view_models.v1.non_targeting_reos import (
+    DNAFeatureNonTargetSearch,
+)
 from cegs_portal.utils.http_exceptions import Http500
 
 
@@ -284,16 +287,5 @@ class DNAFeatureSearch:
         return reg_effects
 
     @classmethod
-    def non_targeting_reo_search(cls, genes: list[DNAFeature], sig_only: bool):
-        source_features = DNAFeature.objects.filter(closest_gene_id=genes)
-        reg_effects = (
-            RegulatoryEffectObservation.objects.filter(
-                sources__in=Subquery(source_features.values("id")), targets=None
-            )
-            .order_by('facet_num_values__Significance')
-        )
-
-        if sig_only:
-          reg_effects = reg_effects.exclude(facet_values__value="Non-significant")
-
-        return reg_effects
+    def non_targeting_reo_search(cls, feature_accession_id: str, sig_only: bool):
+        return DNAFeatureNonTargetSearch.non_targeting_regeffect_search(feature_accession_id, sig_only)

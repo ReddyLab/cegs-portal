@@ -1,6 +1,10 @@
+from django.core.paginator import Paginator
 from django.http import Http404
+from django.shortcuts import render
 
-from cegs_portal.search.json_templates.v1.non_targeting_reos import non_target_regulatory_effect
+from cegs_portal.search.json_templates.v1.non_targeting_reos import (
+    non_target_regulatory_effect,
+)
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
@@ -12,7 +16,7 @@ from cegs_portal.utils.pagination_types import Pageable
 
 
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
-    json_renderer = "non_target_regulatory_effect"
+    json_renderer = non_target_regulatory_effect
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 
@@ -65,20 +69,18 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         return options
 
     def get(self, request, options, data, feature_id):
-        reos = []
-        for reo in data[0]:
-            reos.append(
-                {
-                    "accession_id": reo.accession_id,
-                    "effect_size": reo.effect_size,
-                    "direction": reo.direction,
-                    "significance": reo.significance,
-                    "experiment_name": reo.experiment.name,
-                    "experiment_accession_id": reo.experiment.accession_id,
-                    "first_source": reo.sources.all()[0],
-                }
+        paginated_reos, feature = data
+        reo_page = paginated_reos.page(options["page"])
+        response_values = {"non_targeting_reos": reo_page, "feature": feature}
+
+        if request.headers.get("HX-Target"):
+            return render(
+                request,
+                "search/v1/partials/_non_targeting_reo.html",
+                response_values,
             )
-        return super().get(request, options, {"non_targeting_reos": reos, "feature": data[1]})
+
+        return super().get(request, options, response_values)
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []
@@ -88,4 +90,4 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         if reg_effects.exists():
             non_targeting_reos.extend(list(reg_effects))
 
-        return non_targeting_reos, feature
+        return Paginator(non_targeting_reos, options["per_page"]), feature
