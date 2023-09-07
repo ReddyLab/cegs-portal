@@ -148,7 +148,7 @@ def reo_source_target():
     return {
         "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "reo_accesion_id": "DCPREO00000001",
+        "reo_accession_id": "DCPREO00000001",
         "effect_size": -1.2,
         "p_value": 0.005,
         "sig": 0.05,
@@ -164,7 +164,7 @@ def reo_source_targets():
         {
             "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
             "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-            "reo_accesion_id": "DCPREO000339D6",
+            "reo_accession_id": "DCPREO000339D6",
             "effect_size": 0.010958133,
             "p_value": 0.00000184,
             "sig": 0.000547435,
@@ -175,7 +175,7 @@ def reo_source_targets():
         {
             "source_locs": '{"(chr6,\\"[32182864,32183339)\\")"}',
             "target_info": '{"(chr6,\\"[31830969,31846824)\\",SLC44A4,ENSG00000204385)"}',
-            "reo_accesion_id": "DCPREO00033A96",
+            "reo_accession_id": "DCPREO00033A96",
             "effect_size": -0.005418836,
             "p_value": 0.001948499,
             "sig": 0.004785014,
@@ -186,7 +186,7 @@ def reo_source_targets():
         {
             "source_locs": '{"(chr13,\\"[40666345,40666366)\\")"}',
             "target_info": '{"(chr6,\\"[31834608,31839767)\\",SNHG32,ENSG00000204387)"}',
-            "reo_accesion_id": "DCPREO004F45A1",
+            "reo_accession_id": "DCPREO004F45A1",
             "effect_size": -1.2,
             "p_value": 0.005,
             "sig": 0.05,

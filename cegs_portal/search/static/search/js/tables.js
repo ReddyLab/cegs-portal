@@ -157,7 +157,6 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
                     e("td", `${effect.effect_size.toExponential(3)}`),
                     e("td", `${effect.direction}`),
                     e("td", `${effect.significance.toExponential(3)}`),
-
                 ])
             );
         }
@@ -187,7 +186,7 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
             let rowData = e("tr", {class: rowClass}, [
                 e(
                     "td",
-                    e("a", {href: `/search/regeffect/${reo["reo_accesion_id"]}`}, [
+                    e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, [
                         e("div", `Source Locations: ${sourceLocations}`),
                         e("div", `Target Genes: ${targetGenes}`),
                     ])

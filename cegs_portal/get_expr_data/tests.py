@@ -573,7 +573,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     assert {
         "source_locs": [],
         "target_info": [["LNLC-1", "ENSG01124619313"]],
-        "reo_accesion_id": effect_target.accession_id,
+        "reo_accession_id": effect_target.accession_id,
         "effect_size": -0.0660384670056446,
         "p_value": 3.19229500470051e-06,
         "sig": 0.000427767530629869,
@@ -584,7 +584,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     assert {
         "source_locs": [["chr1", 10, 1000], ["chr1", 20000, 111000], ["chr2", 22222, 33333]],
         "target_info": [],
-        "reo_accesion_id": effect_source.accession_id,
+        "reo_accession_id": effect_source.accession_id,
         "effect_size": -0.0660384670056446,
         "p_value": 3.19229500470051e-06,
         "sig": 0.000427767530629869,
