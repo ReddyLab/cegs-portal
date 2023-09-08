@@ -1,7 +1,7 @@
 import random
 
 import factory
-from factory import Faker, post_generation
+from factory import Faker
 from factory.django import DjangoModelFactory
 from faker import Faker as F
 from psycopg2.extras import NumericRange
@@ -39,10 +39,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     misc = {"other id": "id value"}
     source = factory.SubFactory(FileFactory)
 
-    # Be careful when creating a set of DNAFeatureFactory. The "parent" values should be explicit and
-    # there should always be a DNAFeatureFactory(parent=None) for each stack of DNAFeatureFactories
-    # so pytest doesn't infinitely recurse
-    parent = factory.SubFactory("cegs_portal.search.models.tests.dna_feature_factory.DNAFeatureFactory")
+    parent = None
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -51,9 +48,9 @@ class DNAFeatureFactory(DjangoModelFactory):
         obj.save()
         return obj
 
-    @post_generation
-    def parent_accession_id(self, create, extracted, **kwargs):
-        if self.parent is not None:
-            self.parent_accession_id = self.parent.accession_id  # pylint: disable=no-member
-        else:
-            self.parent_accession_id = None
+    @factory.lazy_attribute
+    def parent_accession_id(self):
+        if self.parent:
+            return self.parent.accession_id  # pylint: disable=no-member
+
+        return None
