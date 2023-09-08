@@ -26,7 +26,7 @@ def non_targeting_regulatory_effects(
     reg_effects, _ = non_target_data
 
     return {
-        "object_list": [regulatory_effect(reo) for reo in reg_effects],
+        "object_list": [regulatory_effect(reo) for reo in reg_effects.object_list],
         "page": reg_effects.number,
         "has_next_page": reg_effects.has_next(),
         "has_prev_page": reg_effects.has_previous(),

@@ -50,6 +50,8 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
                 * genoverse
             page
                 * an integer > 0
+            per_page
+                * an integer > 0
             sig_only
                 * whether or not to include only significant observations
         """
@@ -69,8 +71,7 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         return options
 
     def get(self, request, options, data, feature_id):
-        paginated_reos, feature = data
-        reo_page = paginated_reos.page(options["page"])
+        reo_page, feature = data
         response_values = {"non_targeting_reos": reo_page, "feature": feature}
 
         if request.headers.get("HX-Target"):
@@ -90,4 +91,4 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         if reg_effects.exists():
             non_targeting_reos.extend(list(reg_effects))
 
-        return Paginator(non_targeting_reos, options["per_page"]), feature
+        return Paginator(non_targeting_reos, options["per_page"]).get_page(options["page"]), feature
