@@ -24,19 +24,19 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         try:
             return DNAFeatureNonTargetSearch.expr_id(self.kwargs["feature_id"])
         except ObjectNotFoundError as e:
-            raise Http404(str(e))
+            raise Http404(f"DNA Feature {self.kwargs['feature_id']} not found") from e
 
     def is_public(self):
         try:
             return DNAFeatureNonTargetSearch.is_public(self.kwargs["feature_id"])
         except ObjectNotFoundError as e:
-            raise Http404(str(e))
+            raise Http404(f"DNA Feature {self.kwargs['feature_id']} not found") from e
 
     def is_archived(self):
         try:
             return DNAFeatureNonTargetSearch.is_archived(self.kwargs["feature_id"])
         except ObjectNotFoundError as e:
-            raise Http404(str(e))
+            raise Http404(f"DNA Feature {self.kwargs['feature_id']} not found") from e
 
     def request_options(self, request):
         """
