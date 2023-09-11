@@ -9,6 +9,6 @@ FeatureCountResult = TypedDict(
     {
         "region": ChromosomeLocation,
         "assembly": str,
-        "counts": list[tuple[str, int, bool, int]],
+        "counts": list[tuple[str, int, int]],
     },
 )
