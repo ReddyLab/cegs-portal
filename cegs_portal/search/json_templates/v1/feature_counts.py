@@ -24,7 +24,7 @@ FeatureCountJson = TypedDict(
 def feature_counts(
     feature_count_list: FeatureCountResult, _options: Optional[dict[str, Any]] = None
 ) -> FeatureCountJson:
-    region = feature_count_list["location"]
+    region = feature_count_list["region"]
     return {
         "region": {"chromo": region.chromo, "start": region.range.lower, "end": region.range.upper},
         "assembly": feature_count_list["assembly"],

@@ -252,6 +252,7 @@ class SearchView(TemplateJsonView):
 
         return {
             "location": location,
+            "region": location,
             "assembly": assembly_name,
             "features": features,
             "sig_reg_effects": sig_reos,
@@ -330,7 +331,7 @@ class FeatureCountView(TemplateJsonView):
     def get_data(self, options) -> FeatureCountResult:
         feature_counts = Search.feature_counts(options["region"], options["assembly"])
         return {
-            "location": options["region"],
+            "region": options["region"],
             "assembly": options["assembly"],
             "feature_counts": feature_counts,
             "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,

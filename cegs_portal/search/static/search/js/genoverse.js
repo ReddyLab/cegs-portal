@@ -1,7 +1,7 @@
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
     _sharedState: {
-        location: null,
+        region: null,
         "dhs-data": null,
         "dhs-effect-data": null,
         "dhs-effect-data-deferred": null,
@@ -25,11 +25,11 @@ CEGSGenoverse = Genoverse.extend({
     sharedStateCallbacks: [],
     init: function () {
         this.base();
-        this.updateSharedState("location", {chr: this.chr, start: this.start, end: this.end});
+        this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
     },
     updateURL: function () {
         this.base();
-        this.updateSharedState("location", {chr: this.chr, start: this.start, end: this.end});
+        this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
     },
 });
 

@@ -5,7 +5,7 @@ from cegs_portal.search.views.v1.search_types import FeatureCountResult
 
 
 def test_feature_counts(feature_count_result: FeatureCountResult):
-    region = feature_count_result["location"]
+    region = feature_count_result["region"]
     assert fc_json(feature_count_result) == {
         "region": {"chromo": region.chromo, "start": region.range.lower, "end": region.range.upper},
         "assembly": feature_count_result["assembly"],
