@@ -18,3 +18,6 @@ typecheck:
 
 exp_cov:
 	./scripts/data_generation/gen_experiment_coverage_viz.sh
+
+collectstatic:
+	python manage.py collectstatic -i "*.ecd" -i "*.pd"  # ignore binary files in the static_data directory

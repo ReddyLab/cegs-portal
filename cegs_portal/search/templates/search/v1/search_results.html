@@ -95,14 +95,7 @@
     {% endif %}
 
     {% if feature_counts %}
-    <div class="content-container" id="feature-counts">
-        <div class="text-xl font-bold">Total DNA Feature Count for {{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
-        <div class="flex flex-row mt-3 gap-5">
-            {% for feature, count in feature_counts %}
-            <div class="justify-self-start">{{ feature }}: <span class="font-bold">{{ count }}</span></div>
-            {% endfor %}
-        </div>
-    </div>
+    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
     {% endif %}
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
@@ -237,20 +230,7 @@
         // Update the dna feature counts
         state.addCallback(STATE_LOCATION, (s, key) => {
             let location = state.g(STATE_LOCATION);
-
-            getJson(`/search/feature_counts?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
-                let container = g("feature-counts");
-                rc(container, [
-                    e("div", {class: "text-xl font-bold"}, `Total DNA Feature Count for ${json.region.chromo}: ${json.region.start.toLocaleString()} - ${json.region.end.toLocaleString()}`),
-                    e("div", {class: "flex flex-row mt-3 gap-5"},
-                        json.counts.map(feature_count => e("div", {class: "justify-self-start"}, [
-                            `${feature_count.feature_type}: `,
-                            e("span", {class: "font-bold"}, feature_count.count.toLocaleString())
-                            ]
-                        ))
-                    )
-                ]);
-            }).catch(err => console.log(err));
+            htmx.ajax("GET", `/search/feature_counts?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`, {target:"#feature-counts", swap:"outerHTML"});
         });
 
         // Update the signficant effects table
