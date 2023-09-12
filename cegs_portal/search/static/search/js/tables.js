@@ -76,8 +76,7 @@ function reTable(regeffects, regionID = "regeffect") {
             effect.target_ids = [null];
         }
         for (const target of effect.target_ids) {
-            newTable.append(
-                e("tr", [
+               let row = e("tr", { 'data-href': `/search/regeffect/${effect.accession_id}`}, [
                     e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
                     e("td", `${effect.effect_size.toExponential(3)}`),
                     e("td", `${effect.direction}`),
@@ -89,8 +88,11 @@ function reTable(regeffects, regionID = "regeffect") {
                     target == null
                         ? e("td", "-")
                         : e("td", e("a", {href: `/search/feature/accession/${target}`}, target)),
-                ])
-            );
+                ]);
+                row.onclick = function() {
+                    window.location = row.getAttribute('data-href');
+                }
+                newTable.append(row);
         }
     }
     let tableContainer = e("div", {}, [newTable]);
@@ -117,21 +119,23 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             effect.source_ids = [null];
         }
         for (const source of effect.source_ids) {
-            newTable.append(
-                e("tr", [
-                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e("td", `${effect.effect_size.toExponential(3)}`),
-                    e("td", `${effect.direction}`),
-                    e("td", `${effect.significance.toExponential(3)}`),
-                    e(
-                        "td",
-                        e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)
-                    ),
-                    source == null
-                        ? e("td", "-")
-                        : e("td", e("a", {href: `/search/feature/accession/${source}`}, source)),
-                ])
-            );
+            let row = e("tr", { 'data-href': `/search/regeffect/${effect.accession_id}` }, [
+                e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
+                e("td", `${effect.effect_size.toExponential(3)}`),
+                e("td", `${effect.direction}`),
+                e("td", `${effect.significance.toExponential(3)}`),
+                e(
+                    "td",
+                    e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)
+                ),
+                source == null
+                    ? e("td", "-")
+                    : e("td", e("a", {href: `/search/feature/accession/${source}`}, source)),
+            ]);
+            row.onclick = function() {
+                window.location = row.getAttribute('data-href');
+            }
+            newTable.append(row);
         }
     }
     let tableContainer = e("div", {}, [newTable]);

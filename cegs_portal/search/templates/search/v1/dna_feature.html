@@ -607,7 +607,7 @@ HEADER -->
             {% for feature in features %}
             {% if feature.closest_features.exists %}
                     {% for close_feature in feature.closest_features.all %}
-                    <tr>
+                    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
                         <td>
                             <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
                         </td>
@@ -713,7 +713,7 @@ HEADER -->
             {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
-                        <tr>
+                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">
                             <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
                             <td>{{ child.get_feature_type_display }}</td>
                             <td>{{ child.name }}</td>

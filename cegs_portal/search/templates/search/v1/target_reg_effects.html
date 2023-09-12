@@ -27,7 +27,7 @@
             <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
             </tr>
             {% empty %}
-                <tr>
+                <tr data-href="{% url 'search:reg_effect' regeffect.accession_id %}">
                     <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                     <td>{{ regeffect.effect_size }}</td>
                     <td>{{ regeffect.direction }}</td>
