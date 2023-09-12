@@ -1,6 +1,9 @@
+<div class="content-container basis-3/4" id="sig-reg-effects">
+{% if sig_reg_effects|length > 0 %}
+<div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
 <table class="data-table">
     <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
-    {% for key, regeffects in rows %}
+    {% for key, regeffects in sig_reg_effects %}
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         {% for regeffect in regeffects %}
         <tr class="{{ rowcolors }}">
@@ -20,3 +23,7 @@
         {% endfor %}
     {% endfor %}
 </table>
+{% else %}
+No Relevant Reg Effect Observations Found
+{% endif %}
+</div>

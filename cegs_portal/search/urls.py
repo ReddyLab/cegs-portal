@@ -38,6 +38,7 @@ urlpatterns = [
     ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
+    path("sigdata", view=views.v1.SignificantExperimentDataView.as_view(), name="sigdata"),
     path("v1/results/", views.v1.SearchView.as_view()),
     re_path(
         r"v1/feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)$", views.v1.DNAFeatureId.as_view()

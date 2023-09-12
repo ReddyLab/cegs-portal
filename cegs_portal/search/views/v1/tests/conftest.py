@@ -3,6 +3,7 @@ from typing import Iterable
 import pytest
 from psycopg2.extras import NumericRange
 
+from cegs_portal.get_expr_data.conftest import reg_effects  # noqa: F401
 from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
