@@ -80,7 +80,7 @@
     }
 
     table.data-table th {
-        padding: 12px;
+        padding: 6px;
         text-align: left;
         background-color: #ddd;
         color: gray;
@@ -553,7 +553,7 @@ HEADER -->
             data-te-tab-active
             {% endif %}
         >
-        {% for feature, _, _, reos in feature_reos %}
+        {% for feature, sources, targets, reos in feature_reos %}
             {% if reos %}
             <div class="mb-8" id="non-target-table">
                 {% include "search/v1/partials/_non_targeting_reo.html" with feature=feature non_targeting_reos=reos %}

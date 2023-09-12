@@ -64,9 +64,9 @@ function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Accession ID"),
-            e("th", "Effect Size"),
+            e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
-            e("th", "Significance"),
+            e("th", "Significance (p-value)"),
             e("th", "Experiment"),
             e("th", "Target"),
         ]),
@@ -101,9 +101,13 @@ function reTargetTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Accession ID"),
-            e("th", "Effect Size"),
+            e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
-            e("th", "Significance"),
+            e("th", [
+                "Significance",
+                document.createElement('br'),
+                "(p-value)"
+            ]),
             e("th", "Experiment"),
             e("th", "Source"),
         ]),
