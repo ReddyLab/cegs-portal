@@ -3,11 +3,23 @@ from typing import Iterable
 import pytest
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from cegs_portal.search.models import (
+    DNAFeature,
+    DNAFeatureType,
+    EffectObservationDirectionType,
+    RegulatoryEffectObservation,
+)
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
+from cegs_portal.search.models.tests.facet_factory import (
+    FacetFactory,
+    FacetValueFactory,
+)
+from cegs_portal.search.models.tests.reg_effects_factory import RegEffectFactory
 
 
 def _dna_features(assembly) -> Iterable[DNAFeature]:
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     f1 = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.GENE,
@@ -43,7 +55,19 @@ def _dna_features(assembly) -> Iterable[DNAFeature]:
         location=NumericRange(70_000, 80_000),
         ref_genome=assembly,
     )
-    return [f1, f2, f3, f4, f5]
+    sig_reo_source1 = RegEffectFactory(
+        sources=[f5],
+        facet_values=[enriched_facet],
+    )
+    sig_reo_source2 = RegEffectFactory(
+        sources=[f4],
+        facet_values=[enriched_facet],
+    )
+    sig_reo_target1 = RegEffectFactory(
+        targets=[f1],
+        facet_values=[enriched_facet],
+    )
+    return [f1, f2, f3, f4, f5, sig_reo_source1, sig_reo_source2, sig_reo_target1]
 
 
 @pytest.fixture

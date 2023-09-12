@@ -7,6 +7,7 @@ FeatureCountDict = TypedDict(
     {
         "feature_type": str,
         "count": int,
+        "sig_reo_count": int,
     },
 )
 
@@ -28,6 +29,7 @@ def feature_counts(
         "region": {"chromo": region.chromo, "start": region.range.lower, "end": region.range.upper},
         "assembly": feature_count_list["assembly"],
         "counts": [
-            {"feature_type": feature_type, "count": count} for feature_type, count in feature_count_list["counts"]
+            {"feature_type": feature_type, "count": count, "sig_reo_count": sig_count}
+            for feature_type, count, sig_count in feature_count_list["feature_counts"]
         ],
     }

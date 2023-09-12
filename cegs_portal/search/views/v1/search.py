@@ -13,9 +13,10 @@ from cegs_portal.search.json_templates.v1.feature_counts import (
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
-from cegs_portal.search.models import ChromosomeLocation
+from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import Search
+from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
 from cegs_portal.utils.http_exceptions import Http303, Http400
@@ -30,6 +31,8 @@ GRCH37 = "GRCh37"
 GRCH38 = "GRCh38"
 
 MAX_REGION_SIZE = 100_000_000
+
+SIGNIFICANT_REO_COUNT_FEATURES = [EXPERIMENT_SOURCES_TEXT, DNAFeatureType.GENE.value]
 
 
 class ParseWarning(Enum):
@@ -249,6 +252,7 @@ class SearchView(TemplateJsonView):
 
         return {
             "location": location,
+            "region": location,
             "assembly": assembly_name,
             "features": features,
             "sig_reg_effects": sig_reos,
@@ -258,6 +262,7 @@ class SearchView(TemplateJsonView):
             "facets_query": options["facets"],
             "warnings": {w.name for w in warnings},
             "feature_counts": feature_counts,
+            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
         }
 
 
@@ -302,7 +307,7 @@ def get_assembly(request) -> Optional[str]:
 
 class FeatureCountView(TemplateJsonView):
     json_renderer = fc_json
-    template = "search/v1/feature_counts.html"
+    template = "search/v1/partials/_search_feature_counts.html"
 
     def request_options(self, request):
         """
@@ -324,8 +329,10 @@ class FeatureCountView(TemplateJsonView):
         return options
 
     def get_data(self, options) -> FeatureCountResult:
+        feature_counts = Search.feature_counts(options["region"], options["assembly"])
         return {
             "region": options["region"],
             "assembly": options["assembly"],
-            "counts": Search.feature_counts(options["region"], options["assembly"]),
+            "feature_counts": feature_counts,
+            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
         }

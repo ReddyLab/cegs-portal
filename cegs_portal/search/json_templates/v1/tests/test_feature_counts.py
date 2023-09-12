@@ -10,6 +10,7 @@ def test_feature_counts(feature_count_result: FeatureCountResult):
         "region": {"chromo": region.chromo, "start": region.range.lower, "end": region.range.upper},
         "assembly": feature_count_result["assembly"],
         "counts": [
-            {"feature_type": feature_type, "count": count} for feature_type, count in feature_count_result["counts"]
+            {"feature_type": feature_type, "count": count, "sig_reo_count": sig_reo_count}
+            for feature_type, count, sig_reo_count in feature_count_result["feature_counts"]
         ],
     }
