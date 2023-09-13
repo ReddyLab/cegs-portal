@@ -94,10 +94,6 @@
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    {% if feature_counts %}
-    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
-    {% endif %}
-
     <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 flex-none">
             <div class="content-container">
@@ -162,7 +158,12 @@
             {% endif %}
         </div>
 
-        {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        <div class="flex flex-col gap-4">
+            {% if feature_counts %}
+            {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+            {% endif %}
+            {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        </div>
     </div>
 
     {% switch "effect_plot" %}

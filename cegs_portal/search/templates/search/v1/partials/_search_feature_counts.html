@@ -1,10 +1,10 @@
 {% load humanize %}
 
 <div class="content-container" id="feature-counts">
-    <div class="text-xl font-bold">Total DNA Feature Count for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
+    <div class="text-xl font-bold">DNA Feature Counts for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
     <div class="flex flex-row mt-3 gap-5">
         {% for feature, count, sig_count in feature_counts %}
-        <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span>{% if feature in sig_reo_count_features %} (<span class="font-bold">{{ sig_count }}</span> significant observed effects){% endif %}</div>
+        <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span>{% if feature in sig_reo_count_features %} (with <span class="font-bold">{{ sig_count }}</span> significant observed effects){% endif %}</div>
         {% endfor %}
     </div>
 </div>
