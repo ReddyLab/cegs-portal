@@ -68,8 +68,8 @@ build-prod:
       alias: postgres
   before_script:
     - cd /app
+    - python manage.py collectstatic -i "*.ecd" -i "*.pd"
     - python manage.py migrate
-    - python manage.py collectstatic
   script:
     - pytest
   retry:
