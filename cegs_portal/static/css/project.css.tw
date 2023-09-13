@@ -122,6 +122,7 @@
   }
 
   .reg_data-table th {
+      white-space: nowrap;
       padding: 12px;
       text-align: left;
       background-color: #ddd;
@@ -155,6 +156,10 @@
       padding: 12px;
       border-bottom: 1px solid lightgrey;
   }
+
+  .reg_data-table tr:hover {
+        background-color: #ddd;
+    }
 
   @media screen {
     div.search-wrapper label {
