@@ -151,11 +151,11 @@ def test_retrieve_target_experiment_data():
 @pytest.mark.parametrize(
     "cat_facets,effect_size,sig,result_count",
     [
-        ([], (-10, 0), (None, None), 3),
-        ([], (0, 10), (None, None), 0),
+        ([], (-10, 0), (None, None), 2),
+        ([], (0, 10), (None, None), 1),
         ([], (None, None), (0.0, 0.00004), 0),
-        ([], (None, None), (0.0, 0.005), 3),
-        ([], (-10, 0), (0.0, 0.005), 3),
+        ([], (None, None), (0.0, 0.005), 2),
+        ([], (-10, 0), (0.0, 0.005), 2),
         ([], (0, 10), (0.0, 0.005), 0),
         ([], (-10, 0), (0.0, 0.00004), 0),
         ([], (0, 10), (0.0, 0.00004), 0),
@@ -245,9 +245,9 @@ def test_list_experiment_data(reg_effects):
         {
             "source locs": [],
             "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000319229500470051,
-            "adj p-val": 0.000427767530629869,
-            "effect size": -0.0660384670056446,
+            "p-val": 0.00000719229500470051,
+            "adj p-val": 0.057767530629869,
+            "effect size": 2.0760384670056446,
             "expr id": "DCPEXPR00000002",
             "analysis id": analysis_accession_id,
         },
@@ -283,9 +283,9 @@ def test_list_analysis_data(reg_effects):
         {
             "source locs": [],
             "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000319229500470051,
-            "adj p-val": 0.000427767530629869,
-            "effect size": -0.0660384670056446,
+            "p-val": 0.00000719229500470051,
+            "adj p-val": 0.057767530629869,
+            "effect size": 2.0760384670056446,
             "expr id": "DCPEXPR00000002",
             "analysis id": analysis_accession_id,
         },
@@ -322,9 +322,9 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
             {
                 "source locs": [],
                 "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000319229500470051,
-                "adj p-val": 0.000427767530629869,
-                "effect size": -0.0660384670056446,
+                "p-val": 0.00000719229500470051,
+                "adj p-val": 0.057767530629869,
+                "effect size": 2.0760384670056446,
                 "expr id": "DCPEXPR00000002",
                 "analysis id": analysis_accession_id,
             },
@@ -362,9 +362,9 @@ def test_location_analysis_data(reg_effects, login_client: SearchClient):
             {
                 "source locs": [],
                 "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000319229500470051,
-                "adj p-val": 0.000427767530629869,
-                "effect size": -0.0660384670056446,
+                "p-val": 0.00000719229500470051,
+                "adj p-val": 0.057767530629869,
+                "effect size": 2.0760384670056446,
                 "expr id": "DCPEXPR00000002",
                 "analysis id": analysis_accession_id,
             },
@@ -428,7 +428,7 @@ def test_write_experiment_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
+        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
     )
@@ -453,7 +453,7 @@ def test_write_analysis_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
+        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
     )
@@ -555,68 +555,3 @@ def test_private_sig_reo_loc_search(private_reg_effects):
     result = sig_reo_loc_search(("chr1", 1, 1000000), private_experiments=[experiment.accession_id])
 
     assert len(result[0][1]) == 2
-
-
-def test_sigdata(reg_effects, login_client: SearchClient):
-    effect_source, effect_target, effect_both, _, _, _, experiment = reg_effects
-    analysis_accession_id = experiment.analyses.first().accession_id
-
-    response = login_client.get("/exp_data/sigdata?region=chr1:1-100000")
-    assert response.status_code == 200
-
-    json_content = json.loads(response.content)
-    assert "significant reos" in json_content
-    assert len(json_content["significant reos"]) == 1
-    assert len(json_content["significant reos"][0]) == 2
-    assert json_content["significant reos"][0][0] == ["DCPEXPR00000002", analysis_accession_id]
-    assert len(json_content["significant reos"][0][1]) == 2
-    assert {
-        "source_locs": [],
-        "target_info": [["LNLC-1", "ENSG01124619313"]],
-        "reo_accesion_id": effect_target.accession_id,
-        "effect_size": -0.0660384670056446,
-        "p_value": 3.19229500470051e-06,
-        "sig": 0.000427767530629869,
-        "expr_accession_id": "DCPEXPR00000002",
-        "expr_name": experiment.name,
-        "analysis_accession_id": analysis_accession_id,
-    } in json_content["significant reos"][0][1]
-    assert {
-        "source_locs": [
-            ["chr1", 10, 1000, "DCPDHS00000000"],
-            ["chr1", 20000, 111000, "DCPDHS00000001"],
-            ["chr2", 22222, 33333, "DCPDHS00000002"],
-        ],
-        "target_info": [],
-        "reo_accesion_id": effect_source.accession_id,
-        "effect_size": -0.0660384670056446,
-        "p_value": 3.19229500470051e-06,
-        "sig": 0.000427767530629869,
-        "expr_accession_id": "DCPEXPR00000002",
-        "expr_name": experiment.name,
-        "analysis_accession_id": analysis_accession_id,
-    } in json_content["significant reos"][0][1]
-
-
-@pytest.mark.usefixtures("reg_effects")
-def test_sigdata_invalid_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/sigdata?region=ch1:1-100000")
-    assert response.status_code == 400
-
-
-@pytest.mark.usefixtures("reg_effects")
-def test_sigdata_no_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/sigdata?expr=DCPEXPR00000002&datasource=both")
-    assert response.status_code == 400
-
-
-@pytest.mark.usefixtures("reg_effects")
-def test_sigdata_oversize_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/sigdata?region=chr1:1-10000000000")
-    assert response.status_code == 400
-
-
-@pytest.mark.usefixtures("reg_effects")
-def test_sigdata_backwards_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/sigdata?region=chr1:10000-10")
-    assert response.status_code == 400

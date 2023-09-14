@@ -4,7 +4,9 @@ from typing import Optional
 from urllib.parse import unquote_plus
 
 from django.core.exceptions import BadRequest
+from django.shortcuts import render
 from django.urls import reverse
+from django.views.generic import View
 
 from cegs_portal.search.forms import SearchForm
 from cegs_portal.search.json_templates.v1.feature_counts import (
@@ -336,3 +338,34 @@ class FeatureCountView(TemplateJsonView):
             "feature_counts": feature_counts,
             "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
         }
+
+
+class SignificantExperimentDataView(View):
+    """
+    Pull experiment data for a single region from the DB
+    """
+
+    def get(self, request, *args, **kwargs):
+        assembly = get_assembly(request)
+
+        try:
+            region = get_region(request)
+            if region is None:
+                raise Http400("Must specify a region")
+        except Http400 as error:
+            raise BadRequest() from error
+
+        if self.request.user.is_anonymous:
+            results = Search.sig_reo_loc_search(region, assembly=assembly)
+        else:
+            results = Search.sig_reo_loc_search(region, self.request.user.all_experiments(), assembly=assembly)
+
+        return render(
+            request,
+            "search/v1/partials/_sig_reg_effects.html",
+            {
+                "sig_reg_effects": [
+                    (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group]) for k, reo_group in results
+                ]
+            },
+        )

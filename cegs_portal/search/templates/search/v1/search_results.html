@@ -160,9 +160,8 @@
             </div>
             {% endif %}
         </div>
-        <div class="content-container basis-3/4" id="sig-reg-effects">
-          {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
-        </div>
+
+        {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
     </div>
 
     {% switch "effect_plot" %}
@@ -234,18 +233,7 @@
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             let region = state.g(STATE_REGION);
-
-            getJson(`/exp_data/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`).then(json => {
-                let sigRegEffects = json["significant reos"]
-                if(sigRegEffects.length == 0) {
-                    rc(g("sig-reg-effects"), t("No Relevant Reg Effect Observations Found"))
-                } else {
-                    let container = g("sig-reg-effects");
-                    rc(container, e("div", {class: "text-xl font-bold"}, t("Most Significant Reg Effect Observations")));
-                    a(container, sigReoTable(sigRegEffects));
-                }
-
-            }).catch(err => console.log(err));
+            htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#sig-reg-effects", swap:"outerHTML"});
         });
 
         state.addCallback(STATE_FACETS, throttle(
