@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load static %}
 
 <div class="container">
     <a name="non-targeting-reos-{{ feature.accession_id }}"></a>
@@ -60,3 +61,5 @@
         </span>
     </div>
 </div>
+
+{% include 'search/v1/partials/_row_click_js.html' %}
