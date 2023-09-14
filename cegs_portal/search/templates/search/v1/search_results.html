@@ -99,7 +99,7 @@
     {% endif %}
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
-        <div class="flex flex-col gap-4 basis-1/4">
+        <div class="flex flex-col gap-4 flex-none">
             <div class="content-container">
                 <div class="w-60">
                     <div class="flex items-center">
@@ -113,12 +113,12 @@
                         <fieldset name="facetfield">
                             <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
                             data-te-collapse-init
-                            data-te-collapse-collapsed
+
                             data-te-target="#facetCollapse{{ forloop.counter }}"
-                            aria-expanded="false"
+                            aria-expanded="true"
                             aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
                             <div
-                                class="-mr-1 ml-auto h-5 w-5 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
                                 <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -133,9 +133,10 @@
                                 </svg>
                             </div>
                             </legend>
-                            <div class="flex flex-row flex-wrap gap-1 !visible hidden"
+                            <div class="flex flex-row flex-wrap gap-1"
                                 id="facetCollapse{{ forloop.counter }}"
                                 data-te-collapse-item
+                                data-te-collapse-show
                                 aria-labelledby="facetHeader{{ forloop.counter }}">
                                 {% for value in facet.values.all %}
                                 <div>
@@ -206,10 +207,11 @@
         const updateFacetState = function() {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                                     .map(i => i.id)
-                state.updateSharedState(STATE_FACETS, checkedFacets);
+                                     .map(i => i.id);
+            state.updateSharedState(STATE_FACETS, checkedFacets);
         }
         facetCheckboxes.forEach(checkbox => {
+            checkbox.checked = false; // reset the checkboxes.
             checkbox.addEventListener("change", _ => {
                 updateFacetState();
             });
@@ -239,7 +241,6 @@
         state.addCallback(STATE_FACETS, throttle(
             (state, key) => {
                 window.history.pushState({}, document.title, searchURL(state[key]));
-
                 let region = state[STATE_REGION];
 
                 // request data with facets
