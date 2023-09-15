@@ -37,7 +37,7 @@
     }
 
     table.data-table th {
-        padding: 12px;
+        padding: 6px;
         text-align: left;
         background-color: #ddd;
         color: gray;
@@ -68,7 +68,7 @@
     }
 
     table.data-table td {
-        padding: 12px;
+        padding: 6px;
         border-bottom: 1px solid lightgrey;
     }
 
@@ -198,15 +198,4 @@
     </div>
 </div>
 
-{% endblock %} {% block inline_javascript %}
-<script>
- var rows = document.querySelectorAll('tr[data-href]');
-    var i = 0;
-    while (i < rows.length) {
-        rows[i].addEventListener('click', function() {
-            window.location.href = this.getAttribute('data-href');
-        });
-        i = i + 1;
-    }
-</script>
 {% endblock %}

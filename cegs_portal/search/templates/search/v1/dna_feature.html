@@ -80,11 +80,12 @@
     }
 
     table.data-table th {
-        padding: 12px;
+        padding: 6px;
         text-align: left;
         background-color: #ddd;
         color: gray;
         font-weight: bold;
+        white-space: nowrap;
     }
 
     table.data-table th:first-child,
@@ -123,10 +124,6 @@
     table.data-table a:visited {
         color: #3490dc;
         text-decoration: none;
-    }
-
-    tr[data-href]:hover {
-        cursor: pointer;
     }
 
     .table-title {
@@ -607,7 +604,7 @@ HEADER -->
             {% for feature in features %}
             {% if feature.closest_features.exists %}
                     {% for close_feature in feature.closest_features.all %}
-                    <tr>
+                    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
                         <td>
                             <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
                         </td>
@@ -713,7 +710,7 @@ HEADER -->
             {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
-                        <tr>
+                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">
                             <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
                             <td>{{ child.get_feature_type_display }}</td>
                             <td>{{ child.name }}</td>
@@ -818,16 +815,9 @@ HEADER -->
     }, 10000);
 });
 
-    var rows = document.querySelectorAll('tr[data-href]');
-    var i = 0;
-    while (i < rows.length) {
-        rows[i].addEventListener('click', function() {
-            window.location.href = this.getAttribute('data-href');
-        });
-        i = i + 1;
-    }
-
 </script>
+
+{% include 'search/v1/partials/_row_click_js.html' %}
 
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}
