@@ -89,7 +89,7 @@ def private_proximal_non_targeting_reg_effects():
         "effects": [reo1, reo2, reo3, reo4],
     }
 
-  
+
 def _dna_features(assembly) -> Iterable[DNAFeature]:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     enriched_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
