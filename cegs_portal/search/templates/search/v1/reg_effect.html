@@ -199,18 +199,9 @@
         {% endif %}
     {% endspaceless %}
 </div>
-{% endblock content %} {% block inline_javascript %}
-<script>
-var rows = document.querySelectorAll('tr[data-href]');
-    var i = 0;
-    while (i < rows.length) {
-        rows[i].addEventListener('click', function() {
-            window.location.href = this.getAttribute('data-href');
-        });
-        i = i + 1;
-    }
-</script>
-
+{% endblock content %}
+{% block inline_javascript %}
+{% include 'search/v1/partials/_row_click_js.html' %} 
 {% endblock %}
 
 
