@@ -158,8 +158,8 @@
   }
 
   .reg_data-table tr:hover {
-        background-color: #ddd;
-    }
+      background-color: #ddd;
+  }
 
   @media screen {
     div.search-wrapper label {
