@@ -107,7 +107,7 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             e("th", "Direction"),
             e("th", [
                 "Significance",
-                document.createElement('br'),
+               e("br"),
                 "(p-value)"
             ]),
             e("th", "Experiment"),
