@@ -158,8 +158,8 @@
   }
 
   .reg_data-table tr:hover {
-        background-color: #ddd;
-    }
+      background-color: #ddd;
+  }
 
   tr[data-href]:hover {
         cursor: pointer;
