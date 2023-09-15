@@ -40,6 +40,9 @@ def get_neg_features(chrom_name, ref_genome):
 
 
 def find_pos_closest(dhs_midpoint, features):
+    if len(features) == 0:
+        return None
+
     start = 0
     end = len(features)
     index = (end + start) // 2
@@ -62,6 +65,9 @@ def find_pos_closest(dhs_midpoint, features):
 
 
 def find_neg_closest(dhs_midpoint, features):
+    if len(features) == 0:
+        return None
+
     start = 0
     end = len(features)
     index = (end + start) // 2

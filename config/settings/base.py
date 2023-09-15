@@ -81,7 +81,6 @@ LOCAL_APPS = [
     "cegs_portal.hide_admin.apps.HideAdminConfig",
     "cegs_portal.users.apps.UsersConfig",
     "cegs_portal.search.apps.SearchConfig",
-    "cegs_portal.uploads.apps.UploadsConfig",
     "cegs_portal.tools.apps.ToolsConfig",
     "cegs_portal.get_expr_data.apps.GetExprDataConfig",
 ]
@@ -158,7 +157,14 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 # https://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # MEDIA
 # ------------------------------------------------------------------------------

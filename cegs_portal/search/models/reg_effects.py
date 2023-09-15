@@ -90,4 +90,4 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
         return self.facet_num_values[RegulatoryEffectObservation.Facet.RAW_P_VALUE.value]
 
     def __str__(self):
-        return f"{self.accession_id}: {self.sources.count()} source(s) -> {self.effect_size} ({self.direction}) on {self.targets.count()} target(s)"  # noqa: E501
+        return f"{self.accession_id}:  effect size: {self.effect_size}, significance: {self.significance}, p-val: {self.raw_p_value} from {self.experiment_accession_id}"  # noqa: E501

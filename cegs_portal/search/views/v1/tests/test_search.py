@@ -1,4 +1,5 @@
 import json
+import re
 from typing import cast
 
 import pytest
@@ -15,6 +16,8 @@ from cegs_portal.search.views.v1.search import (
     parse_source_target_data_html,
     parse_target_info_html,
 )
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.parametrize(
@@ -121,9 +124,6 @@ from cegs_portal.search.views.v1.search import (
 )
 def test_parse_query(query, result):
     assert parse_query(query) == result
-
-
-pytestmark = pytest.mark.django_db
 
 
 def test_experiment_json(client: Client):
@@ -537,28 +537,109 @@ def test_experiment_no_query_html(client: Client):
 
 
 def test_parse_source_locs_html():
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\")}') == "chr1:1-2"
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\"),(chr2,\\"[2,4)\\")}') == "chr1:1-2, chr2:2-4"
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001)}') == [("chr1:1-2", "DCPDHS00000001")]
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001),(chr2,\\"[2,4)\\",DCPDHS00000002)}') == [
+        ("chr1:1-2", "DCPDHS00000001"),
+        ("chr2:2-4", "DCPDHS00000002"),
+    ]
 
 
 def test_parse_source_target_data_html():
     test_data = {
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "source_locs": '{(chr1,\\"[1,2)\\")}',
+        "source_locs": '{(chr1,\\"[1,2)\\",DCPDHS00000001)}',
         "asdf": 1234,
     }
     assert parse_source_target_data_html(test_data) == {
-        "target_info": "ZBTB12",
-        "source_locs": "chr1:1-2",
+        "target_info": [("ZBTB12", "ENSG00000204366")],
+        "source_locs": [("chr1:1-2", "DCPDHS00000001")],
         "asdf": 1234,
     }
 
 
 def test_parse_target_info_html():
-    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == "ZBTB12"
-    assert (
-        parse_target_info_html(
-            '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
-        )
-        == "ZBTB12, HLA-A"
-    )
+    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == [
+        ("ZBTB12", "ENSG00000204366")
+    ]
+    assert parse_target_info_html(
+        '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
+    ) == [("ZBTB12", "ENSG00000204366"), ("HLA-A", "ENSG00000204367")]
+
+
+def test_sigdata(reg_effects, login_client: SearchClient):
+    effect_source, effect_target, _, _, _, _, experiment = reg_effects
+
+    response = login_client.get("/search/sigdata?region=chr1:1-100000")
+    assert response.status_code == 200
+
+    sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
+    target = effect_target.targets.all()[0]
+    stripped_response = re.sub(
+        r"^ +$", "", response.content.decode("utf-8"), flags=re.MULTILINE
+    )  # strip out spaces in blank lines
+    print(stripped_response)
+    expected_string = f"""<div class="content-container basis-3/4" id="sig-reg-effects">
+
+<div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
+<table class="data-table">
+    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+
+
+
+        <tr class="">
+            <td>
+                <div>Source Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
+
+            </td>
+            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.6e}</a></td>
+            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.significance:.6f}</a></td>
+            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.raw_p_value:.6f}</a></td>
+
+            <td rowspan="2"><a href="/search/experiment/{experiment.accession_id}">{experiment.name}</a></td>
+
+        </tr>
+
+        <tr class="">
+            <td>
+                <div>Source Locations: </div>
+
+                <div>Target Genes: <a href="/search/feature/ensembl/{target.ensembl_id}">{target.name}</a></div>
+
+            </td>
+            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.effect_size:.6e}</a></td>
+            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.significance:.6f}</a></td>
+            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.raw_p_value:.6f}</a></td>
+
+        </tr>
+
+
+</table>
+
+</div>
+"""
+
+    assert stripped_response == expected_string
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_invalid_region(login_client: SearchClient):
+    response = login_client.get("/search/sigdata?region=ch1:1-100000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_no_region(login_client: SearchClient):
+    response = login_client.get("/search/sigdata?expr=DCPEXPR00000002&datasource=both")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_oversize_region(login_client: SearchClient):
+    response = login_client.get("/search/sigdata?region=chr1:1-10000000000")
+    assert response.status_code == 400
+
+
+@pytest.mark.usefixtures("reg_effects")
+def test_sigdata_backwards_region(login_client: SearchClient):
+    response = login_client.get("/search/sigdata?region=chr1:10000-10")
+    assert response.status_code == 400

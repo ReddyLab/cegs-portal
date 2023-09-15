@@ -9,7 +9,7 @@ from huey.contrib.djhuey import periodic_task
 from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
 
 
-@periodic_task(crontab(day="*/1"))
+@periodic_task(crontab(minute="0", hour="0", day="*/1"))
 def remove_old_downloads():
     base_path = expr_data_base_path()
     _, files = default_storage.listdir(base_path)

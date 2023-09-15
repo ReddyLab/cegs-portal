@@ -59,9 +59,13 @@
         margin-right: 10px;
     }
 
+    select {
+        font-size: 0.9rem;
+        padding: 5px 5px;
+    }
+
 </style>
 {% endblock %} {% block javascript %} {{ block.super }}
-<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/exp_viz/vizUtils.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
@@ -233,8 +237,19 @@
                 <div class="flex flex-row gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
                     <div class="flex flex-col">
-                        <div id="reo-count"></div> <div id="source-count"></div> <div id="target-count"></div></div>
+                        <div id="reo-count"></div>
+                        <div id="source-count"></div>
+                        <div id="target-count"></div>
                     </div>
+                    <div>
+                        <label for="covSelect">Choose a Coverage View:</label>
+                        <select name="views" id="covSelect">
+                            <option value="sig">Largest Significance</option>
+                            <option value="effect">Greatest Effect Size</option>
+                            <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
+                        </select>
+                    </div>
+                </div>
                 <div id="chrom-data"></div>
             </div>
         </div>
@@ -471,7 +486,7 @@
             });
     };
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -586,7 +601,7 @@
     vl.register(vega, vegaLite, vegaGrnaHistogramOptions);
 
     // now you can use the API!
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/g_per_c.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -621,7 +636,7 @@
 
     // now you can use the API!
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.pd")
         .then((response) => {
                 if (!response.ok && response.status == 404) {
                     return; // This is often okay and expected, not every analysis has this data
@@ -715,7 +730,7 @@
     vl.register(vega, vegaLite, vegaCellsHistogramOptions);
 
     // now you can use the API!
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.bin")
+    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/c_per_g.pd")
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -754,7 +769,7 @@
 
 <script type="module">
     import {exp_viz} from "{% static 'search/js/exp_viz/exp_viz.js' %}";
-    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
+    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ experiment.default_analysis.accession_id }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
 </script>
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

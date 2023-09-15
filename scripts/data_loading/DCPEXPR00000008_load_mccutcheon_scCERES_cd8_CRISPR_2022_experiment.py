@@ -9,6 +9,8 @@ from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
     Experiment,
+    Facet,
+    FacetValue,
 )
 from utils import ExperimentMetadata, timer
 
@@ -29,6 +31,10 @@ TRIM_GENE_NAMES = [
     "LINC01505.1",
 ]
 
+GRNA_TYPE_FACET = Facet.objects.get(name="gRNA Type")
+GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
+GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
+
 
 #
 # The following lines should work as expected when using postgres. See
@@ -48,6 +54,9 @@ def bulk_save(grnas):
         print("Adding gRNA Regions")
         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
 
+        for grna in grnas:
+            grna.facet_values.add(GRNA_TYPE_TARGETING)
+
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load GRNAs")
@@ -58,13 +67,11 @@ def load_grnas(
     region_source,
     cell_line,
     ref_genome,
-    ref_genome_patch,
     delimiter=",",
 ):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     grnas = {}
     existing_grna_facets = {}
-    grnas_to_save = []
     for line in reader:
         target_gene = line["target_gene"]
 
@@ -73,56 +80,47 @@ def load_grnas(
 
         grna_id = line["grna"]
         if grna_id in grnas:
-            region = grnas[grna_id]
+            guide = grnas[grna_id]
         else:
             existing_grna_facets[grna_id] = set()
             strand = line["Strand"]
             chrom_name = line["chr"]
             grna_start = int(line["start"])
             grna_end = int(line["end"])
-            grna_location = NumericRange(grna_start, grna_end, "[]")
+
+            if strand == "+":
+                bounds = "[)"
+            elif strand == "-":
+                bounds = "(]"
+
+            grna_location = NumericRange(grna_start, grna_end, bounds)
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 
-            try:
-                region = DNAFeature.objects.get(
-                    cell_line=cell_line,
-                    chrom_name=chrom_name,
-                    location=grna_location,
-                    strand=strand,
-                    misc__grna=grna_id,
-                    ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
-                )
-                existing_grna_facets[grna_id].update(region.facet_values.all())
-            except DNAFeature.DoesNotExist:
-                region = DNAFeature(
-                    accession_id=accession_ids.incr(AccessionType.GRNA),
-                    experiment_accession_id=experiment.accession_id,
-                    cell_line=cell_line,
-                    chrom_name=chrom_name,
-                    closest_gene=closest_gene,
-                    closest_gene_distance=distance,
-                    closest_gene_name=gene_name,
-                    closest_gene_ensembl_id=closest_gene.ensembl_id,
-                    location=grna_location,
-                    misc={"grna": grna_id},
-                    ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
-                    feature_type=DNAFeatureType.GRNA,
-                    source=region_source,
-                    strand=strand,
-                )
-                grnas_to_save.append(region)
-            grnas[grna_id] = region
+            guide = DNAFeature(
+                accession_id=accession_ids.incr(AccessionType.GRNA),
+                experiment_accession=experiment,
+                source_file=region_source,
+                cell_line=cell_line,
+                chrom_name=chrom_name,
+                closest_gene=closest_gene,
+                closest_gene_distance=distance,
+                closest_gene_name=gene_name,
+                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
+                location=grna_location,
+                strand=strand,
+                misc={"grna": grna_id},
+                ref_genome=ref_genome,
+                feature_type=DNAFeatureType.GRNA,
+            )
+            grnas[grna_id] = guide
 
-    bulk_save(grnas_to_save)
+    bulk_save(grnas.values())
 
 
-def unload_reg_effects(experiment_metadata):
+def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    for file in experiment.files.all():
-        DNAFeature.objects.filter(source=file).delete()
+    DNAFeature.objects.filter(experiment_accession=experiment).delete()
     experiment_metadata.db_del()
 
 
@@ -136,11 +134,11 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_experiment if you want to delete the experiment, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    # unload_experiment() uncommented is not, strictly, idempotent.
+    # unload_experiment(experiment_metadata)
 
     experiment = experiment_metadata.db_save()
 
@@ -153,6 +151,5 @@ def run(experiment_filename):
             experiment.files.all()[0],
             experiment_metadata.biosamples[0].cell_line,
             file_info.misc["ref_genome"],
-            file_info.misc["ref_genome_patch"],
             "\t",
         )

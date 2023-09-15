@@ -12,26 +12,55 @@ OVERLAP_FACET = Facet.objects.get(name="cCRE Overlap")
 OVERLAP_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=OVERLAP_FACET.id).all()}
 
 
+def set_ccre_cats(current_dhss, current_chr, current_ccre_locations):
+    if len(current_ccre_locations) == 0:
+        overlap_facet = OVERLAP_FACET_VALUES["No overlaps"]
+    elif len(current_ccre_locations) == 1:
+        overlap_facet = OVERLAP_FACET_VALUES["One overlap"]
+    else:
+        overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
+
+    current_ccres = DNAFeature.objects.filter(
+        chrom_name=current_chr, location__in=list(current_ccre_locations), feature_type=DNAFeatureType.CCRE
+    ).prefetch_related("facet_values")
+    ccre_category_set = set()
+    for ccre in current_ccres.all():
+        for value in ccre.facet_values.all():
+            if value.facet_id == CCRE_FACET.id:
+                ccre_category_set.add(value)
+
+    # All ccre locations should exist in the database.
+    if len(ccre_category_set) == 0 and len(current_ccre_locations) != 0:
+        print(f"These ccres should exist but don't: {current_chr}: {current_ccre_locations}")
+
+    for dhs in current_dhss.all():
+        dhs.facet_values.add(overlap_facet)
+        dhs.facet_values.add(*list(ccre_category_set))
+
+
 @timer("Add cCRE Categories to DHSs")
-def run(closest_filename):
+def run(closest_filename, experiment_accession):
     with open(closest_filename) as closest_file:
         reader = csv.reader(closest_file, delimiter="\t")
         current_chr = None
         current_start = None
         current_end = None
-        current_dhs = None
+        current_dhss = None
         current_ccre_locations = set()
         for row in reader:
             dhs_chr, dhs_start, dhs_end = row[0], int(row[1]), int(row[2]) + 1
             ccre_start, ccre_end = int(row[4]), int(row[5]) + 1
 
-            if current_dhs is None:
-                current_dhs = DNAFeature.objects.get(
-                    chrom_name=dhs_chr, location=NumericRange(dhs_start, dhs_end), feature_type=DNAFeatureType.DHS
+            if current_dhss is None:
+                current_dhss = DNAFeature.objects.filter(
+                    experiment_accession_id=experiment_accession,
+                    chrom_name=dhs_chr,
+                    location=NumericRange(dhs_start, dhs_end),
+                    feature_type=DNAFeatureType.DHS,
                 )
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
 
-            assert current_dhs is not None
+            assert current_dhss is not None
 
             if current_chr == dhs_chr and current_start == dhs_start and current_end == dhs_end:
                 # make sure the closest ccre actually overlaps
@@ -42,21 +71,7 @@ def run(closest_filename):
                 ):
                     current_ccre_locations.add(NumericRange(ccre_start, ccre_end))
             else:
-                if len(current_ccre_locations) == 0:
-                    overlap_facet = OVERLAP_FACET_VALUES["No overlaps"]
-                elif len(current_ccre_locations) == 1:
-                    overlap_facet = OVERLAP_FACET_VALUES["One overlap"]
-                else:
-                    overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
-
-                current_ccres = DNAFeature.objects.filter(
-                    chrom_name=current_chr, location__in=list(current_ccre_locations), feature_type=DNAFeatureType.CCRE
-                ).prefetch_related("facet_values")
-                ccre_category_set = set()
-                for ccre in current_ccres.all():
-                    for value in ccre.facet_values.all():
-                        if value.facet_id == CCRE_FACET.id:
-                            ccre_category_set.add(value)
+                set_ccre_cats(current_dhss, current_chr, current_ccre_locations)
 
                 # Data sanity checks
                 # if CCRE_FACET_VALUES["pELS"] in ccre_category_set and CCRE_FACET_VALUES["dELS"] in ccre_category_set:
@@ -90,20 +105,14 @@ def run(closest_filename):
                 #     CCRE_FACET_VALUES["PLS"] in ccre_category_set and CCRE_FACET_VALUES["dELS"] in ccre_category_set
                 # )
 
-                # All ccre locations should exist in the database.
-                if len(ccre_category_set) == 0 and len(current_ccre_locations) != 0:
-                    print(f"These ccres should exist but don't: {current_chr}: {current_ccre_locations}")
-
-                current_dhs.facet_values.add(overlap_facet)
-                current_dhs.facet_values.add(*list(ccre_category_set))
-
                 current_chr, current_start, current_end = dhs_chr, dhs_start, dhs_end
-                current_dhs = DNAFeature.objects.get(
-                    chrom_name=current_chr,
-                    location=NumericRange(current_start, current_end),
+                current_dhss = DNAFeature.objects.filter(
+                    experiment_accession_id=experiment_accession,
+                    chrom_name=dhs_chr,
+                    location=NumericRange(dhs_start, dhs_end),
                     feature_type=DNAFeatureType.DHS,
                 )
-                assert current_dhs is not None
+                assert current_dhss is not None
                 current_ccre_locations = set()
 
                 if (
@@ -113,25 +122,4 @@ def run(closest_filename):
                 ):
                     current_ccre_locations.add(NumericRange(ccre_start, ccre_end))
 
-        if len(current_ccre_locations) == 0:
-            overlap_facet = OVERLAP_FACET_VALUES["No overlaps"]
-        elif len(current_ccre_locations) == 1:
-            overlap_facet = OVERLAP_FACET_VALUES["One overlap"]
-        else:
-            overlap_facet = OVERLAP_FACET_VALUES["Multiple overlaps"]
-
-        current_ccres = DNAFeature.objects.filter(
-            chrom_name=current_chr, location__in=list(current_ccre_locations), feature_type=DNAFeatureType.CCRE
-        ).prefetch_related("facet_values")
-        ccre_category_set = set()
-        for ccre in current_ccres.all():
-            for value in ccre.facet_values.all():
-                if value.facet_id == CCRE_FACET.id:
-                    ccre_category_set.add(value)
-
-        # All ccre locations should exist in the database.
-        if len(ccre_category_set) == 0 and len(current_ccre_locations) != 0:
-            print(f"These ccres should exist but don't: {current_chr}: {current_ccre_locations}")
-
-        current_dhs.facet_values.add(overlap_facet)
-        current_dhs.facet_values.add(*list(ccre_category_set))
+        set_ccre_cats(current_dhss, current_chr, current_ccre_locations)

@@ -2,7 +2,7 @@
 {% load static i18n %}
 {% load waffle_tags %}
 {% load humanize %}
-{% block title %}Location Search Results{% endblock %}
+{% block title %}Region Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
@@ -55,7 +55,6 @@
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" src="{% static 'js/lodash.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
@@ -64,13 +63,13 @@
 {% block content %}
     <div class="grow flex flex-col items-center min-w-full">
         <div class="flex flex-row min-w-full justify-around">
-            {% if location %}
+            {% if region %}
             <div class="header">
                 <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 512 512">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
                 </svg>
-                <div class="inline" id="loc-header">{{ location.chromo }}: {{ location.range.lower|intcomma }} - {{ location.range.upper|intcomma }}</div>
+                <div class="inline" id="loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
                 <div class="inline text-2xl">({{ assembly }})</div>
             </div>
             {% endif %}
@@ -78,25 +77,29 @@
 
         <div>
             {% if "IGNORE_LOC" in warnings %}
-            <div class="text-red-700">The location in the query has been ignored.</div>
-            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
+            <div class="text-red-700">The region in the query has been ignored.</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or regions. If a query contains both, the first type encountered is used and the other type is ignored.</div>
             {% endif %}
             {% if "TOO_MANY_LOCS" in warnings %}
-            <div class="text-red-700">The query contains more than one location; only the first location is used.</div>
+            <div class="text-red-700">The query contains more than one region; only the first is used.</div>
             {% endif %}
             {% if "IGNORE_TERMS" in warnings %}
             <div class="text-red-700">Gene IDs or names in the query were ignored</div>
-            <div class="text-red-700">Queries can include either gene IDs/names or locations. If a query contains both, the first type encountered is used and the other type is ignored.</div>
+            <div class="text-red-700">Queries can include either gene IDs/names or regions. If a query contains both, the first type encountered is used and the other type is ignored.</div>
             {% endif %}
         </div>
     </div>
 
-    {% if location and assembly %}
+    {% if region and assembly %}
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    <div class="flex flex-row items-start gap-x-10">
-        <div class="flex flex-col gap-4 basis-1/4">
+    {% if feature_counts %}
+    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+    {% endif %}
+
+    <div class="flex flex-row items-start gap-x-10 min-w-full">
+        <div class="flex flex-col gap-4 flex-none">
             <div class="content-container">
                 <div class="w-60">
                     <div class="flex items-center">
@@ -110,12 +113,12 @@
                         <fieldset name="facetfield">
                             <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
                             data-te-collapse-init
-                            data-te-collapse-collapsed
+
                             data-te-target="#facetCollapse{{ forloop.counter }}"
-                            aria-expanded="false"
+                            aria-expanded="true"
                             aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
                             <div
-                                class="-mr-1 ml-auto h-5 w-5 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
                                 <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -130,9 +133,10 @@
                                 </svg>
                             </div>
                             </legend>
-                            <div class="flex flex-row flex-wrap gap-1 !visible hidden"
+                            <div class="flex flex-row flex-wrap gap-1"
                                 id="facetCollapse{{ forloop.counter }}"
                                 data-te-collapse-item
+                                data-te-collapse-show
                                 aria-labelledby="facetHeader{{ forloop.counter }}">
                                 {% for value in facet.values.all %}
                                 <div>
@@ -157,9 +161,8 @@
             </div>
             {% endif %}
         </div>
-        <div class="content-container" id="sig-reg-effects">
-          {% include "search/v1/partials/_table.html" with data=sig_reg_effects name="Most Significant Reg Effect Observations" no_data="No Relevant Reg Effect Observations Found" table="search/v1/partials/_sig_reg_effects.html" %}
-        </div>
+
+        {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
     </div>
 
     {% switch "effect_plot" %}
@@ -173,6 +176,7 @@
         import { State } from "{% static 'search/js/state.js' %}";
         import { sigReoTable } from "{% static 'search/js/tables.js' %}"
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
+        import { throttle } from "{% static 'search/js/utils.js' %}"
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -180,35 +184,34 @@
             return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
-        const STATE_LOCATION = "location";
+        const STATE_REGION = "region";
         const STATE_FACETS = "facets"
         const STATE_DHS_EFFECT = "dhs-effect-data"
         let state = new State({
-            [STATE_LOCATION]: {
-                chr: "{{ location.chromo }}",
-                start: {{ location.range.lower }},
-                end: {{ location.range.upper }}
+            [STATE_REGION]: {
+                chr: "{{ region.chromo }}",
+                start: {{ region.range.lower }},
+                end: {{ region.range.upper }}
             },
             [STATE_FACETS]: [],
             [STATE_DHS_EFFECT]: null
         });
 
         const _ul = function(_state, key) {
-            if (key !== STATE_LOCATION) { return; }
+            if (key !== STATE_REGION) { return; }
             state.updateSharedState(key, _state[key]);
         }
-
-        let initialLocation = state.getSharedState(STATE_LOCATION);
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
 
         const updateFacetState = function() {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                                     .map(i => i.id)
-                state.updateSharedState(STATE_FACETS, checkedFacets);
+                                     .map(i => i.id);
+            state.updateSharedState(STATE_FACETS, checkedFacets);
         }
         facetCheckboxes.forEach(checkbox => {
+            checkbox.checked = false; // reset the checkboxes.
             checkbox.addEventListener("change", _ => {
                 updateFacetState();
             });
@@ -216,30 +219,29 @@
 
         updateFacetState();
 
-        // Update the chromosome location at the top of the page
-        state.addCallback(STATE_LOCATION, (s, key) => {
-            let location = state.g(STATE_LOCATION);
+        // Update the chromosome region at the top of the page
+        state.addCallback(STATE_REGION, (s, key) => {
+            let region = state.g(STATE_REGION);
 
-            rc(g("loc-header"), t(`chr${location.chr}: ${location.start.toLocaleString()} - ${location.end.toLocaleString()}`));
-
-            getJson(`/exp_data/sigdata?region=chr${location.chr}:${location.start}-${location.end}&assembly={{ assembly }}`).then(json => {
-                let sigRegEffects = json["significant reos"]
-                if(sigRegEffects.length == 0) {
-                    rc(g("sig-reg-effects"), t("No Relevant Reg Effect Observations Found"))
-                } else {
-                    let container = g("sig-reg-effects");
-                    rc(container, e("div", {class: "text-xl font-bold"}, t("Most Significant Reg Effect Observations")));
-                    a(container, sigReoTable(sigRegEffects));
-                }
-
-            }).catch(err => console.log(err));
+            rc(g("loc-header"), t(`chr${region.chr}: ${region.start.toLocaleString()} - ${region.end.toLocaleString()}`));
         });
 
-        state.addCallback(STATE_FACETS, _.throttle(
+        // Update the dna feature counts
+        state.addCallback(STATE_REGION, (s, key) => {
+            let region = state.g(STATE_REGION);
+            htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#feature-counts", swap:"outerHTML"});
+        });
+
+        // Update the signficant effects table
+        state.addCallback(STATE_REGION, (s, key) => {
+            let region = state.g(STATE_REGION);
+            htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#sig-reg-effects", swap:"outerHTML"});
+        });
+
+        state.addCallback(STATE_FACETS, throttle(
             (state, key) => {
                 window.history.pushState({}, document.title, searchURL(state[key]));
-
-                let location = state[STATE_LOCATION];
+                let region = state[STATE_REGION];
 
                 // request data with facets
             },
@@ -309,13 +311,13 @@
             return plot;
         }
         function applyPlot(state, key) {
-            if (key !== STATE_DHS_EFFECT && key !== STATE_LOCATION) { return; }
+            if (key !== STATE_DHS_EFFECT && key !== STATE_REGION) { return; }
             let dhss = state[STATE_DHS_EFFECT];
-            let location = state[STATE_LOCATION];
+            let region = state[STATE_REGION];
 
-            if (!dhss || !location) { return; }
+            if (!dhss || !region) { return; }
 
-            data = location ? dhss.filter(dhs => location.chr === dhs.chr && dhs.start >= location.start && dhs.end <= location.end) : dhss;
+            data = region ? dhss.filter(dhs => region.chr === dhs.chr && dhs.start >= region.start && dhs.end <= region.end) : dhss;
 
             let genePlot = g("plot");
             if (genePlot) {
@@ -325,7 +327,7 @@
         }
         {% endswitch %}
 
-        {% if location and assembly %}
+        {% if region and assembly %}
         // Show the browser
         let browser = new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
@@ -333,9 +335,9 @@
             // chromosomeSize : 249250621, // chromosome 1, human
             genome    : '{{ assembly }}', // see js/genomes/
             assembly  : '{{ assembly }}',
-            chr       : "{{ location.chromo }}".replace("chr", ""),
-            start     : {{ location.range.lower }},
-            end       : {{ location.range.upper }},
+            chr       : "{{ region.chromo }}".replace("chr", ""),
+            start     : {{ region.range.lower }},
+            end       : {{ region.range.upper }},
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips', 'fileDrop' ],
             useHash   : true,
             hideEmptyTracks: false,

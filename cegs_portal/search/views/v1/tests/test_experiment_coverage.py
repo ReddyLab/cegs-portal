@@ -12,7 +12,7 @@ from cegs_portal.search.models import Experiment
 pytestmark = pytest.mark.django_db
 
 
-def mock_load_coverage(exp_acc_id, chrom):
+def mock_load_coverage(exp_acc_id, analysis_acc_id, chrom):
     current_dir = os.path.dirname(os.path.realpath(__file__))
     return load_coverage_data_allow_threads(os.path.join(current_dir, "level2_1.bin"))
 

@@ -1,6 +1,5 @@
 import csv
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from psycopg2.extras import NumericRange
 
@@ -37,11 +36,9 @@ def bulk_save(dhss: list[DNAFeature]):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load DHSs")
-def load_dhss(
-    dhs_file, accession_ids, experiment, cell_line, ref_genome, ref_genome_patch, region_source, delimiter=","
-):
+def load_dhss(dhs_file, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","):
     reader = csv.DictReader(dhs_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_sites: list[DNAFeature] = []
+    new_dhss: dict[str, DNAFeature] = {}
     for line in reader:
         chrom_name = line["chrom"]
 
@@ -49,33 +46,33 @@ def load_dhss(
         dhs_end = int(line["chromEnd"])
         dhs_location = NumericRange(dhs_start, dhs_end, "[]")
 
-        try:
-            dhs = DNAFeature.objects.get(chrom_name=chrom_name, location=dhs_location, ref_genome=ref_genome)
-        except ObjectDoesNotExist:
+        dhs_name = f"{chrom_name}:{dhs_location}"
+
+        if dhs_name in new_dhss:
+            dhs = new_dhss[dhs_name]
+        else:
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
             dhs = DNAFeature(
                 accession_id=accession_ids.incr(AccessionType.DHS),
-                experiment_accession_id=experiment.accession_id,
+                experiment_accession=experiment,
+                source_file=region_source,
                 cell_line=cell_line,
                 chrom_name=chrom_name,
                 closest_gene=closest_gene,
                 closest_gene_distance=distance,
                 closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id,
+                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
                 location=dhs_location,
                 ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
                 feature_type=DNAFeatureType.DHS,
-                source=region_source,
             )
-            new_sites.append(dhs)
-    bulk_save(new_sites)
+            new_dhss[dhs_name] = dhs
+    bulk_save(new_dhss.values())
 
 
-def unload_reg_effects(experiment_metadata):
+def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
-    for file in experiment.files.all():
-        DNAFeature.objects.filter(source=file).delete()
+    DNAFeature.objects.filter(experiment_accession=experiment).delete()
     experiment_metadata.db_del()
 
 
@@ -89,11 +86,11 @@ def run(experiment_filename):
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the experiment, all
+    # Only run unload_experiment if you want to delete the experiment, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(experiment_metadata)
+    # unload_experiment() uncommented is not, strictly, idempotent.
+    # unload_experiment(experiment_metadata)
 
     experiment = experiment_metadata.db_save()
 
@@ -105,7 +102,6 @@ def run(experiment_filename):
                 experiment,
                 experiment_metadata.biosamples[0].cell_line,
                 file_info.misc["ref_genome"],
-                file_info.misc["ref_genome_patch"],
                 experiment.files.all()[0],
                 delimiter,
             )

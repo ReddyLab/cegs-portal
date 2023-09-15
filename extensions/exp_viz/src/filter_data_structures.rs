@@ -51,7 +51,7 @@ pub struct PyFilterIntervals {
     #[pyo3(get, set)]
     pub effect: (f32, f32),
     #[pyo3(get, set)]
-    pub sig: (f32, f32),
+    pub sig: (f64, f64),
 }
 
 #[pymethods]
@@ -60,7 +60,7 @@ impl PyFilterIntervals {
     pub fn new() -> Self {
         PyFilterIntervals {
             effect: (f32::NEG_INFINITY, f32::INFINITY),
-            sig: (f32::NEG_INFINITY, f32::INFINITY),
+            sig: (f64::NEG_INFINITY, f64::INFINITY),
         }
     }
 

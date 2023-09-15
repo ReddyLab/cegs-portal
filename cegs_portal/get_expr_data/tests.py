@@ -151,11 +151,11 @@ def test_retrieve_target_experiment_data():
 @pytest.mark.parametrize(
     "cat_facets,effect_size,sig,result_count",
     [
-        ([], (-10, 0), (None, None), 3),
-        ([], (0, 10), (None, None), 0),
+        ([], (-10, 0), (None, None), 2),
+        ([], (0, 10), (None, None), 1),
         ([], (None, None), (0.0, 0.00004), 0),
-        ([], (None, None), (0.0, 0.005), 3),
-        ([], (-10, 0), (0.0, 0.005), 3),
+        ([], (None, None), (0.0, 0.005), 2),
+        ([], (-10, 0), (0.0, 0.005), 2),
         ([], (0, 10), (0.0, 0.005), 0),
         ([], (-10, 0), (0.0, 0.00004), 0),
         ([], (0, 10), (0.0, 0.00004), 0),
@@ -245,9 +245,9 @@ def test_list_experiment_data(reg_effects):
         {
             "source locs": [],
             "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000319229500470051,
-            "adj p-val": 0.000427767530629869,
-            "effect size": -0.0660384670056446,
+            "p-val": 0.00000719229500470051,
+            "adj p-val": 0.057767530629869,
+            "effect size": 2.0760384670056446,
             "expr id": "DCPEXPR00000002",
             "analysis id": analysis_accession_id,
         },
@@ -283,9 +283,9 @@ def test_list_analysis_data(reg_effects):
         {
             "source locs": [],
             "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000319229500470051,
-            "adj p-val": 0.000427767530629869,
-            "effect size": -0.0660384670056446,
+            "p-val": 0.00000719229500470051,
+            "adj p-val": 0.057767530629869,
+            "effect size": 2.0760384670056446,
             "expr id": "DCPEXPR00000002",
             "analysis id": analysis_accession_id,
         },
@@ -322,9 +322,9 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
             {
                 "source locs": [],
                 "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000319229500470051,
-                "adj p-val": 0.000427767530629869,
-                "effect size": -0.0660384670056446,
+                "p-val": 0.00000719229500470051,
+                "adj p-val": 0.057767530629869,
+                "effect size": 2.0760384670056446,
                 "expr id": "DCPEXPR00000002",
                 "analysis id": analysis_accession_id,
             },
@@ -362,9 +362,9 @@ def test_location_analysis_data(reg_effects, login_client: SearchClient):
             {
                 "source locs": [],
                 "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000319229500470051,
-                "adj p-val": 0.000427767530629869,
-                "effect size": -0.0660384670056446,
+                "p-val": 0.00000719229500470051,
+                "adj p-val": 0.057767530629869,
+                "effect size": 2.0760384670056446,
                 "expr id": "DCPEXPR00000002",
                 "analysis id": analysis_accession_id,
             },
@@ -428,7 +428,7 @@ def test_write_experiment_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
+        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
     )
@@ -453,7 +453,7 @@ def test_write_analysis_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
+        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR00000002\t{analysis_accession_id}\n"  # noqa: E501
     )

@@ -15,6 +15,7 @@ from exp_viz import (
 
 from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_coverage
 from cegs_portal.search.models.validators import validate_accession_id
+from cegs_portal.search.view_models.v1 import ExperimentCoverageSearch
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http400
@@ -49,13 +50,30 @@ CHROM_NAMES = {
 
 
 @lru_cache(maxsize=100)
-def load_coverage(exp_acc_id, chrom):
+def load_coverage(exp_acc_id, analysis_acc_id, chrom):
     if chrom is None:
-        filename = finders.find(join("search", "experiments", exp_acc_id, "level1.bin"))
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd"))
     else:
-        filename = finders.find(join("search", "experiments", exp_acc_id, f"level2_{chrom}.bin"))
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd"))
 
     return load_coverage_data_allow_threads(filename)
+
+
+def get_analyses(exp_acc_ids: list[str]) -> list[tuple[str, str]]:
+    exp_analysis_pairs = []
+    exps_only = []
+    for exp_id in exp_acc_ids:
+        ids = exp_id.split("/")
+        if len(ids) == 2:
+            validate_accession_id(ids[0])
+            validate_accession_id(ids[1])
+            exp_analysis_pairs.append((ids[0], ids[1]))
+        else:
+            validate_accession_id(ids[0])
+            exps_only.append(ids[0])
+
+    exp_analysis_pairs.extend(ExperimentCoverageSearch.default_analyses(exps_only))
+    return exp_analysis_pairs
 
 
 class ExperimentCoverageView(TemplateJsonView):
@@ -113,8 +131,7 @@ class ExperimentCoverageView(TemplateJsonView):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        for exp_acc_id in options["exp_acc_ids"]:
-            validate_accession_id(exp_acc_id)
+        accession_ids = get_analyses(options["exp_acc_ids"])
 
         filters = options["filters"]
 
@@ -130,8 +147,11 @@ class ExperimentCoverageView(TemplateJsonView):
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {
-                executor.submit(load_coverage, exp_acc_id, options["zoom_chr"]): exp_acc_id
-                for exp_acc_id in options["exp_acc_ids"]
+                executor.submit(load_coverage, exp_acc_id, analysis_acc_id, options["zoom_chr"]): (
+                    exp_acc_id,
+                    analysis_acc_id,
+                )
+                for exp_acc_id, analysis_acc_id in accession_ids
             }
             loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
             filter_to_acc_id = {

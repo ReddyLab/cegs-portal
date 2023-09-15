@@ -8,6 +8,7 @@ from cegs_portal.search.models import (
     AccessionType,
     Analysis,
     DNAFeature,
+    DNAFeatureType,
     Facet,
     FacetValue,
     RegulatoryEffectObservation,
@@ -72,10 +73,11 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
         else:
             dhs_location = NumericRange(dhs_start, dhs_end, "[]")
             dhs = DNAFeature.objects.get(
-                experiment_accession_id=experiment.accession_id,
+                experiment_accession=experiment,
                 chrom_name=chrom_name,
                 location=dhs_location,
                 ref_genome=ref_genome,
+                feature_type=DNAFeatureType.DHS,
             )
             dhss[dhs_string] = dhs
 
@@ -117,7 +119,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
     bulk_save(sources, effects, effect_directions)
 
 
-def unload_reg_effects(analysis_metadata):
+def unload_analysis(analysis_metadata):
     analysis = Analysis.objects.get(
         experiment_id=analysis_metadata.experiment_accession_id, name=analysis_metadata.name
     )
@@ -135,11 +137,11 @@ def run(analysis_filename):
         analysis_metadata = AnalysisMetadata.json_load(analysis_file)
     check_filename(analysis_metadata.name)
 
-    # Only run unload_reg_effects if you want to delete the analysis, all
+    # Only run unload_analysis if you want to delete the analysis, all
     # associated reg effects, and any DNAFeatures created from the DB.
     # Please note that it won't reset DB id numbers, so running this script with
-    # unload_reg_effects() uncommented is not, strictly, idempotent.
-    # unload_reg_effects(analysis_metadata)
+    # unload_analysis() uncommented is not, strictly, idempotent.
+    # unload_analysis(analysis_metadata)
 
     analysis = analysis_metadata.db_save()
 
