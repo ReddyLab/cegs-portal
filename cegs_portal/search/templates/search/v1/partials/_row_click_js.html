@@ -1,10 +1,8 @@
 <script>
-    var rows = document.querySelectorAll('tr[data-href]');
-var i = 0;
-while (i < rows.length) {
-    rows[i].addEventListener('click', function() {
-        window.location.href = this.getAttribute('data-href');
+var rows = document.querySelectorAll('tr[data-href]');
+for (let row of rows) {
+    row.addEventListener('click', function() {
+        window.location = this.getAttribute('data-href');
     });
-    i = i + 1;
 }
 </script>
