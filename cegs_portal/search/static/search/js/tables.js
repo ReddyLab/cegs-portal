@@ -7,7 +7,6 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Accession ID"),
             e("th", "Name"),
             e("th", "Feature Type"),
             e("th", "Cell Line"),
@@ -18,10 +17,8 @@ function featureTable(features, regionID = "dnafeature") {
             e("th", "Parent"),
         ]),
     ]);
-    for (const feature of features) {
-        newTable.append(
-            e("tr", {class: "data-row"}, [
-                e("td", e("a", {href: `/search/feature/accession/${feature.accession_id}`}, feature.accession_id)),
+        for (const feature of features) {
+            let row = e("tr", { 'data-href': `/search/feature/accession/${feature.accession_id}`}, [
                 e("td", feature.name || "N/A"),
                 e("td", feature.type),
                 e("td", feature.cell_line || "None"),
@@ -36,10 +33,10 @@ function featureTable(features, regionID = "dnafeature") {
                     {class: "closest-gene"},
                     feature.closest_gene_ensembl_id
                         ? e(
-                              "a",
-                              {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`},
-                              `${feature.closest_gene_name}`
-                          )
+                            "a",
+                            {href: `/search/feature/ensembl/${feature.closest_gene_ensembl_id}`},
+                            `${feature.closest_gene_name}`
+                        )
                         : ""
                 ),
                 e("td", `${feature.ref_genome}.${feature.ref_genome_patch || 0}`),
@@ -49,8 +46,11 @@ function featureTable(features, regionID = "dnafeature") {
                         ? e("a", {href: `/search/feature/accession/${feature.parent_accession_id}`}, feature.parent)
                         : "N/A"
                 ),
-            ])
-        );
+            ]);
+            row.onclick = function() {
+                window.location = row.getAttribute('data-href');
+            }
+            newTable.append(row);
     }
     let tableContainer = e("div", {class: "container"}, [newTable]);
     return tableContainer;
