@@ -161,6 +161,10 @@
         background-color: #ddd;
     }
 
+  tr[data-href]:hover {
+        cursor: pointer;
+    }
+
   @media screen {
     div.search-wrapper label {
       display: none;

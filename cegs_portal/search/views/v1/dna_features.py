@@ -71,7 +71,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
 
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
-        reo_page = []
+        reo_page = None
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():

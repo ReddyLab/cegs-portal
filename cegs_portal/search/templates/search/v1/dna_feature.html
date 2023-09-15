@@ -126,10 +126,6 @@
         text-decoration: none;
     }
 
-    tr[data-href]:hover {
-        cursor: pointer;
-    }
-
     .table-title {
         text-align: center;
         font-family: Arial, sans-serif;
@@ -554,7 +550,7 @@ HEADER -->
             data-te-tab-active
             {% endif %}
         >
-        {% for feature, sources, targets, reos in feature_reos %}
+        {% for feature, _, _, reos in feature_reos %}
             {% if reos %}
             <div class="mb-8" id="non-target-table">
                 {% include "search/v1/partials/_non_targeting_reo.html" with feature=feature non_targeting_reos=reos %}
@@ -819,16 +815,9 @@ HEADER -->
     }, 10000);
 });
 
-    var rows = document.querySelectorAll('tr[data-href]');
-    var i = 0;
-    while (i < rows.length) {
-        rows[i].addEventListener('click', function() {
-            window.location.href = this.getAttribute('data-href');
-        });
-        i = i + 1;
-    }
-
 </script>
+
+{% include 'search/v1/partials/_row_click_js.html' %}
 
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}
