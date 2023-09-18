@@ -418,7 +418,7 @@ def sig_reo_loc_search(
         {
             "source_locs": source_locs,
             "target_info": target_info if target_info != '{"(,,,)"}' else None,
-            "reo_accesion_id": reo_accession_id,
+            "reo_accession_id": reo_accession_id,
             "effect_size": float(effect_size) if effect_size is not None else None,
             "p_value": float(p_value) if p_value is not None else None,
             "sig": float(sig) if sig is not None else None,
