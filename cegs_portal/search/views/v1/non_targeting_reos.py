@@ -17,6 +17,7 @@ from cegs_portal.utils.pagination_types import Pageable
 
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = non_targeting_regulatory_effects
+    # tsv_renderer = non_targeting_regulatory_effects_tsv
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 
