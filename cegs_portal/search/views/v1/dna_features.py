@@ -12,6 +12,8 @@ from cegs_portal.search.views.custom_views import (
 )
 from cegs_portal.utils.http_exceptions import Http400
 
+DEFAULT_TABLE_LENGTH = 20
+
 
 class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = features
@@ -53,13 +55,23 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
                 * "name"
             feature_id
         """
+
+        def get_sig_only(value):
+            if value == "0" or value == "false" or value == "False":
+                return False
+            else:
+                return True
+
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
+        sig_only = request.GET.get("sig_only", True)
+        options["sig_only"] = get_sig_only(sig_only)
         return options
 
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
+        reo_page = None
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -73,7 +85,14 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
             else:
                 targets = None
 
-            feature_reos.append((feature, sources, targets))
+            reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
+            if reos.exists():
+                paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
+                reo_page = paginated_reos.page(1)
+            else:
+                reo_page = None
+
+            feature_reos.append((feature, sources, targets, reo_page))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
@@ -94,6 +113,9 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
         if any(f[1] is not None or f[2] is not None for f in feature_reos):
             tabs.append("source target")
+
+        if any(f[3] is not None for f in feature_reos):
+            tabs.append("nearest reo")
 
         if any(bool(f[0].closest_features.all()) for f in feature_reos):
             tabs.append("closest features")

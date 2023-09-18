@@ -6,7 +6,14 @@
 <div>
     <div class="text-xl font-bold">Target of Regulatory Effect Observations</div>
     <table class="data-table">
-        <tr><th>ID</th><th>Effect Size</th><th>Direction</th><th>Significance</th><th>Experiment</th><th>Source</th></tr>
+        <tr>
+            <th>ID</th>
+            <th>Effect Size (log2FC)</th>
+            <th>Direction</th>
+            <th>Significance<br />(p-value)</th>
+            <th>Experiment</th>
+            <th>Source</th>
+        </tr>
         {% for regeffect in regeffects %}
             {% for re_source in regeffect.sources.all %}
             <tr>
@@ -20,7 +27,7 @@
             <td><a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}">{{ re_source.accession_id }}</a></td>
             </tr>
             {% empty %}
-                <tr>
+                <tr data-href="{% url 'search:reg_effect' regeffect.accession_id %}">
                     <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
                     <td>{{ regeffect.effect_size }}</td>
                     <td>{{ regeffect.direction }}</td>
@@ -49,4 +56,9 @@
         </span>
     </div>
 </div>
+
+{% endblock content %}{% block inline_javascript %}
+
+{% include 'search/v1/partials/_row_click_js.html' %}
+
 {% endblock %}

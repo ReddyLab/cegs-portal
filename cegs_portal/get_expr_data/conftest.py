@@ -44,30 +44,30 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     experiment_file_info = ExperimentDataFileInfoFactory()
     _analysis_file = FileFactory(analysis=analysis, data_file_info=experiment_file_info)  # noqa: F841
 
-    effect_source = RegEffectFactory(
-        sources=(
-            DNAFeatureFactory(
-                parent=None,
-                accession_id="DCPDHS00000000",
-                chrom_name="chr1",
-                location=NumericRange(10, 1_000),
-                experiment_accession=None,
-            ),
-            DNAFeatureFactory(
-                parent=None,
-                accession_id="DCPDHS00000001",
-                chrom_name="chr1",
-                location=NumericRange(20_000, 111_000),
-                experiment_accession=None,
-            ),
-            DNAFeatureFactory(
-                parent=None,
-                accession_id="DCPDHS00000002",
-                chrom_name="chr2",
-                location=NumericRange(22_222, 33_333),
-                experiment_accession=None,
-            ),
+    sources = (
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000000",
+            chrom_name="chr1",
+            location=NumericRange(10, 1_000),
+            experiment_accession=None,
         ),
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000001",
+            chrom_name="chr1",
+            location=NumericRange(20_000, 111_000),
+            experiment_accession=None,
+        ),
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000002",
+            chrom_name="chr2",
+            location=NumericRange(22_222, 33_333),
+            experiment_accession=None,
+        ),
+    )
+    for source in sources:
+        source.save()
+    effect_source = RegEffectFactory(
+        sources=sources,
         public=public,
         archived=archived,
         experiment=experiment,
@@ -75,10 +75,10 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         analysis=analysis,
         facet_values=[enriched_facet],
     )
+
     effect_target = RegEffectFactory(
         targets=(
             DNAFeatureFactory(
-                parent=None,
                 chrom_name="chr1",
                 name="LNLC-1",
                 ensembl_id="ENSG01124619313",
@@ -98,18 +98,14 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         analysis=analysis,
         facet_values=[depleted_facet],
     )
+
     effect_both = RegEffectFactory(
         sources=(
-            DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(11, 1_001), experiment_accession=None
-            ),
-            DNAFeatureFactory(
-                parent=None, chrom_name="chr2", location=NumericRange(22_223, 33_334), experiment_accession=None
-            ),
+            DNAFeatureFactory(chrom_name="chr1", location=NumericRange(11, 1_001), experiment_accession=None),
+            DNAFeatureFactory(chrom_name="chr2", location=NumericRange(22_223, 33_334), experiment_accession=None),
         ),
         targets=(
             DNAFeatureFactory(
-                parent=None,
                 chrom_name="chr1",
                 name="XUEQ-1",
                 ensembl_id="ENSG01124619313",
