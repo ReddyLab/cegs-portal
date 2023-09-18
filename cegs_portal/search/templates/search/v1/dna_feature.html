@@ -264,12 +264,6 @@
 </style>
 {% endblock %}
 
-
-{% endblock %}
-{% block title %}{{ feature_name }}{% endblock %}
-
-{% block content %}
-
 {% block title %}{{ feature_name }}{% endblock %}
 
 {% block content %}
@@ -734,7 +728,8 @@ HEADER -->
     </div>
 </div>
 
-{% endblock content %} {% block inline_javascript %}
+{% endblock content %}
+{% block inline_javascript %}
 <script type="module">
     import { g } from "{% static 'search/js/dom.js' %}";
     import { featureTable } from "{% static 'search/js/tables.js' %}"
