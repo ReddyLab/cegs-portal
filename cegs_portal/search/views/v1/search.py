@@ -34,8 +34,6 @@ GRCH38 = "GRCh38"
 
 MAX_REGION_SIZE = 100_000_000
 
-SIGNIFICANT_REO_COUNT_FEATURES = [EXPERIMENT_SOURCES_TEXT, DNAFeatureType.GENE.value]
-
 
 class ParseWarning(Enum):
     TOO_MANY_LOCS = auto()
@@ -181,8 +179,8 @@ class SearchView(TemplateJsonView):
     def get(self, request, options, data, *args, **kwargs):
         data["form"] = SearchForm()
         data["sig_reg_effects"] = [
-            (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group])
-            for k, reo_group in data["sig_reg_effects"]
+            [parse_source_target_data_html(reo_data) for reo_data in reo_group]
+            for _, reo_group in data["sig_reg_effects"]
         ]
         data["logged_in"] = not request.user.is_anonymous
         return super().get(request, options, data, *args, **kwargs)
@@ -264,7 +262,8 @@ class SearchView(TemplateJsonView):
             "facets_query": options["facets"],
             "warnings": {w.name for w in warnings},
             "feature_counts": feature_counts,
-            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
+            "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
+            "sig_reo_count_gene": DNAFeatureType.GENE.value,
         }
 
 
@@ -336,7 +335,8 @@ class FeatureCountView(TemplateJsonView):
             "region": options["region"],
             "assembly": options["assembly"],
             "feature_counts": feature_counts,
-            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
+            "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
+            "sig_reo_count_gene": DNAFeatureType.GENE.value,
         }
 
 
@@ -365,7 +365,37 @@ class SignificantExperimentDataView(View):
             "search/v1/partials/_sig_reg_effects.html",
             {
                 "sig_reg_effects": [
-                    (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group]) for k, reo_group in results
+                    [parse_source_target_data_html(reo_data) for reo_data in reo_group] for _, reo_group in results
                 ]
             },
+        )
+
+
+class FeatureSignificantREOsView(View):
+    """
+    Show significant REOs associated with one or more DNA Feature types in a given area.
+    """
+
+    def get(self, request, *args, **kwargs):
+        assembly = get_assembly(request)
+        features = request.GET.getlist("feature_type", [])
+
+        try:
+            region = get_region(request)
+            if region is None:
+                raise Http400("Must specify a region")
+        except Http400 as error:
+            raise BadRequest() from error
+
+        if self.request.user.is_anonymous:
+            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features)
+        else:
+            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features)
+
+        # print(sig_reos.query)
+        print(sig_reos)
+        return render(
+            request,
+            "search/v1/partials/_feature_sig_reg_effects.html",
+            {"sig_reg_effects": sig_reos},
         )

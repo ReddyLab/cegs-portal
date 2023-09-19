@@ -1,6 +1,6 @@
 from typing import Optional
 
-from django.db.models import Count
+from django.db.models import Count, Subquery
 
 from cegs_portal.get_expr_data.view_models import sig_reo_loc_search
 from cegs_portal.search.models import (
@@ -155,3 +155,48 @@ class Search:
         count_results.append((DNAFeatureType.CCRE.value, count_dict[DNAFeatureType.CCRE.value], 0))
 
         return count_results
+
+    @classmethod
+    def feature_sig_reos(cls, region: ChromosomeLocation, assembly: str, features: list[str]):
+        sanitized_sources = []
+        sanitized_genes = []
+        for feature in features:
+            match feature.lower():
+                case "car":
+                    sanitized_sources.append(DNAFeatureType.CAR)
+                case "grna":
+                    sanitized_sources.append(DNAFeatureType.GRNA)
+                case "dhs":
+                    sanitized_sources.append(DNAFeatureType.DHS)
+                case "gene":
+                    sanitized_genes.append(DNAFeatureType.GENE)
+
+        source_features = DNAFeature.objects.filter(
+            chrom_name=region.chromo,
+            location__overlap=region.range,
+            ref_genome=assembly,
+            feature_type__in=sanitized_sources,
+        ).values("id")
+
+        gene_features = DNAFeature.objects.filter(
+            chrom_name=region.chromo,
+            location__overlap=region.range,
+            ref_genome=assembly,
+            feature_type__in=sanitized_genes,
+        ).values("id")
+
+        source_sig_reos = (
+            RegulatoryEffectObservation.objects.filter(sources__in=Subquery(source_features))
+            .exclude(facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
+            .select_related("experiment")
+            .prefetch_related("sources", "targets")
+        )
+
+        gene_sig_reos = (
+            RegulatoryEffectObservation.objects.filter(targets__in=Subquery(gene_features))
+            .exclude(facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
+            .select_related("experiment")
+            .prefetch_related("sources", "targets")
+        )
+
+        return sorted(source_sig_reos.union(gene_sig_reos).all(), key=lambda x: x.significance)

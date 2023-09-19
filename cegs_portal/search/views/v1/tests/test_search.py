@@ -591,7 +591,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
                 <div>Source Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
 
             </td>
-            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.6e}</a></td>
+            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.6f}</a></td>
             <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.significance:.6f}</a></td>
             <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.raw_p_value:.6f}</a></td>
 
@@ -606,7 +606,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
                 <div>Target Genes: <a href="/search/feature/ensembl/{target.ensembl_id}">{target.name}</a></div>
 
             </td>
-            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.effect_size:.6e}</a></td>
+            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.effect_size:.6f}</a></td>
             <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.significance:.6f}</a></td>
             <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.raw_p_value:.6f}</a></td>
 
@@ -614,6 +614,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
 
 
 </table>
+
 
 </div>
 """
