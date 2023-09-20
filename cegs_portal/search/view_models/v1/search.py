@@ -1,6 +1,6 @@
 from typing import Optional
 
-from django.db.models import Count, Subquery
+from django.db.models import Count, Q, Subquery
 
 from cegs_portal.get_expr_data.view_models import sig_reo_loc_search
 from cegs_portal.search.models import (
@@ -13,6 +13,7 @@ from cegs_portal.search.models import (
 )
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
+from cegs_portal.search.views.view_utils import UserType
 
 EXPERIMENT_SOURCES = [DNAFeatureType.CAR.value, DNAFeatureType.GRNA.value, DNAFeatureType.DHS.value]
 EXPERIMENT_SOURCES_TEXT = "Experiment Regulatory Effect Source"
@@ -92,8 +93,8 @@ class Search:
     def sig_reo_loc_search(
         cls,
         location: ChromosomeLocation,
-        private_experiments: Optional[list[str]] = None,
         assembly: Optional[str] = None,
+        private_experiments: Optional[list[str]] = None,
     ):
         return sig_reo_loc_search(
             (location.chromo, location.range.lower, location.range.upper), 5, private_experiments, assembly
@@ -104,7 +105,13 @@ class Search:
         return Facet.objects.filter(facet_type="FacetType.CATEGORICAL").prefetch_related("values").all()
 
     @classmethod
-    def feature_counts(cls, region: ChromosomeLocation, assembly: str):
+    def feature_counts(
+        cls,
+        region: ChromosomeLocation,
+        assembly: str,
+        user_type: UserType = UserType.ANONYMOUS,
+        private_experiments: Optional[list[str]] = None,
+    ):
         counts = (
             DNAFeature.objects.filter(chrom_name=region.chromo, location__overlap=region.range, ref_genome=assembly)
             .values("feature_type", "id")
@@ -135,17 +142,30 @@ class Search:
                 case "DNAFeatureType.GENE":
                     targets.append(count["id"])
 
-        sig_reo_for_gene_count = (
-            RegulatoryEffectObservation.objects.filter(targets__in=targets)
-            .exclude(facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
-            .count()
+        sig_reo_for_source_count = RegulatoryEffectObservation.objects.filter(sources__in=sources).exclude(
+            facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value
         )
 
-        sig_reo_for_source_count = (
-            RegulatoryEffectObservation.objects.filter(sources__in=sources)
-            .exclude(facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
-            .count()
+        sig_reo_for_gene_count = RegulatoryEffectObservation.objects.filter(targets__in=targets).exclude(
+            facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value
         )
+
+        match user_type:
+            case UserType.ANONYMOUS:
+                sig_reo_for_source_count = sig_reo_for_source_count.filter(Q(archived=False) & Q(public=True))
+                sig_reo_for_gene_count = sig_reo_for_gene_count.filter(Q(archived=False) & Q(public=True))
+            case UserType.LOGGED_IN:
+                sig_reo_for_source_count = sig_reo_for_source_count.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
+                )
+                sig_reo_for_gene_count = sig_reo_for_gene_count.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
+                )
+            case UserType.ADMIN:
+                pass  # Don't filter anything
+
+        sig_reo_for_source_count = sig_reo_for_source_count.count()
+        sig_reo_for_gene_count = sig_reo_for_gene_count.count()
 
         count_results = []
         count_results.append((EXPERIMENT_SOURCES_TEXT, count_dict[EXPERIMENT_SOURCES_TEXT], sig_reo_for_source_count))
@@ -157,7 +177,14 @@ class Search:
         return count_results
 
     @classmethod
-    def feature_sig_reos(cls, region: ChromosomeLocation, assembly: str, features: list[str]):
+    def feature_sig_reos(
+        cls,
+        region: ChromosomeLocation,
+        assembly: str,
+        features: list[str],
+        user_type: UserType = UserType.ANONYMOUS,
+        private_experiments: Optional[list[str]] = None,
+    ):
         sanitized_sources = []
         sanitized_genes = []
         for feature in features:
@@ -175,15 +202,23 @@ class Search:
             chrom_name=region.chromo,
             location__overlap=region.range,
             ref_genome=assembly,
-            feature_type__in=sanitized_sources,
-        ).values("id")
+        )
 
         gene_features = DNAFeature.objects.filter(
             chrom_name=region.chromo,
             location__overlap=region.range,
             ref_genome=assembly,
-            feature_type__in=sanitized_genes,
-        ).values("id")
+        )
+
+        # If no feature types are added, show all feature types. If at least one is added,
+        # make sure to only show the added feature type(s).
+        if len(sanitized_sources) > 0 or len(sanitized_genes) > 0:
+            source_features = source_features.filter(feature_type__in=sanitized_sources)
+            gene_features = gene_features.filter(feature_type__in=sanitized_genes)
+
+        source_features = source_features.values("id")
+
+        gene_features = gene_features.values("id")
 
         source_sig_reos = (
             RegulatoryEffectObservation.objects.filter(sources__in=Subquery(source_features))
@@ -198,5 +233,19 @@ class Search:
             .select_related("experiment")
             .prefetch_related("sources", "targets")
         )
+
+        match user_type:
+            case UserType.ANONYMOUS:
+                source_sig_reos = source_sig_reos.filter(Q(archived=False) & Q(public=True))
+                gene_sig_reos = gene_sig_reos.filter(Q(archived=False) & Q(public=True))
+            case UserType.LOGGED_IN:
+                source_sig_reos = source_sig_reos.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
+                )
+                gene_sig_reos = gene_sig_reos.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
+                )
+            case UserType.ADMIN:
+                pass  # Do no filtering
 
         return sorted(source_sig_reos.union(gene_sig_reos).all(), key=lambda x: x.significance)
