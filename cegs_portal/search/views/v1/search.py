@@ -21,7 +21,7 @@ from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
-from cegs_portal.search.views.view_utils import UserType
+from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
@@ -406,8 +406,6 @@ class FeatureSignificantREOsView(View):
                 region, assembly, features, UserType.LOGGED_IN, private_experiments=self.request.user.all_experiments()
             )
 
-        # print(sig_reos.query)
-        print(sig_reos)
         return render(
             request,
             "search/v1/partials/_feature_sig_reg_effects.html",

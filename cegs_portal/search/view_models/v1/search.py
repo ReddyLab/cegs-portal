@@ -13,7 +13,7 @@ from cegs_portal.search.models import (
 )
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
-from cegs_portal.search.views.view_utils import UserType
+from cegs_portal.users.models import UserType
 
 EXPERIMENT_SOURCES = [DNAFeatureType.CAR.value, DNAFeatureType.GRNA.value, DNAFeatureType.DHS.value]
 EXPERIMENT_SOURCES_TEXT = "Experiment Regulatory Effect Source"
@@ -215,6 +215,11 @@ class Search:
         if len(sanitized_sources) > 0 or len(sanitized_genes) > 0:
             source_features = source_features.filter(feature_type__in=sanitized_sources)
             gene_features = gene_features.filter(feature_type__in=sanitized_genes)
+        else:
+            source_features = source_features.filter(
+                feature_type__in=[DNAFeatureType.CAR, DNAFeatureType.GRNA, DNAFeatureType.DHS]
+            )
+            gene_features = gene_features.filter(feature_type__in=[DNAFeatureType.GENE])
 
         source_features = source_features.values("id")
 

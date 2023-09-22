@@ -1,9 +1,17 @@
+from enum import Enum
+
 from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import BooleanField, CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+
+class UserType(Enum):
+    ANONYMOUS = 1
+    ADMIN = 2
+    LOGGED_IN = 3
 
 
 class User(AbstractUser):

@@ -577,7 +577,6 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     stripped_response = re.sub(
         r"^ +$", "", response.content.decode("utf-8"), flags=re.MULTILINE
     )  # strip out spaces in blank lines
-    print(stripped_response)
     expected_string = f"""<div class="content-container basis-3/4" id="sig-reg-effects">
 
 <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
@@ -644,3 +643,42 @@ def test_sigdata_oversize_region(login_client: SearchClient):
 def test_sigdata_backwards_region(login_client: SearchClient):
     response = login_client.get("/search/sigdata?region=chr1:10000-10")
     assert response.status_code == 400
+
+
+def test_feature_sigreo(reg_effects, login_client: SearchClient):
+    effect_source, effect_target, effect_both, _, _, _, experiment = reg_effects
+
+    response = login_client.get("/search/feature_sigreo?region=chr1:1-100000")
+    assert response.status_code == 200
+
+    sig_sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
+    sig_targets = list(effect_target.targets.all())
+
+    nonsig_sources = sorted(effect_both.sources.all(), key=lambda x: x.accession_id)
+    nonsig_targets = list(effect_both.targets.all())
+
+    response_html = response.content.decode("utf-8")
+
+    for source in sig_sources:
+        assert (
+            re.search(
+                f"{source.chrom_name}: {source.location.lower:,} - {source.location.upper:,}",
+                response_html,
+                flags=re.MULTILINE,
+            )
+            is not None
+        )
+    for target in sig_targets:
+        assert re.search(target.name, response_html, flags=re.MULTILINE) is not None
+
+    for source in nonsig_sources:
+        assert (
+            re.search(
+                f"{source.chrom_name}: {source.location.lower:,} - {source.location.upper:,}",
+                response_html,
+                flags=re.MULTILINE,
+            )
+            is None
+        )
+    for target in nonsig_targets:
+        assert re.search(target.name, response_html, flags=re.MULTILINE) is None
