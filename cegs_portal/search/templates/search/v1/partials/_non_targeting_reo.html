@@ -2,7 +2,7 @@
 {% load static %}
 
 <style>
-button {
+.tsv-button {
     border: 2px solid #807e7e;
     background-color: #fff;
     color: #525050;
@@ -16,7 +16,7 @@ button {
     transition-duration: 0.4s;
 }
 
-button:hover {
+.tsv-button:hover {
     background-color: #808080;
     color: white;
 }
@@ -35,7 +35,7 @@ button:hover {
             Proximal Regulatory Effect Observations
         </div>
     <div style="position: absolute; right: 0;">
-        <button class="">
+        <button class="tsv-button">
             <a href="{% url 'search:download_tsv' feature.accession_id %}">TSV</a>
         </button>
     </div>
