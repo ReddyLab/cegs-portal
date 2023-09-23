@@ -1,10 +1,12 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
+import csv
 
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
 )
+from django.http import HttpResponse
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
@@ -92,3 +94,22 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
             non_targeting_reos.extend(list(reg_effects))
 
         return Paginator(non_targeting_reos, options["per_page"]).get_page(options["page"]), feature
+
+
+class DownloadTSVView(NonTargetRegEffectsView):
+
+    def get(self, options, *args, **kwargs):
+
+        feature_id = kwargs.get('feature_id')
+        reg_effects = DNAFeatureNonTargetSearch.non_targeting_regeffect_search(feature_id, options.GET.get("sig_only"))
+        response = HttpResponse(content_type='text/tab-separated-values')
+        response['Content-Disposition'] = 'attachment; filename="data.tsv"'
+
+        writer = csv.writer(response, delimiter='\t')
+        writer.writerow(['Chromosome Location', 'Effect Size', 'Direction', 'Significance', 'Distance', 'Feature Type', 'Experiment'])  # Write the header
+
+        for reo in reg_effects:
+            first_source = reo.sources.all()[0]
+            writer.writerow([first_source.chrom_name, first_source.location.lower, first_source.location.upper, reo.effect_size, reo.direction, reo.significance, first_source.closest_gene_distance, first_source.get_feature_type_display(), reo.experiment.name])
+
+        return response
