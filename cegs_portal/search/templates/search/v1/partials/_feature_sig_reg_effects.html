@@ -2,7 +2,6 @@
 <div id="modal">
 <div class="modal-underlay" onclick="closeModal()"></div>
 <div class="content-container modal-content" id="feature-sig-reg-effects">
-{% if sig_reg_effects|length > 0 %}
     <div class="flex justify-between max-w-full">
         <div class="text-xl font-bold">Significant Reg Effect Observations</div>
         <div class="close-button" onclick="closeModal()">
@@ -11,6 +10,7 @@
             </svg>
         </div>
     </div>
+    {% if sig_reg_effects|length > 0 %}
     <div class="scroll-area">
     <table class="data-table">
         <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
@@ -32,7 +32,7 @@
     </table>
     </div>
 {% else %}
-    No Relevant Reg Effect Observations Found
+    <div>No Relevant Regulatory Effect Observations Found</div>
 {% endif %}
 </div>
 </div>

@@ -311,8 +311,11 @@
                                      .map(i => i.id);
             state.updateSharedState(STATE_FACETS, checkedFacets);
         }
+
+        let queryParams = new URLSearchParams(window.location.search);
+        let searchFacets = queryParams.getAll("facet");
         facetCheckboxes.forEach(checkbox => {
-            checkbox.checked = false; // reset the checkboxes.
+            checkbox.checked = searchFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
             checkbox.addEventListener("change", _ => {
                 updateFacetState();
             });
@@ -327,28 +330,27 @@
             rc(g("loc-header"), t(`chr${region.chr}: ${region.start.toLocaleString()} - ${region.end.toLocaleString()}`));
         });
 
-        // Update the dna feature counts
-        state.addCallback(STATE_REGION, (s, key) => {
+        let updateDynamicIslands = () => {
             let region = state.g(STATE_REGION);
-            htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#feature-counts", swap:"outerHTML"});
-        });
+            let enabledFacets = state.g(STATE_FACETS).map(id => `facet=${id}`)
+                                  .join('&');
+            Promise.allSettled([
+                // Update the signficant effects table
+                htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#sig-reg-effects", swap:"outerHTML"}),
+                // Update the dna feature counts
+                htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#feature-counts", swap:"outerHTML"})
+            ])
+        }
 
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
-            let region = state.g(STATE_REGION);
-            htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#sig-reg-effects", swap:"outerHTML"});
+            updateDynamicIslands()
         });
 
-        state.addCallback(STATE_FACETS, throttle(
-            (state, key) => {
-                window.history.pushState({}, document.title, searchURL(state[key]));
-                let region = state[STATE_REGION];
-
-                // request data with facets
-            },
-            500,
-            { 'leading': true })
-        );
+        state.addCallback(STATE_FACETS, (s, key) => {
+            window.history.pushState({}, document.title, searchURL(s[key]));
+            updateDynamicIslands();
+        });
 
         {% if region and assembly %}
         // Show the browser

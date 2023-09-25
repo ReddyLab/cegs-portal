@@ -203,19 +203,34 @@ class SearchView(TemplateJsonView):
 
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_loc_search_public(location, assembly_name, options["facets"])
-                sig_reos = Search.sig_reo_loc_search(location, assembly=assembly_name)
-                feature_counts = Search.feature_counts(location, assembly_name)
+                sig_reos = Search.sig_reo_loc_search(
+                    location, assembly_name, options["facets"], user_type=UserType.ANONYMOUS
+                )
+                feature_counts = Search.feature_counts(location, assembly_name, options["facets"])
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
                 features = Search.dnafeature_loc_search(location, assembly_name, options["facets"])
-                sig_reos = Search.sig_reo_loc_search(location, assembly_name, self.request.user.all_experiments())
-                feature_counts = Search.feature_counts(location, assembly_name, user_type=UserType.ADMIN)
+                sig_reos = Search.sig_reo_loc_search(
+                    location,
+                    assembly_name,
+                    options["facets"],
+                    user_type=UserType.ADMIN,
+                )
+                feature_counts = Search.feature_counts(
+                    location, assembly_name, options["facets"], user_type=UserType.ADMIN
+                )
             else:
                 features = Search.dnafeature_loc_search_with_private(
                     location, assembly_name, options["facets"], self.request.user.all_experiments()
                 )
-                sig_reos = Search.sig_reo_loc_search(location, assembly_name, self.request.user.all_experiments())
+                sig_reos = Search.sig_reo_loc_search(
+                    location,
+                    assembly_name,
+                    options["facets"],
+                    user_type=UserType.LOGGED_IN,
+                    private_experiments=self.request.user.all_experiments(),
+                )
                 feature_counts = Search.feature_counts(
-                    location, assembly_name, UserType.LOGGED_IN, self.request.user.all_experiments()
+                    location, assembly_name, options["facets"], UserType.LOGGED_IN, self.request.user.all_experiments()
                 )
 
         elif search_type == SearchType.ID:
@@ -326,23 +341,31 @@ class FeatureCountView(TemplateJsonView):
         options = super().request_options(request)
         options["region"] = get_region(request)
         options["assembly"] = get_assembly(request)
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
 
         return options
 
     def get_data(self, options) -> FeatureCountResult:
         if self.request.user.is_anonymous:
-            feature_counts = Search.feature_counts(options["region"], options["assembly"])
+            feature_counts = Search.feature_counts(options["region"], options["assembly"], options["facets"])
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            feature_counts = Search.feature_counts(options["region"], options["assembly"], user_type=UserType.ADMIN)
+            feature_counts = Search.feature_counts(
+                options["region"], options["assembly"], options["facets"], UserType.ADMIN
+            )
         else:
             feature_counts = Search.feature_counts(
-                options["region"], options["assembly"], UserType.LOGGED_IN, self.request.user.all_experiments()
+                options["region"],
+                options["assembly"],
+                options["facets"],
+                UserType.LOGGED_IN,
+                self.request.user.all_experiments(),
             )
 
         return {
             "region": options["region"],
             "assembly": options["assembly"],
             "feature_counts": feature_counts,
+            "facets": options["facets"],
             "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
             "sig_reo_count_gene": DNAFeatureType.GENE.value,
         }
@@ -355,6 +378,7 @@ class SignificantExperimentDataView(View):
 
     def get(self, request, *args, **kwargs):
         assembly = get_assembly(request)
+        facets = [int(facet) for facet in request.GET.getlist("facet", [])]
 
         try:
             region = get_region(request)
@@ -364,11 +388,22 @@ class SignificantExperimentDataView(View):
             raise BadRequest() from error
 
         if self.request.user.is_anonymous:
-            results = Search.sig_reo_loc_search(region, assembly=assembly)
+            results = Search.sig_reo_loc_search(region, assembly, facets, user_type=UserType.ANONYMOUS)
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            results = Search.sig_reo_loc_search(region, assembly, self.request.user.all_experiments())
+            results = Search.sig_reo_loc_search(
+                region,
+                assembly,
+                facets,
+                user_type=UserType.ADMIN,
+            )
         else:
-            results = Search.sig_reo_loc_search(region, assembly, self.request.user.all_experiments())
+            results = Search.sig_reo_loc_search(
+                region,
+                assembly,
+                facets,
+                user_type=UserType.LOGGED_IN,
+                private_experiments=self.request.user.all_experiments(),
+            )
 
         return render(
             request,
@@ -389,6 +424,7 @@ class FeatureSignificantREOsView(View):
     def get(self, request, *args, **kwargs):
         assembly = get_assembly(request)
         features = request.GET.getlist("feature_type", [])
+        facets = [int(facet) for facet in request.GET.getlist("facet", [])]
 
         try:
             region = get_region(request)
@@ -398,12 +434,17 @@ class FeatureSignificantREOsView(View):
             raise BadRequest() from error
 
         if self.request.user.is_anonymous:
-            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features)
+            sig_reos = Search.feature_sig_reos(region, assembly, features, facets)
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features, user_type=UserType.ADMIN)
+            sig_reos = Search.feature_sig_reos(region, assembly, features, facets, UserType.ADMIN)
         else:
             sig_reos = Search.feature_sig_reos(
-                region, assembly, features, UserType.LOGGED_IN, private_experiments=self.request.user.all_experiments()
+                region,
+                assembly,
+                features,
+                facets,
+                UserType.LOGGED_IN,
+                private_experiments=self.request.user.all_experiments(),
             )
 
         return render(
