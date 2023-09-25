@@ -21,6 +21,7 @@ from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
 from cegs_portal.search.views.custom_views import TemplateJsonView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
+from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
@@ -33,8 +34,6 @@ GRCH37 = "GRCh37"
 GRCH38 = "GRCh38"
 
 MAX_REGION_SIZE = 100_000_000
-
-SIGNIFICANT_REO_COUNT_FEATURES = [EXPERIMENT_SOURCES_TEXT, DNAFeatureType.GENE.value]
 
 
 class ParseWarning(Enum):
@@ -181,8 +180,8 @@ class SearchView(TemplateJsonView):
     def get(self, request, options, data, *args, **kwargs):
         data["form"] = SearchForm()
         data["sig_reg_effects"] = [
-            (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group])
-            for k, reo_group in data["sig_reg_effects"]
+            [parse_source_target_data_html(reo_data) for reo_data in reo_group]
+            for _, reo_group in data["sig_reg_effects"]
         ]
         data["logged_in"] = not request.user.is_anonymous
         return super().get(request, options, data, *args, **kwargs)
@@ -204,21 +203,20 @@ class SearchView(TemplateJsonView):
 
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_loc_search_public(location, assembly_name, options["facets"])
+                sig_reos = Search.sig_reo_loc_search(location, assembly=assembly_name)
+                feature_counts = Search.feature_counts(location, assembly_name)
             elif self.request.user.is_superuser or self.request.user.is_portal_admin:
                 features = Search.dnafeature_loc_search(location, assembly_name, options["facets"])
+                sig_reos = Search.sig_reo_loc_search(location, assembly_name, self.request.user.all_experiments())
+                feature_counts = Search.feature_counts(location, assembly_name, user_type=UserType.ADMIN)
             else:
                 features = Search.dnafeature_loc_search_with_private(
                     location, assembly_name, options["facets"], self.request.user.all_experiments()
                 )
-
-            if self.request.user.is_anonymous:
-                sig_reos = Search.sig_reo_loc_search(location, assembly=assembly_name)
-            else:
-                sig_reos = Search.sig_reo_loc_search(
-                    location, self.request.user.all_experiments(), assembly=assembly_name
+                sig_reos = Search.sig_reo_loc_search(location, assembly_name, self.request.user.all_experiments())
+                feature_counts = Search.feature_counts(
+                    location, assembly_name, UserType.LOGGED_IN, self.request.user.all_experiments()
                 )
-
-            feature_counts = Search.feature_counts(location, assembly_name)
 
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
@@ -264,7 +262,8 @@ class SearchView(TemplateJsonView):
             "facets_query": options["facets"],
             "warnings": {w.name for w in warnings},
             "feature_counts": feature_counts,
-            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
+            "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
+            "sig_reo_count_gene": DNAFeatureType.GENE.value,
         }
 
 
@@ -331,12 +330,21 @@ class FeatureCountView(TemplateJsonView):
         return options
 
     def get_data(self, options) -> FeatureCountResult:
-        feature_counts = Search.feature_counts(options["region"], options["assembly"])
+        if self.request.user.is_anonymous:
+            feature_counts = Search.feature_counts(options["region"], options["assembly"])
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            feature_counts = Search.feature_counts(options["region"], options["assembly"], user_type=UserType.ADMIN)
+        else:
+            feature_counts = Search.feature_counts(
+                options["region"], options["assembly"], UserType.LOGGED_IN, self.request.user.all_experiments()
+            )
+
         return {
             "region": options["region"],
             "assembly": options["assembly"],
             "feature_counts": feature_counts,
-            "sig_reo_count_features": SIGNIFICANT_REO_COUNT_FEATURES,
+            "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
+            "sig_reo_count_gene": DNAFeatureType.GENE.value,
         }
 
 
@@ -357,15 +365,49 @@ class SignificantExperimentDataView(View):
 
         if self.request.user.is_anonymous:
             results = Search.sig_reo_loc_search(region, assembly=assembly)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            results = Search.sig_reo_loc_search(region, assembly, self.request.user.all_experiments())
         else:
-            results = Search.sig_reo_loc_search(region, self.request.user.all_experiments(), assembly=assembly)
+            results = Search.sig_reo_loc_search(region, assembly, self.request.user.all_experiments())
 
         return render(
             request,
             "search/v1/partials/_sig_reg_effects.html",
             {
                 "sig_reg_effects": [
-                    (k, [parse_source_target_data_html(reo_data) for reo_data in reo_group]) for k, reo_group in results
+                    [parse_source_target_data_html(reo_data) for reo_data in reo_group] for _, reo_group in results
                 ]
             },
+        )
+
+
+class FeatureSignificantREOsView(View):
+    """
+    Show significant REOs associated with one or more DNA Feature types in a given area.
+    """
+
+    def get(self, request, *args, **kwargs):
+        assembly = get_assembly(request)
+        features = request.GET.getlist("feature_type", [])
+
+        try:
+            region = get_region(request)
+            if region is None:
+                raise Http400("Must specify a region")
+        except Http400 as error:
+            raise BadRequest() from error
+
+        if self.request.user.is_anonymous:
+            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            sig_reos = Search.feature_sig_reos(region, assembly=assembly, features=features, user_type=UserType.ADMIN)
+        else:
+            sig_reos = Search.feature_sig_reos(
+                region, assembly, features, UserType.LOGGED_IN, private_experiments=self.request.user.all_experiments()
+            )
+
+        return render(
+            request,
+            "search/v1/partials/_feature_sig_reg_effects.html",
+            {"sig_reg_effects": sig_reos},
         )

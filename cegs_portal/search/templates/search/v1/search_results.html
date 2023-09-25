@@ -51,6 +51,111 @@
         padding: 12px;
         border-bottom: 1px solid lightgrey;
     }
+
+    a.count-link {
+        color: #3490dc;
+    }
+
+    /***** MODAL DIALOG ****/
+    #modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal > .modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+
+    #modal > .modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top: 10vh;
+
+        /* Sizing for visible dialog */
+        width: 80%;
+        max-height: 80%;
+
+        /* Display properties for visible dialog*/
+        border: solid 1px #999;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+        background-color: white;
+
+        /* Animate when opening */
+        animation-name: zoomIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    .close-button {
+        cursor: pointer;
+    }
+
+    #modal .scroll-bounds {
+        margin-bottom: 20px;
+    }
+
+    #modal .scroll-area {
+        overflow-y: auto;
+        max-height: 95%;
+        margin-bottom: 20px
+    }
+
+    #modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal.closing > .modal-content {
+        /* Animate when closing */
+        animation-name: zoomOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
 </style>
 {% endblock %}
 {% block javascript %}
@@ -92,10 +197,6 @@
 
     {% if region and assembly %}
     <div class="p-2" id="genoverse"></div>
-    {% endif %}
-
-    {% if feature_counts %}
-    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
     {% endif %}
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
@@ -162,7 +263,12 @@
             {% endif %}
         </div>
 
-        {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        <div class="flex flex-col gap-4">
+            {% if feature_counts %}
+            {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+            {% endif %}
+            {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        </div>
     </div>
 
     {% switch "effect_plot" %}
@@ -356,4 +462,13 @@
         {% endif %}
     </script>
     <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
+    <script>
+        function closeModal() {
+            let modal = document.getElementById("modal");
+            modal.classList.add("closing") // Kicks off an animation on the modal dialog
+            modal.addEventListener("animationend", (event) => {
+                modal.remove(); // remove the dialog from the DOM once the animation is over
+            })
+        }
+    </script>
 {% endblock %}
