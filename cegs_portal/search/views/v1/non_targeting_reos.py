@@ -101,9 +101,10 @@ class DownloadTSVView(NonTargetRegEffectsView):
     def get(self, options, *args, **kwargs):
 
         feature_id = kwargs.get('feature_id')
+        feature = DNAFeatureNonTargetSearch.id_feature_search(feature_id)
         reg_effects = DNAFeatureNonTargetSearch.non_targeting_regeffect_search(feature_id, options.GET.get("sig_only"))
         response = HttpResponse(content_type='text/tab-separated-values')
-        response['Content-Disposition'] = 'attachment; filename="data.tsv"'
+        response['Content-Disposition'] = f'attachment; filename="{feature.name}_proximal_regulatory_observations_table_data.tsv"'
 
         writer = csv.writer(response, delimiter='\t')
         writer.writerow(['Chromosome Location', 'Effect Size', 'Direction', 'Significance', 'Distance', 'Feature Type', 'Experiment'])  # Write the header

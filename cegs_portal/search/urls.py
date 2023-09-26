@@ -66,4 +66,5 @@ urlpatterns = [
     ),
     re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view()),
     path("v1/feature_counts", views.v1.FeatureCountView.as_view()),
+    re_path(r'regeffect/nontarget/download_tsv/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})/$', views.v1.DownloadTSVView.as_view(), name='download_proximal_regulatory_observations_table_data_tsv'),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))
