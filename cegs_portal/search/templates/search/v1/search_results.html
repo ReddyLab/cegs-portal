@@ -162,8 +162,6 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
-<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
 {% endblock %}
 {% block content %}
     <div class="grow flex flex-col items-center min-w-full">
@@ -271,9 +269,6 @@
         </div>
     </div>
 
-    {% switch "effect_plot" %}
-    <div id="plot"></div>
-    {% endswitch %}
 {% endblock %}
 {% block inline_javascript %}
     <script type="module">
@@ -355,84 +350,6 @@
             { 'leading': true })
         );
 
-        {% switch "effect_plot" %}
-        // Show the plot
-        function geneDHSPlot(data) {
-            let dhssWithTargets = data.filter(dhs => dhs.source_for.length > 0 && dhs.source_for.filter(effect => effect.targets.length > 0).length > 0);
-            let dwtSet = new Set(dhssWithTargets);
-            let targets = dhssWithTargets.flatMap(dhs => dhs.source_for.flatMap(effect => effect.targets.map(assembly => {
-                assembly["effect_size"] = effect.effect_size;
-                assembly["label"] = dhs.label;
-                return assembly
-            })))
-
-            if (targets.length == 0) {
-                return e("span");
-            }
-
-            let plot = Plot.plot({
-                height: 480,
-                padding: 0,
-                marginLeft: 50,
-                marginTop: 50,
-                color: {
-                    range: ["#f0e442", "#56b4e9"],
-                    interpolate: "hcl"
-                },
-                x: {
-                    axis: "top",
-                    round: false,
-                    label: "DHS"
-                },
-                y: {
-                    round: false,
-                    label: "Gene",
-                    tickPadding: 6,
-                    tickRotate: -90,
-                },
-                marks: [
-                    Plot.cell(
-                        targets,
-                        {
-                            x: "label",
-                            y: "name",
-                            fill: "effect_size",
-                            title: "effect_size",
-                            rx: 8,
-                            ry: 8
-                        }
-                    ),
-                    Plot.text(
-                        targets,
-                        {
-                            x: "label",
-                            y: "name",
-                            text: d => d.effect_size?.toFixed(3),
-                            title: "effect_size",
-                        }
-                    )
-                ]
-            })
-
-            return plot;
-        }
-        function applyPlot(state, key) {
-            if (key !== STATE_DHS_EFFECT && key !== STATE_REGION) { return; }
-            let dhss = state[STATE_DHS_EFFECT];
-            let region = state[STATE_REGION];
-
-            if (!dhss || !region) { return; }
-
-            data = region ? dhss.filter(dhs => region.chr === dhs.chr && dhs.start >= region.start && dhs.end <= region.end) : dhss;
-
-            let genePlot = g("plot");
-            if (genePlot) {
-                let plotNode = geneDHSPlot(data);
-                rc(genePlot, plotNode);
-            }
-        }
-        {% endswitch %}
-
         {% if region and assembly %}
         // Show the browser
         let browser = new CEGSGenoverse({
@@ -447,7 +364,7 @@
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips', 'fileDrop' ],
             useHash   : true,
             hideEmptyTracks: false,
-            sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}{% switch "effect_plot" %}{% if search_type == "LOCATION" %}, {% endif %}applyPlot{% endswitch %}],
+            sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}],
             width: 1000,
             tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
