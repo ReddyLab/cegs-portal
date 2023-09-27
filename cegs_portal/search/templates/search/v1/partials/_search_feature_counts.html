@@ -1,13 +1,11 @@
 {% load humanize %}
 
-<div class="content-container" id="feature-counts">
-    <div class="text-xl font-bold">DNA Feature Counts for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
-    <div class="flex flex-row mt-3 gap-5">
-        {% for feature, count, sig_count in feature_counts %}
-        <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span>
-            {% if feature == sig_reo_count_source %}(with <a class="count-link" hx-target="body" hx-swap="beforeend" hx-get="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=car&feature_type=dhs&feature_type=grna{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}" href="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=car&feature_type=dhs&feature_type=grna{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}"><span class="font-bold">{{ sig_count }}</span> significant observed effects</a>){% endif %}
-            {% if feature == sig_reo_count_gene %}(with <a class="count-link" hx-target="body" hx-swap="beforeend" hx-get="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=gene{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}" href="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=gene{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}"><span class="font-bold">{{ sig_count }}</span> significant observed effects</a>){% endif %}
-        </div>
-        {% endfor %}
+<div class="text-xl font-bold">DNA Feature Counts for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
+<div class="flex flex-row mt-3 gap-5">
+    {% for feature, count, sig_count in feature_counts %}
+    <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span>
+        {% if feature == sig_reo_count_source %}(with <a class="count-link" hx-target="body" hx-swap="beforeend" hx-get="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=car&feature_type=dhs&feature_type=grna{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}" href="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=car&feature_type=dhs&feature_type=grna{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}"><span class="font-bold">{{ sig_count }}</span> significant observed effects</a>){% endif %}
+        {% if feature == sig_reo_count_gene %}(with <a class="count-link" hx-target="body" hx-swap="beforeend" hx-get="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=gene{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}" href="{% url 'search:feature_sigreo' %}?region={{ region.chromo }}:{{ region.range.lower }}-{{ region.range.upper }}&assembly={{ assembly }}&feature_type=gene{% if facets|length > 0 %}{% for facet in facets %}&facet={{facet}}{% endfor %}{% endif %}"><span class="font-bold">{{ sig_count }}</span> significant observed effects</a>){% endif %}
     </div>
+    {% endfor %}
 </div>
