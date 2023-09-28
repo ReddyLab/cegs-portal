@@ -123,7 +123,6 @@ class Search:
                 user_experiments = experiments_for_facets(facet_query_input)
                 experiments_only = True
 
-        print(f"**********************************\n{user_experiments}\n**********************************")
         return sig_reo_loc_search(
             (location.chromo, location.range.lower, location.range.upper),
             assembly,

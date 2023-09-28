@@ -577,8 +577,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     stripped_response = re.sub(
         r"^ +$", "", response.content.decode("utf-8"), flags=re.MULTILINE
     )  # strip out spaces in blank lines
-    expected_string = f"""<div class="content-container basis-3/4" id="sig-reg-effects">
-
+    expected_string = f"""
 <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
 <table class="data-table">
     <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
@@ -615,7 +614,6 @@ def test_sigdata(reg_effects, login_client: SearchClient):
 </table>
 
 
-</div>
 """
 
     assert stripped_response == expected_string
