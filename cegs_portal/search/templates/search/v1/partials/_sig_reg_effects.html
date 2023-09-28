@@ -1,8 +1,6 @@
-<div class="content-container basis-3/4" id="sig-reg-effects">
 {% if sig_reg_effects|length > 0 %}
 <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
 {% include "search/v1/partials/_sig_reg_effects_table.html" with sig_reg_effects=sig_reg_effects %}
 {% else %}
 No Relevant Reg Effect Observations Found
 {% endif %}
-</div>

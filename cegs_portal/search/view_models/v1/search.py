@@ -1,13 +1,20 @@
 from typing import Optional
 
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Q, Subquery
 
-from cegs_portal.get_expr_data.view_models import sig_reo_loc_search
+from cegs_portal.get_expr_data.view_models import (
+    experiments_for_facets,
+    for_facet_query_input,
+    public_experiments_for_facets,
+    sig_reo_loc_search,
+)
 from cegs_portal.search.models import (
     ChromosomeLocation,
     DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
+    Experiment,
     Facet,
     RegulatoryEffectObservation,
 )
@@ -94,24 +101,64 @@ class Search:
         cls,
         location: ChromosomeLocation,
         assembly: Optional[str] = None,
+        facets: list[int] = [],
+        user_type: UserType = UserType.ANONYMOUS,
         private_experiments: Optional[list[str]] = None,
     ):
+        match facets, user_type:
+            case [], _:
+                user_experiments = private_experiments
+                experiments_only = False
+            case _, UserType.ANONYMOUS:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = public_experiments_for_facets(facet_query_input)
+                experiments_only = True
+            case _, UserType.LOGGED_IN:
+                assert private_experiments is not None
+
+                facet_query_input = for_facet_query_input(facets)
+                facet_experiments = experiments_for_facets(facet_query_input)
+                experiments_only = True
+                user_experiments = [expr for expr in private_experiments if expr in facet_experiments]
+            case _, UserType.ADMIN:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = experiments_for_facets(facet_query_input)
+                experiments_only = True
+
         return sig_reo_loc_search(
-            (location.chromo, location.range.lower, location.range.upper), 5, private_experiments, assembly
+            (location.chromo, location.range.lower, location.range.upper),
+            assembly,
+            user_experiments,
+            5,
+            experiments_only,
         )
 
     @classmethod
-    def categorical_facet_search(cls):
-        return Facet.objects.filter(facet_type="FacetType.CATEGORICAL").prefetch_related("values").all()
+    def experiment_facet_search(cls):
+        facet_ids = set()
+        for e in Experiment.objects.all().annotate(facet_ids=ArrayAgg("facet_values__facet__id")).values("facet_ids"):
+            facet_ids.update(e["facet_ids"])
+
+        return (
+            Facet.objects.filter(
+                id__in=facet_ids,
+                facet_type="FacetType.CATEGORICAL",
+            )
+            .prefetch_related("values")
+            .all()
+        )
 
     @classmethod
     def feature_counts(
         cls,
         region: ChromosomeLocation,
         assembly: str,
+        facets: Optional[list[int]] = None,
         user_type: UserType = UserType.ANONYMOUS,
         private_experiments: Optional[list[str]] = None,
     ):
+        facets = [] if facets is None else facets
+
         counts = (
             DNAFeature.objects.filter(chrom_name=region.chromo, location__overlap=region.range, ref_genome=assembly)
             .values("feature_type", "id")
@@ -150,19 +197,41 @@ class Search:
             facet_values__value=EffectObservationDirectionType.NON_SIGNIFICANT.value
         )
 
-        match user_type:
-            case UserType.ANONYMOUS:
+        match facets, user_type:
+            case [], UserType.ANONYMOUS:
                 sig_reo_for_source_count = sig_reo_for_source_count.filter(Q(archived=False) & Q(public=True))
                 sig_reo_for_gene_count = sig_reo_for_gene_count.filter(Q(archived=False) & Q(public=True))
-            case UserType.LOGGED_IN:
+            case _, UserType.ANONYMOUS:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = public_experiments_for_facets(facet_query_input)
+                sig_reo_for_source_count = sig_reo_for_source_count.filter(experiment_accession_id__in=user_experiments)
+                sig_reo_for_gene_count = sig_reo_for_gene_count.filter(experiment_accession_id__in=user_experiments)
+            case [], UserType.LOGGED_IN:
                 sig_reo_for_source_count = sig_reo_for_source_count.filter(
                     Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
                 )
                 sig_reo_for_gene_count = sig_reo_for_gene_count.filter(
                     Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
                 )
-            case UserType.ADMIN:
-                pass  # Don't filter anything
+            case _, UserType.LOGGED_IN:
+                assert private_experiments is not None
+
+                facet_query_input = for_facet_query_input(facets)
+                facet_experiments = experiments_for_facets(facet_query_input)
+                user_experiments = [expr for expr in private_experiments if expr in facet_experiments]
+                sig_reo_for_source_count = sig_reo_for_source_count.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=user_experiments))
+                )
+                sig_reo_for_gene_count = sig_reo_for_gene_count.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=user_experiments))
+                )
+            case [], UserType.ADMIN:
+                pass  # Don't filter anything out
+            case _, UserType.ADMIN:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = experiments_for_facets(facet_query_input)
+                sig_reo_for_source_count = sig_reo_for_source_count.filter(experiment_accession_id__in=user_experiments)
+                sig_reo_for_gene_count = sig_reo_for_gene_count.filter(experiment_accession_id__in=user_experiments)
 
         sig_reo_for_source_count = sig_reo_for_source_count.count()
         sig_reo_for_gene_count = sig_reo_for_gene_count.count()
@@ -182,9 +251,12 @@ class Search:
         region: ChromosomeLocation,
         assembly: str,
         features: list[str],
+        facets: Optional[list[int]] = None,
         user_type: UserType = UserType.ANONYMOUS,
         private_experiments: Optional[list[str]] = None,
     ):
+        facets = [] if facets is None else facets
+
         sanitized_sources = []
         sanitized_genes = []
         for feature in features:
@@ -239,18 +311,39 @@ class Search:
             .prefetch_related("sources", "targets")
         )
 
-        match user_type:
-            case UserType.ANONYMOUS:
+        match facets, user_type:
+            case [], UserType.ANONYMOUS:
                 source_sig_reos = source_sig_reos.filter(Q(archived=False) & Q(public=True))
                 gene_sig_reos = gene_sig_reos.filter(Q(archived=False) & Q(public=True))
-            case UserType.LOGGED_IN:
+            case _, UserType.ANONYMOUS:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = public_experiments_for_facets(facet_query_input)
+                source_sig_reos = source_sig_reos.filter(experiment_accession_id__in=user_experiments)
+                gene_sig_reos = gene_sig_reos.filter(experiment_accession_id__in=user_experiments)
+            case [], UserType.LOGGED_IN:
                 source_sig_reos = source_sig_reos.filter(
                     Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
                 )
                 gene_sig_reos = gene_sig_reos.filter(
                     Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=private_experiments))
                 )
-            case UserType.ADMIN:
-                pass  # Do no filtering
+            case _, UserType.LOGGED_IN:
+                assert private_experiments is not None
 
+                facet_query_input = for_facet_query_input(facets)
+                facet_experiments = experiments_for_facets(facet_query_input)
+                user_experiments = [expr for expr in private_experiments if expr in facet_experiments]
+                source_sig_reos = source_sig_reos.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=user_experiments))
+                )
+                gene_sig_reos = gene_sig_reos.filter(
+                    Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=user_experiments))
+                )
+            case [], UserType.ADMIN:
+                pass  # Don't filter anything out
+            case _, UserType.ADMIN:
+                facet_query_input = for_facet_query_input(facets)
+                user_experiments = experiments_for_facets(facet_query_input)
+                source_sig_reos = source_sig_reos.filter(experiment_accession_id__in=user_experiments)
+                gene_sig_reos = gene_sig_reos.filter(experiment_accession_id__in=user_experiments)
         return sorted(source_sig_reos.union(gene_sig_reos).all(), key=lambda x: x.significance)

@@ -552,6 +552,6 @@ def test_private_sig_reo_loc_search(private_reg_effects):
 
     assert len(result) == 0
 
-    result = sig_reo_loc_search(("chr1", 1, 1000000), private_experiments=[experiment.accession_id])
+    result = sig_reo_loc_search(("chr1", 1, 1000000), experiments=[experiment.accession_id])
 
     assert len(result[0][1]) == 2

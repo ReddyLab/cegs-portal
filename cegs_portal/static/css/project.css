@@ -1107,6 +1107,12 @@ input[type="submit"], input[type="button"], button {
           flex-grow: 1;
 }
 
+.grow-0 {
+  -webkit-box-flex: 0;
+      -ms-flex-positive: 0;
+          flex-grow: 0;
+}
+
 .basis-1\/4 {
   -ms-flex-preferred-size: 25%;
       flex-basis: 25%;
@@ -1636,13 +1642,6 @@ input[type="submit"], input[type="button"], button {
 
 #filter-bar {
   grid-template-rows: auto 1fr;
-}
-
-#facets {
-  border-width: 2px;
-  border-color: rgba(1, 33, 105, 1);
-  margin: 1em;
-  padding: 0.5em;
 }
 
 .bg-dark {
