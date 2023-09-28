@@ -1107,6 +1107,12 @@ input[type="submit"], input[type="button"], button {
           flex-grow: 1;
 }
 
+.grow-0 {
+  -webkit-box-flex: 0;
+      -ms-flex-positive: 0;
+          flex-grow: 0;
+}
+
 .basis-1\/4 {
   -ms-flex-preferred-size: 25%;
       flex-basis: 25%;

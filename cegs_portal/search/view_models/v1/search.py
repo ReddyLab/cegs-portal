@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Q, Subquery
 
 from cegs_portal.get_expr_data.view_models import (
@@ -13,6 +14,7 @@ from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
+    Experiment,
     Facet,
     RegulatoryEffectObservation,
 )
@@ -132,8 +134,19 @@ class Search:
         )
 
     @classmethod
-    def categorical_facet_search(cls):
-        return Facet.objects.filter(facet_type="FacetType.CATEGORICAL").prefetch_related("values").all()
+    def experiment_facet_search(cls):
+        facet_ids = set()
+        for e in Experiment.objects.all().annotate(facet_ids=ArrayAgg("facet_values__facet__id")).values("facet_ids"):
+            facet_ids.update(e["facet_ids"])
+
+        return (
+            Facet.objects.filter(
+                id__in=facet_ids,
+                facet_type="FacetType.CATEGORICAL",
+            )
+            .prefetch_related("values")
+            .all()
+        )
 
     @classmethod
     def feature_counts(

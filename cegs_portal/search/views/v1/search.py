@@ -263,7 +263,7 @@ class SearchView(TemplateJsonView):
         else:
             raise Http400(f"Invalid Query: {options['search_query']}")
 
-        facets = Search.categorical_facet_search()
+        facets = Search.experiment_facet_search()
 
         return {
             "location": location,
