@@ -41,6 +41,11 @@ urlpatterns = [
         views.v1.NonTargetRegEffectsView.as_view(),
         name="non_target_reo",
     ),
+    re_path(
+        r'regeffect/nontarget/download_tsv/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})/$',
+        views.v1.NonTargetRegEffectsView.as_view(),
+        name="download_proximal_regulatory_observations_table_data_tsv",
+    ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
     path("sigdata", view=views.v1.SignificantExperimentDataView.as_view(), name="sigdata"),

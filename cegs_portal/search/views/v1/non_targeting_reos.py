@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
+from cegs_portal.search.views.view_utils import TSV_MIME
 
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
@@ -15,9 +16,23 @@ from cegs_portal.search.views.custom_views import (
 from cegs_portal.utils.pagination_types import Pageable
 
 
+def non_targeting_regulatory_effects_tsv(data):
+    reo_page, feature = data
+    tsv_data = []
+    tsv_data.append(['Chromosome Location', 'Effect Size', 'Direction', 'Significance', 'Distance', 'Feature Type', 'Experiment'])
+
+    for reo in reo_page:
+        first_source = reo.sources.all()[0]
+        row = [first_source.chrom_name, first_source.location.lower, first_source.location.upper, reo.effect_size, reo.direction, reo.significance, first_source.closest_gene_distance, first_source.get_feature_type_display(), reo.experiment.name]
+
+        tsv_data.append(row)
+
+    return tsv_data
+
+
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = non_targeting_regulatory_effects
-    # tsv_renderer = non_targeting_regulatory_effects_tsv
+    tsv_renderer = non_targeting_regulatory_effects_tsv
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 
@@ -72,17 +87,21 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
         return options
 
     def get(self, request, options, data, feature_id):
-        reo_page, feature = data
-        response_values = {"non_targeting_reos": reo_page, "feature": feature}
+        if request.headers.get('Accept') == TSV_MIME:
+            tsv_data = self.tsv_renderer(data)
+            return TsvResponse(tsv_data)
+        else:
+            reo_page, feature = data
+            response_values = {"non_targeting_reos": reo_page, "feature": feature}
 
-        if request.headers.get("HX-Target"):
-            return render(
-                request,
-                "search/v1/partials/_non_targeting_reo.html",
-                response_values,
-            )
+            if request.headers.get("HX-Target"):
+                return render(
+                    request,
+                    "search/v1/partials/_non_targeting_reo.html",
+                    response_values,
+                )
 
-        return super().get(request, options, response_values)
+            return super().get(request, options, response_values)
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []
