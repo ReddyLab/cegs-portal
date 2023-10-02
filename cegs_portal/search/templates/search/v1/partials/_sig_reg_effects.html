@@ -1,17 +1,6 @@
-<table class="data-table">
-    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
-    {% for key, regeffects in rows %}
-        {% cycle '' 'bg-gray-100' as rowcolors silent %}
-        {% for regeffect in regeffects %}
-        <tr class="{{ rowcolors }}">
-            <td><a href="{% url 'search:reg_effect' regeffect.reo_accesion_id %}"><div>Source Locations: {{ regeffect.source_locs }}</div><div>Target Genes: {{ regeffect.target_info }}</div></a></td>
-            <td>{{ regeffect.effect_size|stringformat:".6e" }}</td>
-            <td>{% if regeffect.sig < 0.000001 %}{{ regeffect.sig|stringformat:".6e" }}{% else %}{{ regeffect.sig|stringformat:".6f" }}{% endif %}</td>
-            <td>{% if regeffect.p_value < 0.000001 %}{{ regeffect.p_value|stringformat:".6e" }}{% else %}{{ regeffect.p_value|stringformat:".6f" }}{% endif %}</td>
-            {% if forloop.first %}
-            <td rowspan="{{ regeffects|length }}"><a href="{% url 'search:experiment' regeffect.expr_accession_id %}">{{ regeffect.expr_name }}</a></td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    {% endfor %}
-</table>
+{% if sig_reg_effects|length > 0 %}
+<div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
+{% include "search/v1/partials/_sig_reg_effects_table.html" with sig_reg_effects=sig_reg_effects %}
+{% else %}
+No Relevant Reg Effect Observations Found
+{% endif %}

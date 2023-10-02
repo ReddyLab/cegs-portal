@@ -1,0 +1,8 @@
+<script>
+var rows = document.querySelectorAll('tr[data-href]');
+for (let row of rows) {
+    row.addEventListener('click', function() {
+        window.location = this.getAttribute('data-href');
+    });
+}
+</script>

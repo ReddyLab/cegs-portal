@@ -1,6 +1,6 @@
 /* These styles are generated from project.scss. */
 
-/* ! tailwindcss v3.3.2 | MIT License | https://tailwindcss.com */
+/* ! tailwindcss v3.3.3 | MIT License | https://tailwindcss.com */
 
 /*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
@@ -193,6 +193,11 @@ select,
 textarea {
   font-family: inherit;
   /* 1 */
+  -webkit-font-feature-settings: inherit;
+          font-feature-settings: inherit;
+  /* 1 */
+  font-variation-settings: inherit;
+  /* 1 */
   font-size: 100%;
   /* 1 */
   font-weight: inherit;
@@ -344,6 +349,14 @@ menu {
 }
 
 /*
+Reset default styling for dialogs.
+*/
+
+dialog {
+  padding: 0;
+}
+
+/*
 Prevent resizing textareas horizontally by default.
 */
 
@@ -445,6 +458,66 @@ video {
   display: none;
 }
 
+input[type="range"]::-webkit-slider-thumb {
+  height: 1rem;
+  width: 1rem;
+  background: #3B71CA;
+  border-radius: 9999px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: #a3a3a3;
+}
+
+input[type="range"]:disabled:focus::-webkit-slider-thumb {
+  background: #a3a3a3;
+}
+
+input[type="range"]:disabled:active::-webkit-slider-thumb {
+  background: #a3a3a3;
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 1rem;
+  width: 1rem;
+  background: #3B71CA;
+  border-radius: 9999px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]:disabled::-moz-range-thumb {
+  background: #a3a3a3;
+}
+
+input[type="range"]::-moz-range-progress {
+  background: #3061AF;
+}
+
+input[type="range"]::-ms-fill-lower {
+  background: #3061AF;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  background: #3061AF;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  background: #285192;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -495,7 +568,7 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
-::-webkit-backdrop {
+::-ms-backdrop {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
   --tw-translate-x: 0;
@@ -692,6 +765,7 @@ table.data-table a,
 }
 
 .reg_data-table th {
+  white-space: nowrap;
   padding: 12px;
   text-align: left;
   background-color: #ddd;
@@ -726,6 +800,14 @@ table.data-table a,
   border-bottom: 1px solid lightgrey;
 }
 
+.reg_data-table tr:hover {
+  background-color: #ddd;
+}
+
+tr[data-href]:hover {
+  cursor: pointer;
+}
+
 input[type="text"], input[type="password"], input[type="email"] {
   border-width: 2px;
   padding-left: 0.5rem;
@@ -741,10 +823,6 @@ input[type="submit"], input[type="button"], button {
   padding-right: 0.5rem;
 }
 
-.\!visible {
-  visibility: visible !important;
-}
-
 .visible {
   visibility: visible;
 }
@@ -755,6 +833,10 @@ input[type="submit"], input[type="button"], button {
 
 .static {
   position: static;
+}
+
+.fixed {
+  position: fixed;
 }
 
 .absolute {
@@ -801,10 +883,6 @@ input[type="submit"], input[type="button"], button {
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
-}
-
-.-mr-1 {
-  margin-right: -0.25rem;
 }
 
 .mb-10 {
@@ -925,10 +1003,6 @@ input[type="submit"], input[type="button"], button {
   height: 1rem;
 }
 
-.h-5 {
-  height: 1.25rem;
-}
-
 .h-6 {
   height: 1.5rem;
 }
@@ -943,10 +1017,6 @@ input[type="submit"], input[type="button"], button {
 
 .w-4 {
   width: 1rem;
-}
-
-.w-5 {
-  width: 1.25rem;
 }
 
 .w-6 {
@@ -999,6 +1069,10 @@ input[type="submit"], input[type="button"], button {
   max-width: fit-content;
 }
 
+.max-w-full {
+  max-width: 100%;
+}
+
 .max-w-max {
   max-width: -webkit-max-content;
   max-width: -moz-max-content;
@@ -1031,6 +1105,12 @@ input[type="submit"], input[type="button"], button {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+}
+
+.grow-0 {
+  -webkit-box-flex: 0;
+      -ms-flex-positive: 0;
+          flex-grow: 0;
 }
 
 .basis-1\/4 {
@@ -1117,6 +1197,10 @@ input[type="submit"], input[type="button"], button {
   gap: 1rem;
 }
 
+.gap-5 {
+  gap: 1.25rem;
+}
+
 .gap-x-10 {
   -webkit-column-gap: 2.5rem;
      -moz-column-gap: 2.5rem;
@@ -1158,6 +1242,10 @@ input[type="submit"], input[type="button"], button {
 .self-end {
   -ms-flex-item-align: end;
       align-self: flex-end;
+}
+
+.justify-self-start {
+  justify-self: start;
 }
 
 .overflow-hidden {
@@ -1554,13 +1642,6 @@ input[type="submit"], input[type="button"], button {
 
 #filter-bar {
   grid-template-rows: auto 1fr;
-}
-
-#facets {
-  border-width: 2px;
-  border-color: rgba(1, 33, 105, 1);
-  margin: 1em;
-  padding: 0.5em;
 }
 
 .bg-dark {

@@ -23,7 +23,6 @@ from cegs_portal.get_expr_data.view_models import (
     open_file,
     output_experiment_data_csv_task,
     output_experiment_data_list,
-    sig_reo_loc_search,
     validate_an,
     validate_expr,
     validate_filename,
@@ -178,19 +177,23 @@ def get_query_facets(request) -> list[int]:
     return int_facets
 
 
-def parse_source_locs_json(source_locs: str) -> list[str]:
+def parse_source_locs_json(source_locs: str) -> list[tuple[str, int, int, str]]:
     locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
+    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\",(\w+)\)', source_locs):
         chrom = match[1]
         start = int(match[2])
         end = int(match[3])
-        locs.append((chrom, start, end))
+        accession_id = match[4]
+        locs.append((chrom, start, end, accession_id))
         source_locs = source_locs[match.end() :]
 
     return locs
 
 
-def parse_target_info_json(target_info: str) -> list[str]:
+def parse_target_info_json(target_info: Optional[str]) -> list[tuple[str, str]]:
+    if target_info is None:
+        return []
+
     info = []
     while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
         gene_symbol = match[1]
@@ -253,37 +256,6 @@ class LocationExperimentDataView(LoginRequiredMixin, View):
 
         data = output_experiment_data_list(user_experiments, [region], experiments, analyses, data_source, assembly)
         return JsonResponse({"experiment data": data})
-
-
-class SignificantExperimentDataView(View):
-    """
-    Pull experiment data for a single region from the DB
-    """
-
-    def get(self, request, *args, **kwargs):
-        top_num = request.GET.get("num", 5)
-        assembly = get_assembly(request)
-
-        try:
-            region = get_region(request)
-            if region is None:
-                raise Http400("Must specify a region")
-        except Http400 as error:
-            raise BadRequest() from error
-
-        if request.user.is_anonymous:
-            user_experiments = []
-        else:
-            user_experiments = request.user.all_experiments()
-
-        results = sig_reo_loc_search(region, top_num, user_experiments, assembly)
-        return JsonResponse(
-            {
-                "significant reos": [
-                    (k, [parse_source_target_data_json(reo_data) for reo_data in reo_group]) for k, reo_group in results
-                ]
-            }
-        )
 
 
 class RequestExperimentDataView(LoginRequiredMixin, View):

@@ -20,19 +20,23 @@ SearchResults = TypedDict(
 )
 
 
-def parse_source_locs_json(source_locs: str) -> list[str]:
+def parse_source_locs_json(source_locs: str) -> list[tuple[str, int, int, str]]:
     locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
+    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\",(\w+)\)', source_locs):
         chrom = match[1]
         start = int(match[2])
         end = int(match[3])
-        locs.append((chrom, start, end))
+        accession_id = match[4]
+        locs.append((chrom, start, end, accession_id))
         source_locs = source_locs[match.end() :]
 
     return locs
 
 
-def parse_target_info_json(target_info: str) -> list[str]:
+def parse_target_info_json(target_info: Optional[str]) -> list[tuple[str, str]]:
+    if target_info is None:
+        return []
+
     info = []
     while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
         gene_symbol = match[1]

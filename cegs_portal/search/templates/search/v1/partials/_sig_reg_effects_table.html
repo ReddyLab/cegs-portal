@@ -1,0 +1,22 @@
+<table class="data-table">
+    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+    {% for regeffects in sig_reg_effects %}
+        {% cycle '' 'bg-gray-100' as rowcolors silent %}
+        {% for regeffect in regeffects %}
+        <tr class="{{ rowcolors }}">
+            <td>
+                <div>Source Locations: {% for source in regeffect.source_locs %}<a href="{% url 'search:dna_features' 'accession' source.1 %}">{{ source.0 }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                {% if regeffect.target_info %}
+                <div>Target Genes: {% for gene in regeffect.target_info %}<a href="{% url 'search:dna_features' 'ensembl' gene.1 %}">{{ gene.0 }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                {% endif %}
+            </td>
+            <td><a href="{% url 'search:reg_effect' regeffect.reo_accession_id %}">{% if regeffect.effect_size < 0.000001 and regeffect.effect_size > -0.000001 %}{{ regeffect.effect_size|stringformat:".6e" }}{% else %}{{ regeffect.effect_size|stringformat:".6f" }}{% endif %}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.reo_accession_id %}">{% if regeffect.sig < 0.000001 %}{{ regeffect.sig|stringformat:".6e" }}{% else %}{{ regeffect.sig|stringformat:".6f" }}{% endif %}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.reo_accession_id %}">{% if regeffect.p_value < 0.000001 %}{{ regeffect.p_value|stringformat:".6e" }}{% else %}{{ regeffect.p_value|stringformat:".6f" }}{% endif %}</a></td>
+            {% if forloop.first %}
+            <td rowspan="{{ regeffects|length }}"><a href="{% url 'search:experiment' regeffect.expr_accession_id %}">{{ regeffect.expr_name }}</a></td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    {% endfor %}
+</table>

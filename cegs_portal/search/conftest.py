@@ -123,20 +123,20 @@ def biosample() -> Biosample:
 def feature_pages() -> Pageable[DNAFeature]:
     paginator: MockPaginator[DNAFeature] = MockPaginator(
         [
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
-            DNAFeatureFactory(parent=None),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
+            DNAFeatureFactory(),
         ],
         3,
     )
@@ -148,7 +148,7 @@ def reo_source_target():
     return {
         "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "reo_accesion_id": "DCPREO00000001",
+        "reo_accession_id": "DCPREO00000001",
         "effect_size": -1.2,
         "p_value": 0.005,
         "sig": 0.05,
@@ -162,9 +162,9 @@ def reo_source_target():
 def reo_source_targets():
     return [
         {
-            "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
+            "source_locs": '{"(chr6,\\"[31577822,31578136)\\",DCPDHS00000001)"}',
             "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-            "reo_accesion_id": "DCPREO000339D6",
+            "reo_accession_id": "DCPREO000339D6",
             "effect_size": 0.010958133,
             "p_value": 0.00000184,
             "sig": 0.000547435,
@@ -173,9 +173,9 @@ def reo_source_targets():
             "analysis_accession_id": "DCPAN00000002",
         },
         {
-            "source_locs": '{"(chr6,\\"[32182864,32183339)\\")"}',
+            "source_locs": '{"(chr6,\\"[32182864,32183339)\\",DCPDHS00000002)"}',
             "target_info": '{"(chr6,\\"[31830969,31846824)\\",SLC44A4,ENSG00000204385)"}',
-            "reo_accesion_id": "DCPREO00033A96",
+            "reo_accession_id": "DCPREO00033A96",
             "effect_size": -0.005418836,
             "p_value": 0.001948499,
             "sig": 0.004785014,
@@ -184,9 +184,9 @@ def reo_source_targets():
             "analysis_accession_id": "DCPAN00000002",
         },
         {
-            "source_locs": '{"(chr13,\\"[40666345,40666366)\\")"}',
+            "source_locs": '{"(chr13,\\"[40666345,40666366)\\",DCPDHS00000003)"}',
             "target_info": '{"(chr6,\\"[31834608,31839767)\\",SNHG32,ENSG00000204387)"}',
-            "reo_accesion_id": "DCPREO004F45A1",
+            "reo_accession_id": "DCPREO004F45A1",
             "effect_size": -1.2,
             "p_value": 0.005,
             "sig": 0.05,
@@ -210,39 +210,38 @@ def search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Facet], 
 
 @pytest.fixture
 def features() -> Iterable[DNAFeature]:
-    f1 = DNAFeatureFactory(parent=None)
-    f2 = DNAFeatureFactory(parent=None)
-    f3 = DNAFeatureFactory(parent=None)
-    f4 = DNAFeatureFactory(parent=None)
-    f5 = DNAFeatureFactory(parent=None)
+    f1 = DNAFeatureFactory()
+    f2 = DNAFeatureFactory()
+    f3 = DNAFeatureFactory()
+    f4 = DNAFeatureFactory()
+    f5 = DNAFeatureFactory()
     return [f1, f2, f3, f4, f5]
 
 
 @pytest.fixture
 def feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, ref_genome="GRCh38")
+    return DNAFeatureFactory(ref_genome="GRCh38")
 
 
 @pytest.fixture
 def search_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def private_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, public=False, ref_genome="GRCh38")
+    return DNAFeatureFactory(public=False, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def archived_feature() -> DNAFeature:
-    return DNAFeatureFactory(parent=None, archived=True, ref_genome="GRCh38")
+    return DNAFeatureFactory(archived=True, ref_genome="GRCh38")
 
 
 @pytest.fixture
 def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
-    pub_feature = DNAFeatureFactory(parent=None, feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    pub_feature = DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
     private_feature = DNAFeatureFactory(
-        parent=None,
         feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
@@ -250,7 +249,6 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
         public=False,
     )
     archived_feature = DNAFeatureFactory(
-        parent=None,
         feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
@@ -265,7 +263,7 @@ def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
     effect = RegEffectFactory(
-        sources=(DNAFeatureFactory(parent=None), DNAFeatureFactory(parent=None)),
+        sources=(DNAFeatureFactory(), DNAFeatureFactory()),
         facet_values=(direction,),
         public=public,
         archived=archived,
@@ -292,7 +290,7 @@ def archived_reg_effect() -> RegulatoryEffectObservation:
 
 @pytest.fixture
 def source_reg_effects():
-    source = DNAFeatureFactory(parent=None)
+    source = DNAFeatureFactory()
 
     reo1 = RegEffectFactory(
         sources=(source,),
@@ -311,7 +309,7 @@ def source_reg_effects():
 
 @pytest.fixture
 def sig_only_source_reg_effects():
-    source = DNAFeatureFactory(parent=None)
+    source = DNAFeatureFactory()
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
 
@@ -346,7 +344,7 @@ def sig_only_source_reg_effects():
 
 @pytest.fixture
 def sig_only_target_reg_effects():
-    target = DNAFeatureFactory(parent=None)
+    target = DNAFeatureFactory()
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
 
@@ -381,7 +379,7 @@ def sig_only_target_reg_effects():
 
 @pytest.fixture
 def hidden_source_reg_effects():
-    source = DNAFeatureFactory(parent=None)
+    source = DNAFeatureFactory()
 
     reo1 = RegEffectFactory(
         sources=(source,),
@@ -402,7 +400,7 @@ def hidden_source_reg_effects():
 
 @pytest.fixture
 def target_reg_effects():
-    target = DNAFeatureFactory(parent=None)
+    target = DNAFeatureFactory()
 
     reo1 = RegEffectFactory(
         targets=(target,),
@@ -421,7 +419,7 @@ def target_reg_effects():
 
 @pytest.fixture
 def hidden_target_reg_effects():
-    target = DNAFeatureFactory(parent=None)
+    target = DNAFeatureFactory()
 
     reo1 = RegEffectFactory(
         targets=(target,),
@@ -453,7 +451,7 @@ def facets() -> Manager[Facet]:
 
 @pytest.fixture
 def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
-    source = DNAFeatureFactory(parent=None)
+    source = DNAFeatureFactory()
 
     paginator: MockPaginator[RegulatoryEffectObservation] = MockPaginator(
         [
@@ -489,35 +487,30 @@ def genoverse_dhs_features():
     gap = 1_000
     ref_genome = "GRCh38"
     f1 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start, start + length),
         feature_type=DNAFeatureType.DHS,
     )
     f2 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
     )
     f3 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
         feature_type=DNAFeatureType.CCRE,
     )
     f4 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
         feature_type=DNAFeatureType.DHS,
     )
     f5 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
@@ -525,7 +518,6 @@ def genoverse_dhs_features():
     )
 
     g1 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         feature_type=DNAFeatureType.GENE,
@@ -536,7 +528,6 @@ def genoverse_dhs_features():
     _ = RegEffectFactory(sources=(f3,))
 
     g1 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         feature_type=DNAFeatureType.GENE,
@@ -559,7 +550,6 @@ def genoverse_gene_features():
     gap = 1_000
     ref_genome = "GRCh38"
     f1 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="-",
@@ -567,7 +557,6 @@ def genoverse_gene_features():
         feature_type=DNAFeatureType.GENE,
     )
     f2 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="-",
@@ -575,7 +564,6 @@ def genoverse_gene_features():
         feature_type=DNAFeatureType.GENE,
     )
     f3 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="+",
@@ -583,7 +571,6 @@ def genoverse_gene_features():
         feature_type=DNAFeatureType.GENE,
     )
     f4 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="+",
@@ -591,7 +578,6 @@ def genoverse_gene_features():
         feature_type=DNAFeatureType.GENE,
     )
     f5 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
@@ -615,7 +601,6 @@ def genoverse_transcript_features():
     end = 1_100_000
     ref_genome = "GRCh38"
     g1 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start, start + 40_000),
@@ -650,7 +635,6 @@ def genoverse_transcript_features():
     )
 
     g2 = DNAFeatureFactory(
-        parent=None,
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + 50_000, end),

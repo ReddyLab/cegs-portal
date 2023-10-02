@@ -12,6 +12,9 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservationSet,
 )
 from cegs_portal.search.view_models.errors import ObjectNotFoundError, ViewModelError
+from cegs_portal.search.view_models.v1.non_targeting_reos import (
+    DNAFeatureNonTargetSearch,
+)
 from cegs_portal.utils.http_exceptions import Http500
 
 
@@ -282,3 +285,7 @@ class DNAFeatureSearch:
         )
 
         return reg_effects
+
+    @classmethod
+    def non_targeting_reo_search(cls, feature_accession_id: str, sig_only: bool):
+        return DNAFeatureNonTargetSearch.non_targeting_regeffect_search(feature_accession_id, sig_only)

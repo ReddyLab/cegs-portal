@@ -138,7 +138,7 @@ def gen_output_rows(experiment_data):
     for (
         source_locs,
         target_info,
-        _reo_accesion_id,
+        _reo_accession_id,
         effect_size,
         p_value,
         sig,
@@ -346,21 +346,28 @@ def retrieve_experiment_data(
 
 def sig_reo_loc_search(
     location: tuple[str, int, int],
-    count: int = 5,
-    private_experiments: Optional[list[str]] = None,
     assembly: Optional[str] = None,
+    experiments: Optional[list[str]] = None,
+    count: int = 5,
+    experiments_only: bool = False,
 ):
-    private_experiments = [] if private_experiments is None else private_experiments
+    experiments = [] if experiments is None else experiments
 
-    where = r"""WHERE reo_sources_targets_sig_only.archived = false AND
-                        (reo_sources_targets_sig_only.public = true OR
-                        reo_sources_targets_sig_only.reo_experiment = ANY(%s)) AND
-                        ((reo_sources_targets_sig_only.source_chrom = %s AND
-                        reo_sources_targets_sig_only.source_loc && %s) OR
-                        (reo_sources_targets_sig_only.target_chrom = %s AND
-                        reo_sources_targets_sig_only.target_loc && %s))"""
+    where = r"WHERE reo_sources_targets_sig_only.archived = false AND"
+
+    if experiments_only:
+        where = f"{where} (reo_sources_targets_sig_only.public = true AND"
+    else:
+        where = f"{where} (reo_sources_targets_sig_only.public = true OR"
+
+    where = f"""{where}
+                    reo_sources_targets_sig_only.reo_experiment = ANY(%s)) AND
+                    ((reo_sources_targets_sig_only.source_chrom = %s AND
+                    reo_sources_targets_sig_only.source_loc && %s) OR
+                    (reo_sources_targets_sig_only.target_chrom = %s AND
+                    reo_sources_targets_sig_only.target_loc && %s))"""
     inputs = [
-        private_experiments,
+        experiments,
         location[0],
         NumericRange(location[1], location[2]),
         location[0],
@@ -375,7 +382,8 @@ def sig_reo_loc_search(
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.source_chrom,
-                            reo_sources_targets_sig_only.source_loc)) AS sources,
+                            reo_sources_targets_sig_only.source_loc,
+                            reo_sources_targets_sig_only.source_accession)) AS sources,
                         ARRAY_AGG(DISTINCT
                             (reo_sources_targets_sig_only.target_chrom,
                             reo_sources_targets_sig_only.target_loc,
@@ -416,8 +424,8 @@ def sig_reo_loc_search(
     result = [
         {
             "source_locs": source_locs,
-            "target_info": target_info,
-            "reo_accesion_id": reo_accesion_id,
+            "target_info": target_info if target_info != '{"(,,,)"}' else None,
+            "reo_accession_id": reo_accession_id,
             "effect_size": float(effect_size) if effect_size is not None else None,
             "p_value": float(p_value) if p_value is not None else None,
             "sig": float(sig) if sig is not None else None,
@@ -428,7 +436,7 @@ def sig_reo_loc_search(
         for (
             source_locs,
             target_info,
-            reo_accesion_id,
+            reo_accession_id,
             effect_size,
             p_value,
             sig,
@@ -453,6 +461,26 @@ def for_facet_query_input(facets: list[int]) -> list[list[int]]:
         query_input.append([int(fid) for fid, in cursor.fetchall()])
 
     return query_input
+
+
+def public_experiments_for_facets(query_input: list[list[int]]) -> set[str]:
+    query = r"""SELECT accession_id
+                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
+                            FROM (SELECT se.accession_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                                FROM search_experiment AS se
+                                JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
+                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
+                                WHERE sfv.facet_id = ANY(%s) and se.public = true and se.archived = false
+                                GROUP BY se.accession_id, sefv.facetvalue_id
+                                ORDER BY se.accession_id) AS facet_table
+                            GROUP BY facet_table.accession_id) AS facet_bool_table
+                    WHERE facet_bool_table.facet_match = true
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        experiments = [eid for eid, in cursor.fetchall()]
+
+    return experiments
 
 
 def experiments_for_facets(query_input: list[list[int]]) -> set[str]:

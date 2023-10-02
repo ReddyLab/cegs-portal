@@ -3,10 +3,11 @@ from typing import Union, cast
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import URLPattern, URLResolver, include, path
 from django.views import defaults as default_views
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
 
 import cegs_portal.search.views
 
@@ -22,6 +23,7 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
         path("accounts/", include("allauth.urls")),
         path("search/", include("cegs_portal.search.urls")),
         path("exp_data/", include("cegs_portal.get_expr_data.urls")),
+        path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("images/favicons/favicon.ico"))),
         path("", include("django_prometheus.urls")),
     ],
 ) + cast(list[Union[URLPattern, URLResolver]], static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

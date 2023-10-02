@@ -30,7 +30,27 @@ class DNAFeatureType(Enum):
             case DNAFeatureType.CAR:
                 return "CAR"
             case _:
-                raise Exception(f"No accession abbreviation defined for {self}")
+                raise ValueError(f"No accession abbreviation defined for {self}")
+
+    @classmethod
+    def from_db_str(cls, db_str):
+        match db_str:
+            case "DNAFeatureType.GENE":
+                return DNAFeatureType.GENE
+            case "DNAFeatureType.TRANSCRIPT":
+                return DNAFeatureType.TRANSCRIPT
+            case "DNAFeatureType.EXON":
+                return DNAFeatureType.EXON
+            case "DNAFeatureType.CCRE":
+                return DNAFeatureType.CCRE
+            case "DNAFeatureType.DHS":
+                return DNAFeatureType.DHS
+            case "DNAFeatureType.GRNA":
+                return DNAFeatureType.GRNA
+            case "DNAFeatureType.CAR":
+                return DNAFeatureType.CAR
+            case _:
+                raise ValueError(f"No feature type defined for {db_str}")
 
 
 class DNAFeatureSourceType(models.TextChoices):

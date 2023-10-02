@@ -19,13 +19,6 @@
   grid-template-rows: auto 1fr;
 }
 
-#facets {
-  border-width: 2px;
-  border-color: rgba(1, 33, 105, 1);
-  margin: 1em;
-  padding: 0.5em;
-}
-
 .bg-dark {
   background-color: rgba(1, 33, 105, 1);
 }
@@ -122,6 +115,7 @@
   }
 
   .reg_data-table th {
+      white-space: nowrap;
       padding: 12px;
       text-align: left;
       background-color: #ddd;
@@ -155,6 +149,14 @@
       padding: 12px;
       border-bottom: 1px solid lightgrey;
   }
+
+  .reg_data-table tr:hover {
+      background-color: #ddd;
+  }
+
+  tr[data-href]:hover {
+        cursor: pointer;
+    }
 
   @media screen {
     div.search-wrapper label {

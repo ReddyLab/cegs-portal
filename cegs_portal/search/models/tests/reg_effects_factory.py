@@ -37,8 +37,8 @@ class RegEffectFactory(DjangoModelFactory):
 
         if extracted:
             # A list of groups were passed in, use them
-            for region in extracted:
-                self.sources.add(region)  # pylint: disable=no-member
+            for feature in extracted:
+                self.sources.add(feature)  # pylint: disable=no-member
 
     @post_generation
     def targets(self, create, extracted, **kwargs):
@@ -48,8 +48,8 @@ class RegEffectFactory(DjangoModelFactory):
 
         if extracted:
             # A list of groups were passed in, use them
-            for assembly in extracted:
-                self.targets.add(assembly)  # pylint: disable=no-member
+            for gene in extracted:
+                self.targets.add(gene)  # pylint: disable=no-member
 
     @post_generation
     def facet_values(self, create, extracted, **kwargs):

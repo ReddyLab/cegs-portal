@@ -10,6 +10,7 @@ from cegs_portal.get_expr_data.models import (
     ReoSourcesTargetsSigOnly,
 )
 from cegs_portal.search.models import (
+    DNAFeatureType,
     EffectObservationDirectionType,
     RegulatoryEffectObservation,
 )
@@ -44,18 +45,33 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     experiment_file_info = ExperimentDataFileInfoFactory()
     _analysis_file = FileFactory(analysis=analysis, data_file_info=experiment_file_info)  # noqa: F841
 
-    effect_source = RegEffectFactory(
-        sources=(
-            DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(10, 1_000), experiment_accession=None
-            ),
-            DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(20_000, 111_000), experiment_accession=None
-            ),
-            DNAFeatureFactory(
-                parent=None, chrom_name="chr2", location=NumericRange(22_222, 33_333), experiment_accession=None
-            ),
+    sources = (
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000000",
+            chrom_name="chr1",
+            location=NumericRange(10, 1_000),
+            experiment_accession=None,
+            feature_type=DNAFeatureType.GRNA,
         ),
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000001",
+            chrom_name="chr1",
+            location=NumericRange(20_000, 111_000),
+            experiment_accession=None,
+            feature_type=DNAFeatureType.DHS,
+        ),
+        DNAFeatureFactory(
+            accession_id="DCPDHS00000002",
+            chrom_name="chr2",
+            location=NumericRange(22_222, 33_333),
+            experiment_accession=None,
+            feature_type=DNAFeatureType.CAR,
+        ),
+    )
+    for source in sources:
+        source.save()
+    effect_source = RegEffectFactory(
+        sources=sources,
         public=public,
         archived=archived,
         experiment=experiment,
@@ -63,17 +79,23 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         analysis=analysis,
         facet_values=[enriched_facet],
     )
+
     effect_target = RegEffectFactory(
         targets=(
             DNAFeatureFactory(
-                parent=None,
                 chrom_name="chr1",
                 name="LNLC-1",
                 ensembl_id="ENSG01124619313",
                 location=NumericRange(35_000, 40_000),
                 experiment_accession=None,
+                feature_type=DNAFeatureType.GENE,
             ),
         ),
+        facet_num_values={
+            RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: 2.0760384670056446,
+            RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 7.19229500470051e-06,
+            RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: 0.057767530629869,
+        },
         public=public,
         archived=archived,
         experiment=experiment,
@@ -81,23 +103,30 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         analysis=analysis,
         facet_values=[depleted_facet],
     )
+
     effect_both = RegEffectFactory(
         sources=(
             DNAFeatureFactory(
-                parent=None, chrom_name="chr1", location=NumericRange(11, 1_001), experiment_accession=None
+                chrom_name="chr1",
+                location=NumericRange(11, 1_001),
+                experiment_accession=None,
+                feature_type=DNAFeatureType.GRNA,
             ),
             DNAFeatureFactory(
-                parent=None, chrom_name="chr2", location=NumericRange(22_223, 33_334), experiment_accession=None
+                chrom_name="chr2",
+                location=NumericRange(22_223, 33_334),
+                experiment_accession=None,
+                feature_type=DNAFeatureType.CAR,
             ),
         ),
         targets=(
             DNAFeatureFactory(
-                parent=None,
                 chrom_name="chr1",
                 name="XUEQ-1",
                 ensembl_id="ENSG01124619313",
                 location=NumericRange(35_001, 40_001),
                 experiment_accession=None,
+                feature_type=DNAFeatureType.GENE,
             ),
         ),
         public=public,
