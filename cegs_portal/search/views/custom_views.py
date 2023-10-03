@@ -29,8 +29,10 @@ class TsvResponse(HttpResponse):
             headers["Content-Disposition"] = 'attachment; filename="data.tsv"'
         else:
             headers["Content-Disposition"] = f'attachment; filename="{filename}"'
-        
-        super().__init__(content_type="text/tab-separated-values",  headers=headers, **kwargs)
+
+        kwargs["headers"] = headers
+
+        super().__init__(content_type="text/tab-separated-values", **kwargs)
 
         with io.StringIO() as csv_output:
             tsvwriter = csv.writer(csv_output, delimiter="\t")
@@ -39,8 +41,6 @@ class TsvResponse(HttpResponse):
             csv_string = csv_output.getvalue()
 
         self.content = csv_string
-
-
 
 
 class ExperimentAccessMixin(UserPassesTestMixin):
