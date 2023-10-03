@@ -5,6 +5,9 @@ from django.shortcuts import render
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
 )
+from cegs_portal.search.tsv_templates.v1.non_targeting_reos import (
+    non_targeting_regulatory_effects as ntre_tsv
+)
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
@@ -15,35 +18,9 @@ from cegs_portal.search.views.custom_views import (
 from cegs_portal.utils.pagination_types import Pageable
 
 
-def non_targeting_regulatory_effects_tsv(data):
-    reo_page, feature = data
-    tsv_data = []
-    tsv_data.append(
-        ["Chromosome Location", "Effect Size", "Direction", "Significance", "Distance", "Feature Type", "Experiment"]
-    )
-
-    for reo in reo_page:
-        first_source = reo.sources.all()[0]
-        row = [
-            first_source.chrom_name,
-            first_source.location.lower,
-            first_source.location.upper,
-            reo.effect_size,
-            reo.direction,
-            reo.significance,
-            first_source.closest_gene_distance,
-            first_source.get_feature_type_display(),
-            reo.experiment.name,
-        ]
-
-        tsv_data.append(row)
-
-    return tsv_data
-
-
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = non_targeting_regulatory_effects
-    tsv_renderer = non_targeting_regulatory_effects_tsv
+    tsv_renderer = ntre_tsv
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 
