@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
+from cegs_portal.search.views.view_utils import TSV_MIME
 
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
@@ -87,10 +88,6 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
 
         return super().get(request, options, response_values)
 
-    def get_tsv(self, request, options, data, feature_id):
-        _, feature = data
-        filename = f"{feature.name}_proximal_regulatory_observations_table_data.tsv"
-        return super().get_tsv(request, options, data, filename=filename)
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []

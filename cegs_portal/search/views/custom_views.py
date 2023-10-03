@@ -21,18 +21,11 @@ class TsvResponse(HttpResponse):
     def __init__(
         self,
         data,
-        filename,
         **kwargs,
     ):
-        headers = kwargs.get("headers", {})
-        if filename is None:
-            headers["Content-Disposition"] = 'attachment; filename="data.tsv"'
-        else:
-            headers["Content-Disposition"] = f'attachment; filename="{filename}"'
-
-        kwargs["headers"] = headers
-
-        super().__init__(content_type="text/tab-separated-values", **kwargs)
+        kwargs.setdefault("content_type", "text/tab-separated-values")
+        super().__init__(**kwargs)
+        self['Content-Disposition'] = f'attachment; filename="_proximal_regulatory_observations_table_data.tsv"'
 
         with io.StringIO() as csv_output:
             tsvwriter = csv.writer(csv_output, delimiter="\t")
@@ -41,6 +34,8 @@ class TsvResponse(HttpResponse):
             csv_string = csv_output.getvalue()
 
         self.content = csv_string
+
+
 
 
 class ExperimentAccessMixin(UserPassesTestMixin):
@@ -154,8 +149,7 @@ class TemplateJsonView(View):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
 
     def get_tsv(self, _request, _options, data, *args, **kwargs):
-        filename = kwargs.get("filename", None)
-        return TsvResponse(self.__class__.tsv_renderer(data), filename)
+        return TsvResponse(self.__class__.tsv_renderer(data))
 
     def post(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
