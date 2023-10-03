@@ -34,7 +34,9 @@
             Proximal Regulatory Effect Observations
         </div>
     <div style="position: absolute; right: 0;">
-        <button class="tsv-button" id="downloadButton">Download TSV</button>
+        <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values">
+            <button class="tsv-button" id="downloadButton">Download TSV</button>
+        </a>
     </div>
     </div>
     <div class="faded-line"></div>
