@@ -5,10 +5,10 @@ from django.shortcuts import render
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
 )
-from cegs_portal.search.tsv_templates.v1.non_targeting_reos import (
-    non_targeting_regulatory_effects as ntre_tsv
-)
 from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.tsv_templates.v1.non_targeting_reos import (
+    non_targeting_regulatory_effects as ntre_tsv,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
 from cegs_portal.search.views.custom_views import (
