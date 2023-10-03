@@ -1,25 +1,5 @@
 {% load humanize %}
 {% load static %}
-<style>
-    .tsv-button {
-        border: 2px solid #807e7e;
-        background-color: #fff;
-        color: #525050;
-        padding: 3px 6px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 10px;
-        margin: 4px 2px;
-        cursor: pointer;
-        transition-duration: 0.4s;
-    }
-
-    .tsv-button:hover {
-        background-color: #808080;
-        color: white;
-    }
-    </style>
 
 <div class="container">
     <a name="non-targeting-reos-{{ feature.accession_id }}"></a>
@@ -90,27 +70,3 @@
 </div>
 
 {% include 'search/v1/partials/_row_click_js.html' %}
-
-<script>
-    document.getElementById('downloadButton').addEventListener('click', function(event) {
-        event.preventDefault();
-
-        var featureName = '{{ feature.name }}';
-
-        fetch('{% url 'search:non_target_reo' feature.accession_id %}', {
-            headers: {
-                'Accept': 'text/tab-separated-values'
-            }
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = featureName + "_proximal_regulatory_observations_table_data.tsv";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
-    });
-    </script>
