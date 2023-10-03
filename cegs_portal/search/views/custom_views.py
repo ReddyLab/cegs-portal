@@ -18,32 +18,24 @@ logger = logging.getLogger("django.request")
 
 
 class TsvResponse(HttpResponse):
-    """
-    An HTTP response class that consumes data to be serialized to JSON.
-
-    :param data: Data to be dumped into json. By default only ``dict`` objects
-      are allowed to be passed due to a security flaw before ECMAScript 5. See
-      the ``safe`` parameter for more information.
-    :param encoder: Should be a json encoder class. Defaults to
-      ``django.core.serializers.json.DjangoJSONEncoder``.
-    :param safe: Controls if only ``dict`` objects may be serialized. Defaults
-      to ``True``.
-    :param json_dumps_params: A dictionary of kwargs passed to json.dumps().
-    """
-
     def __init__(
         self,
         data,
         **kwargs,
     ):
         kwargs.setdefault("content_type", "text/tab-separated-values")
+        super().__init__(**kwargs)
+        self['Content-Disposition'] = f'attachment; filename="_proximal_regulatory_observations_table_data.tsv"'
+
         with io.StringIO() as csv_output:
             tsvwriter = csv.writer(csv_output, delimiter="\t")
             for row in data:
                 tsvwriter.writerow(row)
             csv_string = csv_output.getvalue()
 
-        super().__init__(content=csv_string, **kwargs)
+        self.content = csv_string
+
+
 
 
 class ExperimentAccessMixin(UserPassesTestMixin):

@@ -95,7 +95,7 @@
 
         var featureName = '{{ feature.name }}';
 
-        fetch('{% url 'search:download_proximal_regulatory_observations_table_data_tsv' feature.accession_id %}', {
+        fetch('{% url 'search:non_target_reo' feature.accession_id %}', {
             headers: {
                 'Accept': 'text/tab-separated-values'
             }
