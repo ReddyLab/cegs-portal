@@ -34,9 +34,15 @@ class TsvResponse(HttpResponse):
     def __init__(
         self,
         data,
+        filename,
         **kwargs,
     ):
-        kwargs.setdefault("content_type", "text/tab-separated-values")
+        kwargs["content_type"] = "text/tab-separated-values"
+        if filename is None:
+            self.headers["Content-Disposition"] = 'attachment; filename="data.tsv"'
+        else:
+            self.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+
         with io.StringIO() as csv_output:
             tsvwriter = csv.writer(csv_output, delimiter="\t")
             for row in data:
@@ -157,7 +163,8 @@ class TemplateJsonView(View):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
 
     def get_tsv(self, _request, _options, data, *args, **kwargs):
-        return TsvResponse(self.__class__.tsv_renderer(data))
+        filename = kwargs.get("filename", None)
+        return TsvResponse(self.__class__.tsv_renderer(data), filename)
 
     def post(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
