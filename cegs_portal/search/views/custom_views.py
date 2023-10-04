@@ -78,7 +78,7 @@ class ExperimentAccessMixin(UserPassesTestMixin):
 
 
 def default_tsv_renderer(data):
-    raise NotImplementedError("FeatureEffectsView.get_data")
+    raise NotImplementedError("No TSV output for this endpoint")
 
 
 class TemplateJsonView(View):
