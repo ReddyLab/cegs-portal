@@ -10,6 +10,7 @@ from cegs_portal.get_expr_data.models import (
     ReoSourcesTargetsSigOnly,
 )
 from cegs_portal.search.models import (
+    DNAFeatureType,
     EffectObservationDirectionType,
     RegulatoryEffectObservation,
 )
@@ -50,18 +51,21 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
             chrom_name="chr1",
             location=NumericRange(10, 1_000),
             experiment_accession=None,
+            feature_type=DNAFeatureType.GRNA,
         ),
         DNAFeatureFactory(
             accession_id="DCPDHS00000001",
             chrom_name="chr1",
             location=NumericRange(20_000, 111_000),
             experiment_accession=None,
+            feature_type=DNAFeatureType.DHS,
         ),
         DNAFeatureFactory(
             accession_id="DCPDHS00000002",
             chrom_name="chr2",
             location=NumericRange(22_222, 33_333),
             experiment_accession=None,
+            feature_type=DNAFeatureType.CAR,
         ),
     )
     for source in sources:
@@ -84,6 +88,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
                 ensembl_id="ENSG01124619313",
                 location=NumericRange(35_000, 40_000),
                 experiment_accession=None,
+                feature_type=DNAFeatureType.GENE,
             ),
         ),
         facet_num_values={
@@ -101,8 +106,18 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
 
     effect_both = RegEffectFactory(
         sources=(
-            DNAFeatureFactory(chrom_name="chr1", location=NumericRange(11, 1_001), experiment_accession=None),
-            DNAFeatureFactory(chrom_name="chr2", location=NumericRange(22_223, 33_334), experiment_accession=None),
+            DNAFeatureFactory(
+                chrom_name="chr1",
+                location=NumericRange(11, 1_001),
+                experiment_accession=None,
+                feature_type=DNAFeatureType.GRNA,
+            ),
+            DNAFeatureFactory(
+                chrom_name="chr2",
+                location=NumericRange(22_223, 33_334),
+                experiment_accession=None,
+                feature_type=DNAFeatureType.CAR,
+            ),
         ),
         targets=(
             DNAFeatureFactory(
@@ -111,6 +126,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
                 ensembl_id="ENSG01124619313",
                 location=NumericRange(35_001, 40_001),
                 experiment_accession=None,
+                feature_type=DNAFeatureType.GENE,
             ),
         ),
         public=public,

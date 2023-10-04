@@ -19,13 +19,6 @@
   grid-template-rows: auto 1fr;
 }
 
-#facets {
-  border-width: 2px;
-  border-color: rgba(1, 33, 105, 1);
-  margin: 1em;
-  padding: 0.5em;
-}
-
 .bg-dark {
   background-color: rgba(1, 33, 105, 1);
 }

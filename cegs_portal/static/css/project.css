@@ -708,10 +708,6 @@ input[type="range"]:active::-webkit-slider-thumb {
   }
 }
 
-.bg-color {
-  background-color: white;
-}
-
 a {
   text-decoration: none;
 }
@@ -850,12 +846,6 @@ input[type="text"], input[type="password"], input[type="email"] {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
-}
-
-div.search-wrapper input[type="text"] {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 auto;
-          flex: 1 1 auto;
 }
 
 input[type="submit"], input[type="button"], button {
@@ -1106,10 +1096,6 @@ input[type="submit"], input[type="button"], button {
   width: 100%;
 }
 
-.min-w-\[5em\] {
-  min-width: 5em;
-}
-
 .min-w-fit {
   min-width: -webkit-fit-content;
   min-width: -moz-fit-content;
@@ -1180,6 +1166,12 @@ input[type="submit"], input[type="button"], button {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+}
+
+.grow-0 {
+  -webkit-box-flex: 0;
+      -ms-flex-positive: 0;
+          flex-grow: 0;
 }
 
 .basis-1\/4 {
@@ -1308,9 +1300,9 @@ input[type="submit"], input[type="button"], button {
   border-color: rgb(156 163 175 / var(--tw-divide-opacity));
 }
 
-.self-start {
-  -ms-flex-item-align: start;
-      align-self: flex-start;
+.divide-gray-400 > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-opacity: 1;
+  border-color: rgb(156 163 175 / var(--tw-divide-opacity));
 }
 
 .self-end {
@@ -1541,10 +1533,6 @@ input[type="submit"], input[type="button"], button {
   text-align: center;
 }
 
-.align-baseline {
-  vertical-align: baseline;
-}
-
 .font-sans {
   font-family: Roboto, sans-serif;
 }
@@ -1729,13 +1717,6 @@ input[type="submit"], input[type="button"], button {
 
 #filter-bar {
   grid-template-rows: auto 1fr;
-}
-
-#facets {
-  border-width: 2px;
-  border-color: rgba(1, 33, 105, 1);
-  margin: 1em;
-  padding: 0.5em;
 }
 
 .bg-dark {
@@ -2675,11 +2656,6 @@ input[type="submit"], input[type="button"], button {
 
   .lg\:border-b-0 {
     border-bottom-width: 0px;
-  }
-
-  .lg\:px-12 {
-    padding-left: 3rem;
-    padding-right: 3rem;
   }
 
   .lg\:px-3 {

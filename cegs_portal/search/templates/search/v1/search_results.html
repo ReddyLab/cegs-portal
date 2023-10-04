@@ -51,17 +51,120 @@
         padding: 12px;
         border-bottom: 1px solid lightgrey;
     }
+
+    a.count-link {
+        color: #3490dc;
+    }
+
+    /***** MODAL DIALOG ****/
+    #modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal > .modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+
+    #modal > .modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top: 10vh;
+
+        /* Sizing for visible dialog */
+        width: 80%;
+        max-height: 80%;
+
+        /* Display properties for visible dialog*/
+        border: solid 1px #999;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+        background-color: white;
+
+        /* Animate when opening */
+        animation-name: zoomIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    .close-button {
+        cursor: pointer;
+    }
+
+    #modal .scroll-bounds {
+        margin-bottom: 20px;
+    }
+
+    #modal .scroll-area {
+        overflow-y: auto;
+        max-height: 95%;
+        margin-bottom: 20px
+    }
+
+    #modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal.closing > .modal-content {
+        /* Animate when closing */
+        animation-name: zoomOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
 </style>
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
 <script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
-<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.2"></script>
 {% endblock %}
 {% block content %}
-    <div class="grow flex flex-col items-center min-w-full">
+    <div class="grow flex flex-col items-center min-w-full grow-0">
         <div class="flex flex-row min-w-full justify-around">
             {% if region %}
             <div class="header">
@@ -94,13 +197,9 @@
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    {% if feature_counts %}
-    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
-    {% endif %}
-
     <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 flex-none">
-            <div class="content-container">
+            <div id="facets" class="content-container">
                 <div class="w-60">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
@@ -162,12 +261,18 @@
             {% endif %}
         </div>
 
-        {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        <div class="flex flex-col gap-4">
+            {% if feature_counts %}
+            <div class="content-container" id="feature-counts">
+            {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+            </div>
+            {% endif %}
+            <div class="content-container basis-3/4" id="sig-reg-effects">
+            {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+            </div>
+        </div>
     </div>
 
-    {% switch "effect_plot" %}
-    <div id="plot"></div>
-    {% endswitch %}
 {% endblock %}
 {% block inline_javascript %}
     <script type="module">
@@ -176,7 +281,6 @@
         import { State } from "{% static 'search/js/state.js' %}";
         import { sigReoTable } from "{% static 'search/js/tables.js' %}"
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
-        import { throttle } from "{% static 'search/js/utils.js' %}"
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -210,8 +314,11 @@
                                      .map(i => i.id);
             state.updateSharedState(STATE_FACETS, checkedFacets);
         }
+
+        let queryParams = new URLSearchParams(window.location.search);
+        let searchFacets = queryParams.getAll("facet");
         facetCheckboxes.forEach(checkbox => {
-            checkbox.checked = false; // reset the checkboxes.
+            checkbox.checked = searchFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
             checkbox.addEventListener("change", _ => {
                 updateFacetState();
             });
@@ -226,106 +333,30 @@
             rc(g("loc-header"), t(`chr${region.chr}: ${region.start.toLocaleString()} - ${region.end.toLocaleString()}`));
         });
 
-        // Update the dna feature counts
-        state.addCallback(STATE_REGION, (s, key) => {
+        let featureCountsElement = g("feature-counts");
+        let sigReoTableElement = g("sig-reg-effects")
+        let updateDynamicIslands = () => {
             let region = state.g(STATE_REGION);
-            htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#feature-counts", swap:"outerHTML"});
-        });
+            let enabledFacets = state.g(STATE_FACETS).map(id => `facet=${id}`)
+                                  .join('&');
+
+            Promise.allSettled([
+                // Update the signficant effects table
+                htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#sig-reg-effects", source: sigReoTableElement}),
+                // Update the dna feature counts
+                htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#feature-counts", source: featureCountsElement})
+            ])
+        }
 
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
-            let region = state.g(STATE_REGION);
-            htmx.ajax("GET", `/search/sigdata?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}`, {target:"#sig-reg-effects", swap:"outerHTML"});
+            updateDynamicIslands();
         });
 
-        state.addCallback(STATE_FACETS, throttle(
-            (state, key) => {
-                window.history.pushState({}, document.title, searchURL(state[key]));
-                let region = state[STATE_REGION];
-
-                // request data with facets
-            },
-            500,
-            { 'leading': true })
-        );
-
-        {% switch "effect_plot" %}
-        // Show the plot
-        function geneDHSPlot(data) {
-            let dhssWithTargets = data.filter(dhs => dhs.source_for.length > 0 && dhs.source_for.filter(effect => effect.targets.length > 0).length > 0);
-            let dwtSet = new Set(dhssWithTargets);
-            let targets = dhssWithTargets.flatMap(dhs => dhs.source_for.flatMap(effect => effect.targets.map(assembly => {
-                assembly["effect_size"] = effect.effect_size;
-                assembly["label"] = dhs.label;
-                return assembly
-            })))
-
-            if (targets.length == 0) {
-                return e("span");
-            }
-
-            let plot = Plot.plot({
-                height: 480,
-                padding: 0,
-                marginLeft: 50,
-                marginTop: 50,
-                color: {
-                    range: ["#f0e442", "#56b4e9"],
-                    interpolate: "hcl"
-                },
-                x: {
-                    axis: "top",
-                    round: false,
-                    label: "DHS"
-                },
-                y: {
-                    round: false,
-                    label: "Gene",
-                    tickPadding: 6,
-                    tickRotate: -90,
-                },
-                marks: [
-                    Plot.cell(
-                        targets,
-                        {
-                            x: "label",
-                            y: "name",
-                            fill: "effect_size",
-                            title: "effect_size",
-                            rx: 8,
-                            ry: 8
-                        }
-                    ),
-                    Plot.text(
-                        targets,
-                        {
-                            x: "label",
-                            y: "name",
-                            text: d => d.effect_size?.toFixed(3),
-                            title: "effect_size",
-                        }
-                    )
-                ]
-            })
-
-            return plot;
-        }
-        function applyPlot(state, key) {
-            if (key !== STATE_DHS_EFFECT && key !== STATE_REGION) { return; }
-            let dhss = state[STATE_DHS_EFFECT];
-            let region = state[STATE_REGION];
-
-            if (!dhss || !region) { return; }
-
-            data = region ? dhss.filter(dhs => region.chr === dhs.chr && dhs.start >= region.start && dhs.end <= region.end) : dhss;
-
-            let genePlot = g("plot");
-            if (genePlot) {
-                let plotNode = geneDHSPlot(data);
-                rc(genePlot, plotNode);
-            }
-        }
-        {% endswitch %}
+        state.addCallback(STATE_FACETS, (s, key) => {
+            window.history.pushState({}, document.title, searchURL(s[key]));
+            updateDynamicIslands();
+        });
 
         {% if region and assembly %}
         // Show the browser
@@ -341,7 +372,7 @@
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips', 'fileDrop' ],
             useHash   : true,
             hideEmptyTracks: false,
-            sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}{% switch "effect_plot" %}{% if search_type == "LOCATION" %}, {% endif %}applyPlot{% endswitch %}],
+            sharedStateCallbacks: [{% if search_type == "LOCATION" %}_ul{% endif %}],
             width: 1000,
             tracks: [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
@@ -356,4 +387,13 @@
         {% endif %}
     </script>
     <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
+    <script>
+        function closeModal() {
+            let modal = document.getElementById("modal");
+            modal.classList.add("closing") // Kicks off an animation on the modal dialog
+            modal.addEventListener("animationend", (event) => {
+                modal.remove(); // remove the dialog from the DOM once the animation is over
+            })
+        }
+    </script>
 {% endblock %}
