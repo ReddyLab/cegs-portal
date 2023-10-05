@@ -10,7 +10,7 @@ class DNAFeatureType(Enum):
     CCRE = "cCRE"
     DHS = "DHS"
     GRNA = "gRNA"
-    CAR = "Chromatin Accessable Region"
+    CAR = "Chromatin Accessible Region"
 
     @property
     def accession_abbreviation(self) -> str:
