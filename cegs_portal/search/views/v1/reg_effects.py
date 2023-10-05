@@ -4,6 +4,7 @@ from django.http import Http404
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_tsv
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
@@ -58,6 +59,7 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
 
 class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = feature_reg_effects
+    tsv_renderer = re_tsv
     template = ""
     template_data_name = "regeffects"
     page_title = ""
