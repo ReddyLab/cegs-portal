@@ -109,6 +109,8 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
+        is_tsv = request.GET.get("is_tsv", False) == "true"
+        options["is_tsv"] = is_tsv
 
         return options
 
@@ -129,9 +131,16 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
+        if options["is_tsv"]:
+            return reg_effects
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
+
+    def get_tsv(self, request, options, data, feature_id):
+        filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
 
 
 class TargetEffectsView(FeatureEffectsView):
@@ -147,6 +156,13 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
+        if options["is_tsv"]:
+            return reg_effects
+
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
         return reg_effect_page
+
+    def get_tsv(self, request, options, data, feature_id):
+        filename = f"{feature_id}_targeting_regulatory_effect_observations_table_data.tsv"
+        return super().get_tsv(request, options, data, filename=filename)

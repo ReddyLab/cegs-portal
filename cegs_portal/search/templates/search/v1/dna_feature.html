@@ -503,7 +503,7 @@ HEADER -->
                         Source for Regulatory Effect Observations
                    </div>
                     <div style="position: absolute; right: 0;">
-                        <a href="{% url 'search:source_effects' feature.accession_id %}?accept=text/tab-separated-values">
+                        <a href="{% url 'search:source_effects' feature.accession_id %}?accept=text/tab-separated-values&is_tsv=true">
                             <button class="tsv-button" id="downloadButton">Download TSV</button>
                         </a>
                     </div>
@@ -533,7 +533,7 @@ HEADER -->
                         Targeting Regulatory Effect Observations
                     </div>
                     <div style="position: absolute; right: 0;">
-                        <a href="{% url 'search:target_effects' feature.accession_id %}?accept=text/tab-separated-values">
+                        <a href="{% url 'search:target_effects' feature.accession_id %}?accept=text/tab-separated-values&is_tsv=true">
                             <button class="tsv-button" id="downloadButton">Download TSV</button>
                         </a>
                     </div>
