@@ -13,7 +13,7 @@ class AccessionType(Enum):
     CCRE = "ccre"
     DHS = "dhs"
     EXPERIMENT = "experiment"
-    CAR = "chromatin accessable region"
+    CAR = "chromatin accessible region"
     TT = "tissue type"
     CL = "cell line"
     BIOS = "biosample"
