@@ -23,7 +23,7 @@ from cegs_portal.search.view_models.v1 import DNAFeatureSearch, LocSearchType
 from cegs_portal.users.models import UserType
 
 EXPERIMENT_SOURCES = [DNAFeatureType.CAR.value, DNAFeatureType.GRNA.value, DNAFeatureType.DHS.value]
-EXPERIMENT_SOURCES_TEXT = "Experiment Regulatory Effect Source"
+EXPERIMENT_SOURCES_TEXT = "Experimentally Tested Element"
 
 
 class Search:

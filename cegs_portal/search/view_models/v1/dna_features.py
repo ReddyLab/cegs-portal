@@ -239,11 +239,13 @@ class DNAFeatureSearch:
                     "source_for",
                     "source_for__facet_values",
                     "source_for__facet_values__facet",
+                    "source_for__sources",
                     "source_for__targets",
                     "target_of",
                     "target_of__facet_values",
                     "target_of__facet_values__facet",
                     "target_of__sources",
+                    "target_of__targets",
                 ]
             )
 
