@@ -5,7 +5,7 @@ import {getJson, postJson} from "../files.js";
 import {Legend} from "./obsLegend.js";
 import {GenomeRenderer} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
-import {debounce} from "../utils.js"
+import {debounce} from "../utils.js";
 
 const STATE_ZOOMED = "state-zoomed";
 const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
@@ -387,14 +387,14 @@ let tooltipDataSelectors = [
         if (d.max_log10_sig >= 0.001) {
             return d.max_log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
         } else {
-            return d.max_log10_sig.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
+            return d.max_log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
         }
     },
     (d) => {
         if (Math.abs(d.max_abs_effect) >= 0.001) {
             return d.max_abs_effect.toFixed(3); // e.g., 12.34567890 -> 12.345
         } else {
-            return d.max_abs_effect.toExponential(3); // e.g., 0.0000000000345345345 -> 3.453e-11
+            return d.max_abs_effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
         }
     },
 ];
