@@ -38,7 +38,7 @@
             </td>
             <td>{{ reo.effect_size }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".2e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">

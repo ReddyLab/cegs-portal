@@ -78,9 +78,23 @@ function reTable(regeffects, regionID = "regeffect") {
         for (const target of effect.target_ids) {
             let row = e("tr", {"data-href": `/search/regeffect/${effect.accession_id}`}, [
                 e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                e("td", `${effect.effect_size.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        Math.abs(effect.effect_size) > 0.0000001
+                            ? effect.effect_size.toFixed(6)
+                            : effect.effect_size.toExponential(2)
+                    }`
+                ),
                 e("td", `${effect.direction}`),
-                e("td", `${effect.significance.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        effect.significance > 0.0000001
+                            ? effect.significance.toFixed(6)
+                            : effect.significance.toExponential(2)
+                    }`
+                ),
                 e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
                 target == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/accession/${target}`}, target)),
             ]);
@@ -112,9 +126,23 @@ function reTargetTable(regeffects, regionID = "regeffect") {
         for (const source of effect.source_ids) {
             let row = e("tr", {"data-href": `/search/regeffect/${effect.accession_id}`}, [
                 e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                e("td", `${effect.effect_size.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        Math.abs(effect.effect_size) > 0.0000001
+                            ? effect.effect_size.toFixed(6)
+                            : effect.effect_size.toExponential(2)
+                    }`
+                ),
                 e("td", `${effect.direction}`),
-                e("td", `${effect.significance.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        effect.significance > 0.0000001
+                            ? effect.significance.toFixed(6)
+                            : effect.significance.toExponential(2)
+                    }`
+                ),
                 e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
                 source == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/accession/${source}`}, source)),
             ]);
@@ -148,9 +176,23 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
             newTable.append(
                 e("tr", [
                     e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e("td", `${effect.effect_size.toExponential(3)}`),
+                    e(
+                        "td",
+                        `${
+                            Math.abs(effect.effect_size) > 0.0000001
+                                ? effect.effect_size.toFixed(6)
+                                : effect.effect_size.toExponential(2)
+                        }`
+                    ),
                     e("td", `${effect.direction}`),
-                    e("td", `${effect.significance.toExponential(3)}`),
+                    e(
+                        "td",
+                        `${
+                            effect.significance > 0.0000001
+                                ? effect.significance.toFixed(6)
+                                : effect.significance.toExponential(2)
+                        }`
+                    ),
                 ])
             );
         }
@@ -212,15 +254,11 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
                 e(
                     "td",
                     reo["effect_size"] != null
-                        ? e(
-                              "a",
-                              {href: `/search/regeffect/${reo["reo_accession_id"]}`},
-                              reo["effect_size"].toPrecision(6)
-                          )
+                        ? e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["effect_size"].toFixed(6))
                         : ""
                 ),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toPrecision(6))),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toPrecision(6))),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toFixed(6))),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toFixed(6))),
             ]);
 
             if (reo == reoData[0]) {

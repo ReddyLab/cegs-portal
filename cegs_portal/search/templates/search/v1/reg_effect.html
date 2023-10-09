@@ -152,8 +152,8 @@
             <tr>
                 <td>{{ regulatory_effect.direction }}</td>
                 <td>{{ regulatory_effect.effect_size }}</td>
-                <td>{% if regulatory_effect.significance < 0.000001 %}{{ regulatory_effect.significance|stringformat:".6e" }}{% else %}{{ regulatory_effect.significance|stringformat:".6f" }}{% endif %}</td>
-                <td>{% if regulatory_effect.raw_p_value < 0.000001 %}{{ regulatory_effect.raw_p_value|stringformat:".6e" }}{% else %}{{ regulatory_effect.raw_p_value|stringformat:".6f" }}{% endif %}</td>
+                <td>{% if regulatory_effect.significance < 0.000001 %}{{ regulatory_effect.significance|stringformat:".2e" }}{% else %}{{ regulatory_effect.significance|stringformat:".6f" }}{% endif %}</td>
+                <td>{% if regulatory_effect.raw_p_value < 0.000001 %}{{ regulatory_effect.raw_p_value|stringformat:".2e" }}{% else %}{{ regulatory_effect.raw_p_value|stringformat:".6f" }}{% endif %}</td>
                 <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
                 {% if regulatory_effect.tissue_types.exist %}
                 <td>{{ regulatory_effect.tissue_types|join:", " }}</td>
