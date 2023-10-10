@@ -109,8 +109,6 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
-        is_tsv = request.GET.get("is_tsv", False) == "true"
-        options["is_tsv"] = is_tsv
 
         return options
 
@@ -131,7 +129,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        if options["is_tsv"]:
+        if options["format"] == "tsv":
             return reg_effects
 
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
@@ -156,7 +154,7 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        if options["is_tsv"]:
+        if options["format"] == "tsv":
             return reg_effects
 
         reg_effect_paginator = Paginator(reg_effects, options["per_page"])
