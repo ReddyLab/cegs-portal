@@ -751,17 +751,16 @@ table.data-table a,
 
 .table-title {
   text-align: center;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 10px;
   color: rgb(107, 107, 107);
 }
 
 .reg_data-table {
   border-collapse: collapse;
   width: 100%;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
 }
 
 .reg_data-table th {
@@ -828,19 +827,6 @@ tr[data-href]:hover {
   color: white;
 }
 
-@media screen {
-  div.search-wrapper label {
-    display: none;
-  }
-}
-
-div.search-wrapper {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-}
-
 input[type="text"], input[type="password"], input[type="email"] {
   border-width: 2px;
   padding-left: 0.5rem;
@@ -880,20 +866,12 @@ input[type="submit"], input[type="button"], button {
   position: relative;
 }
 
-.right-0 {
-  right: 0px;
-}
-
 .right-2 {
   right: 0.5rem;
 }
 
 .top-0 {
   top: 0px;
-}
-
-.m-2 {
-  margin: 0.5rem;
 }
 
 .mx-auto {
@@ -970,10 +948,6 @@ input[type="submit"], input[type="button"], button {
   margin-right: 0.375rem;
 }
 
-.mr-16 {
-  margin-right: 4rem;
-}
-
 .mr-2 {
   margin-right: 0.5rem;
 }
@@ -992,10 +966,6 @@ input[type="submit"], input[type="button"], button {
 
 .mt-10 {
   margin-top: 2.5rem;
-}
-
-.mt-24 {
-  margin-top: 6rem;
 }
 
 .mt-3 {
@@ -1126,18 +1096,6 @@ input[type="submit"], input[type="button"], button {
   max-width: -webkit-max-content;
   max-width: -moz-max-content;
   max-width: max-content;
-}
-
-.flex-1 {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0%;
-          flex: 1 1 0%;
-}
-
-.flex-auto {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 auto;
-          flex: 1 1 auto;
 }
 
 .flex-none {
@@ -1300,11 +1258,6 @@ input[type="submit"], input[type="button"], button {
   border-color: rgb(156 163 175 / var(--tw-divide-opacity));
 }
 
-.divide-gray-400 > :not([hidden]) ~ :not([hidden]) {
-  --tw-divide-opacity: 1;
-  border-color: rgb(156 163 175 / var(--tw-divide-opacity));
-}
-
 .self-end {
   -ms-flex-item-align: end;
       align-self: flex-end;
@@ -1361,10 +1314,6 @@ input[type="submit"], input[type="button"], button {
 
 .border-t-0 {
   border-top-width: 0px;
-}
-
-.border-t-2 {
-  border-top-width: 2px;
 }
 
 .border-solid {
