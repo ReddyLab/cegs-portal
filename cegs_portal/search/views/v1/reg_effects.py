@@ -112,6 +112,18 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
 
         return options
 
+    def get(self, request, options, data, *args, **kwargs):
+        reg_effect_paginator = Paginator(data, options["per_page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+
+        return super().get(request, options, reg_effect_page, *args, **kwargs)
+
+    def get_json(self, request, options, data, *args, **kwargs):
+        reg_effect_paginator = Paginator(data, options["per_page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+
+        return super().get_json(request, options, reg_effect_page, *args, **kwargs)
+
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
@@ -129,12 +141,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        if options["format"] == "tsv":
-            return reg_effects
-
-        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
-        reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        return reg_effect_page
+        return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
         filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
@@ -154,12 +161,7 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        if options["format"] == "tsv":
-            return reg_effects
-
-        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
-        reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        return reg_effect_page
+        return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
         filename = f"{feature_id}_targeting_regulatory_effect_observations_table_data.tsv"
