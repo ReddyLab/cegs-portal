@@ -1,18 +1,46 @@
+import csv
+import io
 import logging
 from typing import Any, Callable, Optional
 
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.exceptions import BadRequest
-from django.http.response import JsonResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
 from cegs_portal.search.views.renderers import json
-from cegs_portal.search.views.view_utils import JSON_MIME
+from cegs_portal.search.views.view_utils import JSON_MIME, TSV_MIME
 from cegs_portal.utils.http_exceptions import Http303, Http400, Http500
 from cegs_portal.utils.http_responses import HttpResponseSeeOtherRedirect
 
 logger = logging.getLogger("django.request")
+
+
+class TsvResponse(HttpResponse):
+    def __init__(
+        self,
+        data,
+        filename,
+        **kwargs,
+    ):
+        headers = kwargs.get("headers", {})
+        if filename is None:
+            headers["Content-Disposition"] = 'attachment; filename="data.tsv"'
+        else:
+            headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        kwargs["headers"] = headers
+
+        super().__init__(content_type="text/tab-separated-values", **kwargs)
+
+        with io.StringIO() as csv_output:
+            tsvwriter = csv.writer(csv_output, delimiter="\t")
+            for row in data:
+                tsvwriter.writerow(row)
+            csv_string = csv_output.getvalue()
+
+        self.content = csv_string
 
 
 class ExperimentAccessMixin(UserPassesTestMixin):
@@ -49,8 +77,13 @@ class ExperimentAccessMixin(UserPassesTestMixin):
         )
 
 
+def default_tsv_renderer(data):
+    raise NotImplementedError("No TSV output for this endpoint")
+
+
 class TemplateJsonView(View):
     json_renderer: Callable = json
+    tsv_renderer: Callable = default_tsv_renderer
     template: Optional[str] = None
     template_data_name: Optional[str] = None
 
@@ -66,10 +99,14 @@ class TemplateJsonView(View):
 
         if request.method.lower() in self.http_method_names:
             data_handler = getattr(self, f"{request.method.lower()}_data", None)
-            if options["is_json"]:
-                handler_name = f"{request.method.lower()}_json"
-            else:
-                handler_name = request.method.lower()
+            match options["format"]:
+                case "json":
+                    handler_name = f"{request.method.lower()}_json"
+                case "tsv":
+                    handler_name = f"{request.method.lower()}_tsv"
+                case "html":
+                    handler_name = request.method.lower()
+
             handler = getattr(self, handler_name, self.http_method_not_allowed)
         else:
             handler = self.http_method_not_allowed
@@ -89,10 +126,16 @@ class TemplateJsonView(View):
         return response
 
     def request_options(self, request):
-        return {
-            "is_json": request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME,
-            "json_format": request.GET.get("format", None),
-        }
+        if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
+            return {
+                "format": "json",
+                "json_format": request.GET.get("format", None),
+            }
+
+        if request.headers.get("accept") == TSV_MIME or request.GET.get("accept", None) == TSV_MIME:
+            return {"format": "tsv"}
+
+        return {"format": "html"}
 
     def get(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
@@ -109,6 +152,10 @@ class TemplateJsonView(View):
 
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
+
+    def get_tsv(self, _request, _options, data, *args, **kwargs):
+        filename = kwargs.get("filename", None)
+        return TsvResponse(self.__class__.tsv_renderer(data), filename)
 
     def post(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:

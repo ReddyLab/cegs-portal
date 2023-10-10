@@ -34,7 +34,7 @@ CEGSGenoverse = Genoverse.extend({
 });
 
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=regeffects",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=regeffects",
     dataRequestLimit: 5000000,
 });
 
@@ -45,23 +45,19 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     bump: true,
     dhsColor: "#e69600",
     fontHeight: 14,
-    withEffectColor: "#000",
-    withEffectAndTargetColor: "#009e73",
+    withNonSigEffectColor: "#000",
+    withSigEffectColor: {DHS: "#009e73", gRNA: "#E69F00", cCRE: "#56B4E9", "Chromatin Accessible Region": "#F0E442"},
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
         feature.color = this.dhsColor;
-        feature.legend = "DHS w/o Reg Effect";
+        feature.legend = `${feature.type} w/o Reg Effect`;
 
-        if (feature.source_for.length > 0) {
-            feature.color = this.withEffectColor;
-            feature.legend = "DHS w/ Untargeted Reg Effect";
-        }
-
-        for (effect of feature.source_for) {
-            if (effect.targets.length > 0) {
-                feature.color = this.withEffectAndTargetColor;
-                feature.legend = "DHS w/ Targeted Reg Effect";
-            }
+        if (feature.source_for.every((effect) => effect.direction == "Non-significant")) {
+            feature.color = this.withNonSigEffectColor;
+            feature.legend = `${feature.type} w/ Non-significant Effect`;
+        } else {
+            feature.legend = `${feature.type} w/ Significant Effect`;
+            feature.color = this.withSigEffectColor[feature.type];
         }
     },
 });
@@ -210,8 +206,11 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         return deferred;
     },
     parseData: function (data, chr) {
-        for (var i = 0; i < data.length; i++) {
-            var feature = data[i];
+        for (let feature of data) {
+            if (feature.source_for.length == 0) {
+                //  Skip sources that haven't been part of an experiment
+                continue;
+            }
 
             this.insertFeature(feature);
         }
@@ -419,10 +418,38 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
 
 Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
-    name: "Regulatory Effect Sources",
-    labels: true,
-    legend: false,
+    name: "Experimentally Tested Elements",
+    labels: false,
+    legend: Genoverse.Track.Legend.extend({
+        name: "Element Types",
+    }),
     model: Genoverse.Track.Model.DHS.Effects,
+    controls: [
+        $('<a title="Change feature height">Squish</a>').on("click", function () {
+            const track = $(this)
+                .text((i, text) => (/Un/.test(text) ? "Squish" : "Unsquish"))
+                .data("track");
+
+            track.setConfig("squish", !track.config.squish);
+        }),
+    ],
+    configSettings: {
+        squish: {
+            true: {
+                featureHeight: 2,
+                featureMargin: {top: 1, right: 1, bottom: 1, left: 0},
+                labels: false,
+            },
+            false: {
+                featureHeight: 6,
+                featureMargin: {top: 2, right: 2, bottom: 2, left: 0},
+                labels: true,
+            },
+        },
+    },
+    defaultConfig: {
+        squish: false,
+    },
 });
 
 Genoverse.Track.Gene = Genoverse.Track.extend({
@@ -432,7 +459,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
     legend: Genoverse.Track.Legend.extend({
-        name: "Results Legend",
+        name: "Gene Types",
     }),
     populateMenu: function (feature) {
         if (["Gene", "Exon", "Transcript"].includes(feature.type)) {

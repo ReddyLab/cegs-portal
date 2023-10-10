@@ -6,6 +6,9 @@ from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
 )
 from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.tsv_templates.v1.non_targeting_reos import (
+    non_targeting_regulatory_effects as ntre_tsv,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
 from cegs_portal.search.views.custom_views import (
@@ -17,6 +20,7 @@ from cegs_portal.utils.pagination_types import Pageable
 
 class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = non_targeting_regulatory_effects
+    tsv_renderer = ntre_tsv
     template = "search/v1/non_targeting_reos.html"
     page_title = ""
 
@@ -82,6 +86,11 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
             )
 
         return super().get(request, options, response_values)
+
+    def get_tsv(self, request, options, data, feature_id):
+        _, feature = data
+        filename = f"{feature.name}_proximal_regulatory_observations_table_data.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         non_targeting_reos = []
