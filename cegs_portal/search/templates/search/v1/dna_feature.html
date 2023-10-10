@@ -132,15 +132,6 @@
         text-decoration: none;
     }
 
-    .table-title {
-        text-align: center;
-        font-family: Arial, sans-serif;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: rgb(107, 107, 107);
-    }
-
     .table-title,
     .svg-icon {
         margin-right: 10px;
@@ -174,7 +165,8 @@
         transform: rotate(90deg);
     }
 
-    .faded-line {
+    .title-separator {
+        margin-top: 10px;
         border-top: 0.5px solid rgb(133, 139, 146);
         margin-bottom: 15px;
     }
@@ -354,31 +346,25 @@
                 role="tablist"
                 data-te-nav-ref
             >
+            <li role="presentation">
+                <a
+                    href="#tabs-source-target"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-4 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                    id="tabs-source-target-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-source-target"
+                    role="tab"
+                    aria-controls="tabs-source-target"
+                    aria-selected="true"
+                    data-te-nav-active
+                    >Regulatory Effects
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon-tab">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                            d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                        /></svg></a>
+            </li>
             {% for tab in tabs %}
-                {% if tab == "source target" %}
-                <li role="presentation">
-                    <a
-                        href="#tabs-source-target"
-                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-4 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-source-target-tab"
-                        data-te-toggle="pill"
-                        data-te-target="#tabs-source-target"
-                        role="tab"
-                        aria-controls="tabs-source-target"
-                        {% if forloop.first %}
-                        aria-selected="true"
-                        data-te-nav-active
-                        {% else %}
-                        aria-selected="false"
-                        {% endif %}
-                        >Regulatory Effects
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon-tab">
-                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path
-                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
-                            /></svg></a>
-                </li>
-                {% endif %}
                 {% if tab == "nearest reo" %}
                 <li role="presentation">
                     <a
@@ -389,12 +375,7 @@
                         data-te-target="#tabs-nearest-reo"
                         role="tab"
                         aria-controls="tabs-nearest-reo"
-                        {% if forloop.first %}
-                        aria-selected="true"
-                        data-te-nav-active
-                        {% else %}
                         aria-selected="false"
-                        {% endif %}
                         >Proximal Regulatory Effects<i class="bi bi-geo-alt-fill location-tab-icon"></i>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon-nearest-nontarget-reo-tab ">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -413,12 +394,7 @@
                         data-te-target="#tabs-closest-features"
                         role="tab"
                         aria-controls="tabs-closest-features"
-                        {% if forloop.first %}
-                        data-te-nav-active
-                        aria-selected="true"
-                        {% else %}
                         aria-selected="false"
-                        {% endif %}
                         >Closest DNA Features<svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 448 512"
@@ -446,12 +422,7 @@
                         data-te-target="#tabs-find-features"
                         role="tab"
                         aria-controls="tabs-find-features"
-                        {% if forloop.first %}
-                        aria-selected="true"
-                        data-te-nav-active
-                        {% else %}
                         aria-selected="false"
-                        {% endif %}
                         >Find Nearby DNA Features
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon-tab">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -468,12 +439,7 @@
                         data-te-target="#tabs-children"
                         role="tab"
                         aria-controls="tabs-children"
-                        {% if forloop.first %}
-                        aria-selected="true"
-                        data-te-nav-active
-                        {% else %}
                         aria-selected="false"
-                        {% endif %}
                         >{{ child_feature_type }}S<i class="bi bi-diagram-3-fill"></i>
                     </a>
                 </li>
@@ -482,20 +448,22 @@
             </ul>
         </div>
 
-
-        {% for tab in tabs %}
-        {% if tab == "source target" %}
         <div
-            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-source-target"
             role="tabpanel"
             aria-labelledby="tabs-source-target"
-            {% if forloop.first %}
             data-te-tab-active
-            {% endif %}
         >
 
         {% for feature, sources, targets, reo in feature_reos %}
+            {% if not sources and not targets %}
+            <div class="container min-w-full">
+                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                    No Regulatory Effect Observations Found
+                </div>
+            </div>
+            {% endif %}
             {% if sources %}
             <div class="container min-w-full">
                 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
@@ -513,7 +481,7 @@
                     </svg>
                     Source for Regulatory Effect Observations
                 </div>
-                <div class="faded-line"></div>
+                <div class="title-separator"></div>
                 <div id="source_for_{{ feature.accession_id }}" class="my-4">
                 </div>
                 <div id="source_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
@@ -536,7 +504,7 @@
                     </svg>
                     Targeting Regulatory Effect Observations
                 </div>
-                <div class="faded-line"></div>
+                <div class="title-separator"></div>
                 <div id="target_for_{{ feature.accession_id }}" class="my-4">
                 </div>
                 <div id="target_for_{{ feature.accession_id }}_pagination" class="pagination"></div>
@@ -544,17 +512,14 @@
             {% endif %}
         {% endfor %}
         </div>
-        {% endif %}
 
+        {% for tab in tabs %}
         {% if tab == "nearest reo" %}
         <div
-            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-nearest-reo"
             role="tabpanel"
             aria-labelledby="tabs-nearest-reo-tab"
-            {% if forloop.first %}
-            data-te-tab-active
-            {% endif %}
         >
         {% for feature, _, _, reos in feature_reos %}
             {% if reos %}
@@ -568,20 +533,18 @@
 
         {% if tab == "closest features" %}
         <div
-            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-closest-features"
             role="tabpanel"
             aria-labelledby="tabs-files-closest-features"
-            {% if forloop.first %}
-            data-te-tab-active
-            {% endif %}
         >
 
             {% for feature in features %}
             {% if feature.closest_features.exists and forloop.first %}
             <div class="container min-w-full">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon">
                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                         <path
@@ -594,8 +557,9 @@
                             d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
                     </svg>
                     Closest DNA Features
+                    </div>
                 </div>
-                <div class="feature-faded-line"></div>
+                <div class="title-separator"></div>
                 <table class="data-table">
                     <tr>
                         <th>Accession ID</th>
@@ -633,26 +597,24 @@
 
         {% if tab == "find nearby" %}
         <div
-            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-find-features"
             role="tabpanel"
             aria-labelledby="tabs-find-features-tab"
-            {% if forloop.first %}
-            data-te-tab-active
-            {% endif %}
         >
 
         <div class="container centered-container min-w-full">
             <a name="near_features"></a>
-            <div class="find-feature find-feature-title">
-
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg">
-                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
-                </svg>
-                Find Nearby DNA Features
-
+            <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                    </svg>
+                    Find Nearby DNA Features
+                </div>
             </div>
+            <div class="title-separator min-w-full"></div>
             <div class="text-s font-bold">Measured from each end of the gene</div>
             <form>
                 <label for="feature-dist">Feature Distance in base pairs:</label>
@@ -671,13 +633,10 @@
 
         {% if tab == "children" %}
         <div
-            class="hidden opacity-0 {% if forloop.first %}opacity-100{% endif %} transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-children"
             role="tabpanel"
             aria-labelledby="tabs-children-tab"
-            {% if forloop.first %}
-            data-te-tab-active
-            {% endif %}
         >
             <!-- Children -->
             {% for feature, sources, targets, reo in feature_reos %}
@@ -701,7 +660,7 @@
                         </svg>
                         {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
                     </div>
-                    <div class="faded-line"></div>
+                    <div class="title-separator"></div>
                     <table class="data-table">
                         <tr>
                             <th>ENSEMBL ID</th>
@@ -803,7 +762,6 @@
     }
 
     {% for feature, sources, targets, _ in feature_reos %}
-
     {% if sources %}
     __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable)();
     {% endif %}

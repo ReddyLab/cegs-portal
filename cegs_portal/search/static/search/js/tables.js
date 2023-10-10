@@ -153,7 +153,6 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             effect.sources = [[null, null, null]];
         }
         for (const source of effect.sources) {
-            console.log(source);
             let source_id = source[0];
             let source_chrom = source[1];
             let source_loc = source[2];
