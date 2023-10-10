@@ -72,10 +72,12 @@ function reTable(regeffects, regionID = "regeffect") {
         ]),
     ]);
     for (let effect of regeffects) {
-        if (effect.target_ids == 0) {
-            effect.target_ids = [null];
+        if (effect.targets == 0) {
+            effect.targets = [[null, null]];
         }
-        for (const target of effect.target_ids) {
+        for (const target_info of effect.targets) {
+            let target_id = target_info[0];
+            let target_name = target_info[1];
             let row = e("tr", {"data-href": `/search/regeffect/${effect.accession_id}`}, [
                 e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
                 e(
@@ -96,7 +98,9 @@ function reTable(regeffects, regionID = "regeffect") {
                     }`
                 ),
                 e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
-                target == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/accession/${target}`}, target)),
+                target_id == null
+                    ? e("td", "-")
+                    : e("td", e("a", {href: `/search/feature/accession/${target_id}`}, target_name)),
             ]);
             row.onclick = function () {
                 window.location = row.getAttribute("data-href");

@@ -36,7 +36,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
         "raw_p_value": reg_effect.raw_p_value,
         "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
         "source_ids": [source.accession_id for source in reg_effect.sources.all()],
-        "target_ids": [target.accession_id for target in reg_effect.targets.all()],
+        "targets": [(target.accession_id, target.name) for target in reg_effect.targets.all()],
     }
 
     assert regulatory_effect(reg_effect) == results
