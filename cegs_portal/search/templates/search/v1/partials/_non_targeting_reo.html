@@ -1,7 +1,7 @@
 {% load humanize %}
 {% load static %}
 
-<div class="container">
+<div class="container min-w-full">
     <a name="non-targeting-reos-{{ feature.accession_id }}"></a>
     <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
         <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
@@ -13,13 +13,13 @@
                 /></svg>
             Proximal Regulatory Effect Observations
         </div>
-    <div style="position: absolute; right: 0;">
-        <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values">
-            <button class="tsv-button" id="downloadButton">Download TSV</button>
-        </a>
+        <div style="position: absolute; right: 0;">
+            <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values">
+                <button class="tsv-button" id="downloadButton">Download TSV</button>
+            </a>
+        </div>
     </div>
-    </div>
-    <div class="faded-line"></div>
+    <div class="title-separator"></div>
     <table class="data-table">
         <tr>
             <th>Location</th>
@@ -38,7 +38,7 @@
             </td>
             <td>{{ reo.effect_size }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".6e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".2e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">

@@ -5,4 +5,6 @@ set -o pipefail
 set -o nounset
 
 
+python /app/manage.py collectstatic --noinput --ignore "*.ecd"
+
 python /app/manage.py run_huey

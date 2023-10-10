@@ -52,7 +52,7 @@ function featureTable(features, regionID = "dnafeature") {
         };
         newTable.append(row);
     }
-    let tableContainer = e("div", {class: "container"}, [newTable]);
+    let tableContainer = e("div", {class: "container min-w-full"}, [newTable]);
     return tableContainer;
 }
 
@@ -63,26 +63,69 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Accession ID"),
             e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
             e("th", "Significance (p-value)"),
             e("th", "Experiment"),
             e("th", "Target"),
+            e("th", "REO Page"),
         ]),
     ]);
     for (let effect of regeffects) {
-        if (effect.target_ids == 0) {
-            effect.target_ids = [null];
+        if (effect.targets == 0) {
+            effect.targets = [[null, null]];
         }
-        for (const target of effect.target_ids) {
+        for (const target_info of effect.targets) {
+            let target_id = target_info[0];
+            let target_name = target_info[1];
             let row = e("tr", {"data-href": `/search/regeffect/${effect.accession_id}`}, [
-                e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                e("td", `${effect.effect_size.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        Math.abs(effect.effect_size) > 0.0000001
+                            ? effect.effect_size.toFixed(6)
+                            : effect.effect_size.toExponential(2)
+                    }`
+                ),
                 e("td", `${effect.direction}`),
-                e("td", `${effect.significance.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        effect.significance > 0.0000001
+                            ? effect.significance.toFixed(6)
+                            : effect.significance.toExponential(2)
+                    }`
+                ),
                 e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
-                target == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/accession/${target}`}, target)),
+                target_id == null
+                    ? e("td", "-")
+                    : e("td", e("a", {href: `/search/feature/accession/${target_id}`}, target_name)),
+                e(
+                    "td",
+                    e(
+                        "a",
+                        {href: `/search/regeffect/${effect.accession_id}`},
+                        e(
+                            "svg",
+                            {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                width: "16",
+                                height: "16",
+                                fill: "currentColor",
+                                class: "svg-link-arrow bi bi-arrow-up-right-square-fill",
+                                viewBox: "0 0 16 16",
+                            },
+                            e(
+                                "path",
+                                {
+                                    "fill-rule": "evenodd",
+                                    d: "M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5.854 8.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707l-4.096 4.096z",
+                                },
+                                []
+                            )
+                        )
+                    )
+                ),
             ]);
             row.onclick = function () {
                 window.location = row.getAttribute("data-href");
@@ -97,26 +140,80 @@ function reTable(regeffects, regionID = "regeffect") {
 function reTargetTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Accession ID"),
+            e("th", "Tested Element(s)"),
             e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
             e("th", ["Significance", e("br"), "(p-value)"]),
             e("th", "Experiment"),
-            e("th", "Source"),
+            e("th", "REO Page"),
         ]),
     ]);
     for (let effect of regeffects) {
-        if (effect.source_ids == 0) {
-            effect.source_ids = [null];
+        if (effect.sources == 0) {
+            effect.sources = [[null, null, null]];
         }
-        for (const source of effect.source_ids) {
+        for (const source of effect.sources) {
+            let source_id = source[0];
+            let source_chrom = source[1];
+            let source_loc = source[2];
+            let source_type = source[3];
             let row = e("tr", {"data-href": `/search/regeffect/${effect.accession_id}`}, [
-                e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                e("td", `${effect.effect_size.toExponential(3)}`),
+                source_id == null
+                    ? e("td", "-")
+                    : e(
+                          "td",
+                          e(
+                              "a",
+                              {href: `/search/feature/accession/${source_id}`},
+                              `${source_type} (${source_chrom}: ${source_loc[0].toLocaleString()}-${source_loc[1].toLocaleString()}:${
+                                  source_loc[2]
+                              })`
+                          )
+                      ),
+                e(
+                    "td",
+                    `${
+                        Math.abs(effect.effect_size) > 0.0000001
+                            ? effect.effect_size.toFixed(6)
+                            : effect.effect_size.toExponential(2)
+                    }`
+                ),
                 e("td", `${effect.direction}`),
-                e("td", `${effect.significance.toExponential(3)}`),
+                e(
+                    "td",
+                    `${
+                        effect.significance > 0.0000001
+                            ? effect.significance.toFixed(6)
+                            : effect.significance.toExponential(2)
+                    }`
+                ),
                 e("td", e("a", {href: `/search/experiment/${effect.experiment.accession_id}`}, effect.experiment.name)),
-                source == null ? e("td", "-") : e("td", e("a", {href: `/search/feature/accession/${source}`}, source)),
+                e(
+                    "td",
+                    e(
+                        "a",
+                        {href: `/search/regeffect/${effect.accession_id}`},
+                        e(
+                            "svg",
+                            {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                width: "16",
+                                height: "16",
+                                fill: "currentColor",
+                                class: "svg-link-arrow bi bi-arrow-up-right-square-fill",
+                                viewBox: "0 0 16 16",
+                            },
+                            e(
+                                "path",
+                                {
+                                    "fill-rule": "evenodd",
+                                    d: "M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5.854 8.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707l-4.096 4.096z",
+                                },
+                                []
+                            )
+                        )
+                    )
+                ),
             ]);
             row.onclick = function () {
                 window.location = row.getAttribute("data-href");
@@ -148,9 +245,23 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
             newTable.append(
                 e("tr", [
                     e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e("td", `${effect.effect_size.toExponential(3)}`),
+                    e(
+                        "td",
+                        `${
+                            Math.abs(effect.effect_size) > 0.0000001
+                                ? effect.effect_size.toFixed(6)
+                                : effect.effect_size.toExponential(2)
+                        }`
+                    ),
                     e("td", `${effect.direction}`),
-                    e("td", `${effect.significance.toExponential(3)}`),
+                    e(
+                        "td",
+                        `${
+                            effect.significance > 0.0000001
+                                ? effect.significance.toFixed(6)
+                                : effect.significance.toExponential(2)
+                        }`
+                    ),
                 ])
             );
         }
@@ -212,15 +323,11 @@ function sigReoTable(reos, regionID = "sig-reg-effects") {
                 e(
                     "td",
                     reo["effect_size"] != null
-                        ? e(
-                              "a",
-                              {href: `/search/regeffect/${reo["reo_accession_id"]}`},
-                              reo["effect_size"].toPrecision(6)
-                          )
+                        ? e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["effect_size"].toFixed(6))
                         : ""
                 ),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toPrecision(6))),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toPrecision(6))),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toFixed(6))),
+                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toFixed(6))),
             ]);
 
             if (reo == reoData[0]) {

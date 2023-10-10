@@ -13,8 +13,8 @@ RegulatoryEffectObservationJson = TypedDict(
         "significance": Optional[float],
         "raw_p_value": Optional[float],
         "experiment": NotRequired[ExperimentJson],
-        "source_ids": list[str],
-        "target_ids": list[str],
+        "sources": list[tuple[str, str, tuple[int, int, str], str]],
+        "targets": list[tuple[str, str]],
     },
 )
 
@@ -28,8 +28,16 @@ def regulatory_effect(
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
-        "source_ids": [source.accession_id for source in reg_effect.sources.all()],
-        "target_ids": [target.accession_id for target in reg_effect.targets.all()],
+        "sources": [
+            (
+                source.accession_id,
+                source.chrom_name,
+                (source.location.lower, source.location.upper, source.strand),
+                source.get_feature_type_display(),
+            )
+            for source in reg_effect.sources.all()
+        ],
+        "targets": [(target.accession_id, target.name) for target in reg_effect.targets.all()],
     }
 
     if reg_effect.experiment is not None:

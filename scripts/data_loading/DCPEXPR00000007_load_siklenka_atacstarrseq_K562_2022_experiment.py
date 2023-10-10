@@ -30,7 +30,7 @@ from . import get_closest_gene
 # get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(dhss: list[DNAFeature]):
     with transaction.atomic():
-        print("Adding Chromatin Accessable Regions")
+        print("Adding Chromatin Accessible Regions")
         DNAFeature.objects.bulk_create(dhss, batch_size=1000)
 
 

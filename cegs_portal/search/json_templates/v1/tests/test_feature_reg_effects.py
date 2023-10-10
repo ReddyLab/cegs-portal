@@ -35,8 +35,16 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
         "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
-        "source_ids": [source.accession_id for source in reg_effect.sources.all()],
-        "target_ids": [target.accession_id for target in reg_effect.targets.all()],
+        "sources": [
+            (
+                source.accession_id,
+                source.chrom_name,
+                (source.location.lower, source.location.upper, source.strand),
+                source.get_feature_type_display(),
+            )
+            for source in reg_effect.sources.all()
+        ],
+        "targets": [(target.accession_id, target.name) for target in reg_effect.targets.all()],
     }
 
     assert regulatory_effect(reg_effect) == results
