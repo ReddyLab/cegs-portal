@@ -96,6 +96,15 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
             `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/${manifest.genome.file}`
         );
     } catch (error) {
+        let coverage = g("tabs-coverage");
+        rc(
+            coverage,
+            e(
+                "div",
+                {class: "flex flex-row justify-center"},
+                e("div", {class: "content-container grow-0"}, "No experiment coverage information found.")
+            )
+        );
         throw new Error("Files necessary to load coverage not found");
     }
 
