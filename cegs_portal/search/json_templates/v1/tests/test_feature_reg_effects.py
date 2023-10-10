@@ -39,7 +39,7 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
             (
                 source.accession_id,
                 source.chrom_name,
-                (source.location.lower, source.location.upper),
+                (source.location.lower, source.location.upper, source.strand),
                 source.get_feature_type_display(),
             )
             for source in reg_effect.sources.all()
