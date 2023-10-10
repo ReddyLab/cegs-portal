@@ -52,7 +52,7 @@ function featureTable(features, regionID = "dnafeature") {
         };
         newTable.append(row);
     }
-    let tableContainer = e("div", {class: "container"}, [newTable]);
+    let tableContainer = e("div", {class: "container min-w-full"}, [newTable]);
     return tableContainer;
 }
 
