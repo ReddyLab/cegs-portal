@@ -122,10 +122,6 @@
         border-bottom: 1px solid lightgrey;
     }
 
-    table.data-table tr:hover {
-        background-color: #ddd;
-    }
-
     table.data-table a,
     table.data-table a:visited {
         color: #3490dc;
@@ -560,7 +556,7 @@
                     </div>
                 </div>
                 <div class="title-separator"></div>
-                <table class="data-table">
+                <table class="data-table hover">
                     <tr>
                         <th>Accession ID</th>
                         <th>Type</th>
@@ -661,7 +657,7 @@
                         {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
                     </div>
                     <div class="title-separator"></div>
-                    <table class="data-table">
+                    <table class="data-table hover">
                         <tr>
                             <th>ENSEMBL ID</th>
                             <th>Type</th>
