@@ -52,11 +52,6 @@
         font-weight: bold;
     }
 
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
-    }
-
     .profile-table {
         font-family: sans-serif;
         border-collapse: collapse;
@@ -171,7 +166,7 @@
             </svg>
             Tested Elements
         </div>
-        <div class="faded-line"></div>
+        <div class="title-separator"></div>
         {% include "search/v1/partials/_reg_effect_source.html" with features=regulatory_effect.sources.all %}
     </div>
     {% endif %}
@@ -189,7 +184,7 @@
             </svg>
             Target Genes
         </div>
-        <div class="faded-line"></div>
+        <div class="title-separator"></div>
         {% include "search/v1/partials/_reg_effect_target.html" with features=regulatory_effect.targets.all %}
     </div>
     {% endif %}

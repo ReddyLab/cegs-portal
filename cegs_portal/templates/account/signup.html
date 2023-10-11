@@ -16,7 +16,7 @@
                 >
                     Sign Up! <i class="bi bi-people-fill"></i>
                 </legend>
-                <div class="faded-line my-3.5"></div>
+                <div class="title-separator my-3.5"></div>
                 {{ form|crispy }} {% if redirect_field_value %}
                 <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                 {% endif %}
