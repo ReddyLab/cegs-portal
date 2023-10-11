@@ -127,9 +127,6 @@ def parse_query(
 
 def parse_source_locs_html(source_locs: str) -> list[tuple[str, str]]:
     locs = []
-    print("##############################################")
-    print(source_locs)
-    print("##############################################")
     while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\",(\w+)\)', source_locs):
         chrom = match[1]
         start = int(match[2])
