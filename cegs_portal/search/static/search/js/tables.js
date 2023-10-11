@@ -68,7 +68,7 @@ function reTable(regeffects, regionID = "regeffect") {
             e("th", "Significance (p-value)"),
             e("th", "Experiment"),
             e("th", "Target"),
-            e("th", "REO Page"),
+            e("th", "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -145,7 +145,7 @@ function reTargetTable(regeffects, regionID = "regeffect") {
             e("th", "Direction"),
             e("th", ["Significance", e("br"), "(p-value)"]),
             e("th", "Experiment"),
-            e("th", "REO Page"),
+            e("th", "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
