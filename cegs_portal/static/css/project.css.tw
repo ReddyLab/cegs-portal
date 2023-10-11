@@ -145,7 +145,7 @@
     border-bottom: 1px solid lightgrey;
   }
 
-  .data-table.hover tr:nth-child(n + 2):hover {
+  .data-table:not(.no-hover) tr:nth-child(n + 2):hover {
     background-color: #ddd;
   }
 

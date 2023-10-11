@@ -5,7 +5,7 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 }
 
 function featureTable(features, regionID = "dnafeature") {
-    let newTable = e("table", {id: regionID, class: "data-table hover"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Name"),
             e("th", "Feature Type"),
@@ -61,7 +61,7 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 }
 
 function reTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table hover"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
@@ -138,7 +138,7 @@ function reTable(regeffects, regionID = "regeffect") {
 }
 
 function reTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table hover"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Tested Element(s)"),
             e("th", "Effect Size (log2FC)"),
@@ -226,7 +226,7 @@ function reTargetTable(regeffects, regionID = "regeffect") {
 }
 
 function reoNonTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table hover"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Location"),
             e("th", "Effect Size"),
@@ -271,7 +271,7 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
 }
 
 function sigReoTable(reos, regionID = "sig-reg-effects") {
-    let newTable = e("table", {id: regionID, class: "data-table hover"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Enahncer/Gene"),
             e("th", "Effect Size"),
