@@ -233,7 +233,7 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
             e("th", "Direction"),
             e("th", "Significance"),
             e("th", "Distance from TSS"),
-            e("th", "Source"),
+            e("th", "Tested Element"),
             e("th", "Experiment"),
         ]),
     ]);
@@ -268,81 +268,6 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
     }
     let tableContainer = e("div", {}, [newTable]);
     return tableContainer;
-}
-
-function sigReoTable(reos, regionID = "sig-reg-effects") {
-    let newTable = e("table", {id: regionID, class: "data-table"}, [
-        e("tr", [
-            e("th", "Enahncer/Gene"),
-            e("th", "Effect Size"),
-            e("th", "Significance"),
-            e("th", "Raw p-value"),
-            e("th", "Experiment"),
-        ]),
-    ]);
-    for (const reoSetIdx in reos) {
-        let [_, reoData] = reos[reoSetIdx];
-        let rowClass = reoSetIdx % 2 == 0 ? "" : "bg-gray-100";
-        for (const reo of reoData) {
-            let features = [];
-            let sources = ["Source Locations: "];
-            for (let location of reo["source_locs"]) {
-                sources.push(
-                    e(
-                        "a",
-                        {href: `/search/feature/accession/${location[3]}`},
-                        `${location[0]}:\u00A0${location[1].toLocaleString()}-${location[2].toLocaleString()}`
-                    )
-                );
-                sources.push(", ");
-            }
-
-            sources.pop(); // remove that last comma
-
-            features.push(e("div", sources));
-
-            if (reo["target_info"].length > 0) {
-                let targetGene = reo["target_info"][0];
-                features.push(
-                    e("div", [
-                        `Target Genes: `,
-                        e("a", {href: `/search/feature/ensembl/${targetGene[1]}`}, targetGene[0]),
-                    ])
-                );
-            }
-
-            let rowData = e("tr", {class: rowClass}, [
-                e("td", features),
-                e(
-                    "td",
-                    e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, [
-                        e("div", `Source Locations: ${sourceLocations}`),
-                        e("div", `Target Genes: ${targetGenes}`),
-                    ])
-                ),
-                e(
-                    "td",
-                    reo["effect_size"] != null
-                        ? e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["effect_size"].toFixed(6))
-                        : ""
-                ),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toFixed(6))),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toFixed(6))),
-            ]);
-
-            if (reo == reoData[0]) {
-                rowData.append(
-                    e(
-                        "td",
-                        {rowspan: `${reoData.length}`},
-                        e("a", {href: `/search/experiment/${reo["expr_accession_id"]}`}, reo["expr_name"])
-                    )
-                );
-            }
-            newTable.append(rowData);
-        }
-    }
-    return newTable;
 }
 
 function newPagination(paginationID, pageData, idPrefix = "", pageQueryParam = "page") {
@@ -451,5 +376,4 @@ export {
     reTable,
     reTargetTable,
     reoNonTargetTable,
-    sigReoTable,
 };
