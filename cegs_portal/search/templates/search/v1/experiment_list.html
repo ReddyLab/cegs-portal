@@ -107,24 +107,35 @@
                     {% endfor %}
                 </div>
             </div>
+            <div class="content-container" id="selected-experiments">
+                <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+                <div class="title-separator"></div>
+                <div class="italic" id="no-selected-experiments">Drag experiments here to select</div>
+                <div id="selected-experiment-list"></div>
+            </div>
             {% if logged_in %}
             <div class="content-container">
+                <div class="text-xl font-bold text-slate-500">Download Data from Selected Experiments</div>
+                <div class="title-separator"></div>
                 <form name="dataDownloadForm">
                     <div>
-                        <label class="font-bold" for="dataDlFile">Download Data from Selected Experiments</label>
+                        <label class="font-bold" for="dataDlFile">Select a .bed File with Regions of Interest</label>
                         <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                     </div>
                 </form>
-                <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                <div id="dataDownloadLink" class="mt-5 mb-5">Please select at least one experiment.</div>
             </div>
             {% endif %}
         </div>
 
         <div id="experiment-list" class="basis-3/4">
             {% for experiment in experiments %}
-            <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link">
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
                 <div class="content-container">
-                    <div class="name">{{ experiment.name }}</div>
+                    <div class="flex justify-between">
+                        <div class="name">{{ experiment.name }}</div>
+                        <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+                    </div>
                     <div class="description">{{ experiment.description }}</div>
                     <div class="flex justify-between">
                         <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
@@ -142,11 +153,13 @@
 {% block inline_javascript %}
 <script type="module">
     import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
+    import { addDragListeners, addDropListeners, addSelectListeners } from "{% static 'search/js/experiment_list/drag_drop.js' %}";
     facetFilterSetup();
+    addDropListeners();
+    addDragListeners();
+    addSelectListeners();
 </script>
 {% if logged_in %}
-{{ experiment_ids|json_script:"experiment-id-list" }}
-
 <script type="module">
     import { downloadDataSetup } from "{% static 'search/js/experiment_list/download_data.js' %}";
     downloadDataSetup("{{ csrf_token }}");
