@@ -3,7 +3,8 @@ from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
-from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_tsv
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
@@ -58,6 +59,7 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
 
 class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
     json_renderer = feature_reg_effects
+    tsv_renderer = re_tsv
     template = ""
     template_data_name = "regeffects"
     page_title = ""
@@ -110,6 +112,18 @@ class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
 
         return options
 
+    def get(self, request, options, data, *args, **kwargs):
+        reg_effect_paginator = Paginator(data, options["per_page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+
+        return super().get(request, options, reg_effect_page, *args, **kwargs)
+
+    def get_json(self, request, options, data, *args, **kwargs):
+        reg_effect_paginator = Paginator(data, options["per_page"])
+        reg_effect_page = reg_effect_paginator.get_page(options["page"])
+
+        return super().get_json(request, options, reg_effect_page, *args, **kwargs)
+
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
@@ -127,9 +141,11 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
-        reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        return reg_effect_page
+        return reg_effects
+
+    def get_tsv(self, request, options, data, feature_id):
+        filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
 
 
 class TargetEffectsView(FeatureEffectsView):
@@ -145,6 +161,9 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        reg_effect_paginator = Paginator(reg_effects, options["per_page"])
-        reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        return reg_effect_page
+        return reg_effects
+
+    def get_tsv(self, request, options, data, feature_id):
+        feature = DNAFeature.objects.get(accession_id=feature_id)
+        filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+        return super().get_tsv(request, options, data, filename=filename)

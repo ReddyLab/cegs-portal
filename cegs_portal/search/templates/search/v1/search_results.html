@@ -36,12 +36,6 @@
         display: inline;
     }
 
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-
     .facet-svg {
         fill: currentColor;
         height: 1em;
@@ -207,7 +201,7 @@
                         </svg>
                         <div class="text-xl font-bold text-slate-500">Filter Facets</div>
                     </div>
-                    <div class="faded-line"></div>
+                    <div class="title-separator"></div>
                     {% for facet in facets.all %}
                         <fieldset name="facetfield">
                             <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
