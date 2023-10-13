@@ -3,7 +3,7 @@ from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
-from cegs_portal.search.models import RegulatoryEffectObservation
+from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_tsv
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
@@ -164,5 +164,6 @@ class TargetEffectsView(FeatureEffectsView):
         return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
-        filename = f"{feature_id}_targeting_regulatory_effect_observations_table_data.tsv"
+        feature = DNAFeature.objects.get(accession_id=feature_id)
+        filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
         return super().get_tsv(request, options, data, filename=filename)
