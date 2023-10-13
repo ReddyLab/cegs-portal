@@ -708,6 +708,10 @@ input[type="range"]:active::-webkit-slider-thumb {
   }
 }
 
+.bg-color {
+  background-color: white;
+}
+
 a {
   text-decoration: none;
 }
@@ -814,7 +818,7 @@ tr[data-href]:hover {
 }
 
 .profile-table td,
-.profile-table th {
+  .profile-table th {
   border: 1px solid #ddd;
   padding: 8px;
 }
@@ -833,6 +837,62 @@ tr[data-href]:hover {
   text-align: left;
   background-color: #f2f2f2;
   color: black;
+}
+
+table.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+table.data-table th {
+  padding: 6px;
+  text-align: left;
+  background-color: #ddd;
+  color: gray;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+table.data-table th:first-child,
+  table.data-table th:nth-child(4) {
+  border-top-left-radius: 10px 50%;
+  border-bottom-left-radius: 10px 50%;
+}
+
+table.data-table th:nth-child(3),
+  table.data-table th:last-child {
+  border-top-right-radius: 10px 50%;
+  border-bottom-right-radius: 10px 50%;
+}
+
+table.data-table th:nth-child(2),
+  table.data-table th:nth-child(9) {
+  background-color: #b7b5b5;
+  color: white;
+}
+
+table.data-table th:nth-child(6) {
+  background-color: #b7b5b5;
+  color: white;
+}
+
+table.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid lightgrey;
+}
+
+table.data-table a,
+  table.data-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+}
+
+.table-title,
+  .svg-icon {
+  margin-right: 10px;
+  fill: currentColor;
+  height: 1em;
 }
 
 .tsv-button {
@@ -855,11 +915,30 @@ tr[data-href]:hover {
   color: white;
 }
 
+@media screen {
+  div.search-wrapper label {
+    display: none;
+  }
+}
+
+div.search-wrapper {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+}
+
 input[type="text"], input[type="password"], input[type="email"] {
   border-width: 2px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
+}
+
+div.search-wrapper input[type="text"] {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
 }
 
 input[type="submit"], input[type="button"], button {
@@ -894,12 +973,20 @@ input[type="submit"], input[type="button"], button {
   position: relative;
 }
 
+.right-0 {
+  right: 0px;
+}
+
 .right-2 {
   right: 0.5rem;
 }
 
 .top-0 {
   top: 0px;
+}
+
+.m-2 {
+  margin: 0.5rem;
 }
 
 .mx-auto {
@@ -976,6 +1063,10 @@ input[type="submit"], input[type="button"], button {
   margin-right: 0.375rem;
 }
 
+.mr-16 {
+  margin-right: 4rem;
+}
+
 .mr-2 {
   margin-right: 0.5rem;
 }
@@ -994,6 +1085,10 @@ input[type="submit"], input[type="button"], button {
 
 .mt-10 {
   margin-top: 2.5rem;
+}
+
+.mt-24 {
+  margin-top: 6rem;
 }
 
 .mt-3 {
@@ -1094,6 +1189,10 @@ input[type="submit"], input[type="button"], button {
   width: 100%;
 }
 
+.min-w-\[5em\] {
+  min-width: 5em;
+}
+
 .min-w-fit {
   min-width: -webkit-fit-content;
   min-width: -moz-fit-content;
@@ -1124,6 +1223,18 @@ input[type="submit"], input[type="button"], button {
   max-width: -webkit-max-content;
   max-width: -moz-max-content;
   max-width: max-content;
+}
+
+.flex-1 {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0%;
+          flex: 1 1 0%;
+}
+
+.flex-auto {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
 }
 
 .flex-none {
@@ -1286,6 +1397,11 @@ input[type="submit"], input[type="button"], button {
   border-color: rgb(156 163 175 / var(--tw-divide-opacity));
 }
 
+.self-start {
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+}
+
 .self-end {
   -ms-flex-item-align: end;
       align-self: flex-end;
@@ -1342,6 +1458,10 @@ input[type="submit"], input[type="button"], button {
 
 .border-t-0 {
   border-top-width: 0px;
+}
+
+.border-t-2 {
+  border-top-width: 2px;
 }
 
 .border-solid {
@@ -1508,6 +1628,10 @@ input[type="submit"], input[type="button"], button {
 
 .text-center {
   text-align: center;
+}
+
+.align-baseline {
+  vertical-align: baseline;
 }
 
 .font-sans {
@@ -2634,6 +2758,11 @@ input[type="submit"], input[type="button"], button {
 
   .lg\:border-b-0 {
     border-bottom-width: 0px;
+  }
+
+  .lg\:px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
   }
 
   .lg\:px-3 {
