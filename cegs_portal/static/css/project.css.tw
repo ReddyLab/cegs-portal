@@ -30,10 +30,11 @@
   background-attachment: fixed;
 }
 
-.faded-line {
-      border-top: 0.5px solid rgb(133, 139, 146);
-      /* margin-top: 5px; */
-  }
+.title-separator {
+  margin-top: 10px;
+  border-top: 0.5px solid rgb(133, 139, 146);
+  margin-bottom: 15px;
+}
 
 .form-group .form-control {
     margin-bottom: 10px;
