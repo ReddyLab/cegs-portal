@@ -739,10 +739,6 @@ table.data-table td {
   border-bottom: 1px solid lightgrey;
 }
 
-table.data-table tr.data-row:hover {
-  background-color: #ddd;
-}
-
 table.data-table a,
   table.data-table a:visited {
   color: #3490dc;
@@ -757,13 +753,13 @@ table.data-table a,
   color: rgb(107, 107, 107);
 }
 
-.reg_data-table {
+.data-table {
   border-collapse: collapse;
   width: 100%;
   font-family: sans-serif;
 }
 
-.reg_data-table th {
+.data-table th {
   white-space: nowrap;
   padding: 12px;
   text-align: left;
@@ -772,34 +768,34 @@ table.data-table a,
   font-weight: bold;
 }
 
-.reg_data-table th:first-child,
-  .reg_data-table th:nth-child(5) {
+.data-table th:first-child,
+  .data-table th:nth-child(5) {
   border-top-left-radius: 10px 50%;
   border-bottom-left-radius: 10px 50%;
 }
 
-.reg_data-table th:nth-child(4),
-  .reg_data-table th:last-child {
+.data-table th:nth-child(4),
+  .data-table th:last-child {
   border-top-right-radius: 10px 50%;
   border-bottom-right-radius: 10px 50%;
 }
 
-.reg_data-table th:nth-child(2) {
+.data-table th:nth-child(2) {
   background-color: #b7b5b5;
   color: white;
 }
 
-.reg_data-table th:nth-child(6) {
+.data-table th:nth-child(6) {
   background-color: #b7b5b5;
   color: white;
 }
 
-.reg_data-table td {
+.data-table td {
   padding: 12px;
   border-bottom: 1px solid lightgrey;
 }
 
-.reg_data-table tr:hover {
+.data-table:not(.no-hover) tr:nth-child(n + 2):hover {
   background-color: #ddd;
 }
 

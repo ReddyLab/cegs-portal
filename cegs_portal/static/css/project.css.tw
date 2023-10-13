@@ -36,10 +36,10 @@
   }
 
 .form-group .form-control {
-      margin-bottom: 10px;
-      border-radius: 5px;
-      width: 300px;
-      margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    width: 300px;
+    margin-top: 5px;
   }
 
 .form-header-text {
@@ -89,10 +89,6 @@
     border-bottom: 1px solid lightgrey;
   }
 
-  table.data-table tr.data-row:hover {
-    background-color: #ddd;
-  }
-
   table.data-table a,
   table.data-table a:visited {
     color: #3490dc;
@@ -100,80 +96,80 @@
   }
 
   .table-title {
-      text-align: center;
-      font-family: sans-serif;
-      font-size: 24px;
-      font-weight: bold;
-      color: rgb(107, 107, 107);
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: rgb(107, 107, 107);
   }
 
-  .reg_data-table {
-      border-collapse: collapse;
-      width: 100%;
-      font-family: sans-serif;
+  .data-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: sans-serif;
   }
 
-  .reg_data-table th {
-      white-space: nowrap;
-      padding: 12px;
-      text-align: left;
-      background-color: #ddd;
-      color: gray;
-      font-weight: bold;
+  .data-table th {
+    white-space: nowrap;
+    padding: 12px;
+    text-align: left;
+    background-color: #ddd;
+    color: gray;
+    font-weight: bold;
   }
 
-  .reg_data-table th:first-child,
-  .reg_data-table th:nth-child(5) {
-      border-top-left-radius: 10px 50%;
-      border-bottom-left-radius: 10px 50%;
+  .data-table th:first-child,
+  .data-table th:nth-child(5) {
+    border-top-left-radius: 10px 50%;
+    border-bottom-left-radius: 10px 50%;
   }
 
-  .reg_data-table th:nth-child(4),
-  .reg_data-table th:last-child {
-      border-top-right-radius: 10px 50%;
-      border-bottom-right-radius: 10px 50%;
+  .data-table th:nth-child(4),
+  .data-table th:last-child {
+    border-top-right-radius: 10px 50%;
+    border-bottom-right-radius: 10px 50%;
   }
 
-  .reg_data-table th:nth-child(2) {
-      background-color: #b7b5b5;
-      color: white;
+  .data-table th:nth-child(2) {
+    background-color: #b7b5b5;
+    color: white;
   }
 
-  .reg_data-table th:nth-child(6) {
-      background-color: #b7b5b5;
-      color: white;
+  .data-table th:nth-child(6) {
+    background-color: #b7b5b5;
+    color: white;
   }
 
-  .reg_data-table td {
-      padding: 12px;
-      border-bottom: 1px solid lightgrey;
+  .data-table td {
+    padding: 12px;
+    border-bottom: 1px solid lightgrey;
   }
 
-  .reg_data-table tr:hover {
-      background-color: #ddd;
+  .data-table:not(.no-hover) tr:nth-child(n + 2):hover {
+    background-color: #ddd;
   }
 
   tr[data-href]:hover {
-        cursor: pointer;
+    cursor: pointer;
   }
 
   .tsv-button {
-        border: 2px solid #807e7e;
-        background-color: #fff;
-        color: #525050;
-        padding: 3px 6px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 12pt;
-        margin: 4px 2px;
-        cursor: pointer;
-        transition-duration: 0.4s;
+    border: 2px solid #807e7e;
+    background-color: #fff;
+    color: #525050;
+    padding: 3px 6px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12pt;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition-duration: 0.4s;
   }
 
-    .tsv-button:hover {
-        background-color: #808080;
-        color: white;
+  .tsv-button:hover {
+    background-color: #808080;
+    color: white;
   }
 
   @media screen {
