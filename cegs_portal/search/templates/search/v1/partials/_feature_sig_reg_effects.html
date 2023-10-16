@@ -18,7 +18,7 @@
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         <tr class="{{ rowcolors }}">
             <td>
-                <div>Source Locations: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} ({{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %})</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% if regeffect.targets.exists %}
                 <div>Target Genes: {% for gene in regeffect.targets.all %}<a href="{% url 'search:dna_features' 'accession' gene.accession_id %}">{{ gene.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% endif %}
