@@ -841,6 +841,16 @@ tr[data-href]:hover {
   color: white;
 }
 
+.search-button {
+  margin-left: 5px;
+  background-color: rgb(244, 245, 247) !important;
+  margin-bottom: 10px;
+}
+
+.search-button:hover {
+  background-color: rgb(229 231 235) !important;
+}
+
 @media screen {
   div.search-wrapper label {
     display: none;
