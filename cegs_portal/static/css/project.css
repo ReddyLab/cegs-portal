@@ -861,30 +861,11 @@ tr[data-href]:hover {
   background-color: rgb(229 231 235) !important;
 }
 
-@media screen {
-  div.search-wrapper label {
-    display: none;
-  }
-}
-
-div.search-wrapper {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-}
-
 input[type="text"], input[type="password"], input[type="email"] {
   border-width: 2px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
-}
-
-div.search-wrapper input[type="text"] {
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 auto;
-          flex: 1 1 auto;
 }
 
 input[type="submit"], input[type="button"], button {
@@ -929,10 +910,6 @@ input[type="submit"], input[type="button"], button {
 
 .top-0 {
   top: 0px;
-}
-
-.m-2 {
-  margin: 0.5rem;
 }
 
 .mx-auto {
@@ -1574,10 +1551,6 @@ input[type="submit"], input[type="button"], button {
 
 .text-center {
   text-align: center;
-}
-
-.align-baseline {
-  vertical-align: baseline;
 }
 
 .font-sans {

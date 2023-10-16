@@ -7,13 +7,6 @@
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 <style>
-    .content-container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 40px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-    }
 
     g.tick > text {
         font-size: 2em;
@@ -193,7 +186,7 @@
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 flex-none">
-            <div id="facets" class="content-container">
+            <div id="facets" class="container">
                 <div class="w-60">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
