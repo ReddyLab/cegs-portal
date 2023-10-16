@@ -93,7 +93,7 @@
     <tr>
         <td>
             <a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}"
-                >{{ re_source.get_feature_type_display }} ({{ re_source.chrom_name }}: {{ re_source.location.lower|intcomma }}-{{ re_source.location.upper|intcomma }})</a
+                >{{ re_source.get_feature_type_display }} @ {{ re_source.chrom_name }}: {{ re_source.location.lower|intcomma }}-{{ re_source.location.upper|intcomma }}</a
             >
         </td>
         {% if forloop.first %}
