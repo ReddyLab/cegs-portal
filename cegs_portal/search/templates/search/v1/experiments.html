@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Experiments{% endblock %}
+
+{% block content %}
+<div>
+    <div class="content-container">
+        <ul>
+            {% for expr in experiments %}
+            <li>{{ expr.name }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

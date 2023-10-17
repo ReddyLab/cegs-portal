@@ -39,6 +39,11 @@ function addRemoveListener(node, accession) {
             g("selected-experiment-list").before(noExperiments);
 
             rc(g("dataDownloadLink"), t("Please select at least one experiment."));
+
+            let experiments_link = g("experiments-link");
+            if (experiments_link) {
+                rc(experiments_link, t("Please select at least one experiment."));
+            }
         }
     });
 }
@@ -53,13 +58,39 @@ function addToExperimentList(experimentItemText) {
     let newAccession = experimentItem.dataset.accession;
     let experimentListItems = document.getElementsByClassName("experiment-list-item");
     let accessionIds = Array.from(experimentListItems, (item) => item.dataset.accession);
-    if (accessionIds.includes(newAccession)) return;
+    if (accessionIds.includes(newAccession)) {
+        return;
+    } else {
+        accessionIds.push(newAccession);
+    }
 
     let close = closeButton();
     addRemoveListener(close, newAccession);
     experimentItem.before(close);
     a(selectedExperimentList, e("div", {id: `${newAccession}-list-item`}, [close, experimentItem]));
     cc(g("dataDownloadLink"));
+
+    let noExperiments = g("no-selected-experiments");
+    if (noExperiments) {
+        noExperiments.remove();
+    }
+
+    let experiments_link = g("experiments-link");
+    if (experiments_link) {
+        rc(
+            experiments_link,
+            e(
+                "a",
+                {
+                    href: `experiments?${accessionIds.map((id) => `exp=${id}`).join("&")}`,
+                    class: "expr-list-link",
+                },
+                `Analyze ${accessionIds.length} Selected ${
+                    accessionIds.length > 1 ? "Experiments together" : "Experiment"
+                }`
+            )
+        );
+    }
 }
 
 export function addDropListeners() {
@@ -70,11 +101,6 @@ export function addDropListeners() {
     });
     selectedExperiments.addEventListener("drop", (evt) => {
         evt.preventDefault();
-        let noExperiments = g("no-selected-experiments");
-        if (noExperiments) {
-            noExperiments.remove();
-        }
-
         addToExperimentList(evt.dataTransfer.getData("text/html"));
     });
 }
@@ -90,11 +116,6 @@ export function addSelectListeners() {
         summary.addEventListener("click", (evt) => {
             evt.preventDefault();
             addToExperimentList(experimentListItemText(evt.target.dataset.name, evt.target.dataset.accession));
-
-            let noExperiments = g("no-selected-experiments");
-            if (noExperiments) {
-                noExperiments.remove();
-            }
         });
     }
 }

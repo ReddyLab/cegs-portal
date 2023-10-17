@@ -20,6 +20,7 @@ urlpatterns = [
         name="dna_feature_loc",
     ),
     path("experiment", views.v1.ExperimentListView.as_view(), name="experiments"),
+    path("experiments", views.v1.ExperimentsView.as_view(), name="combined_experiments"),
     re_path(r"experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8})$", views.v1.ExperimentView.as_view(), name="experiment"),
     path(
         "experiment_coverage",
@@ -54,6 +55,7 @@ urlpatterns = [
         views.v1.DNAFeatureLoc.as_view(),
     ),
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
+    path("v1/experiments", views.v1.ExperimentListView.as_view()),
     re_path(r"v1/experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8})$", views.v1.ExperimentView.as_view()),
     path(
         "v1/experiment_coverage",
