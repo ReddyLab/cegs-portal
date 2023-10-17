@@ -42,6 +42,13 @@
         box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
     }
 
+    .content-container {
+        background: #ffffff;
+        padding: 20px 40px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
     .experiment-icon {
         fill: currentColor;
         margin-right: 10px;
@@ -61,7 +68,7 @@
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
 {% endblock %} {% block title %}Experiment{% endblock %} {% block content %}
 <div class="flex flex-column justify-center min-w-full">
-    <div class="experiment-content-section container min-w-fit max-w-fit">
+    <div class="experiment-content-section content-container min-w-fit max-w-fit">
         <table class="min-w-fit max-w-fit">
             <thead class="bg-white border-b">
                 <tr>
@@ -179,7 +186,7 @@
         <div class="flex flex-row gap-x-10">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container">
                     <div class="text-slate-500">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
@@ -190,7 +197,7 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container">
                     <form name="regionUploadForm">
                         <div>
                             <label class="font-bold" for="regionFile">Highlight Regions</label>
@@ -201,7 +208,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
@@ -220,7 +227,7 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 container">
+            <div class="basis-3/4 content-container">
                 <!-- content section container for ChromCov -->
                 <div class="flex flex-row gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
@@ -248,7 +255,7 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="experiment-content-section container">
+        <div class="experiment-content-section content-container">
             <table class="min-w-full">
                 <thead class="bg-white border-b">
                     <tr>
@@ -294,7 +301,7 @@
         role="tabpanel"
         aria-labelledby="tabs-files-tab"
     >
-        <div class="container">
+        <div class="content-container">
             <div class="container mx-auto">
                 <div class="flex flex-col">
                     <div class="w-full">
@@ -340,7 +347,7 @@
             </div>
         </div>
 
-        <div class="container">
+        <div class="content-container">
             <div class="container mx-auto">
                 <div class="flex flex-col">
                     <div class="w-full">
@@ -399,7 +406,7 @@
         aria-labelledby="tabs-qc-graphs-tab"
     >
         <div
-            class="container min-w-max max-w-max text-xl font-bold"
+            class="content-container min-w-max max-w-max text-xl font-bold"
             style="color: rgb(100 116 139);"
         >
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
@@ -417,7 +424,7 @@
         aria-labelledby="tabs-analysis"
     >
         <div
-            class="container min-w-max max-w-max text-xl font-bold"
+            class="content-container min-w-max max-w-max text-xl font-bold"
             style="color: rgb(100 116 139);"
         >
             Analysis <i class="bi bi-pie-chart-fill"></i>
