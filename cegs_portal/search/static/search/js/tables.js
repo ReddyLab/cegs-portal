@@ -7,14 +7,14 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", {class: "chrom-first-end-cap"}, "Name"),
-            e("th", "Feature Type"),
-            e("th", "Cell Line"),
-            e("th", "Location"),
-            e("th", "Strand"),
-            e("th", "Closest Gene"),
-            e("th", "Reference Genome"),
-            e("th", {class: "chrom-last-end-cap"}, "Parent"),
+            e("th", {class: "chrom-first-end-cap chrom-light-band"}, "Name"),
+            e("th", {class: "chrom-light-band"}, "Feature Type"),
+            e("th", {class: "chrom-dark-band"}, "Cell Line"),
+            e("th", {class: "chrom-light-band"}, "Location"),
+            e("th", {class: "chrom-light-band chrom-right-centromere"},"Strand"),
+            e("th", {class: "chrom-light-band chrom-left-centromere"},"Closest Gene"),
+            e("th", {class: "chrom-dark-band"},"Reference Genome"),
+            e("th", {class: "chrom-last-end-cap chrom-light-band"}, "Parent"),
         ]),
     ]);
     for (const feature of features) {
