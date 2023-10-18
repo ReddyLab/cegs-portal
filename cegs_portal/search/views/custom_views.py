@@ -48,7 +48,7 @@ class ExperimentAccessMixin(UserPassesTestMixin):
 
     def test_func(self):
         if self.is_archived():
-            self.raise_exception = True
+            self.raise_exception = True  # Don't redirect to login
             return False
 
         if self.is_public():

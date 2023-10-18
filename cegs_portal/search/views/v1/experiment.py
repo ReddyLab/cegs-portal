@@ -9,6 +9,7 @@ from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
 )
+from cegs_portal.utils.http_exceptions import Http400
 
 
 class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
@@ -76,6 +77,12 @@ class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
 
     def test_func(self):
         experiment_ids = self.request.GET.getlist("exp", [])
+
+        # Users have permission to request no experiments, but it is a "bad request"
+        # and will be handled later on, in get_data
+        if len(experiment_ids) == 0:
+            return True
+
         for expr_id in experiment_ids:
             validate_accession_id(expr_id)
 
@@ -85,7 +92,7 @@ class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
             raise Http404(str(e))
 
         if any(archived for _, _, archived in experiments):
-            self.raise_exception = True
+            self.raise_exception = True  # Don't redirect to login
             return False
 
         if all(public for _, public, _ in experiments):
@@ -126,6 +133,9 @@ class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
         )
 
     def get_data(self, options):
+        if len(options["exp_ids"]) == 0:
+            raise Http400("Please specify at least one experiment.")
+
         return ExperimentSearch.multi_accession_search(options["exp_ids"])
 
 
