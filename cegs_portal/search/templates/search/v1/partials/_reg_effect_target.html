@@ -1,10 +1,10 @@
 {% load humanize %}
 <div>
-    <table class="data-table chrom-first-end-cap chrom-last-end-cap">
+    <table class="data-table">
         <tr>
-            <th>Name</th>
+            <th class="chrom-first-end-cap">Name</th>
             <th>Location</th>
-            <th>Reference Genome</th>
+            <th class="chrom-last-end-cap">Reference Genome</th>
         </tr>
         {% for feature in features %}
             <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">

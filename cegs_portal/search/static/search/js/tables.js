@@ -5,16 +5,16 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 }
 
 function featureTable(features, regionID = "dnafeature") {
-    let newTable = e("table", {id: regionID, class: "data-table chrom-first-end-cap chrom-last-end-cap"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Name"),
+            e("th", {class: "chrom-first-end-cap"}, "Name"),
             e("th", "Feature Type"),
             e("th", "Cell Line"),
             e("th", "Location"),
             e("th", "Strand"),
             e("th", "Closest Gene"),
             e("th", "Reference Genome"),
-            e("th", "Parent"),
+            e("th", {class: "chrom-last-end-cap"}, "Parent"),
         ]),
     ]);
     for (const feature of features) {
@@ -61,14 +61,14 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 }
 
 function reTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table chrom-first-end-cap chrom-last-end-cap"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Effect Size (log2FC)"),
+            e("th", {class: "chrom-first-end-cap"}, "Effect Size (log2FC)"),
             e("th", "Direction"),
             e("th", "Significance (p-value)"),
             e("th", "Experiment"),
             e("th", "Target"),
-            e("th", "REO Details"),
+            e("th", {class: "chrom-last-end-cap"},"REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -138,14 +138,14 @@ function reTable(regeffects, regionID = "regeffect") {
 }
 
 function reTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table chrom-first-end-cap chrom-last-end-cap"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Tested Element(s)"),
+            e("th", {class: "chrom-first-end-cap"}, "Tested Element(s)"),
             e("th", "Effect Size (log2FC)"),
             e("th", "Direction"),
             e("th", ["Significance", e("br"), "(p-value)"]),
             e("th", "Experiment"),
-            e("th", "REO Details"),
+            e("th", {class: "chrom-last-end-cap"}, "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -226,15 +226,15 @@ function reTargetTable(regeffects, regionID = "regeffect") {
 }
 
 function reoNonTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table chrom-first-end-cap chrom-last-end-cap"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Location"),
+            e("th", {class: "chrom-first-end-cap"}, "Location"),
             e("th", "Effect Size"),
             e("th", "Direction"),
             e("th", "Significance"),
             e("th", "Distance from TSS"),
             e("th", "Source"),
-            e("th", "Experiment"),
+            e("th", {class: "chrom-last-end-cap"}, "Experiment"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -271,7 +271,7 @@ function reoNonTargetTable(regeffects, regionID = "regeffect") {
 }
 
 function sigReoTable(reos, regionID = "sig-reg-effects") {
-    let newTable = e("table", {id: regionID, class: "data-table chrom-first-end-cap chrom-last-end-cap"}, [
+    let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
             e("th", "Enahncer/Gene"),
             e("th", "Effect Size"),

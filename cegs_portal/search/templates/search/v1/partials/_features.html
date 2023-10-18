@@ -1,15 +1,15 @@
 
     <div>
-        <table class="data-table chrom-first-end-cap chrom-last-end-cap">
+        <table class="data-table">
             <tr>
-                <th>ID</th>
+                <th class="chrom-first-end-cap">ID</th>
                 <th>Name</th>
                 <th>Feature Type</th>
                 <th>Cell Line</th>
                 <th>Location</th>
                 <th>Strand</th>
                 <th>Closest Gene</th>
-                <th>Reference Genome</th>
+                <th class="chrom-last-end-cap">Reference Genome</th>
             </tr>
             {% for feature in features %}
                 <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">

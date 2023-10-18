@@ -6,14 +6,14 @@
 {% block content %}
 <div>
     <div class="text-xl font-bold">Target of Regulatory Effect Observations</div>
-    <table class="data-table chrom-first-end-cap chrom-last-end-cap">
+    <table class="data-table">
         <tr>
-            <th>ID</th>
+            <th class="chrom-first-end-cap">ID</th>
             <th>Effect Size (log2FC)</th>
             <th>Direction</th>
             <th>Significance<br />(p-value)</th>
             <th>Experiment</th>
-            <th>Source</th>
+            <th class="chrom-last-end-cap">Source</th>
         </tr>
         {% for regeffect in regeffects %}
             {% for re_source in regeffect.sources.all %}

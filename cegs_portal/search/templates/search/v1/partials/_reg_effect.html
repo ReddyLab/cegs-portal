@@ -68,15 +68,15 @@
 </div>
 <div class="title-separator"></div>
 
-<table class="data-table chrom-first-end-cap chrom-last-end-cap">
+<table class="data-table">
     <tr>
-        <th>Accession ID</th>
+        <th class="chrom-first-end-cap">Accession ID</th>
         <th>Effect Size</th>
         <th>Direction</th>
         <th>Significance</th>
         <th>Experiment</th>
         <th>Target Gene</th>
-        <th>Target Gene Location</th>
+        <th class="chrom-last-end-cap">Target Gene Location</th>
     </tr>
     {% for regeffect in features %} {% for re_target in regeffect.targets.all %}
     <tr>

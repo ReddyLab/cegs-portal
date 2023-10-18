@@ -464,14 +464,14 @@
                     </div>
                 </div>
                 <div class="title-separator"></div>
-                <table class="data-table chrom-first-end-cap chrom-last-end-cap">
+                <table class="data-table">
                     <tr>
-                        <th>Accession ID</th>
+                        <th class="chrom-first-end-cap">Accession ID</th>
                         <th>Type</th>
                         <th>Cell Line</th>
                         <th>Location</th>
                         <th>Strand</th>
-                        <th>Reference Genome</th>
+                        <th class="chrom-last-end-cap">Reference Genome</th>
                     </tr>
             {% endif %}
             {% endfor %}
@@ -565,14 +565,14 @@
                         {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
                     </div>
                     <div class="title-separator"></div>
-                    <table class="data-table chrom-first-end-cap chrom-last-end-cap">
+                    <table class="data-table">
                         <tr>
-                            <th>ENSEMBL ID</th>
+                            <th class="chrom-first-end-cap">ENSEMBL ID</th>
                             <th>Type</th>
                             <th>Symbol</th>
                             <th>Location</th>
                             <th>Strand</th>
-                            <th>Reference Genome</th>
+                            <th class="chrom-last-end-cap">Reference Genome</th>
                         </tr>
             {% endif %}
             {% endfor %}
