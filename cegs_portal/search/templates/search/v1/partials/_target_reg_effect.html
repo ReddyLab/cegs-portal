@@ -18,12 +18,12 @@
     </div>
     <div class="title-separator"></div>
     <tr>
-        <th class="chrom-first-end-cap">Tested Element(s)</th>
-        <th>Effect Size</th>
-        <th>Direction</th>
-        <th>Significance</th>
-        <th>Experiment</th>
-        <th class="chrom-last-end-cap">REO Details</th>
+        <th class="chrom-first-end-cap chrom-light-band">Tested Element(s)</th>
+        <th class="chrom-dark-band">Effect Size</th>
+        <th class="chrom-light-band">Direction</th>
+        <th class="chrom-light-band chrom-right-centromere">Significance</th>
+        <th class="chrom-light-band chrom-left-centromere">Experiment</th>
+        <th class="chrom-last-end-cap chrom-dark-band">REO Details</th>
     </tr>
     {% for regeffect in features %}
     {% for re_source in regeffect.sources.all %}
