@@ -165,9 +165,9 @@ function reTargetTable(regeffects, regionID = "regeffect") {
                           e(
                               "a",
                               {href: `/search/feature/accession/${source_id}`},
-                              `${source_type} (${source_chrom}: ${source_loc[0].toLocaleString()}-${source_loc[1].toLocaleString()}:${
-                                  source_loc[2]
-                              })`
+                              `${source_type} @ ${source_chrom}: ${source_loc[0].toLocaleString()}-${source_loc[1].toLocaleString()}${
+                                  source_loc[2] ? ":" + source_loc[2] : ""
+                              }`
                           )
                       ),
                 e(

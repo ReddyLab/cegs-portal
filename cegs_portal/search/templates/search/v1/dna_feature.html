@@ -278,9 +278,9 @@
                             <span>({{ feature.ensembl_id }})</span>
                         {% endif %}
                     {% else %}
-                        {{ feature.get_feature_type_display }}
+                        {{ feature.get_feature_type_display }} @
                         <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                            <span class="profile-sub-header">({{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }})</span>
+                            <span class="profile-sub-header">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                         </a>
                     {% endif %}
                 </h1>
