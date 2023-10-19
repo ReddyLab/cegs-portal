@@ -1,5 +1,8 @@
 {% extends "base.html" %}
+
 {% load static i18n %}
+{% load waffle_tags %}
+
 {% block css %}
 {{ block.super }}
 <style>
@@ -39,6 +42,16 @@
     .name {
         color: #3490dc;
         font-weight: bold;
+    }
+
+    .expr-list-link {
+        color: #3490dc;
+        font-style: normal;
+    }
+
+    .expr-list-link:visited {
+        color: #3490dc;
+        font-style: normal;
     }
 
     .cell-lines {
@@ -113,6 +126,13 @@
                 <div class="italic" id="no-selected-experiments">Drag experiments here to select</div>
                 <div id="selected-experiment-list"></div>
             </div>
+            {% switch "multi_expr_page" %}
+            <div class="content-container" id="view-experiments">
+                <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
+                <div class="title-separator"></div>
+                <div class="italic" id="experiments-link">Please select at least one experiment.</div>
+            </div>
+            {% endswitch %}
             {% if logged_in %}
             <div class="content-container">
                 <div class="text-xl font-bold text-slate-500">Download Data from Selected Experiments</div>
@@ -123,7 +143,7 @@
                         <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                     </div>
                 </form>
-                <div id="dataDownloadLink" class="mt-5 mb-5">Please select at least one experiment.</div>
+                <div id="dataDownloadLink" class="italic mt-5 mb-5">Please select at least one experiment.</div>
             </div>
             {% endif %}
         </div>

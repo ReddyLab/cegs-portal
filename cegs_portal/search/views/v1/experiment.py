@@ -1,12 +1,15 @@
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
+from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     TemplateJsonView,
 )
+from cegs_portal.utils.http_exceptions import Http400
 
 
 class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
@@ -67,6 +70,73 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
         setattr(experi, "assemblies", experi_assemblies)
 
         return experi, other_experiments
+
+
+class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
+    template = "search/v1/experiments.html"
+
+    def test_func(self):
+        experiment_ids = self.request.GET.getlist("exp", [])
+
+        # Users have permission to request no experiments, but it is a "bad request"
+        # and will be handled later on, in get_data
+        if len(experiment_ids) == 0:
+            return True
+
+        for expr_id in experiment_ids:
+            validate_accession_id(expr_id)
+
+        try:
+            experiments = ExperimentSearch.experiment_statuses(experiment_ids)
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+        if any(archived for _, _, archived in experiments):
+            self.raise_exception = True  # Don't redirect to login
+            return False
+
+        if all(public for _, public, _ in experiments):
+            return True
+
+        if self.request.user.is_anonymous:
+            return False
+
+        private_experiments = {accession_id for accession_id, public, _ in experiments if not public}
+
+        return (
+            self.request.user.is_superuser
+            or self.request.user.is_portal_admin
+            or private_experiments <= set(self.request.user.all_experiments())
+        )
+
+    def request_options(self, request):
+        """
+        GET queries used:
+            exp (multiple)
+                * Should be a valid experiment accession ID
+        """
+        options = super().request_options(request)
+        options["exp_ids"] = request.GET.getlist("exp", [])
+        for expr in options["exp_ids"]:
+            validate_accession_id(expr)
+
+        return options
+
+    def get(self, request, options, data):
+        return super().get(
+            request,
+            options,
+            {
+                "logged_in": not request.user.is_anonymous,
+                "experiments": data,
+            },
+        )
+
+    def get_data(self, options):
+        if len(options["exp_ids"]) == 0:
+            raise Http400("Please specify at least one experiment.")
+
+        return ExperimentSearch.multi_accession_search(options["exp_ids"])
 
 
 class ExperimentListView(TemplateJsonView):
