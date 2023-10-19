@@ -2,25 +2,10 @@
 {% load static i18n %}
 {% load humanize %}
 {% load custom_helpers %}
-{% block css %}
-{{ block.super }}
-<style>
 
-    .title-separator {
-        margin-top: 10px;
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
-    }
-
-    .profile-feature-faded-line {
-        border-top: 1px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
-    }
-
-</style>
-{% endblock %}{% block content %}
+{% block content %}
 <div>
-<div class="profile-feature-faded-line"></div>
+<div class="title-separator"></div>
     <div style="display: flex; justify-content: space-between">
         <h1>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -32,7 +17,7 @@
                 <span>{{ feature.name }}</span>
                 <span>({{ feature.ensembl_id}})</span>
     </div>
-    <div class="profile-feature-faded-line"></div>
+    <div class="title-separator"></div>
     <div class="container">
         <table class="profile-table">
             <tr>
