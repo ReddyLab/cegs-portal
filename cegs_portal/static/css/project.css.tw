@@ -72,6 +72,14 @@
     background-color: rgb(249, 250, 251);
   }
 
+  .tab-bar {
+      background: #ffffff;
+      border-radius: 10px;
+      padding-left: 10px !important;
+      padding-right: 10px;
+      box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+  }
+
   .container {
     background: #ffffff;
     box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
