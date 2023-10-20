@@ -13,28 +13,15 @@
         width: 1140px;
     }
 
-    .direction {
-        font-style: italic;
-    }
-
     .experiment-name,
     .accession-id {
         font-weight: 300;
-    }
-
-    .target_name {
-        font-weight: bold;
     }
 
     .experiment_name {
         text-decoration: none;
         margin-right: 5px;
         margin-left: 5px;
-    }
-
-    a,
-    a:visited {
-        color: #3490dc;
     }
 
     .experiment-header-title {
@@ -86,7 +73,7 @@
                 {% endif %}
             </tr>
             <tr>
-                <td>{{ regulatory_effect.direction }}</td>
+                <td class="italic">{{ regulatory_effect.direction }}</td>
                 <td>{{ regulatory_effect.effect_size }}</td>
                 <td>{% if regulatory_effect.significance < 0.000001 %}{{ regulatory_effect.significance|stringformat:".2e" }}{% else %}{{ regulatory_effect.significance|stringformat:".6f" }}{% endif %}</td>
                 <td>{% if regulatory_effect.raw_p_value < 0.000001 %}{{ regulatory_effect.raw_p_value|stringformat:".2e" }}{% else %}{{ regulatory_effect.raw_p_value|stringformat:".6f" }}{% endif %}</td>

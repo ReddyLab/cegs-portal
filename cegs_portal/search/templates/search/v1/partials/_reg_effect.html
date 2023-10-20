@@ -30,7 +30,7 @@
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
             {{ regeffect.effect_size|stringformat:".3e" }}
         </td>
-        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="direction">
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="italic">
             {{ regeffect.direction }}
         </td>
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
@@ -42,7 +42,7 @@
             >
         </td>
         {% endif %}
-        <td class="target_name">
+        <td class="font-bold">
             <a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a>
         </td>
         <td>

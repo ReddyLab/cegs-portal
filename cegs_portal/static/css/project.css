@@ -726,6 +726,11 @@ a:visited {
   text-decoration: none;
 }
 
+a,
+  a:visited {
+  color: #3490dc;
+}
+
 .table-title,
   .svg-icon {
   margin-right: 10px;
