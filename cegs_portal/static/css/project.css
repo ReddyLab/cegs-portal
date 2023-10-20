@@ -723,6 +723,7 @@ a:hover {
 
 a:visited {
   color: inherit;
+  text-decoration: none;
 }
 
 .table-title,
