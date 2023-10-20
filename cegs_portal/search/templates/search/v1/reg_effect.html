@@ -37,11 +37,6 @@
         color: #3490dc;
     }
 
-    .profile-feature-faded-line {
-        border-top: 1px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
-    }
-
     .experiment-header-title {
         text-align: center;
         font-family: sans-serif;
@@ -56,7 +51,7 @@
 
 {% block content %}
 <div>
-    <div class="profile-feature-faded-line"></div>
+    <div class="title-separator"></div>
     <div class="flex flex-col items-center justify-center mb-3.5">
         <div>
             <h1>
@@ -76,7 +71,7 @@
                 </svg>{{ regulatory_effect.experiment.name }}</a>
         </div>
     </div>
-    <div class="profile-feature-faded-line"></div>
+    <div class="title-separator"></div>
     {% spaceless %}
     <div class="reg-effect-content-container">
         <table class="profile-table">
