@@ -69,11 +69,6 @@
     text-decoration: none;
   }
 
-  a,
-  a:visited {
-      color: #3490dc;
-  }
-
   .th-bg-light-gray {
     background-color: rgb(249, 250, 251);
   }
