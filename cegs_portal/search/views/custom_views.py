@@ -122,6 +122,8 @@ class MultiResponseFormatView(View):
             response = HttpResponseSeeOtherRedirect(redirect_to=redirect.location)
         except Http400 as err:
             self.http_bad_request(request, err)
+        except NotImplementedError as nie:
+            self.http_bad_request(request, nie)
 
         if response is None:
             raise Http500("Custom response is None")
