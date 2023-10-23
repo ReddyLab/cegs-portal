@@ -9,7 +9,6 @@ from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
-from cegs_portal.search.views.renderers import json
 from cegs_portal.search.views.view_utils import JSON_MIME, TSV_MIME
 from cegs_portal.utils.http_exceptions import Http303, Http400, Http500
 from cegs_portal.utils.http_responses import HttpResponseSeeOtherRedirect
@@ -77,12 +76,16 @@ class ExperimentAccessMixin(UserPassesTestMixin):
         )
 
 
+def default_json_renderer(data):
+    raise NotImplementedError("No JSON output for this endpoint")
+
+
 def default_tsv_renderer(data):
     raise NotImplementedError("No TSV output for this endpoint")
 
 
-class TemplateJsonView(View):
-    json_renderer: Callable = json
+class MultiResponseFormatView(View):
+    json_renderer: Callable = default_json_renderer
     tsv_renderer: Callable = default_tsv_renderer
     template: Optional[str] = None
     template_data_name: Optional[str] = None
@@ -127,10 +130,7 @@ class TemplateJsonView(View):
 
     def request_options(self, request):
         if request.headers.get("accept") == JSON_MIME or request.GET.get("accept", None) == JSON_MIME:
-            return {
-                "format": "json",
-                "json_format": request.GET.get("format", None),
-            }
+            return {"format": "json"}
 
         if request.headers.get("accept") == TSV_MIME or request.GET.get("accept", None) == TSV_MIME:
             return {"format": "tsv"}

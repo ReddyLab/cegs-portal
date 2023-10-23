@@ -8,14 +8,14 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
-    TemplateJsonView,
+    MultiResponseFormatView,
 )
 from cegs_portal.utils.http_exceptions import Http400
 
 DEFAULT_TABLE_LENGTH = 20
 
 
-class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
+class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_feature.html"
 
@@ -65,6 +65,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
+        options["json_format"] = request.GET.get("format", None)
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
         return options
@@ -143,7 +144,7 @@ class DNAFeatureId(ExperimentAccessMixin, TemplateJsonView):
         )
 
 
-class DNAFeatureLoc(TemplateJsonView):
+class DNAFeatureLoc(MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_features.html"
 
@@ -180,6 +181,7 @@ class DNAFeatureLoc(TemplateJsonView):
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
         options["paginate"] = "page" in request.GET or bool(request.GET.get("paginate", False))
+        options["json_format"] = request.GET.get("format", None)
 
         return options
 
