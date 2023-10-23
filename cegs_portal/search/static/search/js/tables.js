@@ -30,7 +30,7 @@ function featureTable(features, regionID = "dnafeature") {
             e("td", feature.strand || "None"),
             e(
                 "td",
-                {class: "closest-gene"},
+                {class: "font-bold"},
                 feature.closest_gene_ensembl_id
                     ? e(
                           "a",
