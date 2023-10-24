@@ -6,16 +6,7 @@
 {% block css %}
 {{ block.super }}
 <style>
-    .exp-list-content-container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        align-items: center;
-        padding: 20px 30px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-    }
-
-    .exp-list-content-container-link:hover .exp-list-content-container {
+    .exp-list-content-container-link:hover .container {
         transform: scale(1.02);
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
     }
@@ -135,7 +126,7 @@
         <div id="experiment-list" class="basis-3/4">
             {% for experiment in experiments %}
             <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
-                <div class="exp-list-content-container">
+                <div class="container items-center">
                     <div class="flex justify-between">
                         <div class="exp-name">{{ experiment.name }}</div>
                         <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
