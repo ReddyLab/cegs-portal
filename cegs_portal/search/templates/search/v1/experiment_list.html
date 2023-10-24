@@ -85,7 +85,7 @@
     </div>
     <div class="flex gap-x-10 items-start">
         <div class="flex flex-col basis-1/4">
-            <div class="exp-list-content-container">
+            <div class="container">
                 <div class="text-xl font-bold text-slate-500">Experiment Filters</div>
                 <div class="title-separator"></div>
                 <div id="categorical-facets">
@@ -104,21 +104,21 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="content-container" id="selected-experiments">
+            <div class="container" id="selected-experiments">
                 <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
                 <div class="title-separator"></div>
                 <div class="italic" id="no-selected-experiments">Drag experiments here to select</div>
                 <div id="selected-experiment-list"></div>
             </div>
             {% switch "multi_expr_page" %}
-            <div class="content-container" id="view-experiments">
+            <div class="container" id="view-experiments">
                 <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
                 <div class="title-separator"></div>
                 <div class="italic" id="experiments-link">Please select at least one experiment.</div>
             </div>
             {% endswitch %}
             {% if logged_in %}
-            <div class="content-container">
+            <div class="container">
                 <div class="text-xl font-bold text-slate-500">Download Data from Selected Experiments</div>
                 <div class="title-separator"></div>
                 <form name="dataDownloadForm">
@@ -137,7 +137,7 @@
             <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
                 <div class="exp-list-content-container">
                     <div class="flex justify-between">
-                        <div class="name">{{ experiment.name }}</div>
+                        <div class="exp-name">{{ experiment.name }}</div>
                         <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
                     </div>
                     <div class="description">{{ experiment.description }}</div>

@@ -106,7 +106,7 @@ export function addDropListeners() {
 }
 
 function experimentListItemText(name, accession) {
-    return `<span class="experiment-list-item" data-accession="${accession}"><span class="name">${name}</span> <span class="accession-id">${accession}</span></span>`;
+    return `<span class="experiment-list-item" data-accession="${accession}"><span class="exp-name">${name}</span> <span class="accession-id">${accession}</span></span>`;
 }
 
 export function addSelectListeners() {
