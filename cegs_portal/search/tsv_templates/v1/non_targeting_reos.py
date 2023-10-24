@@ -1,3 +1,6 @@
+from cegs_portal.search.templatetags.custom_helpers import format_significance
+
+
 def non_targeting_regulatory_effects(data):
     reo_page, feature = data
     tsv_data = []
@@ -26,10 +29,10 @@ def non_targeting_regulatory_effects(data):
             first_source.location.upper,
             feature.name,
             feature.strand,
-            " ",
+            ".",
             reo.effect_size,
             reo.direction,
-            reo.significance,
+            format_significance(reo.significance),
             first_source.closest_gene_distance,
             first_source.get_feature_type_display(),
             reo.experiment.name,
