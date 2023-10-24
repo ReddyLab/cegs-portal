@@ -27,12 +27,26 @@ class ExperimentSearch:
         return cast(bool, experiment[0])
 
     @classmethod
-    def accession_search(cls, accession_id):
+    def experiment_statuses(cls, expr_ids: list[str]) -> bool:
+        experiments = Experiment.objects.filter(accession_id__in=expr_ids).values_list(
+            "accession_id", "public", "archived"
+        )
+
+        if len(experiments) == 0:
+            raise ObjectNotFoundError(f"Experiments {expr_ids} not found")
+
+        return experiments
+
+    @classmethod
+    def accession_search(cls, accession_id: str):
+        return cls.multi_accession_search([accession_id]).first()
+
+    @classmethod
+    def multi_accession_search(cls, accession_ids: list[str]):
         experiment = (
-            Experiment.objects.filter(accession_id=accession_id)
+            Experiment.objects.filter(accession_id__in=accession_ids)
             .select_related("default_analysis")
             .prefetch_related("data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "files")
-            .first()
         )
         return experiment
 

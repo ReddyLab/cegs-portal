@@ -24,7 +24,10 @@ function getDownload(url, body) {
                         filePath =
                             filePath.substring(0, 15) + "…" + filePath.substring(filePath.length - 15, filePath.length);
                     }
-                    rc(g("dataDownloadLink"), e("a", {href: json["file location"]}, t(filePath)));
+                    rc(
+                        g("dataDownloadLink"),
+                        e("a", {href: json["file location"], class: "text-blue-700"}, t(filePath))
+                    );
                 } else if (status == "in_preparation") {
                     // keep spinning
                 } else {

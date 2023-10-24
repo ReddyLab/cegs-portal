@@ -5,7 +5,7 @@
         {% for regeffect in regeffects %}
         <tr class="{{ rowcolors }}">
             <td>
-                <div>Source Locations: {% for source in regeffect.source_locs %}<a href="{% url 'search:dna_features' 'accession' source.1 %}">{{ source.0 }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                <div>Tested Element Location{% if regeffect.source_locs|length > 1 %}s{% endif %}: {% for source in regeffect.source_locs %}<a href="{% url 'search:dna_features' 'accession' source.1 %}">{{ source.0 }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% if regeffect.target_info %}
                 <div>Target Genes: {% for gene in regeffect.target_info %}<a href="{% url 'search:dna_features' 'ensembl' gene.1 %}">{{ gene.0 }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% endif %}
