@@ -7,12 +7,12 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
-    TemplateJsonView,
+    MultiResponseFormatView,
 )
 from cegs_portal.utils.http_exceptions import Http400
 
 
-class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
+class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = experiment
     template = "search/v1/experiment.html"
 
@@ -72,7 +72,7 @@ class ExperimentView(ExperimentAccessMixin, TemplateJsonView):
         return experi, other_experiments
 
 
-class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
+class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
     template = "search/v1/experiments.html"
 
     def test_func(self):
@@ -139,7 +139,7 @@ class ExperimentsView(UserPassesTestMixin, TemplateJsonView):
         return ExperimentSearch.multi_accession_search(options["exp_ids"])
 
 
-class ExperimentListView(TemplateJsonView):
+class ExperimentListView(MultiResponseFormatView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
 

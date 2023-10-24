@@ -16,7 +16,7 @@ from exp_viz import (
 from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_coverage
 from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.view_models.v1 import ExperimentCoverageSearch
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http400
 
@@ -76,7 +76,7 @@ def get_analyses(exp_acc_ids: list[str]) -> list[tuple[str, str]]:
     return exp_analysis_pairs
 
 
-class ExperimentCoverageView(TemplateJsonView):
+class ExperimentCoverageView(MultiResponseFormatView):
     json_renderer = experiment_coverage
 
     def request_options(self, request):

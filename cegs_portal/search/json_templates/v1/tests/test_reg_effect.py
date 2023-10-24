@@ -39,4 +39,3 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     assert len(result["cell_lines"]) == 1
     assert len(result["tissue_types"]) == 1
     assert re_json(reg_effect) == result
-    assert re_json(reg_effect, {"json_format": "genoverse"}) == result

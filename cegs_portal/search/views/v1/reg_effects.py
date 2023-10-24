@@ -9,12 +9,12 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
-    TemplateJsonView,
+    MultiResponseFormatView,
 )
 from cegs_portal.utils.pagination_types import Pageable
 
 
-class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
+class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
     """
     Headers used:
         accept
@@ -57,7 +57,7 @@ class RegEffectView(ExperimentAccessMixin, TemplateJsonView):
         return search_results
 
 
-class FeatureEffectsView(ExperimentAccessMixin, TemplateJsonView):
+class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
     tsv_renderer = re_tsv
     template = ""

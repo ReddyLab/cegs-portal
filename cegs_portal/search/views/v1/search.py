@@ -19,7 +19,7 @@ from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
-from cegs_portal.search.views.custom_views import TemplateJsonView
+from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
 from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
@@ -166,7 +166,7 @@ def feature_redirect(feature, assembly_name):
     raise Http303("Specific feature Id", location=url)
 
 
-class SearchView(TemplateJsonView):
+class SearchView(MultiResponseFormatView):
     json_renderer = sr_json
     template = "search/v1/search_results.html"
 
@@ -321,7 +321,7 @@ def get_assembly(request) -> Optional[str]:
     raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
 
 
-class FeatureCountView(TemplateJsonView):
+class FeatureCountView(MultiResponseFormatView):
     json_renderer = fc_json
     template = "search/v1/partials/_search_feature_counts.html"
 
