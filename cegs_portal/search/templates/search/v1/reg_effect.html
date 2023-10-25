@@ -147,9 +147,9 @@
             </tr>
             <tr>
                 <td>{{ regulatory_effect.direction }}</td>
-                <td>{{ regulatory_effect.effect_size }}</td>
-                <td>{{ regulatory_effect.significance|format_significance }}</td>
-                <td>{% if regulatory_effect.raw_p_value < 0.000001 %}{{ regulatory_effect.raw_p_value|stringformat:".2e" }}{% else %}{{ regulatory_effect.raw_p_value|stringformat:".6f" }}{% endif %}</td>
+                <td>{{ regulatory_effect.effect_size|format_float }}</td>
+                <td>{{ regulatory_effect.significance|format_float }}</td>
+                <td>{{ regulatory_effect.raw_p_value|format_float }}</td>
                 <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
                 {% if regulatory_effect.tissue_types.exist %}
                 <td>{{ regulatory_effect.tissue_types|join:", " }}</td>

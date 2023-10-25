@@ -24,9 +24,9 @@
                 <div>Target Genes: {% for gene in regeffect.targets.all %}<a href="{% url 'search:dna_features' 'accession' gene.accession_id %}">{{ gene.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% endif %}
             </td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{% if regeffect.effect_size < 0.000001 and regeffect.effect_size > -0.000001 %}{{ regeffect.effect_size|stringformat:".2e" }}{% else %}{{ regeffect.effect_size|stringformat:".6f" }}{% endif %}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.significance|format_significance }}}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{% if regeffect.raw_p_value < 0.000001 %}{{ regeffect.raw_p_value|stringformat:".2e" }}{% else %}{{ regeffect.raw_p_value|stringformat:".6f" }}{% endif %}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.effect_size|format_float }}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.significance|format_float }}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.raw_p_value|format_float }}</a></td>
             <td><a href="{% url 'search:experiment' regeffect.experiment_accession_id %}">{{ regeffect.experiment.name }}</a></td>
         </tr>
         {% endfor %}
