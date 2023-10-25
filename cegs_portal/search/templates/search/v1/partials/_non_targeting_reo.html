@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load custom_helpers %}
 {% load static %}
 
 <div class="container min-w-full">
@@ -36,9 +37,9 @@
             <td>
                 <span>{{ first_source.chrom_name }}: {{ first_source.location.lower|intcomma }} - {{ first_source.location.upper|add:"-1"|intcomma }}</span>
             </td>
-            <td>{{ reo.effect_size }}</td>
+            <td>{{ reo.effect_size|format_float }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".2e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+            <td>{{ reo.significance|format_float }}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">
