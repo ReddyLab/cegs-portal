@@ -1,12 +1,12 @@
-from cegs_portal.search.templatetags.custom_helpers import format_significance
+from cegs_portal.search.templatetags.custom_helpers import format_float
 
 
 def non_targeting_regulatory_effects(data):
-    reo_page, feature = data
+    reos, feature = data
     tsv_data = []
     tsv_data.append(
         [
-            "chrom",
+            "# chrom",
             "chromStart",
             "chromEnd",
             "name",
@@ -18,25 +18,27 @@ def non_targeting_regulatory_effects(data):
             "Distance",
             "Feature Type",
             "Experiment",
+            "Effect ID",
         ]
     )
 
-    for reo in reo_page:
-        first_source = reo.sources.all()[0]
-        row = [
-            first_source.chrom_name,
-            first_source.location.lower,
-            first_source.location.upper,
-            feature.name,
-            feature.strand,
-            ".",
-            reo.effect_size,
-            reo.direction,
-            format_significance(reo.significance),
-            first_source.closest_gene_distance,
-            first_source.get_feature_type_display(),
-            reo.experiment.name,
-        ]
+    for reo in reos:
+        for source in reo.sources.all():
+            row = [
+                source.chrom_name,
+                source.location.lower,
+                source.location.upper,
+                feature.name,
+                feature.strand,
+                ".",
+                format_float(reo.effect_size),
+                reo.direction,
+                format_float(reo.significance),
+                source.closest_gene_distance,
+                source.get_feature_type_display(),
+                reo.experiment.name,
+                reo.accession_id,
+            ]
 
         tsv_data.append(row)
 
