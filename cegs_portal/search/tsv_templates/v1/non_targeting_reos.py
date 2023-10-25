@@ -29,7 +29,7 @@ def non_targeting_regulatory_effects(data):
                 source.location.lower,
                 source.location.upper,
                 feature.name,
-                feature.strand,
+                feature.strand if feature.strand is not None else ".",
                 ".",
                 format_float(reo.effect_size),
                 reo.direction,
@@ -40,6 +40,6 @@ def non_targeting_regulatory_effects(data):
                 reo.accession_id,
             ]
 
-        tsv_data.append(row)
+            tsv_data.append(row)
 
     return tsv_data

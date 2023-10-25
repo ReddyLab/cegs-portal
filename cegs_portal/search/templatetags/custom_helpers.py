@@ -9,7 +9,7 @@ def remove_underscores(value):
 
 
 @register.filter
-def format_significance(significance):
+def format_float(significance):
     if significance < 0.000001:
         return f"{significance:.2e}"
     else:
