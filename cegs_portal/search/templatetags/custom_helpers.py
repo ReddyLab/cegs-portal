@@ -11,6 +11,6 @@ def remove_underscores(value):
 @register.filter
 def format_significance(significance):
     if significance < 0.000001:
-        return "{:.2e}".format(significance)
+        return f"{significance:.2e}"
     else:
-        return "{:.6f}".format(significance)
+        return f"{significance:.6f}"
