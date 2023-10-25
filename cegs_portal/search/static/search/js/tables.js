@@ -63,12 +63,12 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", {class: "chrom-first-end-cap"}, "Effect Size (log2FC)"),
-            e("th", "Direction"),
-            e("th", "Significance (p-value)"),
-            e("th", "Experiment"),
-            e("th", "Target"),
-            e("th", {class: "chrom-last-end-cap"},"REO Details"),
+            e("th", {class: "chrom-first-end-cap chrom-light-band"}, "Effect Size (log2FC)"),
+            e("th", {class: "chrom-dark-band"}, "Direction"),
+            e("th", {class: "chrom-light-band"}, "Significance (p-value)"),
+            e("th", {class: "chrom-light-band chrom-right-centromere"}, "Experiment"),
+            e("th", {class: "chrom-light-band chrom-left-centromere"}, "Target"),
+            e("th", {class: "chrom-last-end-cap chrom-dark-band"}, "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {

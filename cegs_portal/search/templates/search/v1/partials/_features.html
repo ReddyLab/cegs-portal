@@ -2,14 +2,14 @@
     <div>
         <table class="data-table">
             <tr>
-                <th class="chrom-first-end-cap">ID</th>
-                <th>Name</th>
-                <th>Feature Type</th>
-                <th>Cell Line</th>
-                <th>Location</th>
-                <th>Strand</th>
-                <th>Closest Gene</th>
-                <th class="chrom-last-end-cap">Reference Genome</th>
+                <th class="chrom-first-end-cap chrom-light-band">ID</th>
+                <th class="chrom-light-band">Name</th>
+                <th class="chrom-dark-band">Feature Type</th>
+                <th class="chrom-light-band">Cell Line</th>
+                <th class="chrom-light-band">Location</th>
+                <th class="chrom-right-centromere chrom-light-band">Strand</th>
+                <th class="chrom-left-centromere chrom-light-band">Closest Gene</th>
+                <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
             </tr>
             {% for feature in features %}
                 <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">

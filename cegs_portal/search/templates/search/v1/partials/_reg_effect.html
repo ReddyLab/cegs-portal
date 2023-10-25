@@ -13,13 +13,13 @@
 
 <table class="data-table">
     <tr>
-        <th class="chrom-first-end-cap">Accession ID</th>
-        <th>Effect Size</th>
-        <th>Direction</th>
-        <th>Significance</th>
-        <th>Experiment</th>
-        <th>Target Gene</th>
-        <th class="chrom-last-end-cap">Target Gene Location</th>
+        <th class="chrom-first-end-cap chrom-light-band">Accession ID</th>
+        <th class="chrom-dark-band">Effect Size</th>
+        <th class="chrom-light-band">Direction</th>
+        <th class="chrom-light-band chrom-right-centromere">Significance</th>
+        <th class="chrom-light-band chrom-left-centromere">Experiment</th>
+        <th class="chrom-dark-band">Target Gene</th>
+        <th class="chrom-last-end-cap chrom-dark-band">Target Gene Location</th>
     </tr>
     {% for regeffect in features %} {% for re_target in regeffect.targets.all %}
     <tr>
