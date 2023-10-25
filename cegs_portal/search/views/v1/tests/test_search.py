@@ -579,6 +579,8 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     )  # strip out spaces in blank lines
     expected_string = f"""
 <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
+
+
 <table class="data-table no-hover">
     <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
 
