@@ -3,16 +3,16 @@
 
 {% block title %}Regulatory Effect Observations{% endblock %}
 {% block content %}
-<div>
+<div class="container">
     <div class="text-xl font-bold">Regulatory Effect Observations</div>
     <table class="data-table">
         <tr>
-            <th class="chrom-first-end-cap">ID</th>
-            <th>Effect Size (log2FC)</th>
-            <th>Direction</th>
-            <th>Significance<br />(p-value)</th>
-            <th>Experiment</th>
-            <th class="chrom-last-end-cap">Target Gene</th>
+            <th class="chrom-first-end-cap chrom-light-band">ID</th>
+            <th class="chrom-light-band">Effect Size (log2FC)</th>
+            <th class="chrom-dark-band">Direction</th>
+            <th class="chrom-right-centromere chrom-light-band">Significance<br />(p-value)</th>
+            <th class="chrom-left-centromere chrom-light-band">Experiment</th>
+            <th class="chrom-last-end-cap chrom-dark-band">Target Gene</th>
         </tr>
         {% for regeffect in regeffects %}
             {% for re_target in regeffect.targets.all %}
