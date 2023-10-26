@@ -6,3 +6,11 @@ register = template.Library()
 @register.filter
 def remove_underscores(value):
     return value.replace("_", " ")
+
+
+@register.filter
+def format_float(value):
+    if abs(value) < 0.000001:
+        return f"{value:.2e}"
+    else:
+        return f"{value:.6f}"
