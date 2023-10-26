@@ -225,51 +225,6 @@ function reTargetTable(regeffects, regionID = "regeffect") {
     return tableContainer;
 }
 
-function reoNonTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table"}, [
-        e("tr", [
-            e("th", {class: "chrom-first-end-cap"}, "Location"),
-            e("th", "Effect Size"),
-            e("th", "Direction"),
-            e("th", "Significance"),
-            e("th", "Distance from TSS"),
-            e("th", "Tested Element"),
-            e("th", {class: "chrom-last-end-cap"}, "Experiment"),
-        ]),
-    ]);
-    for (let effect of regeffects) {
-        if (effect.source_ids == 0) {
-            effect.source_ids = [null];
-        }
-        for (const source of effect.source_ids) {
-            newTable.append(
-                e("tr", [
-                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e(
-                        "td",
-                        `${
-                            Math.abs(effect.effect_size) > 0.0000001
-                                ? effect.effect_size.toFixed(6)
-                                : effect.effect_size.toExponential(2)
-                        }`
-                    ),
-                    e("td", `${effect.direction}`),
-                    e(
-                        "td",
-                        `${
-                            effect.significance > 0.0000001
-                                ? effect.significance.toFixed(6)
-                                : effect.significance.toExponential(2)
-                        }`
-                    ),
-                ])
-            );
-        }
-    }
-    let tableContainer = e("div", {}, [newTable]);
-    return tableContainer;
-}
-
 function newPagination(paginationID, pageData, idPrefix = "", pageQueryParam = "page") {
     if (idPrefix != "") {
         idPrefix = `${idPrefix}_`;
@@ -375,5 +330,4 @@ export {
     emptyRETable,
     reTable,
     reTargetTable,
-    reoNonTargetTable,
 };
