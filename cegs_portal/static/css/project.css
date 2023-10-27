@@ -726,6 +726,11 @@ a:visited {
   text-decoration: none;
 }
 
+.svg-icon {
+  fill: currentColor;
+  height: 1em;
+}
+
 .tab-bar {
   background: #ffffff;
   border-radius: 10px;
@@ -943,6 +948,16 @@ input[type="submit"], input[type="button"], button {
   top: 0px;
 }
 
+.mx-1 {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+.mx-1\.5 {
+  margin-left: 0.375rem;
+  margin-right: 0.375rem;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1023,10 +1038,6 @@ input[type="submit"], input[type="button"], button {
 
 .mr-2 {
   margin-right: 0.5rem;
-}
-
-.mr-2\.5 {
-  margin-right: 0.625rem;
 }
 
 .mr-4 {
@@ -1111,6 +1122,10 @@ input[type="submit"], input[type="button"], button {
   height: 1.5rem;
 }
 
+.h-7 {
+  height: 1.75rem;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
@@ -1129,6 +1144,10 @@ input[type="submit"], input[type="button"], button {
 
 .w-60 {
   width: 15rem;
+}
+
+.w-7 {
+  width: 1.75rem;
 }
 
 .w-72 {

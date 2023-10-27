@@ -73,6 +73,11 @@
     background-color: rgb(249, 250, 251);
   }
 
+  .svg-icon {
+      fill: currentColor;
+      height: 1em;
+  }
+
   .tab-bar {
       background: #ffffff;
       border-radius: 10px;
