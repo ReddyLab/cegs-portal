@@ -18,14 +18,14 @@ export function facetFilterSetup() {
                         "a",
                         {
                             href: `/search/experiment/${expr.accession_id}`,
-                            class: "content-container-link experiment-summary",
+                            class: "exp-list-content-container-link experiment-summary",
                             "data-accession": expr.accession_id,
                             "data-name": expr.name,
                         },
                         e(
                             "div",
                             {
-                                class: "content-container",
+                                class: "container",
                             },
                             [
                                 e("div", {class: "flex justify-between"}, [
