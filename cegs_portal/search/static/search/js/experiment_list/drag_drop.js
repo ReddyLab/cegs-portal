@@ -38,7 +38,10 @@ function addRemoveListener(node, accession) {
             );
             g("selected-experiment-list").before(noExperiments);
 
-            rc(g("dataDownloadLink"), t("Please select at least one experiment."));
+            let dataDownloadLink = g("dataDownloadLink");
+            if (dataDownloadLink) {
+                rc(dataDownloadLink, t("Please select at least one experiment."));
+            }
 
             let experiments_link = g("experiments-link");
             if (experiments_link) {
@@ -68,7 +71,11 @@ function addToExperimentList(experimentItemText) {
     addRemoveListener(close, newAccession);
     experimentItem.before(close);
     a(selectedExperimentList, e("div", {id: `${newAccession}-list-item`}, [close, experimentItem]));
-    cc(g("dataDownloadLink"));
+
+    let dataDownloadLink = g("dataDownloadLink");
+    if (dataDownloadLink) {
+        cc(dataDownloadLink);
+    }
 
     let noExperiments = g("no-selected-experiments");
     if (noExperiments) {
