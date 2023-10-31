@@ -7,14 +7,6 @@
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 <style>
-    .search-results-container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 40px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-    }
-
     g.tick > text {
         font-size: 2em;
     }
@@ -177,7 +169,7 @@
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 flex-none">
-            <div id="facets" class="search-results-container">
+            <div id="facets" class="container">
                 <div class="w-60">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
@@ -227,7 +219,7 @@
                 </div>
             </div>
             {% if logged_in %}
-            <div class="search-results-container">
+            <div class="container">
                 <form name="dataDownloadForm">
                     <div>
                         <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
@@ -241,11 +233,11 @@
 
         <div class="flex flex-col gap-4">
             {% if feature_counts %}
-            <div class="search-results-container" id="feature-counts">
+            <div class="container" id="feature-counts">
             {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
             </div>
             {% endif %}
-            <div class="search-results-container basis-3/4" id="sig-reg-effects">
+            <div class="container basis-3/4" id="sig-reg-effects">
             {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
             </div>
         </div>
