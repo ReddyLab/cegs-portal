@@ -6,7 +6,7 @@ use exp_viz::filter_coverage_data as fcd;
 #[pyfunction]
 pub fn filter_coverage_data(filters: &PyFilter, data: &PyCoverageData) -> PyResult<PyFilteredData> {
     let filtered_data = fcd(&filters.as_filter(), &data.wraps);
-    Ok(PyFilteredData::from_filtered_data(&filtered_data))
+    Ok(PyFilteredData { filtered_data })
 }
 
 #[pyfunction]

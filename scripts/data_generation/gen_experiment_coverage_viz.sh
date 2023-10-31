@@ -31,7 +31,7 @@ gen_data() {
     fi
 
     cov_viz ${OUTPUT_DIR} ${ANALYSIS} ${GENOME}
-    cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.bin ${OUTPUT_DIR} ${DEFAULT_FACETS}
+    cov_viz_manifest ${GENOME} ${OUTPUT_DIR}/level1.ecd ${OUTPUT_DIR} ${DEFAULT_FACETS}
     cov_viz ${OUTPUT_DIR} ${ANALYSIS} ${GENOME} 100000 chr1
     cov_viz ${OUTPUT_DIR} ${ANALYSIS} ${GENOME} 100000 chr2
     cov_viz ${OUTPUT_DIR} ${ANALYSIS} ${GENOME} 100000 chr3
