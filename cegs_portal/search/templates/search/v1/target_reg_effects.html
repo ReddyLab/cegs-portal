@@ -2,17 +2,18 @@
 {% load static i18n %}
 
 {% block title %}Target of Regulatory Effect Observations{% endblock %}
+
 {% block content %}
-<div>
+<div class="container">
     <div class="text-xl font-bold">Target of Regulatory Effect Observations</div>
     <table class="data-table">
         <tr>
-            <th>ID</th>
-            <th>Effect Size (log2FC)</th>
-            <th>Direction</th>
-            <th>Significance<br />(p-value)</th>
-            <th>Experiment</th>
-            <th>Tested Element(s)</th>
+            <th class="chrom-first-end-cap chrom-light-band">ID</th>
+            <th class="chrom-dark-band">Effect Size (log2FC)</th>
+            <th class="chrom-light-band">Direction</th>
+            <th class="chrom-right-centromere chrom-light-band">Significance<br />(p-value)</th>
+            <th class="chrom-left-centromere chrom-light-band">Experiment</th>
+            <th class="chrom-last-end-cap chrom-dark-band">Tested Element(s)</th>
         </tr>
         {% for regeffect in regeffects %}
             {% for re_source in regeffect.sources.all %}

@@ -1,84 +1,4 @@
 {% load humanize %}
-<style>
-    .container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 40px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-    }
-    .table-title {
-        text-align: center;
-        font-family: Arial, sans-serif;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: rgb(107, 107, 107);
-    }
-    .data-table {
-        border-collapse: collapse;
-        width: 100%;
-        font-family: Arial, sans-serif;
-    }
-    .data-table th {
-        padding: 6px;
-        text-align: left;
-        background-color: #ddd;
-        color: gray;
-        font-weight: bold;
-    }
-    .data-table th:first-child,
-    .data-table th:nth-child(5) {
-        border-top-left-radius: 10px 50%;
-        border-bottom-left-radius: 10px 50%;
-    }
-    .data-table th:nth-child(4),
-    .data-table th:last-child {
-        border-top-right-radius: 10px 50%;
-        border-bottom-right-radius: 10px 50%;
-    }
-
-    .data-table th:nth-child(2) {
-        background-color: #b7b5b5;
-        color: white;
-    }
-
-    .data-table th:nth-child(6) {
-        background-color: #b7b5b5;
-        color: white;
-    }
-
-    .data-table td {
-        padding: 12px;
-        border-bottom: 1px solid lightgrey;
-    }
-
-    .data-table a,
-    .data-table a:visited {
-        color: #3490dc;
-        text-decoration: none;
-        /* font-weight: bold; */
-    }
-
-    .direction {
-        font-style: italic;
-    }
-    .experiment-name,
-    .accession-id {
-        font-weight: 300;
-    }
-    .table-title,
-    .svg-icon {
-        margin-right: 10px;
-        fill: currentColor;
-        height: 1em;
-    }
-
-    .target_name {
-        font-weight: bold;
-    }
-
-</style>
 
 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="svg-icon">
@@ -93,13 +13,13 @@
 
 <table class="data-table">
     <tr>
-        <th>Accession ID</th>
-        <th>Effect Size</th>
-        <th>Direction</th>
-        <th>Significance</th>
-        <th>Experiment</th>
-        <th>Target Gene</th>
-        <th>Target Gene Location</th>
+        <th class="chrom-first-end-cap chrom-light-band">Accession ID</th>
+        <th class="chrom-dark-band">Effect Size</th>
+        <th class="chrom-light-band">Direction</th>
+        <th class="chrom-light-band chrom-right-centromere">Significance</th>
+        <th class="chrom-light-band chrom-left-centromere">Experiment</th>
+        <th class="chrom-dark-band">Target Gene</th>
+        <th class="chrom-last-end-cap chrom-dark-band">Target Gene Location</th>
     </tr>
     {% for regeffect in features %} {% for re_target in regeffect.targets.all %}
     <tr>
@@ -110,7 +30,7 @@
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
             {{ regeffect.effect_size|stringformat:".3e" }}
         </td>
-        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="direction">
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup" class="italic">
             {{ regeffect.direction }}
         </td>
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">
@@ -122,7 +42,7 @@
             >
         </td>
         {% endif %}
-        <td class="target_name">
+        <td class="font-bold">
             <a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a>
         </td>
         <td>

@@ -2,9 +2,9 @@
 <div>
     <table class="data-table">
         <tr>
-            <th>Element</th>
-            <th>Closest Gene</th>
-            <th>Reference Genome</th>
+            <th class="chrom-first-end-cap chrom-light-band">Element</th>
+            <th class="chrom-dark-band chrom-right-centromere">Closest Gene</th>
+            <th class="chrom-last-end-cap chrom-light-band chrom-left-centromere">Reference Genome</th>
         </tr>
         {% for feature in features %}
             <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
