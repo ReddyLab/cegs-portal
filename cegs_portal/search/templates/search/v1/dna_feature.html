@@ -50,12 +50,12 @@
                     {% if feature.name %}
                         <span>{{ feature.name }}</span>
                         {% if feature.ensembl_id %}
-                            <span>({{ feature.ensembl_id }})</span>
+                            <span class="text-2xl">({{ feature.ensembl_id }})</span>
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }} @
                         <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                            <span class="profile-sub-header">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
+                            <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                         </a>
                     {% endif %}
                 </h1>

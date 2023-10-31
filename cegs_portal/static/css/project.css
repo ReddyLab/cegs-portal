@@ -764,11 +764,6 @@ h1 {
           align-items: center;
 }
 
-h1 span:nth-child(3),
-  span:nth-child(4) {
-  font-size: 1.5rem;
-}
-
 .data-table a,
   .data-table a:visited {
   color: #3490dc;
@@ -837,10 +832,6 @@ h1 span:nth-child(3),
 
 tr[data-href]:hover {
   cursor: pointer;
-}
-
-.profile-sub-header {
-  font-size: 1.5rem;
 }
 
 .profile-table {

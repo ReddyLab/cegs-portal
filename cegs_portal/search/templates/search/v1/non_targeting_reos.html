@@ -15,7 +15,8 @@
                 />
             </svg>
                 <span>{{ feature.name }}</span>
-                <span>({{ feature.ensembl_id}})</span>
+                <span class="text-2xl">({{ feature.ensembl_id}})</span>
+        </h1>
     </div>
     <div class="title-separator"></div>
     <div class="container">
@@ -27,7 +28,6 @@
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
                 <th>Feature Subtype</th>
-
             </tr>
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
