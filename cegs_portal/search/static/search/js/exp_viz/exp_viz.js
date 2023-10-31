@@ -640,7 +640,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                         [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
                         false
                     );
-                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
+                    state.u(STATE_ITEM_COUNTS, [
+                        response_json.reo_count,
+                        response_json.source_count,
+                        response_json.target_count,
+                    ]);
                 }
             );
         }, 300)
@@ -661,7 +665,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                         STATE_COVERAGE_DATA,
                         mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
                     );
-                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
+                    state.u(STATE_ITEM_COUNTS, [
+                        response_json.reo_count,
+                        response_json.source_count,
+                        response_json.target_count,
+                    ]);
                 }
             );
         }, 300)

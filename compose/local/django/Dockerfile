@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.11.2-slim-bullseye
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
 
-FROM ghcr.io/pyo3/maturin@sha256:8abfe13660da007d878fbadcf3b11eb6f49a677de6ccb8ad50b600af01fc6767 AS maturin
+FROM ghcr.io/pyo3/maturin@sha256:be0e6b84bcbb67d734cd01774c840ab89efc1efba93107a8bae0a274d4c38ac5 AS maturin
 
 WORKDIR /exp_viz
 
@@ -62,8 +62,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
-COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.1.9-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels/
+COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
