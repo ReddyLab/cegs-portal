@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load custom_helpers %}
 <div id="modal">
 <div class="modal-underlay" onclick="closeModal()"></div>
 <div class="content-container modal-content" id="feature-sig-reg-effects">
@@ -18,14 +19,14 @@
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         <tr class="{{ rowcolors }}">
             <td>
-                <div>Source Locations: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} @ {{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% if regeffect.targets.exists %}
                 <div>Target Genes: {% for gene in regeffect.targets.all %}<a href="{% url 'search:dna_features' 'accession' gene.accession_id %}">{{ gene.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% endif %}
             </td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{% if regeffect.effect_size < 0.000001 and regeffect.effect_size > -0.000001 %}{{ regeffect.effect_size|stringformat:".2e" }}{% else %}{{ regeffect.effect_size|stringformat:".6f" }}{% endif %}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{% if regeffect.significance < 0.000001 %}{{ regeffect.significance|stringformat:".2e" }}{% else %}{{ regeffect.significance|stringformat:".6f" }}{% endif %}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{% if regeffect.raw_p_value < 0.000001 %}{{ regeffect.raw_p_value|stringformat:".2e" }}{% else %}{{ regeffect.raw_p_value|stringformat:".6f" }}{% endif %}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.effect_size|format_float }}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.significance|format_float }}</a></td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.raw_p_value|format_float }}</a></td>
             <td><a href="{% url 'search:experiment' regeffect.experiment_accession_id %}">{{ regeffect.experiment.name }}</a></td>
         </tr>
         {% endfor %}

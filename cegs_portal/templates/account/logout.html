@@ -6,7 +6,7 @@
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        font-family: "Arial", sans-serif;
+        font-family: sans-serif;
         color: #094474;
         max-width: 800px;
         margin: 0 auto;
@@ -48,11 +48,6 @@
         line-height: 1.75rem;
     }
 
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-top: 10px;
-    }
-
     a:visited {
         text-decoration: none;
         color: #ffffff;
@@ -63,7 +58,7 @@
 <div class="container">
     <form method="post" action="{% url 'account_logout' %}">
         <h1>{% translate "Sign Out" %} <i class="bi bi-door-open"></i></h1>
-        <div class="faded-line my-3.5"></div>
+        <div class="title-separator my-3.5"></div>
         <p>{% translate 'Are you sure you want to sign out?' %}</p>
         {% csrf_token %} {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />

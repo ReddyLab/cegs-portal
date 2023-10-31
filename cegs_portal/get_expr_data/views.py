@@ -303,7 +303,6 @@ class ExperimentDataView(LoginRequiredMixin, View):
 
 class ExperimentDataProgressView(LoginRequiredMixin, View):
     def get(self, request, filename, *args, **kwargs):
-        print(request.user)
         if not validate_filename(filename):
             raise BadRequest(f"Invalid filename: {filename}")
 

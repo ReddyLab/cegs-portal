@@ -1,104 +1,20 @@
 {% extends "base.html" %}
 {% load static i18n %}
 {% load humanize %}
+{% load custom_helpers %}
 {% block css %}
 {{ block.super }}
 <style>
-    .reg-effect-content-container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 40px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-        width: 1140px;
-    }
-
-    .direction {
-        font-style: italic;
-    }
-
     .experiment-name,
     .accession-id {
         font-weight: 300;
-    }
-
-    h1 {
-        font-size: 2rem;
-        color: #094474;
-        text-shadow: 2px 2px #e3f2fd;
-        margin-bottom: 10px;
-        margin-left: 40px;
-        display: flex;
-        align-items: center;
-    }
-
-    .table-title,
-    .svg-icon {
-        fill: currentColor;
-        height: 1em;
-    }
-
-    h1 svg {
-        fill: currentColor;
-        height: 1em;
-    }
-
-    h1 span:nth-child(3),
-    span:nth-child(4) {
-        font-size: 1.5rem;
-    }
-
-    .target_name {
-        font-weight: bold;
-    }
-
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
-    }
-
-    .profile-table {
-        font-family: sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    .profile-table td,
-    .profile-table th {
-        border: 1px solid #ddd;
-        padding: 8px;
-    }
-
-    .profile-table tr:nth-child(odd) {
-        background-color: #f2f2f2;
-    }
-
-    .profile-table tr:hover {
-        background-color: #ddd;
-    }
-
-    .profile-table th {
-        padding-top: 12px;
-        padding-bottom: 12px;
-        text-align: left;
-        background-color: #f2f2f2;
-        color: black;
     }
 
     .experiment_name {
         text-decoration: none;
         margin-right: 5px;
         margin-left: 5px;
-    }
-
-    a,
-    a:visited {
-        color: #3490dc;
-    }
-
-    .profile-feature-faded-line {
-        border-top: 1px solid rgb(133, 139, 146);
-        margin-bottom: 15px;
+        color: #3490dc
     }
 
     .experiment-header-title {
@@ -115,29 +31,29 @@
 
 {% block content %}
 <div>
-    <div class="profile-feature-faded-line"></div>
+    <div class="title-separator"></div>
     <div class="flex flex-col items-center justify-center mb-3.5">
         <div>
             <h1>
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512" class="svg-icon mr-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="svg-icon mr-1.5">
                     <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>
                 </svg>
-                <span>{{ regulatory_effect.accession_id }}</span> <span class="ml-1">(Regulatory Effect Observation)</span>
+                <span>{{ regulatory_effect.accession_id }}</span> <span class="ml-1 text-2xl">(Regulatory Effect Observation)</span>
             </h1>
         </div>
         <div class="experiment-header-title flex items-center justify-center">
             Experiment:
             <a href="{% url 'search:experiment' regulatory_effect.experiment.accession_id %}" class="experiment_name">
-                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="svg-icon inline mr-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon inline mr-1.5">
                     <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
                 </svg>{{ regulatory_effect.experiment.name }}</a>
         </div>
     </div>
-    <div class="profile-feature-faded-line"></div>
+    <div class="title-separator"></div>
     {% spaceless %}
-    <div class="reg-effect-content-container">
+    <div class="container">
         <table class="profile-table">
             <tr>
                 <th>Direction</th>
@@ -150,10 +66,10 @@
                 {% endif %}
             </tr>
             <tr>
-                <td>{{ regulatory_effect.direction }}</td>
-                <td>{{ regulatory_effect.effect_size }}</td>
-                <td>{% if regulatory_effect.significance < 0.000001 %}{{ regulatory_effect.significance|stringformat:".2e" }}{% else %}{{ regulatory_effect.significance|stringformat:".6f" }}{% endif %}</td>
-                <td>{% if regulatory_effect.raw_p_value < 0.000001 %}{{ regulatory_effect.raw_p_value|stringformat:".2e" }}{% else %}{{ regulatory_effect.raw_p_value|stringformat:".6f" }}{% endif %}</td>
+                <td class="italic">{{ regulatory_effect.direction }}</td>
+                <td>{{ regulatory_effect.effect_size|format_float }}</td>
+                <td>{{ regulatory_effect.significance|format_float }}</td>
+                <td>{{ regulatory_effect.raw_p_value|format_float }}</td>
                 <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
                 {% if regulatory_effect.tissue_types.exist %}
                 <td>{{ regulatory_effect.tissue_types|join:", " }}</td>
@@ -163,21 +79,21 @@
     </div>
 
     {% if regulatory_effect.sources.exists %}
-    <div class="reg-effect-content-container">
+    <div class="container">
         <div class="table-title flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512" class="svg-icon mr-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-1.5">
                 <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                 <path d="M315.4 15.5C309.7 5.9 299.2 0 288 0s-21.7 5.9-27.4 15.5l-96 160c-5.9 9.9-6.1 22.2-.4 32.2s16.3 16.2 27.8 16.2H384c11.5 0 22.2-6.2 27.8-16.2s5.5-22.3-.4-32.2l-96-160zM288 312V456c0 22.1 17.9 40 40 40H472c22.1 0 40-17.9 40-40V312c0-22.1-17.9-40-40-40H328c-22.1 0-40 17.9-40 40zM128 512a128 128 0 1 0 0-256 128 128 0 1 0 0 256z"/>
             </svg>
             Tested Elements
         </div>
-        <div class="faded-line"></div>
+        <div class="title-separator"></div>
         {% include "search/v1/partials/_reg_effect_source.html" with features=regulatory_effect.sources.all %}
     </div>
     {% endif %}
 
     {% if regulatory_effect.targets.exists %}
-    <div class="reg-effect-content-container">
+    <div class="container">
         <div class="table-title flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-1.5">
                 <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -189,7 +105,7 @@
             </svg>
             Target Genes
         </div>
-        <div class="faded-line"></div>
+        <div class="title-separator"></div>
         {% include "search/v1/partials/_reg_effect_target.html" with features=regulatory_effect.targets.all %}
     </div>
     {% endif %}

@@ -13,12 +13,12 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureNonTargetSearch
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
-    TemplateJsonView,
+    MultiResponseFormatView,
 )
 from cegs_portal.utils.pagination_types import Pageable
 
 
-class NonTargetRegEffectsView(ExperimentAccessMixin, TemplateJsonView):
+class NonTargetRegEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = non_targeting_regulatory_effects
     tsv_renderer = ntre_tsv
     template = "search/v1/non_targeting_reos.html"

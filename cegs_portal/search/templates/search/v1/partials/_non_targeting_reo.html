@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load custom_helpers %}
 {% load static %}
 
 <div class="container min-w-full">
@@ -6,7 +7,7 @@
     <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
         <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
             <i class="bi bi-geo-alt-fill location-tab-icon"></i>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon mr-1">
                 <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                 <path
                     d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
@@ -22,13 +23,13 @@
     <div class="title-separator"></div>
     <table class="data-table">
         <tr>
-            <th>Location</th>
-            <th>Effect Size (log2FC)</th>
-            <th>Direction</th>
-            <th>Significance<br />(p-value)</th>
-            <th>Distance from TSS (bp)</th>
-            <th>Source Type</th>
-            <th>Experiment</th>
+            <th class="chrom-light-band chrom-first-end-cap">Location</th>
+            <th class="chrom-dark-band">Effect Size (log2FC)</th>
+            <th class="chrom-light-band">Direction</th>
+            <th class="chrom-light-band">Significance<br />(p-value)</th>
+            <th class="chrom-light-band chrom-right-centromere">Distance from TSS (bp)</th>
+            <th class="chrom-light-band chrom-left-centromere"Tested Element Type</th>
+            <th class="chrom-last-end-cap chrom-dark-band">Experiment</th>
         </tr>
         {% for reo in non_targeting_reos %}
         {% with first_source=reo.sources.all.0 %}
@@ -36,9 +37,9 @@
             <td>
                 <span>{{ first_source.chrom_name }}: {{ first_source.location.lower|intcomma }} - {{ first_source.location.upper|add:"-1"|intcomma }}</span>
             </td>
-            <td>{{ reo.effect_size }}</td>
+            <td>{{ reo.effect_size|format_float }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{% if reo.significance < 0.000001 %}{{ reo.significance|stringformat:".2e" }}{% else %}{{ reo.significance|stringformat:".6f" }}{% endif %}</td>
+            <td>{{ reo.significance|format_float }}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">

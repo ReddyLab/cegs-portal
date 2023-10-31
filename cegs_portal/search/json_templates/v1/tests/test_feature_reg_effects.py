@@ -22,7 +22,6 @@ def test_source_reg_effect(paged_source_reg_effects: Pageable[RegulatoryEffectOb
     }
 
     assert feature_reg_effects(paged_source_reg_effects) == results
-    assert feature_reg_effects(paged_source_reg_effects, {"json_format": "genoverse"}) == results
 
 
 def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
@@ -48,4 +47,3 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
     }
 
     assert regulatory_effect(reg_effect) == results
-    assert regulatory_effect(reg_effect, {"json_format": "genoverse"}) == results

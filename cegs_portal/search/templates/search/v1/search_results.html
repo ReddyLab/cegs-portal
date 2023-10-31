@@ -7,14 +7,6 @@
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 <style>
-    .content-container {
-        background: #ffffff;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 40px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-    }
-
     g.tick > text {
         font-size: 2em;
     }
@@ -23,33 +15,11 @@
         font-size: 2em;
     }
 
-    .header {
+    .search-results-header {
         font-family: sans-serif;
         font-size: 2rem;
         color: #094474;
         text-shadow: 2px 2px #e3f2fd;
-    }
-
-    .header svg {
-        fill: currentColor;
-        height: 1em;
-        display: inline;
-    }
-
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-
-    .facet-svg {
-        fill: currentColor;
-        height: 1em;
-    }
-
-    table.data-table th {
-        padding: 12px;
-        border-bottom: 1px solid lightgrey;
     }
 
     a.count-link {
@@ -167,8 +137,8 @@
     <div class="grow flex flex-col items-center min-w-full grow-0">
         <div class="flex flex-row min-w-full justify-around">
             {% if region %}
-            <div class="header">
-                <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 512 512">
+            <div class="search-results-header">
+                <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 512 512" class="svg-icon inline">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
                 </svg>
@@ -199,15 +169,15 @@
 
     <div class="flex flex-row items-start gap-x-10 min-w-full">
         <div class="flex flex-col gap-4 flex-none">
-            <div id="facets" class="content-container">
+            <div id="facets" class="container">
                 <div class="w-60">
                     <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="facet-svg h-6 w-6 mr-2 text-slate-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
                             <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                         </svg>
                         <div class="text-xl font-bold text-slate-500">Filter Facets</div>
                     </div>
-                    <div class="faded-line"></div>
+                    <div class="title-separator"></div>
                     {% for facet in facets.all %}
                         <fieldset name="facetfield">
                             <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
@@ -249,7 +219,7 @@
                 </div>
             </div>
             {% if logged_in %}
-            <div class="content-container">
+            <div class="container">
                 <form name="dataDownloadForm">
                     <div>
                         <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
@@ -263,11 +233,11 @@
 
         <div class="flex flex-col gap-4">
             {% if feature_counts %}
-            <div class="content-container" id="feature-counts">
+            <div class="container" id="feature-counts">
             {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
             </div>
             {% endif %}
-            <div class="content-container basis-3/4" id="sig-reg-effects">
+            <div class="container basis-3/4" id="sig-reg-effects">
             {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
             </div>
         </div>
@@ -279,7 +249,6 @@
         import { a, e, g, rc, t } from "{% static 'search/js/dom.js' %}";
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
-        import { sigReoTable } from "{% static 'search/js/tables.js' %}"
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
 
         let searchURL = function(facets) {

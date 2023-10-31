@@ -579,14 +579,16 @@ def test_sigdata(reg_effects, login_client: SearchClient):
     )  # strip out spaces in blank lines
     expected_string = f"""
 <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
-<table class="data-table">
+
+
+<table class="data-table no-hover">
     <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
 
 
 
         <tr class="">
             <td>
-                <div>Source Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
+                <div>Tested Element Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
 
             </td>
             <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.6f}</a></td>
@@ -599,7 +601,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
 
         <tr class="">
             <td>
-                <div>Source Locations: </div>
+                <div>Tested Element Location: </div>
 
                 <div>Target Genes: <a href="/search/feature/ensembl/{target.ensembl_id}">{target.name}</a></div>
 

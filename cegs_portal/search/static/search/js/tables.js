@@ -7,14 +7,14 @@ function emptyFeatureTable(emptyString, regionID = "dnafeature") {
 function featureTable(features, regionID = "dnafeature") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Name"),
-            e("th", "Feature Type"),
-            e("th", "Cell Line"),
-            e("th", "Location"),
-            e("th", "Strand"),
-            e("th", "Closest Gene"),
-            e("th", "Reference Genome"),
-            e("th", "Parent"),
+            e("th", {class: "chrom-first-end-cap chrom-light-band"}, "Name"),
+            e("th", {class: "chrom-light-band"}, "Feature Type"),
+            e("th", {class: "chrom-dark-band"}, "Cell Line"),
+            e("th", {class: "chrom-light-band"}, "Location"),
+            e("th", {class: "chrom-light-band chrom-right-centromere"},"Strand"),
+            e("th", {class: "chrom-light-band chrom-left-centromere"},"Closest Gene"),
+            e("th", {class: "chrom-dark-band"},"Reference Genome"),
+            e("th", {class: "chrom-last-end-cap chrom-light-band"}, "Parent"),
         ]),
     ]);
     for (const feature of features) {
@@ -30,7 +30,7 @@ function featureTable(features, regionID = "dnafeature") {
             e("td", feature.strand || "None"),
             e(
                 "td",
-                {class: "closest-gene"},
+                {class: "font-bold"},
                 feature.closest_gene_ensembl_id
                     ? e(
                           "a",
@@ -63,12 +63,12 @@ function emptyRETable(emptyString, regionID = "regeffect") {
 function reTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Effect Size (log2FC)"),
-            e("th", "Direction"),
-            e("th", "Significance (p-value)"),
-            e("th", "Experiment"),
-            e("th", "Target"),
-            e("th", "REO Page"),
+            e("th", {class: "chrom-first-end-cap chrom-light-band"}, "Effect Size (log2FC)"),
+            e("th", {class: "chrom-dark-band"}, "Direction"),
+            e("th", {class: "chrom-light-band"}, "Significance (p-value)"),
+            e("th", {class: "chrom-light-band chrom-right-centromere"}, "Experiment"),
+            e("th", {class: "chrom-light-band chrom-left-centromere"}, "Target"),
+            e("th", {class: "chrom-last-end-cap chrom-dark-band"}, "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -140,12 +140,12 @@ function reTable(regeffects, regionID = "regeffect") {
 function reTargetTable(regeffects, regionID = "regeffect") {
     let newTable = e("table", {id: regionID, class: "data-table"}, [
         e("tr", [
-            e("th", "Tested Element(s)"),
-            e("th", "Effect Size (log2FC)"),
-            e("th", "Direction"),
-            e("th", ["Significance", e("br"), "(p-value)"]),
-            e("th", "Experiment"),
-            e("th", "REO Page"),
+            e("th", {class: "chrom-first-end-cap chrom-light-band"}, "Tested Element(s)"),
+            e("th", {class: "chrom-dark-band"}, "Effect Size (log2FC)"),
+            e("th", {class: "chrom-light-band"}, "Direction"),
+            e("th", {class: "chrom-light-band chrom-right-centromere"}, ["Significance", e("br"), "(p-value)"]),
+            e("th", {class: "chrom-light-band chrom-left-centromere"}, "Experiment"),
+            e("th", {class: "chrom-last-end-cap chrom-dark-band"}, "REO Details"),
         ]),
     ]);
     for (let effect of regeffects) {
@@ -165,9 +165,9 @@ function reTargetTable(regeffects, regionID = "regeffect") {
                           e(
                               "a",
                               {href: `/search/feature/accession/${source_id}`},
-                              `${source_type} (${source_chrom}: ${source_loc[0].toLocaleString()}-${source_loc[1].toLocaleString()}:${
-                                  source_loc[2]
-                              })`
+                              `${source_type} @ ${source_chrom}: ${source_loc[0].toLocaleString()}-${source_loc[1].toLocaleString()}${
+                                  source_loc[2] ? ":" + source_loc[2] : ""
+                              }`
                           )
                       ),
                 e(
@@ -223,126 +223,6 @@ function reTargetTable(regeffects, regionID = "regeffect") {
     }
     let tableContainer = e("div", {}, [newTable]);
     return tableContainer;
-}
-
-function reoNonTargetTable(regeffects, regionID = "regeffect") {
-    let newTable = e("table", {id: regionID, class: "data-table"}, [
-        e("tr", [
-            e("th", "Location"),
-            e("th", "Effect Size"),
-            e("th", "Direction"),
-            e("th", "Significance"),
-            e("th", "Distance from TSS"),
-            e("th", "Source"),
-            e("th", "Experiment"),
-        ]),
-    ]);
-    for (let effect of regeffects) {
-        if (effect.source_ids == 0) {
-            effect.source_ids = [null];
-        }
-        for (const source of effect.source_ids) {
-            newTable.append(
-                e("tr", [
-                    e("td", e("a", {href: `/search/regeffect/${effect.accession_id}`}, effect.accession_id)),
-                    e(
-                        "td",
-                        `${
-                            Math.abs(effect.effect_size) > 0.0000001
-                                ? effect.effect_size.toFixed(6)
-                                : effect.effect_size.toExponential(2)
-                        }`
-                    ),
-                    e("td", `${effect.direction}`),
-                    e(
-                        "td",
-                        `${
-                            effect.significance > 0.0000001
-                                ? effect.significance.toFixed(6)
-                                : effect.significance.toExponential(2)
-                        }`
-                    ),
-                ])
-            );
-        }
-    }
-    let tableContainer = e("div", {}, [newTable]);
-    return tableContainer;
-}
-
-function sigReoTable(reos, regionID = "sig-reg-effects") {
-    let newTable = e("table", {id: regionID, class: "data-table"}, [
-        e("tr", [
-            e("th", "Enahncer/Gene"),
-            e("th", "Effect Size"),
-            e("th", "Significance"),
-            e("th", "Raw p-value"),
-            e("th", "Experiment"),
-        ]),
-    ]);
-    for (const reoSetIdx in reos) {
-        let [_, reoData] = reos[reoSetIdx];
-        let rowClass = reoSetIdx % 2 == 0 ? "" : "bg-gray-100";
-        for (const reo of reoData) {
-            let features = [];
-            let sources = ["Source Locations: "];
-            for (let location of reo["source_locs"]) {
-                sources.push(
-                    e(
-                        "a",
-                        {href: `/search/feature/accession/${location[3]}`},
-                        `${location[0]}:\u00A0${location[1].toLocaleString()}-${location[2].toLocaleString()}`
-                    )
-                );
-                sources.push(", ");
-            }
-
-            sources.pop(); // remove that last comma
-
-            features.push(e("div", sources));
-
-            if (reo["target_info"].length > 0) {
-                let targetGene = reo["target_info"][0];
-                features.push(
-                    e("div", [
-                        `Target Genes: `,
-                        e("a", {href: `/search/feature/ensembl/${targetGene[1]}`}, targetGene[0]),
-                    ])
-                );
-            }
-
-            let rowData = e("tr", {class: rowClass}, [
-                e("td", features),
-                e(
-                    "td",
-                    e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, [
-                        e("div", `Source Locations: ${sourceLocations}`),
-                        e("div", `Target Genes: ${targetGenes}`),
-                    ])
-                ),
-                e(
-                    "td",
-                    reo["effect_size"] != null
-                        ? e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["effect_size"].toFixed(6))
-                        : ""
-                ),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["sig"].toFixed(6))),
-                e("td", e("a", {href: `/search/regeffect/${reo["reo_accession_id"]}`}, reo["p_value"].toFixed(6))),
-            ]);
-
-            if (reo == reoData[0]) {
-                rowData.append(
-                    e(
-                        "td",
-                        {rowspan: `${reoData.length}`},
-                        e("a", {href: `/search/experiment/${reo["expr_accession_id"]}`}, reo["expr_name"])
-                    )
-                );
-            }
-            newTable.append(rowData);
-        }
-    }
-    return newTable;
 }
 
 function newPagination(paginationID, pageData, idPrefix = "", pageQueryParam = "page") {
@@ -450,6 +330,4 @@ export {
     emptyRETable,
     reTable,
     reTargetTable,
-    reoNonTargetTable,
-    sigReoTable,
 };

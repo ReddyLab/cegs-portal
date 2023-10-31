@@ -34,51 +34,33 @@
         transform: translate(6px);
     }
 
-    .tab-bar {
-        background: #ffffff;
-        border-radius: 10px;
-        padding-left: 10px;
-        padding-right: 10px;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .faded-line {
-        border-top: 0.5px solid rgb(133, 139, 146);
-        margin-top: 10px;
-    }
-
-    .content-container {
-        background: #ffffff;
-        padding: 20px 40px;
-        border-radius: 10px;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-    .experiment-icon {
-        fill: currentColor;
-        margin-right: 10px;
-    }
-
     select {
         font-size: 0.9rem;
         padding: 5px 5px;
     }
 
 </style>
-{% endblock %} {% block javascript %} {{ block.super }}
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
 <script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/exp_viz/vizUtils.js' %}"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
-{% endblock %} {% block title %}Experiment{% endblock %} {% block content %}
+{% endblock %}
+
+{% block title %}Experiment{% endblock %}
+
+{% block content %}
 <div class="flex flex-column justify-center min-w-full">
-    <div class="experiment-content-section content-container min-w-fit max-w-fit">
+    <div class="container min-w-fit max-w-fit">
         <table class="min-w-fit max-w-fit">
             <thead class="bg-white border-b">
                 <tr>
                     <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512" class="experiment-icon"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
                         </svg> {{ experiment.name }}
                     </div>
                 </tr>
@@ -118,6 +100,7 @@
                 <a
                     href="#tabs-coverage"
                     class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-coverage-tab"
                     data-te-toggle="pill"
                     data-te-target="#tabs-coverage"
                     data-te-nav-active
@@ -191,18 +174,18 @@
         <div class="flex flex-row gap-x-10">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section content-container">
+                <div class="facet-content-section container">
                     <div class="text-slate-500">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
-                    <div class="faded-line"></div>
+                    <div class="title-separator"></div>
                     <div id="chrom-data-categorical-facets"></div>
                     <div id="chrom-data-numeric-facets"></div>
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section content-container">
+                <div class="facet-content-section container">
                     <form name="regionUploadForm">
                         <div>
                             <label class="font-bold" for="regionFile">Highlight Regions</label>
@@ -213,7 +196,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section content-container">
+                <div class="facet-content-section container">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
@@ -232,7 +215,7 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 content-container">
+            <div class="basis-3/4 container">
                 <!-- content section container for ChromCov -->
                 <div class="flex flex-row gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
@@ -260,7 +243,7 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="experiment-content-section content-container">
+        <div class="container mx-auto">
             <table class="min-w-full">
                 <thead class="bg-white border-b">
                     <tr>
@@ -306,100 +289,96 @@
         role="tabpanel"
         aria-labelledby="tabs-files-tab"
     >
-        <div class="content-container">
-            <div class="container mx-auto">
-                <div class="flex flex-col">
-                    <div class="w-full">
-                        <table class="divide-y divide-gray-400" id="dataFilesTable">
-                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
-                                Data Files <i class="bi bi-folder-symlink-fill"></i>
-                            </div>
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-2 text-xs text-white">File Name</th>
-                                    <th class="px-6 py-2 text-xs text-white">Description</th>
-                                    <th class="px-6 py-2 text-xs text-white">File Type</th>
-                                    <th class="px-6 py-2 text-xs text-white">File Size</th>
-                                    <th class="px-6 py-2 text-xs text-white">Download</th>
-                                </tr>
-                            </thead>
-                            {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
-                            <tbody class="bg-white divide-y divide-gray-300">
-                                <tr class="text-center whitespace-nowrap">
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-500 w-[100px]">
-                                            <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900 w-[600px]">
-                                            <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
-                                    <td class="px-6 py-4">File Size</td>
-                                    <td class="px-6 py-4">
-                                        <a href="#" class="inline-block text-center">
-                                            <i class="bi bi-download"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            {% endfor %} {% endif %}
-                        </table>
-                    </div>
+        <div class="container mx-auto">
+            <div class="flex flex-col">
+                <div class="w-full">
+                    <table class="divide-y divide-gray-400" id="dataFilesTable">
+                        <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                            Data Files <i class="bi bi-folder-symlink-fill"></i>
+                        </div>
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-2 text-xs text-white">File Name</th>
+                                <th class="px-6 py-2 text-xs text-white">Description</th>
+                                <th class="px-6 py-2 text-xs text-white">File Type</th>
+                                <th class="px-6 py-2 text-xs text-white">File Size</th>
+                                <th class="px-6 py-2 text-xs text-white">Download</th>
+                            </tr>
+                        </thead>
+                        {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
+                        <tbody class="bg-white divide-y divide-gray-300">
+                            <tr class="text-center whitespace-nowrap">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500 w-[100px]">
+                                        <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900 w-[600px]">
+                                        <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
+                                <td class="px-6 py-4">File Size</td>
+                                <td class="px-6 py-4">
+                                    <a href="#" class="inline-block text-center">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        {% endfor %} {% endif %}
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="content-container">
-            <div class="container mx-auto">
-                <div class="flex flex-col">
-                    <div class="w-full">
-                        <table class="divide-y divide-gray-300" id="otherFilesTable">
-                            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
-                                Other Files <i class="bi bi-folder-symlink-fill"></i>
-                            </div>
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-2 text-xs text-white">File Name</th>
-                                    <th class="px-6 py-2 text-xs text-white">Description</th>
-                                    <th class="px-6 py-2 text-xs text-white">Location</th>
-                                    <th class="px-6 py-2 text-xs text-white">File Type</th>
-                                    <th class="px-6 py-2 text-xs text-white">File Size</th>
-                                    <th class="px-6 py-2 text-xs text-white">Download</th>
-                                </tr>
-                            </thead>
-                            {% if experiment.files.exists %} {% for file in experiment.files.all %}
-                            <tbody class="bg-white divide-y divide-gray-300">
-                                <tr class="text-center whitespace-nowrap">
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-500 w-[100px]">
-                                            <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900 w-[400px]">
-                                            <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900">
-                                            <a href="{{ file.url }}">{{ file.url }}</a>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
-                                    <td class="px-6 py-4">File Size</td>
-                                    <td class="px-6 py-4">
-                                        <a href="#" class="inline-block text-center">
-                                            <i class="bi bi-download"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            {% endfor %} {% endif %}
-                        </table>
-                    </div>
+        <div class="container mx-auto">
+            <div class="flex flex-col">
+                <div class="w-full">
+                    <table class="divide-y divide-gray-300" id="otherFilesTable">
+                        <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                            Other Files <i class="bi bi-folder-symlink-fill"></i>
+                        </div>
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-2 text-xs text-white">File Name</th>
+                                <th class="px-6 py-2 text-xs text-white">Description</th>
+                                <th class="px-6 py-2 text-xs text-white">Location</th>
+                                <th class="px-6 py-2 text-xs text-white">File Type</th>
+                                <th class="px-6 py-2 text-xs text-white">File Size</th>
+                                <th class="px-6 py-2 text-xs text-white">Download</th>
+                            </tr>
+                        </thead>
+                        {% if experiment.files.exists %} {% for file in experiment.files.all %}
+                        <tbody class="bg-white divide-y divide-gray-300">
+                            <tr class="text-center whitespace-nowrap">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500 w-[100px]">
+                                        <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900 w-[400px]">
+                                        <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        <a href="{{ file.url }}">{{ file.url }}</a>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
+                                <td class="px-6 py-4">File Size</td>
+                                <td class="px-6 py-4">
+                                    <a href="#" class="inline-block text-center">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        {% endfor %} {% endif %}
+                    </table>
                 </div>
             </div>
         </div>
@@ -411,11 +390,11 @@
         aria-labelledby="tabs-qc-graphs-tab"
     >
         <div
-            class="content-container min-w-max max-w-max text-xl font-bold"
+            class="container mx-auto min-w-max max-w-max text-xl font-bold"
             style="color: rgb(100 116 139);"
         >
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
-            <div class="faded-line my-3.5"></div>
+            <div class="title-separator my-3.5"></div>
             <div class="flex flex-nowrap my-3.5">
                 <div id="ncells_histogram" class="mr-4"></div>
                 <div id="ngrna_histogram"></div>
@@ -429,11 +408,11 @@
         aria-labelledby="tabs-analysis"
     >
         <div
-            class="content-container min-w-max max-w-max text-xl font-bold"
+            class="container mx-auto min-w-max max-w-max text-xl font-bold"
             style="color: rgb(100 116 139);"
         >
             Analysis <i class="bi bi-pie-chart-fill"></i>
-            <div class="faded-line my-3.5"></div>
+            <div class="title-separator my-3.5"></div>
             <div class="flex flex-nowrap my-3.5">
                 <div id="volcano"></div>
                 <div id="uniform_qqplot" class="mr-4"></div>
@@ -441,9 +420,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-{% endblock %} {% block inline_javascript %}
-
+{% block inline_javascript %}
 <script>
     // setup API options
     const vegaVolcanoOptions = {
