@@ -1,14 +1,12 @@
-{% extends "base.html" %} {% load static i18n %} {% block css %} {{ block.super }}
+{% extends "base.html" %}
+
+{% load static i18n %}
+
+{% block css %}
+{{ block.super }}
 <style>
     #nav-searchbar {
         display: none;
-    }
-
-    .content-container {
-        background: #ffffff;
-        padding: 20px 40px;
-        border-radius: 10px;
-        box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
@@ -33,10 +31,14 @@
         margin-block-end: 1em;
     }
 </style>
-{% endblock %} {% block title %}Downloads{% endblock %} {% block content %}
+{% endblock %}
+
+{% block title %}Downloads{% endblock %}
+
+{% block content %}
 <div>
 <h1>Download list</h1>
-<div class="content-container">
+<div class="container">
     {% if in_prep|length > 0 %}
     <div class="file-list">
         <h2>In Preperation Files</h2>
