@@ -62,21 +62,50 @@ def load_coverage(exp_acc_id, analysis_acc_id, chrom):
     return load_coverage_data_allow_threads(filename)
 
 
+def get_analysis(exp_acc_id: str) -> tuple[str, str]:
+    ids = exp_acc_id.split("/")
+    if len(ids) == 1:
+        validate_accession_id(ids[0])
+        return ExperimentCoverageSearch.default_analysis(ids[0])
+    elif len(ids) == 2:
+        validate_accession_id(ids[0])
+        validate_accession_id(ids[1])
+        return (ids[0], ids[1])
+    else:
+        raise Http400(f"Invalid experiment id {exp_acc_id}")
+
+
 def get_analyses(exp_acc_ids: list[str]) -> list[tuple[str, str]]:
     exp_analysis_pairs = []
     exps_only = []
     for exp_id in exp_acc_ids:
         ids = exp_id.split("/")
-        if len(ids) == 2:
+        if len(ids) == 1:
+            validate_accession_id(ids[0])
+            exps_only.append(ids[0])
+        elif len(ids) == 2:
             validate_accession_id(ids[0])
             validate_accession_id(ids[1])
             exp_analysis_pairs.append((ids[0], ids[1]))
         else:
-            validate_accession_id(ids[0])
-            exps_only.append(ids[0])
+            raise Http400(f"Invalid experiment id {exp_id}")
 
     exp_analysis_pairs.extend(ExperimentCoverageSearch.default_analyses(exps_only))
     return exp_analysis_pairs
+
+
+def get_filter(filters):
+    data_filter = Filter()
+    data_filter.categorical_facets = set(filters[0])
+
+    if len(filters) > 1:
+        effect_size_interval, sig_interval = filters[1]
+        data_filter_intervals = FilterIntervals()
+        data_filter_intervals.effect = (effect_size_interval[0], effect_size_interval[1])
+        data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
+        data_filter.numeric_intervals = data_filter_intervals
+
+    return data_filter
 
 
 class ExperimentCoverageView(MultiResponseFormatView):
@@ -96,10 +125,10 @@ class ExperimentCoverageView(MultiResponseFormatView):
                 * str - the chromosome that's zoomed in on
         """
         options = super().request_options(request)
-        options["exp_acc_ids"] = request.GET.getlist("exp", [])
+        options["exp_acc_id"] = request.GET.get("exp", None)
 
-        if len(options["exp_acc_ids"]) == 0:
-            raise Http400("Must query at least 1 experiment")
+        if options["exp_acc_id"] is None:
+            raise Http400("Must query an experiment")
 
         try:
             body = json.loads(request.body)
@@ -134,36 +163,12 @@ class ExperimentCoverageView(MultiResponseFormatView):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        accession_ids = get_analyses(options["exp_acc_ids"])
+        accession_ids = get_analysis(options["exp_acc_id"])
+        data_filter = get_filter(options["filters"])
+        loaded_data = load_coverage(*accession_ids, options["zoom_chr"])
+        filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data)
 
-        filters = options["filters"]
-
-        data_filter = Filter()
-        data_filter.categorical_facets = set(filters[0])
-
-        if len(filters) > 1:
-            effect_size_interval, sig_interval = filters[1]
-            data_filter_intervals = FilterIntervals()
-            data_filter_intervals.effect = (effect_size_interval[0], effect_size_interval[1])
-            data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
-            data_filter.numeric_intervals = data_filter_intervals
-
-        with ThreadPoolExecutor() as executor:
-            load_to_acc_id = {
-                executor.submit(load_coverage, exp_acc_id, analysis_acc_id, options["zoom_chr"]): (
-                    exp_acc_id,
-                    analysis_acc_id,
-                )
-                for exp_acc_id, analysis_acc_id in accession_ids
-            }
-            loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
-            filter_to_acc_id = {
-                executor.submit(filter_coverage_data_allow_threads, data_filter, load_future.result())
-                for load_future in loaded_data.done
-            }
-            filtered_data = wait(filter_to_acc_id, return_when=ALL_COMPLETED)
-
-        return merge_filtered_data([d.result() for d in filtered_data.done], options["chromosomes"])
+        return filtered_data
 
 
 class CombinedExperimentView(MultiResponseFormatView):
@@ -223,17 +228,7 @@ class CombinedExperimentView(MultiResponseFormatView):
     def post_data(self, options):
         accession_ids = get_analyses(options["exp_acc_ids"])
 
-        filters = options["filters"]
-
-        data_filter = Filter()
-        data_filter.categorical_facets = set(filters[0])
-
-        if len(filters) > 1:
-            effect_size_interval, sig_interval = filters[1]
-            data_filter_intervals = FilterIntervals()
-            data_filter_intervals.effect = (effect_size_interval[0], effect_size_interval[1])
-            data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
-            data_filter.numeric_intervals = data_filter_intervals
+        data_filter = get_filter(options["filters"])
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {
