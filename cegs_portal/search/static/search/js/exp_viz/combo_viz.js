@@ -39,13 +39,90 @@ class GenomeError extends Error {
     }
 }
 
-function build_state(manifest, genomeRenderer, accessionIDs, sourceType) {
-    let coverageData = manifest.chromosomes;
-    let facets = manifest.facets; // merge
-    let default_facets = manifest.hasOwnProperty("default_facets") ? manifest.default_facets : []; // merge
-    let reoCount = manifest.reo_count;
-    let sourceCount = manifest.source_count;
-    let targetCount = manifest.target_count;
+function intersect_array(arr1, arr2) {
+    if (arr1.length == 0 || arr2.length == 0) {
+        return [];
+    }
+
+    let intersection = [];
+    for (let val of arr1) {
+        if (arr2.indexOf(val) != -1) {
+            intersection.push(val);
+        }
+    }
+
+    return intersection;
+}
+
+function intersect_obj(obj1, obj2) {
+    if (obj1.length == 0 || obj2.length == 0) {
+        return {};
+    }
+
+    let intersection = {};
+    for (let key in obj1) {
+        if (obj2.hasOwnProperty(key) && obj2[key] === obj1[key]) {
+            intersection[key] = obj1[key];
+        }
+    }
+    return intersection;
+}
+
+// Merge is the intersection of facets
+function merge_facets(experiments_facets) {
+    if (experiments_facets.length == 1) {
+        return experiments_facets[0];
+    }
+
+    let new_facets = [];
+
+    // Create an array of objects mapping facet ids to facets
+    let facet_maps = experiments_facets.map((facet_array) =>
+        facet_array.reduce((acc, f) => {
+            acc[f.id] = f;
+            return acc;
+        }, {})
+    );
+    let base_facets = facet_maps[0];
+    let rest_facets = facet_maps.slice(1);
+
+    // Get the IDs of facets that are in all experiments
+    let facet_id_arrays = experiments_facets.map((facet_array) => facet_array.map((f) => f.id));
+    let facet_id_intersection = facet_id_arrays
+        .slice(1)
+        .reduce((acc, ids) => intersect_array(acc, ids), facet_id_arrays[0]);
+
+    for (let facet_id of facet_id_intersection) {
+        let new_facet = base_facets[facet_id];
+        for (let facets of rest_facets) {
+            let curr_facet = facets[facet_id];
+            if (new_facet.facet_type == "FacetType.CATEGORICAL") {
+                new_facet.values = intersect_obj(curr_facet.values, new_facet.values);
+            } else if (new_facet.facet_type == "FacetType.NUMERIC" && new_facet.range) {
+                new_facet.range = [
+                    Math.min(new_facet.range[0], curr_facet.range[0]),
+                    Math.max(new_facet.range[1], curr_facet.range[1]),
+                ];
+            } else if (new_facet.facet_type == "FacetType.NUMERIC" && new_facet.range64) {
+                new_facet.range64 = [
+                    Math.min(new_facet.range64[0], curr_facet.range64[0]),
+                    Math.max(new_facet.range64[1], curr_facet.range64[1]),
+                ];
+            }
+        }
+        new_facets.push(new_facet);
+    }
+
+    return new_facets;
+}
+
+function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
+    let coverageData = [];
+    let facets = merge_facets(manifests.map((m) => m.facets));
+    let default_facets = manifests[0].hasOwnProperty("default_facets") ? manifests[0].default_facets : []; // merge
+    let reoCount = manifests.map((m) => m.reo_count).reduce((acc, c) => acc + c, 0);
+    let sourceCount = 0;
+    let targetCount = 0;
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
@@ -574,6 +651,8 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     rc(g("chrom-data-header"), t("Experiment Coverage"));
 
     const genomeRenderer = new GenomeRenderer(genome);
+
+    let sourceType = experiment_info.length == 1 ? experiment_info[0].source : "Tested Elements";
 
     let state = build_state(manifests, genomeRenderer, accessionIDs, sourceType);
 
