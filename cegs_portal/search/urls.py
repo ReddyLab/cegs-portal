@@ -28,9 +28,9 @@ urlpatterns = [
         name="experiment_coverage",
     ),
     path(
-        "combined_experiments",
+        "combined_experiment_coverage",
         csrf_exempt(views.v1.CombinedExperimentView.as_view()),
-        name="combined_experiments",
+        name="combined_experiment_coverage",
     ),
     re_path(
         r"regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
@@ -67,7 +67,7 @@ urlpatterns = [
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
     ),
     path(
-        "v1/combined_experiments",
+        "v1/combined_experiment_coverage",
         csrf_exempt(views.v1.CombinedExperimentView.as_view()),
     ),
     re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
