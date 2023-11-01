@@ -95,6 +95,14 @@ class ExperimentFactory(DjangoModelFactory):
             for sample in extracted:
                 self.biosamples.add(sample)  # pylint: disable=no-member
 
+    @post_generation
+    def default_analysis(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        self.default_analysis = self.analyses.first()
+
 
 class ExperimentDataFileInfoFactory(DjangoModelFactory):
     class Meta:
