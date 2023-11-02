@@ -15,11 +15,12 @@
             Proximal Regulatory Effect Observations
         </div>
         <div style="position: absolute; right: 0;">
+            <span class="text-lg">Download:</span>
             <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=original">
-                <button class="tsv-button" id="downloadButton">Download TSV</button>
+                <button class="tsv-button" id="downloadButton">TSV</button>
             </a>
             <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=bed6">
-                <button class="tsv-button" id="downloadButtonNew">Download New TSV</button>
+                <button class="tsv-button" id="downloadButtonNew">BED6</button>
             </a>
         </div>
     </div>
