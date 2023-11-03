@@ -14,17 +14,6 @@ def item_name(source, feature):
 
 def bed6_output(reos, feature):
     tsv_data = []
-    tsv_data.append(
-        [
-            "chrom",
-            "chromStart",
-            "chromEnd",
-            "name",
-            "score",
-            "strand",
-        ]
-    )
-
     for reo in reos:
         for source in reo.sources.all():
             row = [
