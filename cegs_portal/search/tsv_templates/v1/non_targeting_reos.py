@@ -1,4 +1,15 @@
-from cegs_portal.search.templatetags.custom_helpers import format_float, if_strand
+from cegs_portal.search.templatetags.custom_helpers import format_float
+
+
+def if_strand(value):
+    if value is not None:
+        return value
+    else:
+        return "."
+
+
+def item_name(source, feature):
+    return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(feature.strand)}:{feature.name}"
 
 
 def bed6_output(reos, feature):
@@ -20,7 +31,7 @@ def bed6_output(reos, feature):
                 source.chrom_name,
                 source.location.lower,
                 source.location.upper,
-                f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(feature.strand)}:{feature.name}",
+                item_name(source, feature),
                 "0",
                 if_strand(feature.strand),
             ]
@@ -37,7 +48,7 @@ def non_targeting_regulatory_effects(data, options):
     tsv_data = []
     tsv_data.append(
         [
-            "# chrom",
+            "chrom",
             "chromStart",
             "chromEnd",
             "name",
@@ -59,7 +70,7 @@ def non_targeting_regulatory_effects(data, options):
                 source.chrom_name,
                 source.location.lower,
                 source.location.upper,
-                f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(feature.strand)}:{feature.name}",
+                item_name(source, feature),
                 "0",
                 if_strand(feature.strand),
                 format_float(reo.effect_size),
