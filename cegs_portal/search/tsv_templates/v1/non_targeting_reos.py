@@ -1,17 +1,59 @@
 from cegs_portal.search.templatetags.custom_helpers import format_float
 
 
-def non_targeting_regulatory_effects(data):
-    reos, feature = data
+def if_strand(value):
+    if value is not None:
+        return value
+    else:
+        return "."
+
+
+def item_name(source, feature):
+    return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(feature.strand)}:{feature.name}"
+
+
+def bed6_output(reos, feature):
     tsv_data = []
     tsv_data.append(
         [
-            "# chrom",
+            "chrom",
             "chromStart",
             "chromEnd",
             "name",
-            "strand",
             "score",
+            "strand",
+        ]
+    )
+
+    for reo in reos:
+        for source in reo.sources.all():
+            row = [
+                source.chrom_name,
+                source.location.lower,
+                source.location.upper,
+                item_name(source, feature),
+                "0",
+                if_strand(feature.strand),
+            ]
+
+            tsv_data.append(row)
+
+    return tsv_data
+
+
+def non_targeting_regulatory_effects(data, options):
+    reos, feature = data
+    if options is not None and options.get("tsv_format", None) == "bed6":
+        return bed6_output(reos, feature)
+    tsv_data = []
+    tsv_data.append(
+        [
+            "chrom",
+            "chromStart",
+            "chromEnd",
+            "name",
+            "score",
+            "strand",
             "Effect Size",
             "Direction",
             "Significance",
@@ -28,9 +70,9 @@ def non_targeting_regulatory_effects(data):
                 source.chrom_name,
                 source.location.lower,
                 source.location.upper,
-                feature.name,
-                feature.strand if feature.strand is not None else ".",
-                ".",
+                item_name(source, feature),
+                "0",
+                if_strand(feature.strand),
                 format_float(reo.effect_size),
                 reo.direction,
                 format_float(reo.significance),

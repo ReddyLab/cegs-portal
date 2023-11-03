@@ -155,9 +155,9 @@ class MultiResponseFormatView(View):
     def get_json(self, _request, options, data, *args, **kwargs):
         return JsonResponse(self.__class__.json_renderer(data, options), safe=False)
 
-    def get_tsv(self, _request, _options, data, *args, **kwargs):
+    def get_tsv(self, _request, options, data, *args, **kwargs):
         filename = kwargs.get("filename", None)
-        return TsvResponse(self.__class__.tsv_renderer(data), filename)
+        return TsvResponse(self.__class__.tsv_renderer(data, options), filename)
 
     def post(self, request, _options, data, *args, **kwargs):
         if self.__class__.template_data_name is not None:
