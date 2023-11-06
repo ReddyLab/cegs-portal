@@ -5,8 +5,28 @@ def tested_element(source):
     return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(source.strand)}:{source.get_feature_type_display()}"
 
 
+def bed6_output(reos):
+    tsv_data = []
+    for reo in reos:
+        for source in reo.sources.all():
+            row = [
+                source.chrom_name,
+                source.location.lower,
+                source.location.upper,
+                tested_element(source),
+                "0",
+                if_strand(source.strand),
+            ]
+
+            tsv_data.append(row)
+
+    return tsv_data
+
+
 def reg_effects(get_data, options):
-    reg_effects_page = get_data
+    reos = get_data
+    if options is not None and options.get("tsv_format", None) == "bed6":
+        return bed6_output(reos)
     tsv_data = []
     tsv_data.append(
         [
@@ -24,7 +44,7 @@ def reg_effects(get_data, options):
         ]
     )
 
-    for reo in reg_effects_page:
+    for reo in reos:
         source = reo.sources.all()[0]
         row = [
             source.chrom_name,

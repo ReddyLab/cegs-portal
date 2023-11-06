@@ -111,6 +111,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
+        options["tsv_format"] = request.GET.get("tsv_format", None)
 
         return options
 
@@ -147,7 +148,11 @@ class SourceEffectsView(FeatureEffectsView):
         return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
-        filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+        if options is not None and options.get("tsv_format", None) == "bed6":
+            filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.bed"
+        else:
+            filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+
         return super().get_tsv(request, options, data, filename=filename)
 
 
