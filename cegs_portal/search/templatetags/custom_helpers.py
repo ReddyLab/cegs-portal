@@ -14,3 +14,11 @@ def format_float(value):
         return f"{value:.2e}"
     else:
         return f"{value:.6f}"
+
+
+@register.filter
+def if_strand(value):
+    if value is not None:
+        return value
+    else:
+        return "."

@@ -62,7 +62,6 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
-    tsv_renderer = re_data
     template = ""
     template_data_name = "regeffects"
     page_title = ""
@@ -133,6 +132,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
+    tsv_renderer = re_data
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         if self.request.user.is_anonymous:
