@@ -62,6 +62,7 @@
 
 {% block content %}
 <div class="min-w-full">
+    <div class="title-separator"></div>
     <div style="display: flex; justify-content: space-between; align-items: center">
         <h1>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2">
@@ -73,6 +74,7 @@
             Experiment Index
         </h1>
     </div>
+    <div class="title-separator"></div>
     <div class="flex gap-x-10 items-start">
         <div class="flex flex-col basis-1/4">
             <div class="container">
@@ -100,7 +102,10 @@
                 </div>
             </div>
             <div class="container" id="selected-experiments">
-                <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+                <div class="flex items-center">
+                    <div class="font-bold text-2xl text-slate-500">＋</div>
+                    <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+                </div>
                 <div class="title-separator"></div>
                 <div class="italic" id="no-selected-experiments">Drag experiments here to select</div>
                 <div id="selected-experiment-list"></div>
