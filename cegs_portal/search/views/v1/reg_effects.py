@@ -149,9 +149,9 @@ class SourceEffectsView(FeatureEffectsView):
 
     def get_tsv(self, request, options, data, feature_id):
         if options is not None and options.get("tsv_format", None) == "bed6":
-            filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.bed"
+            filename = f"{feature_id}_regulatory_effect_observations_table_data.bed"
         else:
-            filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+            filename = f"{feature_id}_regulatory_effect_observations_table_data.tsv"
 
         return super().get_tsv(request, options, data, filename=filename)
 

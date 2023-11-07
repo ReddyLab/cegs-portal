@@ -1,11 +1,4 @@
-from cegs_portal.search.templatetags.custom_helpers import format_float
-
-
-def if_strand(value):
-    if value is not None:
-        return value
-    else:
-        return "."
+from cegs_portal.search.templatetags.custom_helpers import format_float, if_strand
 
 
 def item_name(source, feature):
