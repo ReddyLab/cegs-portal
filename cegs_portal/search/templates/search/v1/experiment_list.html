@@ -51,8 +51,8 @@
         margin-top: 0.5rem;
     }
 
-    .exp-description {
-        color: rgb(66, 66, 66);
+    a.exp-list-content-container-link:hover {
+        color: inherit;
     }
 
 </style>
@@ -140,7 +140,7 @@
                         <div class="exp-name">{{ experiment.name }}</div>
                         <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
                     </div>
-                    <div class="exp-description">{{ experiment.description }}</div>
+                    <div>{{ experiment.description }}</div>
                     <div class="flex justify-between">
                         <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
                         <div class="accession-id">{{ experiment.accession_id }}</div>
