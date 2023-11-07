@@ -62,7 +62,6 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
-    tsv_renderer = target_data
     template = ""
     template_data_name = "regeffects"
     page_title = ""
