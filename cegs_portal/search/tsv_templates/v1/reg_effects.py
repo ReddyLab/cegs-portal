@@ -66,7 +66,9 @@ def reg_effects(get_data, options):
 
 
 def target_reg_effects(get_data, options):
-    reg_effects_page = get_data
+    reos = get_data
+    if options is not None and options.get("tsv_format", None) == "bed6":
+        return bed6_output(reos)
     tsv_data = []
     tsv_data.append(
         [
@@ -84,7 +86,7 @@ def target_reg_effects(get_data, options):
         ]
     )
 
-    for reo in reg_effects_page:
+    for reo in reos:
         source = reo.sources.all()[0]
         row = [
             source.chrom_name,

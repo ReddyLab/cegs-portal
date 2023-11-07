@@ -62,6 +62,7 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
+    tsv_renderer = target_data
     template = ""
     template_data_name = "regeffects"
     page_title = ""
@@ -174,5 +175,9 @@ class TargetEffectsView(FeatureEffectsView):
 
     def get_tsv(self, request, options, data, feature_id):
         feature = DNAFeature.objects.get(accession_id=feature_id)
-        filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+        if options is not None and options.get("tsv_format", None) == "bed6":
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
+        else:
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+
         return super().get_tsv(request, options, data, filename=filename)
