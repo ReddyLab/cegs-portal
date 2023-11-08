@@ -1,3 +1,4 @@
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.templatetags.custom_helpers import format_float, if_strand
 
 
@@ -24,7 +25,7 @@ def bed6_output(reos):
 
 
 def reg_effects(reos, options):
-    if options is not None and options.get("tsv_format", None) == "bed6":
+    if is_bed6(options):
         return bed6_output(reos)
     tsv_data = []
     tsv_data.append(
@@ -65,7 +66,7 @@ def reg_effects(reos, options):
 
 
 def target_reg_effects(reos, options):
-    if options is not None and options.get("tsv_format", None) == "bed6":
+    if is_bed6(options):
         return bed6_output(reos)
     tsv_data = []
     tsv_data.append(
