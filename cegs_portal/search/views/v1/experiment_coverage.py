@@ -9,6 +9,7 @@ from exp_viz import (
     Filter,
     FilterIntervals,
     filter_coverage_data_allow_threads,
+    intersect_coverage_data_features,
     load_coverage_data_allow_threads,
     merge_filtered_data,
 )
@@ -166,7 +167,7 @@ class ExperimentCoverageView(MultiResponseFormatView):
         accession_ids = get_analysis(options["exp_acc_id"])
         data_filter = get_filter(options["filters"])
         loaded_data = load_coverage(*accession_ids, options["zoom_chr"])
-        filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data)
+        filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data, None)
 
         return filtered_data
 
@@ -239,8 +240,13 @@ class CombinedExperimentView(MultiResponseFormatView):
                 for exp_acc_id, analysis_acc_id in accession_ids
             }
             loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
+            included_features = intersect_coverage_data_features(
+                [load_future.result() for load_future in loaded_data.done]
+            )
             filter_to_acc_id = {
-                executor.submit(filter_coverage_data_allow_threads, data_filter, load_future.result())
+                executor.submit(
+                    filter_coverage_data_allow_threads, data_filter, load_future.result(), included_features
+                )
                 for load_future in loaded_data.done
             }
             filtered_data = wait(filter_to_acc_id, return_when=ALL_COMPLETED)

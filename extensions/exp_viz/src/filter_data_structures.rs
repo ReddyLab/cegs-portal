@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 /// Wraps the coverage data type so it can be passed to Python
 #[pyclass(name = "CoverageData")]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PyCoverageData {
     pub wraps: CoverageData,
 }
