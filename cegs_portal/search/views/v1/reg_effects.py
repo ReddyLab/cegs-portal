@@ -1,10 +1,14 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
-from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_tsv
+from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_data
+from cegs_portal.search.tsv_templates.v1.reg_effects import (
+    target_reg_effects as target_data,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
@@ -59,7 +63,6 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
-    tsv_renderer = re_tsv
     template = ""
     template_data_name = "regeffects"
     page_title = ""
@@ -109,6 +112,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
+        options["tsv_format"] = request.GET.get("tsv_format", None)
 
         return options
 
@@ -130,6 +134,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
+    tsv_renderer = re_data
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         if self.request.user.is_anonymous:
@@ -144,12 +149,17 @@ class SourceEffectsView(FeatureEffectsView):
         return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
-        filename = f"{feature_id}_source_for_regulatory_effect_observations_table_data.tsv"
+        if is_bed6(options):
+            filename = f"{feature_id}_regulatory_effect_observations_table_data.bed"
+        else:
+            filename = f"{feature_id}_regulatory_effect_observations_table_data.tsv"
+
         return super().get_tsv(request, options, data, filename=filename)
 
 
 class TargetEffectsView(FeatureEffectsView):
     template = "search/v1/target_reg_effects.html"
+    tsv_renderer = target_data
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         if self.request.user.is_anonymous:
@@ -165,5 +175,9 @@ class TargetEffectsView(FeatureEffectsView):
 
     def get_tsv(self, request, options, data, feature_id):
         feature = DNAFeature.objects.get(accession_id=feature_id)
-        filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+        if is_bed6(options):
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
+        else:
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+
         return super().get_tsv(request, options, data, filename=filename)
