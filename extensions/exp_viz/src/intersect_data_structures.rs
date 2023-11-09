@@ -1,17 +1,18 @@
 use pyo3::prelude::*;
 use roaring::RoaringTreemap;
 
-use exp_viz::IncludedFeatures;
+use cov_viz_ds::ExperimentFeatureData;
 
-#[pyclass(name = "IncludedFeatures")]
-pub struct PyIncludedFeatures {
+#[pyclass(name = "ExperimentFeatureData")]
+#[derive(Clone, Debug)]
+pub struct PyExperimentFeatureData {
     pub sources: RoaringTreemap,
     pub targets: RoaringTreemap,
 }
 
-impl PyIncludedFeatures {
-    pub fn to_included_features(&self) -> IncludedFeatures {
-        IncludedFeatures {
+impl PyExperimentFeatureData {
+    pub fn to_feature_data(&self) -> ExperimentFeatureData {
+        ExperimentFeatureData {
             sources: self.sources.clone(),
             targets: self.targets.clone(),
         }

@@ -11,6 +11,7 @@ from exp_viz import (
     filter_coverage_data_allow_threads,
     intersect_coverage_data_features,
     load_coverage_data_allow_threads,
+    load_feature_data_allow_threads,
     merge_filtered_data,
 )
 
@@ -61,6 +62,16 @@ def load_coverage(exp_acc_id, analysis_acc_id, chrom):
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd"))
 
     return load_coverage_data_allow_threads(filename)
+
+
+@lru_cache(maxsize=100)
+def load_features(exp_acc_id, analysis_acc_id, chrom):
+    if chrom is None:
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.fd"))
+    else:
+        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.fd"))
+
+    return load_feature_data_allow_threads(filename)
 
 
 def get_analysis(exp_acc_id: str) -> tuple[str, str]:
@@ -240,8 +251,18 @@ class CombinedExperimentView(MultiResponseFormatView):
                 for exp_acc_id, analysis_acc_id in accession_ids
             }
             loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
+
+            load_feat_to_acc_id = {
+                executor.submit(load_features, exp_acc_id, analysis_acc_id, options["zoom_chr"]): (
+                    exp_acc_id,
+                    analysis_acc_id,
+                )
+                for exp_acc_id, analysis_acc_id in accession_ids
+            }
+            loaded_features = wait(load_feat_to_acc_id, return_when=ALL_COMPLETED)
+
             included_features = intersect_coverage_data_features(
-                [load_future.result() for load_future in loaded_data.done]
+                [load_future.result() for load_future in loaded_features.done]
             )
             filter_to_acc_id = {
                 executor.submit(

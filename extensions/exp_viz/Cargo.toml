@@ -10,10 +10,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 bincode = "1.3.3"
-# cov_viz_ds = { git = "https://github.com/ReddyLab/cov_viz_ds", rev = "c97744887871be107d220ee713c122726f908849" }
-cov_viz_ds = { path = "../../../cov_viz_ds" } # For working with a local copy during development
-# exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "b791a25b055071384c9d1c93253ff17cff64f15f" }
-exp_viz = { path = "../../../exp_viz" }                        # For working with a local copy during development
+cov_viz_ds = { git = "https://github.com/ReddyLab/cov_viz_ds", rev = "0c58442bbef49acecb7ab2b5d7e2c150adaa61b5" }
+# cov_viz_ds = { path = "../../../cov_viz_ds" } # For working with a local copy during development
+exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "7abf4eca583a9474214a91fe3713c04411722f2e" }
+# exp_viz = { path = "../../../exp_viz" }                        # For working with a local copy during development
 pyo3 = { version = "0.17.1", features = ["extension-module"] }
 roaring = "0.10.2"
 rustc-hash = "1.1.0"
