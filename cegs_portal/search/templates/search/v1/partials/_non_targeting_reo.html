@@ -41,9 +41,9 @@
             <td>
                 <span>{{ first_source.chrom_name }}: {{ first_source.location.lower|intcomma }} - {{ first_source.location.upper|add:"-1"|intcomma }}</span>
             </td>
-            <td>{{ reo.effect_size|format_float }}</td>
+            <td>{{ reo.effect_size|format_effect_size }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{{ reo.significance|format_float }}</td>
+            <td>{{ reo.significance|format_pval }}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">

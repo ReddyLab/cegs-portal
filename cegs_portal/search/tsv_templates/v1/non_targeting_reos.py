@@ -1,4 +1,4 @@
-from cegs_portal.search.templatetags.custom_helpers import format_float, if_strand
+from cegs_portal.search.templatetags.custom_helpers import if_strand
 
 
 def item_name(source, feature):
@@ -55,9 +55,9 @@ def non_targeting_regulatory_effects(data, options):
                 item_name(source, feature),
                 "0",
                 if_strand(feature.strand),
-                format_float(reo.effect_size),
+                reo.effect_size,
                 reo.direction,
-                format_float(reo.significance),
+                reo.significance,
                 source.closest_gene_distance,
                 source.get_feature_type_display(),
                 reo.experiment.name,
