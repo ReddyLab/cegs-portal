@@ -3,7 +3,7 @@ from cegs_portal.search.templatetags.custom_helpers import format_float, if_stra
 
 
 def tested_element(source, target):
-    return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(source.strand)}:{target.name if target else 'N/A'}"
+    return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(source.strand)}:{f'{target.name}' if target else ''}"
 
 
 def bed6_output(reos):
@@ -21,7 +21,7 @@ def bed6_output(reos):
                     source.chrom_name,
                     source.location.lower,
                     source.location.upper,
-                    tested_element(source, target) if target else "N/A",
+                    tested_element(source, target),
                     "0",
                     if_strand(source.strand),
                 ]
@@ -64,7 +64,7 @@ def reg_effects(reos, options):
                     source.chrom_name,
                     source.location.lower,
                     source.location.upper,
-                    tested_element(source, target) if target else "N/A",
+                    tested_element(source, target),
                     "0",
                     if_strand(source.strand),
                     reo.effect_size,
@@ -112,7 +112,7 @@ def target_reg_effects(reos, options):
                     source.chrom_name,
                     source.location.lower,
                     source.location.upper,
-                    tested_element(source, target) if target else "N/A",
+                    tested_element(source, target),
                     "0",
                     if_strand(source.strand),
                     reo.effect_size,
