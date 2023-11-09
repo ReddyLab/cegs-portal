@@ -105,6 +105,6 @@ def target_reg_effects(reos, options):
                     reo.experiment.name,
                 ]
 
-            tsv_data.append(row)
+                tsv_data.append(row)
 
     return tsv_data

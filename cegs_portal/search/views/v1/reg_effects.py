@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import Http404
 
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
 from cegs_portal.search.json_templates.v1.reg_effect import regulatory_effect
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
@@ -148,7 +149,7 @@ class SourceEffectsView(FeatureEffectsView):
         return reg_effects
 
     def get_tsv(self, request, options, data, feature_id):
-        if options is not None and options.get("tsv_format", None) == "bed6":
+        if is_bed6(options):
             filename = f"{feature_id}_regulatory_effect_observations_table_data.bed"
         else:
             filename = f"{feature_id}_regulatory_effect_observations_table_data.tsv"
@@ -174,7 +175,7 @@ class TargetEffectsView(FeatureEffectsView):
 
     def get_tsv(self, request, options, data, feature_id):
         feature = DNAFeature.objects.get(accession_id=feature_id)
-        if options is not None and options.get("tsv_format", None) == "bed6":
+        if is_bed6(options):
             filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
         else:
             filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
