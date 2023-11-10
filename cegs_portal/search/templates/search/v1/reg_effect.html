@@ -67,9 +67,9 @@
             </tr>
             <tr>
                 <td class="italic">{{ regulatory_effect.direction }}</td>
-                <td>{{ regulatory_effect.effect_size|format_float }}</td>
-                <td>{{ regulatory_effect.significance|format_float }}</td>
-                <td>{{ regulatory_effect.raw_p_value|format_float }}</td>
+                <td>{{ regulatory_effect.effect_size|format_effect_size }}</td>
+                <td>{{ regulatory_effect.significance|format_pval }}</td>
+                <td>{{ regulatory_effect.raw_p_value|format_pval }}</td>
                 <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
                 {% if regulatory_effect.tissue_types.exist %}
                 <td>{{ regulatory_effect.tissue_types|join:", " }}</td>

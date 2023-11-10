@@ -1,5 +1,5 @@
 from cegs_portal.search.helpers.options import is_bed6
-from cegs_portal.search.templatetags.custom_helpers import format_float, if_strand
+from cegs_portal.search.templatetags.custom_helpers import if_strand
 
 
 def tested_element(source, target):
@@ -69,7 +69,7 @@ def reg_effects(reos, options):
                     if_strand(source.strand),
                     reo.effect_size,
                     reo.direction,
-                    format_float(reo.significance),
+                    reo.significance,
                     reo.experiment.name,
                     target.name if target else "N/A",
                 ]
@@ -117,7 +117,7 @@ def target_reg_effects(reos, options):
                     if_strand(source.strand),
                     reo.effect_size,
                     reo.direction,
-                    format_float(reo.significance),
+                    reo.significance,
                     reo.experiment.name,
                 ]
 
