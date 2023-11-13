@@ -114,7 +114,7 @@ def test_experiment_html(client: Client, experiment: Experiment):
 
 
 def test_no_experiment_html(client: Client):
-    response = client.get("/search/experiment/DCPEXPR00000000")
+    response = client.get("/search/experiment/DCPEXPR0000000000")
 
     assert response.status_code == 404
 

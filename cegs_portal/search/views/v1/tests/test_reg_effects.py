@@ -31,7 +31,7 @@ def test_regeffect_html(client: Client, reg_effect: RegulatoryEffectObservation)
 
 
 def test_no_regeffect_html(client: Client):
-    response = client.get("/search/regeffect/DCPREO00000000")
+    response = client.get("/search/regeffect/DCPREO0000000000")
 
     assert response.status_code == 404
 

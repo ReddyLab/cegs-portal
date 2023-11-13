@@ -21,7 +21,7 @@ urlpatterns = [
     ),
     path("experiment", views.v1.ExperimentListView.as_view(), name="experiments"),
     path("experiments", views.v1.ExperimentsView.as_view(), name="combined_experiments"),
-    re_path(r"experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8})$", views.v1.ExperimentView.as_view(), name="experiment"),
+    re_path(r"experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8,10})$", views.v1.ExperimentView.as_view(), name="experiment"),
     path(
         "experiment_coverage",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
@@ -33,21 +33,21 @@ urlpatterns = [
         name="combined_experiment_coverage",
     ),
     re_path(
-        r"regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
+        r"regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$",
         views.v1.SourceEffectsView.as_view(),
         name="source_effects",
     ),
     re_path(
-        r"regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
+        r"regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$",
         views.v1.TargetEffectsView.as_view(),
         name="target_effects",
     ),
     re_path(
-        r"regeffect/nontarget/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$",
+        r"regeffect/nontarget/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$",
         views.v1.NonTargetRegEffectsView.as_view(),
         name="non_target_reo",
     ),
-    re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
+    re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
     path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
     path("sigdata", view=views.v1.SignificantExperimentDataView.as_view(), name="sigdata"),
     path("feature_sigreo", view=views.v1.FeatureSignificantREOsView.as_view(), name="feature_sigreo"),
@@ -61,7 +61,7 @@ urlpatterns = [
     ),
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
     path("v1/experiments", views.v1.ExperimentListView.as_view()),
-    re_path(r"v1/experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8})$", views.v1.ExperimentView.as_view()),
+    re_path(r"v1/experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8,10})$", views.v1.ExperimentView.as_view()),
     path(
         "v1/experiment_coverage",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
@@ -70,11 +70,12 @@ urlpatterns = [
         "v1/combined_experiment_coverage",
         csrf_exempt(views.v1.CombinedExperimentView.as_view()),
     ),
-    re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.SourceEffectsView.as_view()),
-    re_path(r"v1/regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.TargetEffectsView.as_view()),
+    re_path(r"v1/regeffect/source/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$", views.v1.SourceEffectsView.as_view()),
+    re_path(r"v1/regeffect/target/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$", views.v1.TargetEffectsView.as_view()),
     re_path(
-        r"v1/regeffect/nontarget/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8})$", views.v1.NonTargetRegEffectsView.as_view()
+        r"v1/regeffect/nontarget/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})$",
+        views.v1.NonTargetRegEffectsView.as_view(),
     ),
-    re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8})$", views.v1.RegEffectView.as_view()),
+    re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})$", views.v1.RegEffectView.as_view()),
     path("v1/feature_counts", views.v1.FeatureCountView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))

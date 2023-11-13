@@ -40,28 +40,28 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     enriched_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     depleted_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
     nonsig_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
-    experiment = ExperimentFactory(accession_id="DCPEXPR00000002")
+    experiment = ExperimentFactory(accession_id="DCPEXPR0000000002")
     analysis = experiment.analyses.first()
     experiment_file_info = ExperimentDataFileInfoFactory()
     _analysis_file = FileFactory(analysis=analysis, data_file_info=experiment_file_info)  # noqa: F841
 
     sources = (
         DNAFeatureFactory(
-            accession_id="DCPDHS00000000",
+            accession_id="DCPDHS0000000000",
             chrom_name="chr1",
             location=NumericRange(10, 1_000),
             experiment_accession=None,
             feature_type=DNAFeatureType.GRNA,
         ),
         DNAFeatureFactory(
-            accession_id="DCPDHS00000001",
+            accession_id="DCPDHS0000000001",
             chrom_name="chr1",
             location=NumericRange(20_000, 111_000),
             experiment_accession=None,
             feature_type=DNAFeatureType.DHS,
         ),
         DNAFeatureFactory(
-            accession_id="DCPDHS00000002",
+            accession_id="DCPDHS0000000002",
             chrom_name="chr2",
             location=NumericRange(22_222, 33_333),
             experiment_accession=None,

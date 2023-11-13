@@ -58,7 +58,7 @@ class AccessionId:
     abbrev: str
     id_num: int
 
-    def __init__(self, id_string: str, prefix_length: int = 3, id_num_length: int = 8):
+    def __init__(self, id_string: str, prefix_length: int = 3, id_num_length: int = 10):
         self.id_string = id_string
         self.prefix = id_string[0:prefix_length]
         self.prefix_length = prefix_length
@@ -78,7 +78,7 @@ class AccessionId:
         self.id_num += 1
 
     @classmethod
-    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 8) -> "AccessionId":
+    def start_id(cls, accession_type: AccessionType, prefix: str = "DCP", id_num_length: int = 10) -> "AccessionId":
         return AccessionId(
             f"{prefix}{accession_type.abbrev()}{'0' * id_num_length}",
             prefix_length=len(prefix),
