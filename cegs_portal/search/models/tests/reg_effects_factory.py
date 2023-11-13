@@ -25,7 +25,7 @@ class RegEffectFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPREO^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPREO^^^^^^^^^^", upper=True)
         obj.save()
         return obj
 

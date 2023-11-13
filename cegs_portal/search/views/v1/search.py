@@ -25,7 +25,7 @@ from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
-ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})(\s+|$)", re.IGNORECASE)
+ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8,10})(\s+|$)", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)(\s+|$)", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)(\s+|$)", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)(\s+|$)", re.IGNORECASE)

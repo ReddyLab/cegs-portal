@@ -63,11 +63,11 @@ class Facets:
 
 
 def validate_expr(expr) -> bool:
-    return re.match(r"^DCPEXPR[A-F0-9]{8}$", expr) is not None
+    return re.match(r"^DCPEXPR[A-F0-9]{8,10}$", expr) is not None
 
 
 def validate_an(expr) -> bool:
-    return re.match(r"^DCPAN[A-F0-9]{8}$", expr) is not None
+    return re.match(r"^DCPAN[A-F0-9]{8,10}$", expr) is not None
 
 
 def gen_output_filename(experiments, analyses) -> str:

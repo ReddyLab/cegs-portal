@@ -43,7 +43,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
         if "accession_id" not in kwargs:
-            obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
+            obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^^^", upper=True)
             obj.save()
         return obj
 

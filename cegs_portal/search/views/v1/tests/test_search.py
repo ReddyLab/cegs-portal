@@ -40,30 +40,33 @@ pytestmark = pytest.mark.django_db
         ),
         ("   hg38   ", (None, [], None, "GRCh38", set())),
         ("   hg19 hg38   ", (None, [], None, "GRCh38", set())),
-        ("DCPGENE00000000", (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh38", set())),
         (
-            "DCPGENE00000000 hg19",
-            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            "DCPGENE0000000000",
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE0000000000")], None, "GRCh38", set()),
         ),
         (
-            "hg19 DCPGENE00000000",
-            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            "DCPGENE0000000000 hg19",
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE0000000000")], None, "GRCh37", set()),
         ),
         (
-            "   hg19    DCPGENE00000000    ",
-            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            "hg19 DCPGENE0000000000",
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE0000000000")], None, "GRCh37", set()),
         ),
         (
-            "   hg19    DCPGENE00000000    ",
-            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE00000000")], None, "GRCh37", set()),
+            "   hg19    DCPGENE0000000000    ",
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE0000000000")], None, "GRCh37", set()),
         ),
         (
-            "hg19 DCPGENE00000000 DCPGENE00000001",
+            "   hg19    DCPGENE0000000000    ",
+            (SearchType.ID, [IdType.ACCESSION.associate("DCPGENE0000000000")], None, "GRCh37", set()),
+        ),
+        (
+            "hg19 DCPGENE0000000000 DCPGENE0000000001",
             (
                 SearchType.ID,
                 [
-                    IdType.ACCESSION.associate("DCPGENE00000000"),
-                    IdType.ACCESSION.associate("DCPGENE00000001"),
+                    IdType.ACCESSION.associate("DCPGENE0000000000"),
+                    IdType.ACCESSION.associate("DCPGENE0000000001"),
                 ],
                 None,
                 "GRCh37",
@@ -71,17 +74,17 @@ pytestmark = pytest.mark.django_db
             ),
         ),
         (
-            "DCPGENE00000000 hg19 ENSG00000001",
+            "DCPGENE0000000000 hg19 ENSG00000001",
             (
                 SearchType.ID,
-                [IdType.ACCESSION.associate("DCPGENE00000000"), IdType.ENSEMBL.associate("ENSG00000001")],
+                [IdType.ACCESSION.associate("DCPGENE0000000000"), IdType.ENSEMBL.associate("ENSG00000001")],
                 None,
                 "GRCh37",
                 set(),
             ),
         ),
         (
-            "hg19 chr1:1-100 DCPGENE00000000 ENSG00000001",
+            "hg19 chr1:1-100 DCPGENE0000000000 ENSG00000001",
             (
                 SearchType.LOCATION,
                 [],
@@ -91,17 +94,17 @@ pytestmark = pytest.mark.django_db
             ),
         ),
         (
-            " hg19 ENSG00000001   chr1:1-100 DCPGENE00000000 ",
+            " hg19 ENSG00000001   chr1:1-100 DCPGENE0000000000 ",
             (
                 SearchType.ID,
-                [IdType.ENSEMBL.associate("ENSG00000001"), IdType.ACCESSION.associate("DCPGENE00000000")],
+                [IdType.ENSEMBL.associate("ENSG00000001"), IdType.ACCESSION.associate("DCPGENE0000000000")],
                 None,
                 "GRCh37",
                 {ParseWarning.IGNORE_LOC},
             ),
         ),
         (
-            "hg19 chr1:1-100 BRCA2 DCPGENE00000000 ENSG00000001 CBX2",
+            "hg19 chr1:1-100 BRCA2 DCPGENE0000000000 ENSG00000001 CBX2",
             (
                 SearchType.LOCATION,
                 [],
@@ -111,7 +114,7 @@ pytestmark = pytest.mark.django_db
             ),
         ),
         (
-            "hg19 chr1:1-100 brca2 DCPGENE00000000 ENSG00000001 chr2:2-200 CBX2",
+            "hg19 chr1:1-100 brca2 DCPGENE0000000000 ENSG00000001 chr2:2-200 CBX2",
             (
                 SearchType.LOCATION,
                 [],
@@ -537,22 +540,22 @@ def test_experiment_no_query_html(client: Client):
 
 
 def test_parse_source_locs_html():
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001)}') == [("chr1:1-2", "DCPDHS00000001")]
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS00000001),(chr2,\\"[2,4)\\",DCPDHS00000002)}') == [
-        ("chr1:1-2", "DCPDHS00000001"),
-        ("chr2:2-4", "DCPDHS00000002"),
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS0000000001)}') == [("chr1:1-2", "DCPDHS0000000001")]
+    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS0000000001),(chr2,\\"[2,4)\\",DCPDHS0000000002)}') == [
+        ("chr1:1-2", "DCPDHS0000000001"),
+        ("chr2:2-4", "DCPDHS0000000002"),
     ]
 
 
 def test_parse_source_target_data_html():
     test_data = {
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "source_locs": '{(chr1,\\"[1,2)\\",DCPDHS00000001)}',
+        "source_locs": '{(chr1,\\"[1,2)\\",DCPDHS0000000001)}',
         "asdf": 1234,
     }
     assert parse_source_target_data_html(test_data) == {
         "target_info": [("ZBTB12", "ENSG00000204366")],
-        "source_locs": [("chr1:1-2", "DCPDHS00000001")],
+        "source_locs": [("chr1:1-2", "DCPDHS0000000001")],
         "asdf": 1234,
     }
 
@@ -629,7 +632,7 @@ def test_sigdata_invalid_region(login_client: SearchClient):
 
 @pytest.mark.usefixtures("reg_effects")
 def test_sigdata_no_region(login_client: SearchClient):
-    response = login_client.get("/search/sigdata?expr=DCPEXPR00000002&datasource=both")
+    response = login_client.get("/search/sigdata?expr=DCPEXPR0000000002&datasource=both")
     assert response.status_code == 400
 
 

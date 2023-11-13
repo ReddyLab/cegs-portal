@@ -123,7 +123,7 @@ def test_get_feature_accession_html(client: Client, feature: DNAFeature):
 
 
 def test_get_no_feature_accession_html(client: Client):
-    response = client.get("/search/feature/accession/DCPGENE00000000")
+    response = client.get("/search/feature/accession/DCPGENE0000000000")
 
     assert response.status_code == 404
 

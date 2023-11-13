@@ -20,6 +20,6 @@ class AnalysisFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPAN^^^^^^^^", upper=True))
+        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPAN^^^^^^^^^^", upper=True))
         obj.save()
         return obj

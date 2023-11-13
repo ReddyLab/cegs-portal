@@ -1,527 +1,522 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "CEGS CCGR Portal v1",
-    "version": "1.0",
-    "contact": {
-      "name": "Thomas Cowart",
-      "email": "thomas.cowart@duke.edu"
-    },
-    "description": "APIs for searching the CEGS CCGR Portal Additionally, individual Genes, DHSs, cCREs, Regulatory Effect Observations, and Experiments can be retrieved.",
-    "summary": "APIs for genetic information from CCGR portal"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:3000/search/v1"
-    }
-  ],
-  "paths": {
-    "/results": {
-      "get": {
-        "summary": "Search",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
+    "openapi": "3.1.0",
+    "info": {
+        "title": "CEGS CCGR Portal v1",
+        "version": "1.0",
+        "contact": {
+            "name": "Thomas Cowart",
+            "email": "thomas.cowart@duke.edu"
         },
-        "operationId": "get-results",
-        "description": "Generic search endpoint"
-      }
+        "description": "APIs for searching the CEGS CCGR Portal Additionally, individual Genes, DHSs, cCREs, Regulatory Effect Observations, and Experiments can be retrieved.",
+        "summary": "APIs for genetic information from CCGR portal"
     },
-    "/feature/ensembl/{feature_id}": {
-      "parameters": [
+    "servers": [
         {
-          "schema": {
-            "type": "string"
-          },
-          "name": "feature_id",
-          "in": "path",
-          "required": true
+            "url": "http://localhost:3000/search/v1"
         }
-      ],
-      "get": {
-        "summary": "Gene by Ensembl ID",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DNAFeature"
-                }
-              }
+    ],
+    "paths": {
+        "/results": {
+            "get": {
+                "summary": "Search",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-results",
+                "description": "Generic search endpoint"
             }
-          }
         },
-        "operationId": "get-feature-ensembl-feature_id",
-        "description": "Look up features (genes, transcripts, exons) by \"id_type\" ID."
-      }
-    },
-    "/feature/{id_type}/{feature_id}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "id_type",
-          "in": "path",
-          "required": true
+        "/feature/ensembl/{feature_id}": {
+            "parameters": [
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "feature_id",
+                    "in": "path",
+                    "required": true
+                }
+            ],
+            "get": {
+                "summary": "Gene by Ensembl ID",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DNAFeature"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-feature-ensembl-feature_id",
+                "description": "Look up features (genes, transcripts, exons) by \"id_type\" ID."
+            }
         },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "feature_id",
-          "in": "path",
-          "required": true
+        "/feature/{id_type}/{feature_id}": {
+            "parameters": [
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "id_type",
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "feature_id",
+                    "in": "path",
+                    "required": true
+                }
+            ],
+            "get": {
+                "summary": "Gene by Ensembl ID",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DNAFeature"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-feature-id_type-feature_id",
+                "description": "Look up features (genes, transcripts, exons) by ensembl ID."
+            }
+        },
+        "/featureloc/{chromo}/{start}/{end}": {
+            "parameters": [
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "chromo",
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "start",
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "end",
+                    "in": "path",
+                    "required": true
+                }
+            ],
+            "get": {
+                "summary": "Features in a range",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DNAFeature"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-featureloc-chromo-start-end",
+                "description": "Find all features (genes, transcripts, exons) within a range"
+            }
+        },
+        "/experiment": {
+            "get": {
+                "summary": "List of experiments",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Experiment"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-experiments",
+                "description": "Look up an experiment by accession ID"
+            }
+        },
+        "/experiment/{id}": {
+            "parameters": [
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                }
+            ],
+            "get": {
+                "summary": "Experiment by ID",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Experiment"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-experiment-id",
+                "description": "Look up an experiment by accession ID"
+            }
+        },
+        "/regeffect/{id}": {
+            "parameters": [
+                {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "name": "id",
+                    "in": "path",
+                    "required": true
+                }
+            ],
+            "get": {
+                "summary": "Regulatory Effect by ID",
+                "tags": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegulatoryEffectObservation"
+                                }
+                            }
+                        }
+                    }
+                },
+                "operationId": "get-regeffect-id",
+                "description": "Look up a regulatory effect observation by accession ID"
+            }
+        },
+        "/experiment_coverage": {
+            "post": {
+                "summary": "",
+                "operationId": "post-experiment_coverage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExperimentCoverage"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "header",
+                        "name": "Accept"
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query",
+                        "name": "search_type"
+                    },
+                    {
+                        "schema": {
+                            "type": "string",
+                            "example": "DCPGENE000000F00D"
+                        },
+                        "in": "query",
+                        "name": "exp",
+                        "required": true
+                    },
+                    {
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query",
+                        "name": "accept"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "filters": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 2,
+                                        "items": {
+                                            "type": "array",
+                                            "description": "0: a list of categorical facet IDs\n1: (optional) [[min effect value, max effect value], [min significance value, max significance value]]",
+                                            "items": {}
+                                        }
+                                    },
+                                    "zoom": {
+                                        "type": "string"
+                                    },
+                                    "chromosomes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": ["filters"]
+                            }
+                        }
+                    }
+                }
+            }
         }
-      ],
-      "get": {
-        "summary": "Gene by Ensembl ID",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DNAFeature"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-feature-id_type-feature_id",
-        "description": "Look up features (genes, transcripts, exons) by ensembl ID."
-      }
     },
-    "/featureloc/{chromo}/{start}/{end}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "chromo",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "start",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "end",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Features in a range",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DNAFeature"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-featureloc-chromo-start-end",
-        "description": "Find all features (genes, transcripts, exons) within a range"
-      }
-    },
-    "/experiment": {
-      "get": {
-        "summary": "List of experiments",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Experiment"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-experiments",
-        "description": "Look up an experiment by accession ID"
-      }
-    },
-    "/experiment/{id}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "id",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Experiment by ID",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Experiment"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-experiment-id",
-        "description": "Look up an experiment by accession ID"
-      }
-    },
-    "/regeffect/{id}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "id",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Regulatory Effect by ID",
-        "tags": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegulatoryEffectObservation"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "get-regeffect-id",
-        "description": "Look up a regulatory effect observation by accession ID"
-      }
-    },
-    "/experiment_coverage": {
-      "post": {
-        "summary": "",
-        "operationId": "post-experiment_coverage",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExperimentCoverage"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "header",
-            "name": "Accept"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "search_type"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "example": "DCPGENE0000F00D"
-            },
-            "in": "query",
-            "name": "exp",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "accept"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
+    "components": {
+        "schemas": {
+            "DNAFeature": {
+                "title": "DNAFeature",
                 "type": "object",
                 "properties": {
-                  "filters": {
-                    "type": "array",
-                    "minItems": 1,
-                    "maxItems": 2,
-                    "items": {
-                      "type": "array",
-                      "description": "0: a list of categorical facet IDs\n1: (optional) [[min effect value, max effect value], [min significance value, max significance value]]",
-                      "items": {}
+                    "subtype": {
+                        "type": "string"
+                    },
+                    "misc": {
+                        "type": "object"
+                    },
+                    "parent": {
+                        "type": "string"
+                    },
+                    "cell_line": {
+                        "type": "string"
+                    },
+                    "start": {
+                        "type": "integer"
+                    },
+                    "end": {
+                        "type": "integer"
+                    },
+                    "strand": {
+                        "type": "string"
+                    },
+                    "ids": {
+                        "type": "object"
+                    },
+                    "closest_gene": {
+                        "$ref": "#/components/schemas/DNAFeature"
+                    },
+                    "closest_gene_ensembl_id": {
+                        "type": "integer"
+                    },
+                    "closest_gene_name": {
+                        "type": "string"
+                    },
+                    "ref_genome": {
+                        "type": "string"
+                    },
+                    "ref_genome_patch": {
+                        "type": "string"
+                    },
+                    "source_for": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RegulatoryEffectObservation"
+                        }
+                    },
+                    "target_of": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RegulatoryEffectObservation"
+                        }
+                    },
+                    "facet_values": {
+                        "type": "object",
+                        "description": "the keys are numeric IDs (numbers) and the values are the facet values (strings)"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": ["string", "number"]
+                    },
+                    "chr": {
+                        "type": "string"
                     }
-                  },
-                  "zoom": {
-                    "type": "string"
-                  },
-                  "chromosomes": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
+                }
+            },
+            "Experiment": {
+                "title": "Experiment",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
                     }
-                  }
+                }
+            },
+            "RegulatoryEffectObservation": {
+                "title": "RegulatoryEffectObservation",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "direction": {
+                        "type": "string"
+                    },
+                    "effect_size": {
+                        "type": "number"
+                    },
+                    "significance": {
+                        "type": "number"
+                    },
+                    "sources": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DNAFeature"
+                        }
+                    },
+                    "targets": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DNAFeature"
+                        }
+                    }
+                }
+            },
+            "ExperimentCoverage": {
+                "title": "ExperimentCoverage",
+                "x-stoplight": {
+                    "id": "ghli8tq5y9whw"
                 },
-                "required": [
-                  "filters"
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "DNAFeature": {
-        "title": "DNAFeature",
-        "type": "object",
-        "properties": {
-          "subtype": {
-            "type": "string"
-          },
-          "misc": {
-            "type": "object"
-          },
-          "parent": {
-            "type": "string"
-          },
-          "cell_line": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer"
-          },
-          "end": {
-            "type": "integer"
-          },
-          "strand": {
-            "type": "string"
-          },
-          "ids": {
-            "type": "object"
-          },
-          "closest_gene": {
-            "$ref": "#/components/schemas/DNAFeature"
-          },
-          "closest_gene_ensembl_id": {
-            "type": "integer"
-          },
-          "closest_gene_name": {
-            "type": "string"
-          },
-          "ref_genome": {
-            "type": "string"
-          },
-          "ref_genome_patch": {
-            "type": "string"
-          },
-          "source_for": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RegulatoryEffectObservation"
-            }
-          },
-          "target_of": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RegulatoryEffectObservation"
-            }
-          },
-          "facet_values": {
-            "type": "object",
-            "description": "the keys are numeric IDs (numbers) and the values are the facet values (strings)"
-          },
-          "type": {
-            "type": "string"
-          },
-          "id": {
-            "type": [
-              "string",
-              "number"
-            ]
-          },
-          "chr": {
-            "type": "string"
-          }
-        }
-      },
-      "Experiment": {
-        "title": "Experiment",
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "RegulatoryEffectObservation": {
-        "title": "RegulatoryEffectObservation",
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "direction": {
-            "type": "string"
-          },
-          "effect_size": {
-            "type": "number"
-          },
-          "significance": {
-            "type": "number"
-          },
-          "sources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DNAFeature"
-            }
-          },
-          "targets": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DNAFeature"
-            }
-          }
-        }
-      },
-      "ExperimentCoverage": {
-        "title": "ExperimentCoverage",
-        "x-stoplight": {
-          "id": "ghli8tq5y9whw"
-        },
-        "type": "object",
-        "properties": {
-          "chromosomes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FilteredChromosome"
-            }
-          },
-          "numeric_intervals": {
-            "type": "object",
-            "properties": {
-              "effect": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": {
-                  "type": "number"
+                "type": "object",
+                "properties": {
+                    "chromosomes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FilteredChromosome"
+                        }
+                    },
+                    "numeric_intervals": {
+                        "type": "object",
+                        "properties": {
+                            "effect": {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": {
+                                    "type": "number"
+                                }
+                            },
+                            "sign": {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
                 }
-              },
-              "sign": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": {
-                  "type": "number"
+            },
+            "FilteredChromosome": {
+                "title": "FilteredChromosome",
+                "x-stoplight": {
+                    "id": "77miiy9gtefkm"
+                },
+                "type": "object",
+                "properties": {
+                    "chrom": {
+                        "type": "string"
+                    },
+                    "bucket_size": {
+                        "type": "integer"
+                    },
+                    "target_intervals": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FilteredBucket"
+                        }
+                    },
+                    "source_intervals": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FilteredBucket"
+                        }
+                    }
                 }
-              }
+            },
+            "FilteredBucket": {
+                "title": "FilteredBucket",
+                "x-stoplight": {
+                    "id": "5dbjazzmzom4e"
+                },
+                "type": "object",
+                "properties": {
+                    "start": {
+                        "type": "string"
+                    },
+                    "count": {
+                        "type": "integer"
+                    },
+                    "associated_buckets": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
             }
-          }
         }
-      },
-      "FilteredChromosome": {
-        "title": "FilteredChromosome",
-        "x-stoplight": {
-          "id": "77miiy9gtefkm"
-        },
-        "type": "object",
-        "properties": {
-          "chrom": {
-            "type": "string"
-          },
-          "bucket_size": {
-            "type": "integer"
-          },
-          "target_intervals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FilteredBucket"
-            }
-          },
-          "source_intervals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FilteredBucket"
-            }
-          }
-        }
-      },
-      "FilteredBucket": {
-        "title": "FilteredBucket",
-        "x-stoplight": {
-          "id": "5dbjazzmzom4e"
-        },
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string"
-          },
-          "count": {
-            "type": "integer"
-          },
-          "associated_buckets": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          }
-        }
-      }
     }
-  }
 }

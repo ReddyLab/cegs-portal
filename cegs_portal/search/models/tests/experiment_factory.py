@@ -24,7 +24,7 @@ class TissueTypeFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPTT^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPTT^^^^^^^^^^", upper=True)
         obj.save()
         return obj
 
@@ -42,7 +42,7 @@ class CellLineFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPCL^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPCL^^^^^^^^^^", upper=True)
         obj.save()
         return obj
 
@@ -59,7 +59,7 @@ class BiosampleFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = cls._faker.unique.hexify(text="DCPBIOS^^^^^^^^", upper=True)
+        obj.accession_id = cls._faker.unique.hexify(text="DCPBIOS^^^^^^^^^^", upper=True)
         obj.save()
         return obj
 
@@ -80,7 +80,7 @@ class ExperimentFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         obj = model_class(*args, **kwargs)
-        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^", upper=True))
+        obj.accession_id = kwargs.get("accession_id", cls._faker.unique.hexify(text="DCPEXPR^^^^^^^^^^", upper=True))
         obj.save()
         return obj
 
