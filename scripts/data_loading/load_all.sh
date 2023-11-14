@@ -18,8 +18,9 @@ echo "Load SCREEN cCREs"
 ./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg38.json GRCh38 13
 
 # Load experiment data
-echo DCPEXPR0000000001
-./scripts/data_loading/DCPEXPR0000000001_load_bounds_2021_scceres_data.sh ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/analysis001.json
+# Just leave this experiment out from now on. It's been superceded by DCPEXPR4-6
+# echo DCPEXPR0000000001
+# ./scripts/data_loading/DCPEXPR0000000001_load_bounds_2021_scceres_data.sh ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/analysis001.json
 echo DCPEXPR0000000003
 ./scripts/data_loading/DCPEXPR0000000003_load_klann_2021_wgceres_data.sh ${DATA_DIR}/DCPEXPR0000000003_klann_wgCERES_K562_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000003_klann_wgCERES_K562_2021/analysis001.json
 echo DCPEXPR0000000002
