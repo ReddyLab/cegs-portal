@@ -7,6 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("search", "0054_alter_accessionidlog_accession_type_and_more"),
+        ("get_expr_data", "0017_auto_20231114_1447"),
     ]
 
     operations = [
