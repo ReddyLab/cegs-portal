@@ -59,16 +59,16 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             facets = []
             print(f"Starting line {i}")
 
-        chrom_name, dhs_start_str, dhs_end_str, _, screen_accession_id, ccre_categories = line
+        chrom_name, ccre_start_str, ccre_end_str, _, screen_accession_id, ccre_categories = line
 
         if "_" in chrom_name:
             continue
 
-        dhs_start = int(dhs_start_str)
-        dhs_end = int(dhs_end_str)
-        dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+        ccre_start = int(ccre_start_str)
+        ccre_end = int(ccre_end_str)
+        ccre_location = NumericRange(ccre_start, ccre_end, "[]")
 
-        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
+        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
         dhs = DNAFeature(
             accession_id=accession_ids.incr(AccessionType.CCRE),
             cell_line=cell_line,
@@ -77,7 +77,7 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             closest_gene_distance=distance,
             closest_gene_name=gene_name,
             closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
-            location=dhs_location,
+            location=ccre_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
             misc={"screen_accession_id": screen_accession_id},
