@@ -50,6 +50,7 @@ def save_ccres(closest_ccre_filename, sources, ref_genome, accession_ids):
                 ref_genome_patch=source.ref_genome_patch,
                 feature_type=DNAFeatureType.CCRE,
                 source_file=source.source_file,
+                misc={"pseudo": True},
             )
             ccre.save()
             source.associated_ccres.add(ccre)
