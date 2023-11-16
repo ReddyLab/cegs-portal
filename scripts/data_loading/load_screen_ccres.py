@@ -66,10 +66,10 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
 
         ccre_start = int(ccre_start_str)
         ccre_end = int(ccre_end_str)
-        ccre_location = NumericRange(ccre_start, ccre_end, "[]")
+        ccre_location = NumericRange(ccre_start, ccre_end, "[)")
 
         closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
-        dhs = DNAFeature(
+        ccre = DNAFeature(
             accession_id=accession_ids.incr(AccessionType.CCRE),
             cell_line=cell_line,
             chrom_name=chrom_name,
@@ -84,7 +84,7 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             feature_type=DNAFeatureType.CCRE,
             source_file=source_file,
         )
-        new_sites.append(dhs)
+        new_sites.append(ccre)
         facets.append(get_facets(ccre_categories))
 
     bulk_save(new_sites)

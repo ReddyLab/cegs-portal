@@ -10,7 +10,7 @@ def get_ccre(loc: tuple[str, int, int, str]):
     chrom, start, end, ref_genome = loc
     return DNAFeature.objects.get(
         chrom_name=chrom,
-        location=NumericRange(start, end, "[]"),
+        location=NumericRange(start, end, "[)"),
         ref_genome=ref_genome,
         feature_type=DNAFeatureType.CCRE,
     )
