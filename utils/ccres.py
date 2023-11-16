@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from cegs_portal.search.models import AccessionType, DNAFeature, DNAFeatureType
 
 
 def get_ccre(loc: tuple[str, int, int, str]):
@@ -16,7 +16,7 @@ def get_ccre(loc: tuple[str, int, int, str]):
     )
 
 
-def dhs_ccre_locs(closest_ccre_filename, ref_genome):
+def source_ccre_locs(closest_ccre_filename, ref_genome):
     ccres = defaultdict(lambda: [])
     with open(closest_ccre_filename, "r") as closest_ccres:
         ccre_reader = csv.reader(closest_ccres, delimiter="\t")
@@ -30,9 +30,26 @@ def dhs_ccre_locs(closest_ccre_filename, ref_genome):
     return ccres
 
 
-def save_ccres(closest_ccre_filename, dhss, ref_genome):
-    dhs_ccres = dhs_ccre_locs(closest_ccre_filename, ref_genome)
-    for dhs in dhss:
-        ccres = dhs_ccres[(dhs.chrom_name, dhs.location.lower, dhs.location.upper)]
+def save_ccres(closest_ccre_filename, sources, ref_genome, accession_ids):
+    source_ccres = source_ccre_locs(closest_ccre_filename, ref_genome)
+    for source in sources:
+        ccres = source_ccres[(source.chrom_name, source.location.lower, source.location.upper)]
         if len(ccres) > 0:
-            dhs.associated_ccres.add(*[get_ccre(ccre) for ccre in ccres])
+            source.associated_ccres.add(*[get_ccre(ccre) for ccre in ccres])
+        else:
+            ccre = DNAFeature(
+                accession_id=accession_ids.incr(AccessionType.CCRE),
+                cell_line=source.cell_line,
+                chrom_name=source.chrom_name,
+                closest_gene=source.closest_gene,
+                closest_gene_distance=source.closest_gene_distance,
+                closest_gene_name=source.closest_gene_name,
+                closest_gene_ensembl_id=source.closest_gene_ensembl_id,
+                location=source.location,
+                ref_genome=source.ref_genome,
+                ref_genome_patch=source.ref_genome_patch,
+                feature_type=DNAFeatureType.CCRE,
+                source_file=source.source_file,
+            )
+            ccre.save()
+            source.associated_ccres.add(ccre)

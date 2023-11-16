@@ -76,7 +76,7 @@ def load_dhss(
     print(f"DHS Count: {len(new_dhss)}")
     bulk_save(new_dhss.values())
 
-    save_ccres(closest_ccre_filename, new_dhss.values(), ref_genome)
+    save_ccres(closest_ccre_filename, new_dhss.values(), ref_genome, accession_ids)
 
 
 def unload_experiment(experiment_metadata):
