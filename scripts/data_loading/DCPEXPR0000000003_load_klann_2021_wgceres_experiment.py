@@ -10,7 +10,8 @@ from cegs_portal.search.models import (
     DNAFeatureType,
     Experiment,
 )
-from utils import ExperimentMetadata, timer
+from utils import timer
+from utils.experiment import ExperimentMetadata
 
 from . import get_closest_gene
 

@@ -13,7 +13,8 @@ from cegs_portal.search.models import (
     Facet,
     FacetValue,
 )
-from utils import FileMetadata, get_delimiter, timer
+from utils import get_delimiter, timer
+from utils.file import FileMetadata
 
 from . import get_closest_gene
 

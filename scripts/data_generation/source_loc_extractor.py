@@ -1,11 +1,7 @@
 import argparse
 import csv
 
-
-def dict_csv(data_file, output_file, chr_name_col, chr_start_col, chr_end_col):
-    reader = csv.DictReader(data_file)
-    for row in reader:
-        output_file.write(f"{row[chr_name_col]}\t{row[chr_start_col]}\t{row[chr_end_col]}\n")
+from utils.misc import get_delimiter
 
 
 def get_args():
@@ -21,12 +17,12 @@ def get_args():
 
 def run(data_file, output_file, chr_name_col, chr_start_col, chr_end_col):
     if chr_name_col.isnumeric() and chr_start_col.isnumeric() and chr_end_col.isnumeric():
-        reader = csv.reader(data_file)
+        reader = csv.reader(data_file, delimiter=get_delimiter(data_file.name))
         chr_name_col = int(chr_name_col)
         chr_start_col = int(chr_start_col)
         chr_end_col = int(chr_end_col)
     else:
-        reader = csv.DictReader(data_file)
+        reader = csv.DictReader(data_file, delimiter=get_delimiter(data_file.name))
     for row in reader:
         output_file.write(f"{row[chr_name_col]}\t{row[chr_start_col]}\t{row[chr_end_col]}\n")
 
