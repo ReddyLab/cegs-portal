@@ -11,6 +11,7 @@ from cegs_portal.search.models import (
     Experiment,
 )
 from utils import timer
+from utils.ccres import save_ccres
 from utils.experiment import ExperimentMetadata
 
 from . import get_closest_gene
@@ -37,7 +38,9 @@ def bulk_save(dhss: list[DNAFeature]):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load CARs")
-def load_cars(ceres_file, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","):
+def load_cars(
+    ceres_file, closest_ccre_filename, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","
+):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     new_cars: dict[str, DNAFeature] = {}
     for line in reader:
@@ -70,6 +73,8 @@ def load_cars(ceres_file, accession_ids, experiment, cell_line, ref_genome, regi
             new_cars[car_name] = car
     bulk_save(new_cars.values())
 
+    save_ccres(closest_ccre_filename, new_cars.values(), ref_genome, accession_ids)
+
 
 def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
@@ -82,7 +87,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"wgCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename):
+def run(experiment_filename, closest_ccre_filename):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -99,6 +104,7 @@ def run(experiment_filename):
         for ceres_file, file_info, _delimiter in experiment_metadata.metadata():
             load_cars(
                 ceres_file,
+                closest_ccre_filename,
                 accession_ids,
                 experiment,
                 experiment_metadata.biosamples[0].cell_line,

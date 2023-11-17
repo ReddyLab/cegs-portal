@@ -39,10 +39,7 @@ echo DCPEXPR0000000006
   ${DATA_DIR}/DCPEXPR0000000006_bounds_scCERES_mhc_npc_2021/experiment.json \
   ${DATA_DIR}/DCPEXPR0000000006_bounds_scCERES_mhc_npc_2021/analysis001.json
 
-echo DCPEXPR0000000007
-./scripts/data_loading/DCPEXPR0000000007_load_siklenka_atacstarrseq_K562_2022.sh \
-  ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/experiment.json \
-  ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/analysis001.json
+./scripts/data_loading/DCPEXPR0000000007_load_siklenka_atacstarrseq_K562_2022.sh ${DATA_DIR}
 
 echo DCPEXPR0000000008
 ./scripts/data_loading/DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022.sh ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/experiment.json \
