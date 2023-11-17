@@ -44,6 +44,7 @@ def get_facets(facet_string):
 @timer("Load cCREs")
 def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    ccres = set()
     new_sites: list[DNAFeature] = []
     facets: list[list[FacetValue]] = []
     print("Starting line 0")
@@ -67,6 +68,14 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
 
         ccre_start = int(ccre_start_str)
         ccre_end = int(ccre_end_str)
+
+        # There shouldn't be duplicate cCREs, but the liftover from
+        # hg38 to hg37 is imperfect and results in some duplicates
+        if (chrom_name, ccre_start, ccre_end) in ccres:
+            continue
+        else:
+            ccres.add((chrom_name, ccre_start, ccre_end))
+
         ccre_location = NumericRange(ccre_start, ccre_end, "[)")
 
         closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
