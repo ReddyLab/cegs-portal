@@ -1,6 +1,8 @@
+import json
+from io import SEEK_SET, StringIO
 from urllib.parse import unquote
 
-from django.db import transaction
+from django.db import connection, transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -13,10 +15,12 @@ from cegs_portal.search.models import (
 )
 from utils import timer
 
+from . import next_feature_id
+
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
 
-ANNOTATION_BUFFER_SIZE = 5_000
+ANNOTATION_BUFFER_SIZE = 100_000
 
 
 #
@@ -32,23 +36,40 @@ ANNOTATION_BUFFER_SIZE = 5_000
 # In postgres the objects automatically get their id's when bulk_created but
 # objects that reference the bulk_created objects (i.e., with foreign keys) don't
 # get their foreign keys updated. The for loops do that necessary updating.
-@timer("Saving annotations", level=2, unit="s")
-def bulk_annotation_save(genome_annotations: list[GencodeAnnotation]):
-    GencodeAnnotation.objects.bulk_create(genome_annotations, batch_size=1000)
+def bulk_annotation_save(genome_annotations: StringIO):
+    genome_annotations.seek(0, SEEK_SET)
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.copy_from(
+            genome_annotations,
+            "search_gencodeannotation",
+            columns=(
+                "chrom_name",
+                "location",
+                "strand",
+                "score",
+                "phase",
+                "annotation_type",
+                "id_attr",
+                "ref_genome",
+                "ref_genome_patch",
+                "gene_name",
+                "gene_type",
+                "level",
+                "region_id",
+                "version",
+                "attributes",
+            ),
+        )
 
 
 @timer("Loading annotations", level=1)
 def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, version):
-    line_count = 0
-    annotations: list[GencodeAnnotation] = []
+    annotations: StringIO = StringIO()
     region = None
-    for line in genome_annotations:
-        line_count += 1
-        if line_count % ANNOTATION_BUFFER_SIZE == 0:
-            print(f"line count: {line_count}")
-
+    for i, line in enumerate(genome_annotations, start=1):
         if line.startswith("##sequence-region"):
             _, chrom_name, start, end = line.split(" ")
+            # Genocode values are 1-based, and probably closed
             # Adjust start/end to use 0-based indexing
             start = int(start) - 1
             end = int(end)
@@ -61,183 +82,178 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
 
         fields = line.split("\t")
         seqid, _source, annotation_type, start, end, score_str, strand, phase_str, attrs = map(unquote, fields)
+        # Genocode values are 1-based, and probably closed
+        # Adjust start/end to use 0-based indexing
+        start = int(start) - 1
+        end = int(end)
         attr_list = attrs.split(";")
         attr_dict = {}
         for attr in attr_list:
             attr_name, value = attr.split("=")
             attr_dict[attr_name.strip()] = value.strip()
 
-        # The assumption is that all items with the same ID are on continguous lines
-        phase = int(phase_str) if phase_str is not None and phase_str != "." else None
-        score = float(score_str) if score_str is not None and score_str != "." else None
-
-        # If there is a new annotation
-        # Write the buffer to the database
-        if len(annotations) % ANNOTATION_BUFFER_SIZE == 0:
-            bulk_annotation_save(annotations)
-            annotations = []
-        # Create a new annotation
-
-        annotation = GencodeAnnotation(
-            chrom_name=seqid,
-            location=NumericRange(int(start), int(end), "[]"),
-            strand=strand,
-            score=score,
-            phase=phase,
-            annotation_type=annotation_type,
-            id_attr=attr_dict["ID"],
-            ref_genome=ref_genome,
-            ref_genome_patch=ref_genome_patch,
-            gene_name=attr_dict["gene_name"],
-            gene_type=attr_dict["gene_type"],
-            level=int(attr_dict["level"]),
-            region=region,
-            version=version,
-        )
+        annotation_id = attr_dict["ID"]
+        gene_name = attr_dict["gene_name"]
+        gene_type = attr_dict["gene_type"]
+        level = attr_dict["level"]
 
         for v in ANNOTATION_VALUE_ATTRIBUTES:
             del attr_dict[v]
 
-        annotation.attributes = attr_dict
+        # The assumption is that all items with the same ID are on continguous lines
+        # \N represents a "null" value to psycopg2
+        phase = phase_str if phase_str is not None and phase_str != "." else "\\N"
+        score = score_str if score_str is not None and score_str != "." else "\\N"
 
-        annotations.append(annotation)
+        # If there is a new annotation
+        # Write the buffer to the database
+        if i % ANNOTATION_BUFFER_SIZE == 0:
+            bulk_annotation_save(annotations)
+            annotations.close()
+            annotations = StringIO()
+
+        # Create a new annotation
+        annotations.write(
+            f"{seqid}\t[{start},{end})\t{strand}\t{score}\t{phase}\t{annotation_type}\t{annotation_id}\t{ref_genome}\t{ref_genome_patch}\t{gene_name}\t{gene_type}\t{level}\t{region.id}\t{version}\t{json.dumps(attr_dict)}\n"
+        )
 
     bulk_annotation_save(annotations)
+    annotations.close()
 
 
-def bulk_feature_save(features, parent_ids=None):
-    if parent_ids is None:
-        parent_ids = []
-    with transaction.atomic():
-        if len(parent_ids) > 0:
-            parents = DNAFeature.objects.filter(ensembl_id__in=parent_ids)
-            parents_dict = {p.ensembl_id: p for p in parents.all()}
-            for f, pid in zip(features, parent_ids):
-                f.parent = parents_dict[pid]
-                f.parent_accession = parents_dict[pid]
-        DNAFeature.objects.bulk_create(features)
+def bulk_feature_save(features):
+    with transaction.atomic(), connection.cursor() as cursor:
+        features.seek(0, SEEK_SET)
+        cursor.copy_from(
+            features,
+            "search_dnafeature",
+            columns=(
+                "id",
+                "accession_id",
+                "chrom_name",
+                "ids",
+                "location",
+                "name",
+                "strand",
+                "ref_genome",
+                "ref_genome_patch",
+                "feature_type",
+                "feature_subtype",
+                "ensembl_id",
+                "misc",
+                "parent_id",
+                "parent_accession_id",
+                "archived",
+                "public",
+            ),
+        )
 
 
 @timer("Creating Genes", level=1)
 def create_genes(accession_ids, ref_genome, ref_genome_patch):
     gene_annotations = GencodeAnnotation.objects.filter(
         annotation_type="gene", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
-    )
+    ).values()
 
-    assembly_buffer = []
-    for annotation in gene_annotations.iterator():
-        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
+    assembly_buffer = StringIO()
+    ensembl_ids = {}
+    feature_id = next_feature_id()
+    for i, annotation in enumerate(gene_annotations.iterator(), start=1):
+        if i % ANNOTATION_BUFFER_SIZE == 0:
             bulk_feature_save(assembly_buffer)
-            assembly_buffer = []
+            assembly_buffer.close()
+            assembly_buffer = StringIO()
 
         ensembl_id = None
+        accession_id = accession_ids.incr(AccessionType.GENE)
         ids = {}
-        if value := annotation.attributes.get("gene_id", False):
+        if value := annotation["attributes"].get("gene_id", False):
             ids["ensembl"] = value
             ensembl_id = value.split(".")[0]
+            ensembl_ids[ensembl_id] = (feature_id, accession_id)
 
-        if value := annotation.attributes.get("hgnc_id", False):
+        if value := annotation["attributes"].get("hgnc_id", False):
             ids["hgnc"] = value
 
-        if value := annotation.attributes.get("havana_gene", False):
+        if value := annotation["attributes"].get("havana_gene", False):
             ids["havana"] = value
 
-        assembly = DNAFeature(
-            accession_id=accession_ids.incr(AccessionType.GENE),
-            chrom_name=annotation.chrom_name,
-            ids=ids,
-            location=annotation.location,
-            name=annotation.gene_name,
-            strand=annotation.strand,
-            ref_genome=annotation.ref_genome,
-            ref_genome_patch=annotation.ref_genome_patch,
-            feature_type=DNAFeatureType.GENE,
-            feature_subtype=annotation.gene_type,
-            ensembl_id=ensembl_id,
-        )
-        assembly_buffer.append(assembly)
+        gene_info = f"{feature_id}\t{accession_id}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['gene_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.GENE}\t{annotation['gene_type']}\t{ensembl_id}\t\\N\t\\N\t\\N\tfalse\ttrue\n"
+        assembly_buffer.write(gene_info)
+        feature_id += 1
 
     bulk_feature_save(assembly_buffer)
 
+    return ensembl_ids
+
 
 @timer("Creating Transcripts", level=1)
-def create_transcripts(accession_ids, ref_genome, ref_genome_patch):
+def create_transcripts(accession_ids, gene_ensembl_ids, ref_genome, ref_genome_patch):
     tx_annotations = GencodeAnnotation.objects.filter(
         annotation_type="transcript", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
-    )
+    ).values()
 
-    assembly_buffer = []
-    parent_ids = []
-    for annotation in tx_annotations.iterator():
-        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
-            bulk_feature_save(assembly_buffer, parent_ids)
-            assembly_buffer = []
-            parent_ids = []
+    assembly_buffer = StringIO()
+    ensembl_ids = {}
+    feature_id = next_feature_id()
+    for i, annotation in enumerate(tx_annotations.iterator(), start=1):
+        if i % ANNOTATION_BUFFER_SIZE == 0:
+            bulk_feature_save(assembly_buffer)
+            assembly_buffer.close()
+            assembly_buffer = StringIO()
 
         ensembl_id = None
+        accession_id = accession_ids.incr(AccessionType.TRANSCRIPT)
+
         ids = {}
-        if value := annotation.attributes.get("transcript_id", False):
+        if value := annotation["attributes"].get("transcript_id", False):
             ids["ensembl"] = value
             ensembl_id = value.split(".")[0]
+            ensembl_ids[ensembl_id] = (feature_id, accession_id)
 
-        if value := annotation.attributes.get("havana_transcript", False):
+        if value := annotation["attributes"].get("havana_transcript", False):
             ids["havana"] = value
 
-        parent_ids.append(annotation.attributes["gene_id"].split(".")[0])
-        assembly = DNAFeature(
-            accession_id=accession_ids.incr(AccessionType.TRANSCRIPT),
-            chrom_name=annotation.chrom_name,
-            ids=ids,
-            location=annotation.location,
-            name=annotation.attributes["transcript_name"],
-            strand=annotation.strand,
-            ref_genome=annotation.ref_genome,
-            ref_genome_patch=annotation.ref_genome_patch,
-            ensembl_id=ensembl_id,
-            feature_type=DNAFeatureType.TRANSCRIPT,
-            feature_subtype=annotation.attributes["transcript_type"],
+        parent_id = annotation["attributes"]["gene_id"].split(".")[0]
+        pid, p_a_id = gene_ensembl_ids[parent_id]
+        assembly_buffer.write(
+            f"{feature_id}\t{accession_id}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['attributes']['transcript_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.TRANSCRIPT}\t{annotation['attributes']['transcript_type']}\t{ensembl_id}\t\\N\t{pid}\t{p_a_id}\tfalse\ttrue\n"
         )
-        assembly_buffer.append(assembly)
+        feature_id += 1
 
-    bulk_feature_save(assembly_buffer, parent_ids)
+    bulk_feature_save(assembly_buffer)
+
+    return ensembl_ids
 
 
 @timer("Creating Exons", level=1)
-def create_exons(accession_ids, ref_genome, ref_genome_patch):
+def create_exons(accession_ids, tx_ensembl_ids, ref_genome, ref_genome_patch):
     exon_annotations = GencodeAnnotation.objects.filter(
         annotation_type="exon", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
-    )
+    ).values()
 
-    assembly_buffer = []
-    parent_ids = []
-    for annotation in exon_annotations.iterator():
-        if len(assembly_buffer) == ANNOTATION_BUFFER_SIZE:
-            bulk_feature_save(assembly_buffer, parent_ids)
-            assembly_buffer = []
-            parent_ids = []
+    assembly_buffer = StringIO()
+    feature_id = next_feature_id()
+    for i, annotation in enumerate(exon_annotations.iterator()):
+        if i % ANNOTATION_BUFFER_SIZE == 0:
+            bulk_feature_save(assembly_buffer)
+            assembly_buffer.close()
+            assembly_buffer = StringIO()
 
         ids = {}
-        exon_id = annotation.id_attr
-        if value := annotation.attributes.get("exon_id", False):
+        exon_id = annotation["id_attr"]
+        if value := annotation["attributes"].get("exon_id", False):
             ids["ensembl"] = value
             exon_id = value
 
-        parent_ids.append(annotation.attributes["transcript_id"].split(".")[0])
-        assembly = DNAFeature(
-            accession_id=accession_ids.incr(AccessionType.EXON),
-            chrom_name=annotation.chrom_name,
-            ids=ids,
-            location=annotation.location,
-            strand=annotation.strand,
-            ref_genome=annotation.ref_genome,
-            ref_genome_patch=annotation.ref_genome_patch,
-            feature_type=DNAFeatureType.EXON,
-            ensembl_id=exon_id,
-            misc={"number": int(annotation.attributes["exon_number"]), "gencode_id": annotation.id_attr},
+        parent_id = annotation["attributes"]["transcript_id"].split(".")[0]
+        pid, p_a_id = tx_ensembl_ids[parent_id]
+        assembly_buffer.write(
+            f"{feature_id}\t{accession_ids.incr(AccessionType.EXON)}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t\\N\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.EXON}\t\\N\t{exon_id}\t{json.dumps({'number': int(annotation['attributes']['exon_number']), 'gencode_id': annotation['id_attr']})}\t{pid}\t{p_a_id}\tfalse\ttrue\n"
         )
-        assembly_buffer.append(assembly)
+        feature_id += 1
 
-    bulk_feature_save(assembly_buffer, parent_ids)
+    bulk_feature_save(assembly_buffer)
 
 
 @timer("Unloading Genome Annotations", level=1)
@@ -280,6 +296,6 @@ def run(annotation_filename: str, ref_genome: str, ref_genome_patch: str, versio
         load_genome_annotations(annotation_file, ref_genome, ref_genome_patch, version)
 
     with AccessionIds(message=f"Gencode data for {ref_genome}.{ref_genome_patch}") as accession_ids:
-        create_genes(accession_ids, ref_genome, ref_genome_patch)
-        create_transcripts(accession_ids, ref_genome, ref_genome_patch)
-        create_exons(accession_ids, ref_genome, ref_genome_patch)
+        gene_ensembl_ids = create_genes(accession_ids, ref_genome, ref_genome_patch)
+        transcript_ensembl_ids = create_transcripts(accession_ids, gene_ensembl_ids, ref_genome, ref_genome_patch)
+        create_exons(accession_ids, transcript_ensembl_ids, ref_genome, ref_genome_patch)

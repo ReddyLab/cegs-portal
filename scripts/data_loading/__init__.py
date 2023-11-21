@@ -1,6 +1,16 @@
 from functools import lru_cache
 
+from django.db import connection
+
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
+
+
+def next_feature_id():
+    try:
+        current_feature_id = DNAFeature.objects.all().values_list("id", flat=True).order_by("-id")[0]
+    except IndexError:
+        current_feature_id = 0
+    return current_feature_id + 1
 
 
 def check_genome(ref_genome: str, ref_genome_patch: str):

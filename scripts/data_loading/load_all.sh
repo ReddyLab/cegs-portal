@@ -8,9 +8,8 @@ echo "Load facets"
 ./scripts/data_loading/load_facets.sh ${DATA_DIR}/facets/facets.tsv
 
 # Load gencode annotations and FeatureAssemblies (genes, transcripts, exons)
-echo "Load gencode data"
 ./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v19.annotation.gff3 GRCh37 '' 19
-./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v43.annotation.gff3 GRCh38 13 38
+./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v43.annotation.gff3 GRCh38 13 43
 
 # Load cCREs from SCREEN
 echo "Load SCREEN cCREs"
