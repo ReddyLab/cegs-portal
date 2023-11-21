@@ -15,6 +15,8 @@ from cegs_portal.search.models import (
 )
 from utils import timer
 
+from . import next_feature_id
+
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
 
@@ -126,6 +128,7 @@ def bulk_feature_save(features):
             features,
             "search_dnafeature",
             columns=(
+                "id",
                 "accession_id",
                 "chrom_name",
                 "ids",
@@ -153,7 +156,8 @@ def create_genes(accession_ids, ref_genome, ref_genome_patch):
     ).values()
 
     assembly_buffer = StringIO()
-    ensembl_ids = []
+    ensembl_ids = {}
+    feature_id = next_feature_id()
     for i, annotation in enumerate(gene_annotations.iterator(), start=1):
         if i % ANNOTATION_BUFFER_SIZE == 0:
             bulk_feature_save(assembly_buffer)
@@ -161,11 +165,12 @@ def create_genes(accession_ids, ref_genome, ref_genome_patch):
             assembly_buffer = StringIO()
 
         ensembl_id = None
+        accession_id = accession_ids.incr(AccessionType.GENE)
         ids = {}
         if value := annotation["attributes"].get("gene_id", False):
             ids["ensembl"] = value
             ensembl_id = value.split(".")[0]
-            ensembl_ids.append(ensembl_id)
+            ensembl_ids[ensembl_id] = (feature_id, accession_id)
 
         if value := annotation["attributes"].get("hgnc_id", False):
             ids["hgnc"] = value
@@ -173,8 +178,9 @@ def create_genes(accession_ids, ref_genome, ref_genome_patch):
         if value := annotation["attributes"].get("havana_gene", False):
             ids["havana"] = value
 
-        gene_info = f"{accession_ids.incr(AccessionType.GENE)}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['gene_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.GENE}\t{annotation['gene_type']}\t{ensembl_id}\t\\N\t\\N\t\\N\tfalse\ttrue\n"
+        gene_info = f"{feature_id}\t{accession_id}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['gene_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.GENE}\t{annotation['gene_type']}\t{ensembl_id}\t\\N\t\\N\t\\N\tfalse\ttrue\n"
         assembly_buffer.write(gene_info)
+        feature_id += 1
 
     bulk_feature_save(assembly_buffer)
 
@@ -187,11 +193,9 @@ def create_transcripts(accession_ids, gene_ensembl_ids, ref_genome, ref_genome_p
         annotation_type="transcript", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     ).values()
 
-    parents = DNAFeature.objects.filter(ensembl_id__in=gene_ensembl_ids).values_list("ensembl_id", "id", "accession_id")
-    parents_dict = {ensembl_id: (pid, accession_id) for ensembl_id, pid, accession_id in parents.all()}
-
     assembly_buffer = StringIO()
-    ensembl_ids = []
+    ensembl_ids = {}
+    feature_id = next_feature_id()
     for i, annotation in enumerate(tx_annotations.iterator(), start=1):
         if i % ANNOTATION_BUFFER_SIZE == 0:
             bulk_feature_save(assembly_buffer)
@@ -199,20 +203,23 @@ def create_transcripts(accession_ids, gene_ensembl_ids, ref_genome, ref_genome_p
             assembly_buffer = StringIO()
 
         ensembl_id = None
+        accession_id = accession_ids.incr(AccessionType.TRANSCRIPT)
+
         ids = {}
         if value := annotation["attributes"].get("transcript_id", False):
             ids["ensembl"] = value
             ensembl_id = value.split(".")[0]
-            ensembl_ids.append(ensembl_id)
+            ensembl_ids[ensembl_id] = (feature_id, accession_id)
 
         if value := annotation["attributes"].get("havana_transcript", False):
             ids["havana"] = value
 
         parent_id = annotation["attributes"]["gene_id"].split(".")[0]
-        pid, p_a_id = parents_dict[parent_id]
+        pid, p_a_id = gene_ensembl_ids[parent_id]
         assembly_buffer.write(
-            f"{accession_ids.incr(AccessionType.TRANSCRIPT)}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['attributes']['transcript_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.TRANSCRIPT}\t{annotation['attributes']['transcript_type']}\t{ensembl_id}\t\\N\t{pid}\t{p_a_id}\tfalse\ttrue\n"
+            f"{feature_id}\t{accession_id}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t{annotation['attributes']['transcript_name']}\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.TRANSCRIPT}\t{annotation['attributes']['transcript_type']}\t{ensembl_id}\t\\N\t{pid}\t{p_a_id}\tfalse\ttrue\n"
         )
+        feature_id += 1
 
     bulk_feature_save(assembly_buffer)
 
@@ -225,10 +232,8 @@ def create_exons(accession_ids, tx_ensembl_ids, ref_genome, ref_genome_patch):
         annotation_type="exon", ref_genome=ref_genome, ref_genome_patch=ref_genome_patch
     ).values()
 
-    parents = DNAFeature.objects.filter(ensembl_id__in=tx_ensembl_ids).values_list("ensembl_id", "id", "accession_id")
-    parents_dict = {ensembl_id: (pid, accession_id) for ensembl_id, pid, accession_id in parents.all()}
-
     assembly_buffer = StringIO()
+    feature_id = next_feature_id()
     for i, annotation in enumerate(exon_annotations.iterator()):
         if i % ANNOTATION_BUFFER_SIZE == 0:
             bulk_feature_save(assembly_buffer)
@@ -242,10 +247,11 @@ def create_exons(accession_ids, tx_ensembl_ids, ref_genome, ref_genome_patch):
             exon_id = value
 
         parent_id = annotation["attributes"]["transcript_id"].split(".")[0]
-        pid, p_a_id = parents_dict[parent_id]
+        pid, p_a_id = tx_ensembl_ids[parent_id]
         assembly_buffer.write(
-            f"{accession_ids.incr(AccessionType.EXON)}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t\\N\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.EXON}\t\\N\t{exon_id}\t{json.dumps({'number': int(annotation['attributes']['exon_number']), 'gencode_id': annotation['id_attr']})}\t{pid}\t{p_a_id}\tfalse\ttrue\n"
+            f"{feature_id}\t{accession_ids.incr(AccessionType.EXON)}\t{annotation['chrom_name']}\t{json.dumps(ids)}\t{annotation['location']}\t\\N\t{annotation['strand']}\t{annotation['ref_genome']}\t{annotation['ref_genome_patch']}\t{DNAFeatureType.EXON}\t\\N\t{exon_id}\t{json.dumps({'number': int(annotation['attributes']['exon_number']), 'gencode_id': annotation['id_attr']})}\t{pid}\t{p_a_id}\tfalse\ttrue\n"
         )
+        feature_id += 1
 
     bulk_feature_save(assembly_buffer)
 
