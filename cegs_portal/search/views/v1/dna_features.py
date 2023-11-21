@@ -3,7 +3,7 @@ from django.db.models import QuerySet
 from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.dna_features import features
-from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.models import DNAFeature, DNAFeatureType
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import (
@@ -73,6 +73,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
+        dna_feature_types = []
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -94,6 +95,9 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 reo_page = None
 
             feature_reos.append((feature, sources, targets, reo_page))
+
+        for _, feature_type in DNAFeatureType.__members__.items():
+            dna_feature_types.append((feature_type.value))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
@@ -135,6 +139,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "feature_reos": feature_reos,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
+                "dna_feature_types": dna_feature_types,
             },
         )
 
