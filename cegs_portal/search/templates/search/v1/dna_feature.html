@@ -403,6 +403,29 @@
                 </div>
             </div>
             <div class="title-separator min-w-full"></div>
+            <div class="flex flex-row items-start gap-x-10 min-w-full">
+                <div class="flex flex-col gap-4 flex-none">
+                    <div id="facets" class="container">
+                        <div class="w-60">
+                            <div class="text-xl font-bold text-slate-500">Filter DNA Features</div>
+                                <fieldset name="facetfield">
+                                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                                    </legend>
+                                    <div class="flex flex-row flex-wrap gap-1"
+                                        aria-labelledby="facetHeader{{ forloop.counter }}">
+                                        {% for feature_type in dna_feature_types %}
+                                        <div>
+                                            <input type="checkbox" id="{{ feature_type }}" name="feature_type"></input>
+                                            <label for="{{ feature_type }}">{{ feature_type }}</label>
+                                        </div>
+                                        {% endfor %}
+
+                                    </div>
+                                </fieldset>
+                        </div>
+                    </div>
+                </div>
+          </div>
             <div class="text-s font-bold">Measured from each end of the gene</div>
             <form>
                 <label for="feature-dist">Feature Distance in base pairs:</label>
@@ -506,25 +529,43 @@
         {% endfor %}
     ];
 
-    g("feature-dist-submit").onclick = function() {
-        let dist = Number(g("feature-dist").value);
-        let fetches = assemblies.map(a => {
-            let search_start = Math.max(a.start - dist, 0);
-            let search_end = a.end + dist;
-            return fetch(`/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
-                .then(response => {
-                    return response.json()
-                });
-        })
-        Promise.all(fetches)
-            .then(data => {
-                let features = [];
-                for (const d of data) {
-                    features.push(...d);
-                }
-                g("dnafeature").replaceWith(featureTable(features, "No nearby DNA Features"))
+    function fetchDataAndRenderTable() {
+    let dist = Number(g("feature-dist").value);
+    let fetches = assemblies.map(a => {
+        let search_start = Math.max(a.start - dist, 0);
+        let search_end = a.end + dist;
+        let url = `/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`;
+
+        let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
+        checkboxes.forEach(checkbox => {
+            url += `&feature_type=${checkbox.id}`;
+        });
+
+        return fetch(url)
+            .then(response => {
+                return response.json()
             });
+    })
+    Promise.all(fetches)
+        .then(data => {
+            let features = [];
+            for (const d of data) {
+                features.push(...d);
+            }
+            let table = g("dnafeature");
+            while (table.firstChild) {
+                table.removeChild(table.firstChild);
+            }
+            table.appendChild(featureTable(features, "No nearby DNA Features"));
+        });
     }
+
+        g("feature-dist-submit").onclick = fetchDataAndRenderTable;
+
+        let checkboxes = document.querySelectorAll('input[name="feature_type"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', fetchDataAndRenderTable);
+        });
 
     let sourceForURL = function(accessionID) {
         return `/search/regeffect/source/${accessionID}?accept=application/json`;
