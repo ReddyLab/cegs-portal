@@ -1,9 +1,10 @@
 import csv
+import json
 import os.path
 import time
+from io import SEEK_SET, StringIO
 
-from django.db import transaction
-from psycopg2.extras import NumericRange
+from django.db import connection, transaction
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -16,23 +17,12 @@ from cegs_portal.search.models import (
 from utils import get_delimiter, timer
 from utils.file import FileMetadata
 
-from . import get_closest_gene
+from . import get_closest_gene, next_feature_id
 
-LOAD_BATCH_SIZE = 10_000
+LOAD_BATCH_SIZE = 100_000
 
 CCRE_FACET = Facet.objects.get(name="cCRE Category")
-CCRE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=CCRE_FACET.id).all()}
-
-
-def bulk_save(sites):
-    with transaction.atomic():
-        DNAFeature.objects.bulk_create(sites, batch_size=1000)
-
-
-@timer("Set Facets", unit="s")
-def set_facets(new_sites, facets):
-    for site, facet_qset in zip(new_sites, facets):
-        site.facet_values.add(*facet_qset)
+CCRE_FACET_VALUES = {facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=CCRE_FACET.id).all()}
 
 
 def get_facets(facet_string):
@@ -40,26 +30,56 @@ def get_facets(facet_string):
     return [CCRE_FACET_VALUES[value] for value in facet_values]
 
 
+def save_data(ccres: StringIO, facet_values: StringIO):
+    ccres.seek(0, SEEK_SET)
+    facet_values.seek(0, SEEK_SET)
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.copy_from(
+            ccres,
+            "search_dnafeature",
+            columns=(
+                "id",
+                "accession_id",
+                "cell_line",
+                "chrom_name",
+                "closest_gene_id",
+                "closest_gene_distance",
+                "closest_gene_name",
+                "closest_gene_ensembl_id",
+                "location",
+                "ref_genome",
+                "ref_genome_patch",
+                "misc",
+                "feature_type",
+                "source_file_id",
+                "archived",
+                "public",
+            ),
+        )
+        cursor.copy_from(facet_values, "search_dnafeature_facet_values", columns=("dnafeature_id", "facetvalue_id"))
+
+
 # loading does buffered writes to the DB, with a buffer size of LOAD_BATCH_SIZE annotations
 @timer("Load cCREs")
 def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    feature_id = next_feature_id()
+    source_file_id = source_file.id
     ccres = set()
-    new_sites: list[DNAFeature] = []
-    facets: list[list[FacetValue]] = []
-    print("Starting line 0")
     start_time = time.perf_counter()
-    for i, line in enumerate(reader):
-        if i % LOAD_BATCH_SIZE == 0 and i != 0:
-            print(f"Saving {i - LOAD_BATCH_SIZE}-{i - 1}")
-            bulk_save(new_sites)
-            set_facets(new_sites, facets)
+
+    new_ccres = StringIO()
+    new_feature_facets = StringIO()
+    for i, line in enumerate(reader, start=1):
+        if i % LOAD_BATCH_SIZE == 0:
+            save_data(new_ccres, new_feature_facets)
             end_time = time.perf_counter()
             print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
             start_time = time.perf_counter()
-            new_sites = []
-            facets = []
-            print(f"Starting line {i}")
+            new_ccres.close()
+            new_ccres = StringIO()
+            new_feature_facets.close()
+            new_feature_facets = StringIO()
 
         chrom_name, ccre_start_str, ccre_end_str, _, screen_accession_id, ccre_categories = line
 
@@ -76,31 +96,23 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
         else:
             ccres.add((chrom_name, ccre_start, ccre_end))
 
-        ccre_location = NumericRange(ccre_start, ccre_end, "[)")
-
+        ccre_location = f"[{ccre_start},{ccre_end})"
         closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
-        ccre = DNAFeature(
-            accession_id=accession_ids.incr(AccessionType.CCRE),
-            cell_line=cell_line,
-            chrom_name=chrom_name,
-            closest_gene=closest_gene,
-            closest_gene_distance=distance,
-            closest_gene_name=gene_name,
-            closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
-            location=ccre_location,
-            ref_genome=ref_genome,
-            ref_genome_patch=ref_genome_patch,
-            misc={"screen_accession_id": screen_accession_id},
-            feature_type=DNAFeatureType.CCRE,
-            source_file=source_file,
-        )
-        new_sites.append(ccre)
-        facets.append(get_facets(ccre_categories))
+        closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
 
-    bulk_save(new_sites)
-    set_facets(new_sites, facets)
+        new_ccres.write(
+            f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{ccre_location}\t{ref_genome}\t{ref_genome_patch}\t{json.dumps({'screen_accession_id': screen_accession_id})}\t{DNAFeatureType.CCRE}\t{source_file_id}\tfalse\ttrue\n"
+        )
+        feature_facets_ids = get_facets(ccre_categories)
+        for facet_id in feature_facets_ids:
+            new_feature_facets.write(f"{feature_id}\t{facet_id}\n")
+        feature_id += 1
+
+    save_data(new_ccres, new_feature_facets)
     end_time = time.perf_counter()
     print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
+    new_ccres.close()
+    new_feature_facets.close()
 
 
 @timer("Unloading CCREs", level=1)
