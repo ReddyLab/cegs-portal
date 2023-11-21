@@ -13,7 +13,8 @@ from cegs_portal.search.models import (
     Facet,
     FacetValue,
 )
-from utils import FileMetadata, get_delimiter, timer
+from utils import get_delimiter, timer
+from utils.file import FileMetadata
 
 from . import get_closest_gene
 
@@ -43,6 +44,7 @@ def get_facets(facet_string):
 @timer("Load cCREs")
 def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    ccres = set()
     new_sites: list[DNAFeature] = []
     facets: list[list[FacetValue]] = []
     print("Starting line 0")
@@ -59,17 +61,25 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             facets = []
             print(f"Starting line {i}")
 
-        chrom_name, dhs_start_str, dhs_end_str, _, screen_accession_id, ccre_categories = line
+        chrom_name, ccre_start_str, ccre_end_str, _, screen_accession_id, ccre_categories = line
 
         if "_" in chrom_name:
             continue
 
-        dhs_start = int(dhs_start_str)
-        dhs_end = int(dhs_end_str)
-        dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+        ccre_start = int(ccre_start_str)
+        ccre_end = int(ccre_end_str)
 
-        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, dhs_start, dhs_end)
-        dhs = DNAFeature(
+        # There shouldn't be duplicate cCREs, but the liftover from
+        # hg38 to hg37 is imperfect and results in some duplicates
+        if (chrom_name, ccre_start, ccre_end) in ccres:
+            continue
+        else:
+            ccres.add((chrom_name, ccre_start, ccre_end))
+
+        ccre_location = NumericRange(ccre_start, ccre_end, "[)")
+
+        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
+        ccre = DNAFeature(
             accession_id=accession_ids.incr(AccessionType.CCRE),
             cell_line=cell_line,
             chrom_name=chrom_name,
@@ -77,14 +87,14 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             closest_gene_distance=distance,
             closest_gene_name=gene_name,
             closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
-            location=dhs_location,
+            location=ccre_location,
             ref_genome=ref_genome,
             ref_genome_patch=ref_genome_patch,
             misc={"screen_accession_id": screen_accession_id},
             feature_type=DNAFeatureType.CCRE,
             source_file=source_file,
         )
-        new_sites.append(dhs)
+        new_sites.append(ccre)
         facets.append(get_facets(ccre_categories))
 
     bulk_save(new_sites)

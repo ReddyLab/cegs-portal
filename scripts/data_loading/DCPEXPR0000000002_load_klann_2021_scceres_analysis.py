@@ -13,7 +13,8 @@ from cegs_portal.search.models import (
     FacetValue,
     RegulatoryEffectObservation,
 )
-from utils import AnalysisMetadata, timer
+from utils import timer
+from utils.experiment import AnalysisMetadata
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -80,7 +81,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
         if dhs_string in dhss:
             dhs = dhss[dhs_string]
         else:
-            dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+            dhs_location = NumericRange(dhs_start, dhs_end, "[)")
             dhs = DNAFeature.objects.get(
                 experiment_accession=experiment,
                 chrom_name=chrom_name,

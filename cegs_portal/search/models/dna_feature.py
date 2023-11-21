@@ -55,6 +55,8 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     closest_gene_name = models.CharField(max_length=50, null=True, blank=True)
     closest_gene_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
 
+    associated_ccres = models.ManyToManyField("self", related_name="associated_sources", blank=True)
+
     # These values will be returned as 0-index, half-closed. This should be converted to
     # 1-index, closed for display purposes. 1,c is the default for genomic coordinates
     location = IntegerRangeField()

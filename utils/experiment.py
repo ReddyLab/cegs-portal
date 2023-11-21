@@ -72,7 +72,7 @@ class ExperimentBiosample:
     def __init__(self, bio_metadata: dict[str, str], experiment: T):
         self.name = bio_metadata.get("name", None)
         self.description = bio_metadata.get("description", None)
-        self.cell_line = bio_metadata["cell_line"]
+        self.cell_line = bio_metadata["cell_type"]
         self.tissue_type = bio_metadata["tissue_type"]
         self.experiment = experiment
 

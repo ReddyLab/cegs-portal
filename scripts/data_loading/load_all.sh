@@ -21,19 +21,10 @@ echo "Load SCREEN cCREs"
 # Just leave this experiment out from now on. It's been superceded by DCPEXPR4-6
 # echo DCPEXPR0000000001
 # ./scripts/data_loading/DCPEXPR0000000001_load_bounds_2021_scceres_data.sh ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000001_bounds_scCERES_iPSC_2021/analysis001.json
-echo DCPEXPR0000000003
-./scripts/data_loading/DCPEXPR0000000003_load_klann_2021_wgceres_data.sh ${DATA_DIR}/DCPEXPR0000000003_klann_wgCERES_K562_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000003_klann_wgCERES_K562_2021/analysis001.json
-echo DCPEXPR0000000002
-./scripts/data_loading/DCPEXPR0000000002_load_klann_2021_scceres_data.sh ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/experiment.json ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/analysis001.json
 
-# Apply SCREEN cCRE categories to DHSs from DCPEXPR0000000002
-./scripts/data_generation/DCPEXPR0000000002_dhs_bed_klann_2021_scceres.sh \
-    ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/supplementary_table_17_grna.de.markers.all.filtered.empirical_pvals.w_gene_info.csv \
-    ${DATA_DIR}/screen_ccres/GRCh19-cCREs.bed \
-    ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt
-./scripts/data_loading/DCPEXPR0000000002_dhs_closest_ccres_klann_2021_scceres.sh \
-    ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/dhs_bed_klann_2021_scceres_closest_ccres.txt \
-    DCPEXPR0000000002
+./scripts/data_loading/DCPEXPR0000000002_load_klann_2021_scceres_data.sh ${DATA_DIR}
+
+./scripts/data_loading/DCPEXPR0000000003_load_klann_2021_wgceres_data.sh ${DATA_DIR}
 
 echo DCPEXPR0000000004
 ./scripts/data_loading/DCPEXPR00000000004_load_bounds_scCERES_mhc_2021.sh \
@@ -48,10 +39,7 @@ echo DCPEXPR0000000006
   ${DATA_DIR}/DCPEXPR0000000006_bounds_scCERES_mhc_npc_2021/experiment.json \
   ${DATA_DIR}/DCPEXPR0000000006_bounds_scCERES_mhc_npc_2021/analysis001.json
 
-echo DCPEXPR0000000007
-./scripts/data_loading/DCPEXPR0000000007_load_siklenka_atacstarrseq_K562_2022.sh \
-  ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/experiment.json \
-  ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/analysis001.json
+./scripts/data_loading/DCPEXPR0000000007_load_siklenka_atacstarrseq_K562_2022.sh ${DATA_DIR}
 
 echo DCPEXPR0000000008
 ./scripts/data_loading/DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022.sh ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/experiment.json \

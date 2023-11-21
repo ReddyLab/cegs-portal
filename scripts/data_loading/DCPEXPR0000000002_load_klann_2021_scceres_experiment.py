@@ -10,7 +10,9 @@ from cegs_portal.search.models import (
     DNAFeatureType,
     Experiment,
 )
-from utils import ExperimentMetadata, timer
+from utils import timer
+from utils.ccres import save_ccres
+from utils.experiment import ExperimentMetadata
 
 from . import get_closest_gene
 
@@ -38,7 +40,9 @@ def bulk_save(dhss: list[DNAFeature]):
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load DHSs")
-def load_dhss(dhs_file, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","):
+def load_dhss(
+    dhs_file, closest_ccre_filename, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","
+):
     reader = csv.DictReader(dhs_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     new_dhss: dict[str, DNAFeature] = {}
 
@@ -47,7 +51,7 @@ def load_dhss(dhs_file, accession_ids, experiment, cell_line, ref_genome, region
 
         dhs_start = int(line["dhs_start"])
         dhs_end = int(line["dhs_end"])
-        dhs_location = NumericRange(dhs_start, dhs_end, "[]")
+        dhs_location = NumericRange(dhs_start, dhs_end, "[)")
 
         dhs_name = f"{chrom_name}:{dhs_location}"
 
@@ -73,6 +77,8 @@ def load_dhss(dhs_file, accession_ids, experiment, cell_line, ref_genome, region
     print(f"DHS Count: {len(new_dhss)}")
     bulk_save(new_dhss.values())
 
+    save_ccres(closest_ccre_filename, new_dhss.values(), ref_genome, accession_ids)
+
 
 def unload_experiment(experiment_metadata):
     experiment = Experiment.objects.get(accession_id=experiment_metadata.accession_id)
@@ -85,7 +91,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename):
+def run(experiment_filename, closest_ccre_filename):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -102,6 +108,7 @@ def run(experiment_filename):
         for dhs_file, file_info, delimiter in experiment_metadata.metadata():
             load_dhss(
                 dhs_file,
+                closest_ccre_filename,
                 accession_ids,
                 experiment,
                 experiment_metadata.biosamples[0].cell_line,

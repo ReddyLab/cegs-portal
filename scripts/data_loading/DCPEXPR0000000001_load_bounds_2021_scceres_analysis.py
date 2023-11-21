@@ -13,7 +13,8 @@ from cegs_portal.search.models import (
     FacetValue,
     RegulatoryEffectObservation,
 )
-from utils import AnalysisMetadata, timer
+from utils import timer
+from utils.experiment import AnalysisMetadata
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
