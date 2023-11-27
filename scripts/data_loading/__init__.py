@@ -13,6 +13,63 @@ def next_feature_id():
     return current_feature_id + 1
 
 
+def drop_indexes():
+    with connection.cursor() as cursor:
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_accession_id_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_chrom_name_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_ensembl_id_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_feature_type_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_loc_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_name_index")
+        cursor.execute("DROP INDEX IF EXISTS public.sdf_name_insensitive_index")
+
+
+def create_indexes():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_accession_id_index
+    ON public.search_dnafeature USING btree
+    (accession_id COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_chrom_name_index
+    ON public.search_dnafeature USING btree
+    (chrom_name COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_ensembl_id_index
+    ON public.search_dnafeature USING btree
+    (ensembl_id COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_feature_type_index
+    ON public.search_dnafeature USING btree
+    (feature_type COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_loc_index
+    ON public.search_dnafeature USING gist
+    (location)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_name_index
+    ON public.search_dnafeature USING btree
+    (name COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+        cursor.execute(
+            """CREATE INDEX IF NOT EXISTS sdf_name_insensitive_index
+    ON public.search_dnafeature USING btree
+    (upper(name::text) COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default"""
+        )
+
+
 def check_genome(ref_genome: str, ref_genome_patch: str):
     if len(ref_genome) == 0:
         raise ValueError(f"reference genome '{ref_genome}'must not be blank")
@@ -31,6 +88,7 @@ def get_pos_features(chrom_name, ref_genome):
             feature_type=DNAFeatureType.GENE,
         )
         .order_by("location")
+        .values("id", "name", "location", "ensembl_id")
         .all()
     )
 
@@ -45,6 +103,7 @@ def get_neg_features(chrom_name, ref_genome):
             feature_type=DNAFeatureType.GENE,
         )
         .order_by("location")
+        .values("id", "name", "location", "ensembl_id")
         .all()
     )
 
@@ -62,13 +121,13 @@ def find_pos_closest(dhs_midpoint, features):
             # the loop is hacky, but the binary search only gets _close_ to finding the closest feature.
             for i in range(-6, 7):
                 new_feature = features[min(max(0, index + i), len(features) - 1)]
-                if abs(new_feature.location.lower - dhs_midpoint) < abs(feature.location.lower - dhs_midpoint):
+                if abs(new_feature["location"].lower - dhs_midpoint) < abs(feature["location"].lower - dhs_midpoint):
                     feature = new_feature
             return feature
 
-        if feature.location.lower >= dhs_midpoint:
+        if feature["location"].lower >= dhs_midpoint:
             end = index
-        elif feature.location.lower < dhs_midpoint:
+        elif feature["location"].lower < dhs_midpoint:
             start = index
 
         index = (end + start) // 2
@@ -87,13 +146,13 @@ def find_neg_closest(dhs_midpoint, features):
             # the loop is hacky, but the binary search only gets _close_ to finding the closest feature.
             for i in range(-6, 7):
                 new_feature = features[min(max(0, index + i), len(features) - 1)]
-                if abs(new_feature.location.upper - dhs_midpoint) < abs(feature.location.upper - dhs_midpoint):
+                if abs(new_feature["location"].upper - dhs_midpoint) < abs(feature["location"].upper - dhs_midpoint):
                     feature = new_feature
             return feature
 
-        if feature.location.upper >= dhs_midpoint:
+        if feature["location"].upper >= dhs_midpoint:
             end = index
-        elif feature.location.upper < dhs_midpoint:
+        elif feature["location"].upper < dhs_midpoint:
             start = index
 
         index = (end + start) // 2
@@ -111,17 +170,17 @@ def get_closest_gene(ref_genome, chrom_name, start, end):
         gene_name = "No Gene"
     elif closest_pos_feature is None:
         closest_feature = closest_neg_feature
-        distance = abs(range_midpoint - closest_neg_feature.location.upper)
-    elif closest_neg_feature is None or abs(range_midpoint - closest_pos_feature.location.lower) <= abs(
-        closest_neg_feature.location.upper - range_midpoint
+        distance = abs(range_midpoint - closest_neg_feature["location"].upper)
+    elif closest_neg_feature is None or abs(range_midpoint - closest_pos_feature["location"].lower) <= abs(
+        closest_neg_feature["location"].upper - range_midpoint
     ):
         closest_feature = closest_pos_feature
-        distance = abs(range_midpoint - closest_pos_feature.location.lower)
+        distance = abs(range_midpoint - closest_pos_feature["location"].lower)
     else:
         closest_feature = closest_neg_feature
-        distance = abs(closest_neg_feature.location.upper - range_midpoint)
+        distance = abs(closest_neg_feature["location"].upper - range_midpoint)
 
     if closest_feature is not None:
-        gene_name = closest_feature.name
+        gene_name = closest_feature["name"]
 
     return closest_feature, distance, gene_name

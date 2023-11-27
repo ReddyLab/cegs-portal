@@ -7,6 +7,7 @@ DATA_DIR=$1
 echo "Load facets"
 ./scripts/data_loading/load_facets.sh ${DATA_DIR}/facets/facets.tsv
 
+python manage.py shell -c "from scripts.data_loading import drop_indexes; drop_indexes()"
 # Load gencode annotations and FeatureAssemblies (genes, transcripts, exons)
 ./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v19.annotation.gff3 GRCh37 '' 19
 ./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v43.annotation.gff3 GRCh38 13 43
@@ -15,6 +16,7 @@ echo "Load facets"
 echo "Load SCREEN cCREs"
 ./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg19.json GRCh37 ''
 ./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg38.json GRCh38 13
+python manage.py shell -c "from scripts.data_loading import create_indexes; create_indexes()"
 
 # Load experiment data
 # Just leave this experiment out from now on. It's been superceded by DCPEXPR4-6
