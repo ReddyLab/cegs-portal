@@ -552,16 +552,30 @@
             while (table.firstChild) {
                 table.removeChild(table.firstChild);
             }
-            table.appendChild(featureTable(features, "No nearby DNA Features"));
-        });
+            if (features.length === 0) {
+
+    let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
+    checkboxes.forEach(checkbox => {
+        checkbox.disabled = true;
+    });
+
+    let message = document.createElement('div');
+    message.className = "table-title";
+    message.style = "display: flex; align-items: center; justify-content: center";
+    message.textContent = "DNA Feature Type Not Found";
+
+    let container = document.createElement('div');
+    container.className = "container min-w-full";
+    container.appendChild(message);
+
+    table.appendChild(container);
+    } else {
+        table.appendChild(featureTable(features, "No nearby DNA Features"));
+    }
+            });
     }
 
-        g("feature-dist-submit").onclick = fetchDataAndRenderTable;
-
-        let checkboxes = document.querySelectorAll('input[name="feature_type"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', fetchDataAndRenderTable);
-        });
+    g("feature-dist-submit").onclick = fetchDataAndRenderTable;
 
     let sourceForURL = function(accessionID) {
         return `/search/regeffect/source/${accessionID}?accept=application/json`;
