@@ -21,5 +21,5 @@ OUTPUT_FILE=$6
 PYTHONPATH=`pwd` python scripts/data_generation/source_loc_extractor.py -i ${DATA_FILE} -o out.bed --chr_name_col ${SOURCE_NAME_COL} --chr_start_col ${SOURCE_START_COL} --chr_end_col ${SOURCE_END_COL}
 sort -k1,1 -k2,2n out.bed | uniq > a.bed
 sort -k1,1 -k2,2n ${CCRE_BED_FILE} > b.bed
-bedtools closest -t all -a a.bed -b b.bed > ${OUTPUT_FILE}
+bedtools intersect -wo -sorted -a a.bed -b b.bed > ${OUTPUT_FILE}
 rm out.bed a.bed b.bed

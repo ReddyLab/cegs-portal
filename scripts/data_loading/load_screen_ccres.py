@@ -15,9 +15,10 @@ from cegs_portal.search.models import (
     FacetValue,
 )
 from utils import get_delimiter, timer
+from utils.features import FeatureIds
 from utils.file import FileMetadata
 
-from . import get_closest_gene, next_feature_id
+from . import get_closest_gene
 
 LOAD_BATCH_SIZE = 100_000
 
@@ -63,54 +64,54 @@ def save_data(ccres: StringIO, facet_values: StringIO):
 @timer("Load cCREs")
 def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_patch, delimiter=",", cell_line=None):
     reader = csv.reader(ccres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    feature_id = next_feature_id()
     source_file_id = source_file.id
     ccres = set()
     start_time = time.perf_counter()
 
     new_ccres = StringIO()
     new_feature_facets = StringIO()
-    for i, line in enumerate(reader, start=1):
-        if i % LOAD_BATCH_SIZE == 0:
-            save_data(new_ccres, new_feature_facets)
-            end_time = time.perf_counter()
-            print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
-            start_time = time.perf_counter()
-            new_ccres.close()
-            new_ccres = StringIO()
-            new_feature_facets.close()
-            new_feature_facets = StringIO()
+    with FeatureIds() as feature_ids:
+        for i, line in enumerate(reader, start=1):
+            if i % LOAD_BATCH_SIZE == 0:
+                save_data(new_ccres, new_feature_facets)
+                end_time = time.perf_counter()
+                print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
+                start_time = time.perf_counter()
+                new_ccres.close()
+                new_ccres = StringIO()
+                new_feature_facets.close()
+                new_feature_facets = StringIO()
 
-        chrom_name, ccre_start_str, ccre_end_str, _, screen_accession_id, ccre_categories = line
+            chrom_name, ccre_start_str, ccre_end_str, _, screen_accession_id, ccre_categories = line
 
-        if "_" in chrom_name:
-            continue
+            if "_" in chrom_name:
+                continue
 
-        ccre_start = int(ccre_start_str)
-        ccre_end = int(ccre_end_str)
+            ccre_start = int(ccre_start_str)
+            ccre_end = int(ccre_end_str)
 
-        # There shouldn't be duplicate cCREs, but the liftover from
-        # hg38 to hg37 is imperfect and results in some duplicates
-        if (chrom_name, ccre_start, ccre_end) in ccres:
-            continue
-        else:
-            ccres.add((chrom_name, ccre_start, ccre_end))
+            # There shouldn't be duplicate cCREs, but the liftover from
+            # hg38 to hg37 is imperfect and results in some duplicates
+            if (chrom_name, ccre_start, ccre_end) in ccres:
+                continue
+            else:
+                ccres.add((chrom_name, ccre_start, ccre_end))
 
-        ccre_location = f"[{ccre_start},{ccre_end})"
-        closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
-        closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
+            feature_id = feature_ids.next_id()
+            ccre_location = f"[{ccre_start},{ccre_end})"
+            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
+            closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
 
-        new_ccres.write(
-            f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{ccre_location}\t{ref_genome}\t{ref_genome_patch}\t{json.dumps({'screen_accession_id': screen_accession_id})}\t{DNAFeatureType.CCRE}\t{source_file_id}\tfalse\ttrue\n"
-        )
-        feature_facets_ids = get_facets(ccre_categories)
-        for facet_id in feature_facets_ids:
-            new_feature_facets.write(f"{feature_id}\t{facet_id}\n")
-        feature_id += 1
+            new_ccres.write(
+                f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{ccre_location}\t{ref_genome}\t{ref_genome_patch}\t{json.dumps({'screen_accession_id': screen_accession_id})}\t{DNAFeatureType.CCRE}\t{source_file_id}\tfalse\ttrue\n"
+            )
+            feature_facets_ids = get_facets(ccre_categories)
+            for facet_id in feature_facets_ids:
+                new_feature_facets.write(f"{feature_id}\t{facet_id}\n")
 
     save_data(new_ccres, new_feature_facets)
     end_time = time.perf_counter()
-    print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time} s")
+    print(f"Loaded {LOAD_BATCH_SIZE} cCREs in: {end_time - start_time}s")
     new_ccres.close()
     new_feature_facets.close()
 

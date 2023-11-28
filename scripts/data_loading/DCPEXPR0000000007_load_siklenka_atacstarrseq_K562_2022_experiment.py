@@ -11,7 +11,7 @@ from cegs_portal.search.models import (
     Experiment,
 )
 from utils import timer
-from utils.ccres import save_ccres
+from utils.ccres import associate_ccres
 from utils.experiment import ExperimentMetadata
 
 from . import get_closest_gene
@@ -73,7 +73,7 @@ def load_cars(
             new_cars[car_name] = car
     bulk_save(new_cars.values())
 
-    save_ccres(closest_ccre_filename, new_cars.values(), ref_genome, accession_ids)
+    associate_ccres(closest_ccre_filename, new_cars.values(), ref_genome, accession_ids)
 
 
 def unload_experiment(experiment_metadata):
