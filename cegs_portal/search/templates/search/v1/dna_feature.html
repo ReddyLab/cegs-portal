@@ -552,12 +552,16 @@
             while (table.firstChild) {
                 table.removeChild(table.firstChild);
             }
-            if (features.length === 0) {
+
+    if (features.length === 0) {
 
     let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
     checkboxes.forEach(checkbox => {
         checkbox.disabled = true;
     });
+
+    let parent = document.getElementById('tabs-find-features');
+    parent.style = "display: grid; justify-items: center;";
 
     let message = document.createElement('div');
     message.className = "table-title";
@@ -566,13 +570,14 @@
 
     let container = document.createElement('div');
     container.className = "container min-w-full";
+    container.style = "margin-left: auto; margin-right: auto; width: 50%;";
     container.appendChild(message);
 
     table.appendChild(container);
     } else {
         table.appendChild(featureTable(features, "No nearby DNA Features"));
     }
-            });
+        });
     }
 
     g("feature-dist-submit").onclick = fetchDataAndRenderTable;
