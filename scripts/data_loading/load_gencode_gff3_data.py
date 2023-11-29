@@ -72,7 +72,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
             # Adjust start/end to use 0-based indexing
             start = int(start) - 1
             end = int(end)
-            region = GencodeRegion(chrom_name=chrom_name, base_range=NumericRange(start, end))
+            region = GencodeRegion(chrom_name=chrom_name, base_range=NumericRange(start, end, "[)"))
             region.save()
             continue
 
