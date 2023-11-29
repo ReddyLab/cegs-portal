@@ -27,19 +27,6 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 CORRECT_FEATURES = ["ENSG00000272333"]
 
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
     source_associations: StringIO,
     effects: StringIO,
@@ -93,7 +80,6 @@ def bulk_save(
         )
 
 
-# loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
 def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_patch, delimiter=","):
     experiment = analysis.experiment
@@ -169,8 +155,15 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 print(f"{ref_genome} {ref_genome_patch} {line['gene_symbol']} [{gene_start}, {gene_end})")
                 raise ie
 
+            facet_num_values = json.dumps(
+                {
+                    RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
+                    RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
+                    RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                }
+            )
             effects.write(
-                f"{feature_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{json.dumps({RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line['p_val']),RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,})}\tfalse\ttrue\n"
+                f"{feature_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
             )
             effect_directions.write(f"{feature_id}\t{direction.id}\n")
     bulk_save(sources, effects, effect_directions, targets)

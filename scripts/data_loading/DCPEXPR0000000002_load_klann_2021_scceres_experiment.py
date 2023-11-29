@@ -22,24 +22,11 @@ from . import get_closest_gene
 CORRECT_FEATURES = ["ENSG00000272333"]
 
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
-def save_data(ccres: StringIO):
-    ccres.seek(0, SEEK_SET)
+def save_data(dhss: StringIO):
+    dhss.seek(0, SEEK_SET)
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.copy_from(
-            ccres,
+            dhss,
             "search_dnafeature",
             columns=(
                 "id",
