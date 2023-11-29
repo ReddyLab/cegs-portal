@@ -97,6 +97,8 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
             else:
                 ccres.add((chrom_name, ccre_start, ccre_end))
 
+            # Doesn't use the iterable features of FeatureIds so we don't skip ids when a cCRE is skipped
+            # due to not being unique
             feature_id = feature_ids.next_id()
             ccre_location = f"[{ccre_start},{ccre_end})"
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ccre_start, ccre_end)
