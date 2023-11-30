@@ -509,7 +509,7 @@
 {% endblock content %}
 {% block inline_javascript %}
 <script type="module">
-    import { e, g } from "{% static 'search/js/dom.js' %}";
+    import { e, g, cc } from "{% static 'search/js/dom.js' %}";
     import { featureTable } from "{% static 'search/js/tables.js' %}"
     import { dataPages, reTable, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
 
@@ -549,9 +549,8 @@
                 features.push(...d);
             }
             let table = g("dnafeature");
-            while (table.firstChild) {
-                table.removeChild(table.firstChild);
-            }
+            cc(table)
+
 
     if (features.length === 0) {
 
@@ -640,7 +639,7 @@
     this.value = "Searching...";
     setTimeout(() => {
         this.value = originalValue;
-    }, 10000);
+    }, 9000);
 });
 
 </script>
