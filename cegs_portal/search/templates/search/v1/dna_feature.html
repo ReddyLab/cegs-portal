@@ -555,13 +555,8 @@
 
     if (features.length === 0) {
 
-    let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
-    checkboxes.forEach(checkbox => {
-        checkbox.disabled = true;
-    });
-
     let parent = document.getElementById('tabs-find-features');
-    parent.style = "display: grid; justify-items: center;";
+    parent.className = "grid justify-items-center";
 
     table.appendChild(
     e(
