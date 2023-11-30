@@ -1,6 +1,9 @@
 import csv
+import json
+from io import StringIO
+from os import SEEK_SET
 
-from django.db import transaction
+from django.db import connection, transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -15,6 +18,7 @@ from cegs_portal.search.models import (
 )
 from utils import timer
 from utils.experiment import AnalysisMetadata
+from utils.features import FeatureIds
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -23,122 +27,145 @@ DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(fa
 CORRECT_FEATURES = ["ENSG00000272333"]
 
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
-    sources: list[DNAFeature],
-    effects: list[RegulatoryEffectObservation],
-    effect_directions: list[RegulatoryEffectObservation],
-    targets: list[DNAFeature],
+    source_associations: StringIO,
+    effects: StringIO,
+    effect_directions: StringIO,
+    target_associations: StringIO,
 ):
-    with transaction.atomic():
+    with transaction.atomic(), connection.cursor() as cursor:
+        effects.seek(0, SEEK_SET)
         print("Adding RegulatoryEffectObservations")
-        RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
+        cursor.copy_from(
+            effects,
+            "search_regulatoryeffectobservation",
+            columns=(
+                "id",
+                "accession_id",
+                "experiment_id",
+                "experiment_accession_id",
+                "analysis_accession_id",
+                "facet_num_values",
+                "archived",
+                "public",
+            ),
+        )
 
-    with transaction.atomic():
+    with transaction.atomic(), connection.cursor() as cursor:
+        effect_directions.seek(0, SEEK_SET)
         print("Adding effect directions to effects")
-        for direction, effect in zip(effect_directions, effects):
-            effect.facet_values.add(direction)
+        cursor.copy_from(
+            effect_directions,
+            "search_regulatoryeffectobservation_facet_values",
+            columns=(
+                "regulatoryeffectobservation_id",
+                "facetvalue_id",
+            ),
+        )
 
-    with transaction.atomic():
+    with transaction.atomic(), connection.cursor() as cursor:
+        source_associations.seek(0, SEEK_SET)
         print("Adding sources to RegulatoryEffectObservations")
-        for source, effect in zip(sources, effects):
-            effect.sources.add(source)
+        cursor.copy_from(
+            source_associations,
+            "search_regulatoryeffectobservation_sources",
+            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
+        )
+        target_associations.seek(0, SEEK_SET)
         print("Adding targets to RegulatoryEffectObservations")
-        for assembly, effect in zip(targets, effects):
-            effect.targets.add(assembly)
+        cursor.copy_from(
+            target_associations,
+            "search_regulatoryeffectobservation_targets",
+            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
+        )
 
 
-# loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load Reg Effects")
 def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_patch, delimiter=","):
     experiment = analysis.experiment
+    experiment_id = experiment.id
+    experiment_accession_id = experiment.accession_id
+    analysis_accession_id = analysis.accession_id
     reader = csv.DictReader(reo_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sources: list[DNAFeature] = []
-    effects: list[RegulatoryEffectObservation] = []
-    effect_directions: list[FacetValue] = []
-    targets: list[DNAFeature] = []
+    sources = StringIO()
+    targets = StringIO()
+    effects = StringIO()
+    effect_directions = StringIO()
     dhss = {}
 
-    for line in reader:
-        chrom_name = line["dhs_chrom"]
+    with FeatureIds() as feature_ids:
+        for feature_id, line in zip(feature_ids, reader):
+            chrom_name = line["dhs_chrom"]
 
-        dhs_start = int(line["dhs_start"])
-        dhs_end = int(line["dhs_end"])
-        dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
+            dhs_start = int(line["dhs_start"])
+            dhs_end = int(line["dhs_end"])
+            dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
 
-        if dhs_string in dhss:
-            dhs = dhss[dhs_string]
-        else:
-            dhs_location = NumericRange(dhs_start, dhs_end, "[)")
-            dhs = DNAFeature.objects.get(
-                experiment_accession=experiment,
-                chrom_name=chrom_name,
-                location=dhs_location,
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.DHS,
-            )
-            dhss[dhs_string] = dhs
+            gene_start = int(line["start"]) - 1
+            gene_end = int(line["end"])
 
-        sources.append(dhs)
+            if dhs_string in dhss:
+                dhs_id = dhss[dhs_string]
+            else:
+                dhs_id = DNAFeature.objects.filter(
+                    experiment_accession=experiment,
+                    chrom_name=chrom_name,
+                    location=NumericRange(dhs_start, dhs_end, "[)"),
+                    ref_genome=ref_genome,
+                    feature_type=DNAFeatureType.DHS,
+                ).values_list("id", flat=True)[0]
+                dhss[dhs_string] = dhs_id
 
-        significance = float(line["pval_empirical"])
-        effect_size = float(line["avg_logFC"])
-        if significance >= 0.01:
-            direction = DIR_FACET_VALUES["Non-significant"]
-        elif effect_size > 0:
-            direction = DIR_FACET_VALUES["Enriched Only"]
-        elif effect_size < 0:
-            direction = DIR_FACET_VALUES["Depleted Only"]
-        else:
-            direction = DIR_FACET_VALUES["Non-significant"]
+            sources.write(f"{feature_id}\t{dhs_id}\n")
 
-        try:
-            target = DNAFeature.objects.get(
-                ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                name=line["gene_symbol"],
-                location=NumericRange(int(line["start"]), int(line["end"]), "[]"),
-            )
-        except DNAFeature.MultipleObjectsReturned:
-            # There is ONE instance where there are two genes with the same name
-            # in the exact same location. This handles that situation.
-            # The two gene IDs are ENSG00000272333 and ENSG00000105663.
-            # I decided that ENSG00000272333 was the "correct" gene to use here
-            # because it's the one that still exists in GRCh38.
-            target = DNAFeature.objects.get(
+            significance = float(line["pval_empirical"])
+            effect_size = float(line["avg_logFC"])
+            if significance >= 0.01:
+                direction = DIR_FACET_VALUES["Non-significant"]
+            elif effect_size > 0:
+                direction = DIR_FACET_VALUES["Enriched Only"]
+            elif effect_size < 0:
+                direction = DIR_FACET_VALUES["Depleted Only"]
+            else:
+                direction = DIR_FACET_VALUES["Non-significant"]
+
+            target_id = DNAFeature.objects.filter(
                 ref_genome=ref_genome,
                 ref_genome_patch=ref_genome_patch,
                 name=line["gene_symbol"],
-                location=NumericRange(int(line["start"]), int(line["end"]), "[]"),
-                ensembl_id__in=CORRECT_FEATURES,
-            )
+                location=NumericRange(gene_start, gene_end, "[)"),
+            ).values_list("id", flat=True)
+            if len(target_id) > 1:
+                # There is ONE instance where there are two genes with the same name
+                # in the exact same location. This handles that situation.
+                # The two gene IDs are ENSG00000272333 and ENSG00000105663.
+                # I decided that ENSG00000272333 was the "correct" gene to use here
+                # because it's the one that still exists in GRCh38.
+                target_id = DNAFeature.objects.filter(
+                    ref_genome=ref_genome,
+                    ref_genome_patch=ref_genome_patch,
+                    name=line["gene_symbol"],
+                    location=NumericRange(gene_start, gene_end, "[)"),
+                    ensembl_id__in=CORRECT_FEATURES,
+                ).values_list("id", flat=True)
 
-        effect = RegulatoryEffectObservation(
-            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
-            experiment=experiment,
-            experiment_accession=experiment,
-            analysis=analysis,
-            facet_num_values={
-                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
-            },
-        )
-        effects.append(effect)
-        effect_directions.append(direction)
-        targets.append(target)
+            try:
+                targets.write(f"{feature_id}\t{target_id[0]}\n")
+            except IndexError as ie:
+                print(f"{ref_genome} {ref_genome_patch} {line['gene_symbol']} [{gene_start}, {gene_end})")
+                raise ie
+
+            facet_num_values = json.dumps(
+                {
+                    RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
+                    RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
+                    RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                }
+            )
+            effects.write(
+                f"{feature_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
+            )
+            effect_directions.write(f"{feature_id}\t{direction.id}\n")
     bulk_save(sources, effects, effect_directions, targets)
 
 
