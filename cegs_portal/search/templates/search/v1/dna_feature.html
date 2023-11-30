@@ -526,12 +526,14 @@
     ];
 
     function fetchDataAndRenderTable() {
-    let dist = Number(g("feature-dist").value);
-    let fetches = assemblies.map(a => {
+        let button = document.getElementById("feature-dist-submit");
+        let originalValue = button.value;
+        button.value = "Searching...";
+        let dist = Number(g("feature-dist").value);
+        let fetches = assemblies.map(a => {
         let search_start = Math.max(a.start - dist, 0);
         let search_end = a.end + dist;
         let url = `/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`;
-
         let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
         checkboxes.forEach(checkbox => {
             url += `&feature_type=${checkbox.id}`;
@@ -550,7 +552,6 @@
             }
             let table = g("dnafeature");
             cc(table)
-
 
     if (features.length === 0) {
 
@@ -571,6 +572,8 @@
     } else {
         table.appendChild(featureTable(features, "No nearby DNA Features"));
     }
+
+      button.value = originalValue;
         });
     }
 
@@ -633,14 +636,6 @@
 
         g("genoverse-container").after(e("div", {class: "title-separator"}, []));
     }
-
-    document.getElementById("feature-dist-submit").addEventListener("click", function() {
-    var originalValue = this.value;
-    this.value = "Searching...";
-    setTimeout(() => {
-        this.value = originalValue;
-    }, 9000);
-});
 
 </script>
 
