@@ -563,17 +563,17 @@
     let parent = document.getElementById('tabs-find-features');
     parent.style = "display: grid; justify-items: center;";
 
-    let message = document.createElement('div');
-    message.className = "table-title";
-    message.style = "display: flex; align-items: center; justify-content: center";
-    message.textContent = "DNA Feature Type Not Found";
-
-    let container = document.createElement('div');
-    container.className = "container min-w-full";
-    container.style = "margin-left: auto; margin-right: auto; width: 50%;";
-    container.appendChild(message);
-
-    table.appendChild(container);
+    table.appendChild(
+    e(
+        "div",
+        {class: "container min-w-full", style: "margin-left: auto; margin-right: auto; width: 50%;"},
+        e(
+            "div",
+            {class: "table-title", style: "display: flex; align-items: center; justify-content: center"},
+            "DNA Feature Type Not Found"
+        )
+    )
+);
     } else {
         table.appendChild(featureTable(features, "No nearby DNA Features"));
     }

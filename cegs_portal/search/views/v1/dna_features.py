@@ -139,7 +139,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "feature_reos": feature_reos,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
-                "dna_feature_types": dna_feature_types,
+                "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
             },
         )
 
