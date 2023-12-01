@@ -28,6 +28,12 @@
         font-size: 14pt;
     }
 
+    .checkbox-divider:not(:last-child) {
+        border-right: 1px solid #000;
+        padding-right: 10px;
+        margin-right: 10px;
+    }
+
 </style>
 {% endblock %}
 
@@ -390,32 +396,43 @@
             role="tabpanel"
             aria-labelledby="tabs-find-features-tab"
         >
-
-        <div class="container centered-container min-w-full">
-            <a name="near_features"></a>
-            <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-                <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
-                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                        <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
-                    </svg>
-                    Find Nearby DNA Features
+            <div class="container centered-container min-w-full">
+                <a name="near_features"></a>
+                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                        </svg>
+                        Find Nearby DNA Features
+                    </div>
                 </div>
+                <div class="title-separator min-w-full"></div>
+                <fieldset name="facetfield">
+                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                    </legend>
+                    <div class="flex flex-row flex-wrap gap-1"
+                        aria-labelledby="facetHeader{{ forloop.counter }}">
+                        {% for feature_type in dna_feature_types %}
+                        <div class="checkbox-divider">
+                            <input type="checkbox" id="{{ feature_type }}" name="feature_type"></input>
+                            <label for="{{ feature_type }}">{{ feature_type }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <div class="title-separator min-w-full"></div>
+                <form>
+                    <label for="feature-dist">Feature Distance in base pairs:</label>
+                    <input type="text" id="feature-dist" value="1000" />
+                    <input
+                        type="button"
+                        id="feature-dist-submit"
+                        value="Find Features"
+                        class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
+                    />
+                </form>
             </div>
-            <div class="title-separator min-w-full"></div>
-            <div class="text-s font-bold">Measured from each end of the gene</div>
-            <form>
-                <label for="feature-dist">Feature Distance in base pairs:</label>
-                <input type="text" id="feature-dist" value="1000" />
-                <input
-                    type="button"
-                    id="feature-dist-submit"
-                    value="Find Features"
-                    class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
-                />
-            </form>
-          </div>
-            <table id="dnafeature"></table>
         </div>
         {% endif %}
 
@@ -506,25 +523,63 @@
         {% endfor %}
     ];
 
-    g("feature-dist-submit").onclick = function() {
+    const localFeaturesId = "local_features_id";
+
+    function fetchDataAndRenderTable() {
+        let button = document.getElementById("feature-dist-submit");
+        let originalValue = button.value;
+        button.value = "Searching...";
         let dist = Number(g("feature-dist").value);
-        let fetches = assemblies.map(a => {
+        let fetches = assemblies.map((a) => {
             let search_start = Math.max(a.start - dist, 0);
             let search_end = a.end + dist;
-            return fetch(`/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`)
-                .then(response => {
-                    return response.json()
-                });
-        })
-        Promise.all(fetches)
-            .then(data => {
-                let features = [];
-                for (const d of data) {
-                    features.push(...d);
-                }
-                g("dnafeature").replaceWith(featureTable(features, "No nearby DNA Features"))
+            let url = `/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`;
+
+            let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
+            checkboxes.forEach((checkbox) => {
+                url += `&feature_type=${checkbox.id}`;
             });
+
+            return fetch(url).then((response) => {
+                return response.json();
+            });
+        });
+
+        Promise.all(fetches).then((data) => {
+            button.value = originalValue;
+            let features = [];
+            for (const d of data) {
+                features.push(...d);
+            }
+
+            let localFeaturesElement = g(localFeaturesId);
+            if (localFeaturesElement) {
+                localFeaturesElement.parentNode.remove();
+            }
+            let parent = g("tabs-find-features");
+            if (features.length === 0) {
+                parent.appendChild(
+                    e(
+                        "div",
+                        {class: "container min-w-full"},
+                        e(
+                            "div",
+                            {
+                                class: "table-title",
+                                id: localFeaturesId,
+                                style: "display: flex; align-items: center; justify-content: center",
+                            },
+                            "DNA Feature Type Not Found"
+                        )
+                    )
+                );
+            } else {
+                parent.appendChild(featureTable(features, localFeaturesId));
+            }
+        });
     }
+
+    g("feature-dist-submit").onclick = fetchDataAndRenderTable;
 
     let sourceForURL = function(accessionID) {
         return `/search/regeffect/source/${accessionID}?accept=application/json`;
@@ -583,15 +638,6 @@
 
         g("genoverse-container").after(e("div", {class: "title-separator"}, []));
     }
-
-    document.getElementById("feature-dist-submit").addEventListener("click", function() {
-    var originalValue = this.value;
-    this.value = "Searching...";
-    setTimeout(() => {
-        this.value = originalValue;
-    }, 10000);
-});
-
 </script>
 
 {% include 'search/v1/partials/_row_click_js.html' %}
