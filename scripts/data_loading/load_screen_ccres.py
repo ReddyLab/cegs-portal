@@ -15,7 +15,7 @@ from cegs_portal.search.models import (
     FacetValue,
 )
 from utils import get_delimiter, timer
-from utils.features import FeatureIds
+from utils.db_ids import FeatureIds
 from utils.file import FileMetadata
 
 from . import get_closest_gene

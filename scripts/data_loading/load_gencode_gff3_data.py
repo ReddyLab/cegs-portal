@@ -14,7 +14,7 @@ from cegs_portal.search.models import (
     GencodeRegion,
 )
 from utils import timer
-from utils.features import FeatureIds
+from utils.db_ids import FeatureIds
 
 # Attributes that are saved in the annotation table rather than the attribute tabale
 ANNOTATION_VALUE_ATTRIBUTES = {"ID", "gene_name", "gene_type", "level"}
