@@ -1,6 +1,9 @@
 import csv
+import json
+from io import StringIO
+from os import SEEK_SET
 
-from django.db import transaction
+from django.db import connection, transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -14,109 +17,129 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservation,
 )
 from utils import timer
+from utils.db_ids import ReoIds
 from utils.experiment import AnalysisMetadata
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
 
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
 def bulk_save(
-    sources: list[DNAFeature],
-    effects: list[RegulatoryEffectObservation],
-    effect_directions: list[RegulatoryEffectObservation],
+    source_associations: StringIO,
+    effects: StringIO,
+    effect_directions: StringIO,
 ):
-    with transaction.atomic():
+    with transaction.atomic(), connection.cursor() as cursor:
+        effects.seek(0, SEEK_SET)
         print("Adding RegulatoryEffectObservations")
-        RegulatoryEffectObservation.objects.bulk_create(effects, batch_size=1000)
-
-    with transaction.atomic():
-        print("Adding effect directions to effects")
-        for direction, effect in zip(effect_directions, effects):
-            effect.facet_values.add(direction)
-
-    with transaction.atomic():
-        print("Adding sources to RegulatoryEffectObservations")
-        for source, effect in zip(sources, effects):
-            effect.sources.add(source)
-
-
-# loading does buffered writes to the DB, with a buffer size of 10,000 annotations
-@timer("Load Reg Effects")
-def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=","):
-    experiment = analysis.experiment
-    reader = csv.DictReader(reo_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    sources: list[DNAFeature] = []
-    effects: list[RegulatoryEffectObservation] = []
-    effect_directions: list[FacetValue] = []
-    dhss = {}
-    for line in reader:
-        chrom_name = line["chrom"]
-
-        dhs_start = int(line["chromStart"])
-        dhs_end = int(line["chromEnd"])
-        dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
-
-        if dhs_string in dhss:
-            dhs = dhss[dhs_string]
-        else:
-            dhs_location = NumericRange(dhs_start, dhs_end, "[]")
-            dhs = DNAFeature.objects.get(
-                experiment_accession=experiment,
-                chrom_name=chrom_name,
-                location=dhs_location,
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.DHS,
-            )
-            dhss[dhs_string] = dhs
-
-        sources.append(dhs)
-
-        effect_size_field = line["wgCERES_score_top3_wg"].strip()
-        if effect_size_field == "":
-            effect_size = None
-        else:
-            effect_size = float(effect_size_field)
-
-        direction_line = line["direction_wg"]
-        if direction_line == "non_sig":
-            direction = DIR_FACET_VALUES["Non-significant"]
-        elif direction_line == "enriched":
-            direction = DIR_FACET_VALUES["Enriched Only"]
-        elif direction_line == "depleted":
-            direction = DIR_FACET_VALUES["Depleted Only"]
-        elif direction_line == "both":
-            direction = DIR_FACET_VALUES["Mixed"]
-        else:
-            direction = None
-        effect = RegulatoryEffectObservation(
-            accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
-            experiment=experiment,
-            experiment_accession=experiment,
-            analysis=analysis,
-            facet_num_values={
-                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
-                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
-                # line[pValue] is -log10(actual p-value), but we want significance between 0 and 1
-                # we perform the inverse operation.
-                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: pow(10, -float(line["pValue"])),
-            },
+        cursor.copy_from(
+            effects,
+            "search_regulatoryeffectobservation",
+            columns=(
+                "id",
+                "accession_id",
+                "experiment_id",
+                "experiment_accession_id",
+                "analysis_accession_id",
+                "facet_num_values",
+                "archived",
+                "public",
+            ),
         )
-        effects.append(effect)
-        effect_directions.append(direction)
+
+    with transaction.atomic(), connection.cursor() as cursor:
+        effect_directions.seek(0, SEEK_SET)
+        print("Adding effect directions to effects")
+        cursor.copy_from(
+            effect_directions,
+            "search_regulatoryeffectobservation_facet_values",
+            columns=(
+                "regulatoryeffectobservation_id",
+                "facetvalue_id",
+            ),
+        )
+
+    with transaction.atomic(), connection.cursor() as cursor:
+        source_associations.seek(0, SEEK_SET)
+        print("Adding sources to RegulatoryEffectObservations")
+        cursor.copy_from(
+            source_associations,
+            "search_regulatoryeffectobservation_sources",
+            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
+        )
+
+
+@timer("Load Reg Effects")
+def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_patch, delimiter=","):
+    experiment = analysis.experiment
+    experiment_id = experiment.id
+    experiment_accession_id = experiment.accession_id
+    analysis_accession_id = analysis.accession_id
+    reader = csv.DictReader(reo_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
+    sources = StringIO()
+    effects = StringIO()
+    effect_directions = StringIO()
+    dhss = {}
+
+    with ReoIds() as reo_ids:
+        for reo_id, line in zip(reo_ids, reader):
+            try:
+                chrom_name = line["chrom"]
+            except KeyError as ke:
+                print(f"delimiter: '{delimiter}'")
+                print(line)
+                raise ke
+
+            dhs_start = int(line["chromStart"])
+            dhs_end = int(line["chromEnd"])
+            dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
+
+            if dhs_string in dhss:
+                dhs_id = dhss[dhs_string]
+            else:
+                dhs_id = DNAFeature.objects.filter(
+                    experiment_accession=experiment,
+                    chrom_name=chrom_name,
+                    location=NumericRange(dhs_start, dhs_end, "[)"),
+                    ref_genome=ref_genome,
+                    feature_type=DNAFeatureType.DHS,
+                ).values_list("id", flat=True)[0]
+                dhss[dhs_string] = dhs_id
+
+            sources.write(f"{reo_id}\t{dhs_id}\n")
+
+            effect_size_field = line["wgCERES_score_top3_wg"].strip()
+            if effect_size_field == "":
+                effect_size = None
+            else:
+                effect_size = float(effect_size_field)
+
+            direction_line = line["direction_wg"]
+            if direction_line == "non_sig":
+                direction = DIR_FACET_VALUES["Non-significant"]
+            elif direction_line == "enriched":
+                direction = DIR_FACET_VALUES["Enriched Only"]
+            elif direction_line == "depleted":
+                direction = DIR_FACET_VALUES["Depleted Only"]
+            elif direction_line == "both":
+                direction = DIR_FACET_VALUES["Mixed"]
+            else:
+                direction = None
+
+            facet_num_values = json.dumps(
+                {
+                    RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
+                    # line[pValue] is -log10(actual p-value), so raw_p_value uses the inverse operation
+                    RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: pow(10, -float(line["pValue"])),
+                    # line[pValue] is -log10(actual p-value), but we want significance between 0 and 1
+                    # we perform the inverse operation.
+                    RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: pow(10, -float(line["pValue"])),
+                }
+            )
+            effects.write(
+                f"{reo_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
+            )
+            effect_directions.write(f"{reo_id}\t{direction.id}\n")
     bulk_save(sources, effects, effect_directions)
 
 
@@ -153,5 +176,6 @@ def run(analysis_filename):
                 accession_ids,
                 analysis,
                 file_info.ref_genome,
+                file_info.ref_genome_patch,
                 delimiter,
             )
