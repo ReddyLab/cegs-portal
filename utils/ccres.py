@@ -10,7 +10,7 @@ from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import AccessionType, DNAFeature, DNAFeatureType
 
-from .features import FeatureIds
+from .db_ids import FeatureIds
 
 
 @dataclass

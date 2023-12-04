@@ -17,8 +17,8 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservation,
 )
 from utils import timer
+from utils.db_ids import ReoIds
 from utils.experiment import AnalysisMetadata
-from utils.features import FeatureIds
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -93,8 +93,8 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
     effect_directions = StringIO()
     dhss = {}
 
-    with FeatureIds() as feature_ids:
-        for feature_id, line in zip(feature_ids, reader):
+    with ReoIds() as reo_ids:
+        for reo_id, line in zip(reo_ids, reader):
             chrom_name = line["dhs_chrom"]
 
             dhs_start = int(line["dhs_start"])
@@ -116,7 +116,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 ).values_list("id", flat=True)[0]
                 dhss[dhs_string] = dhs_id
 
-            sources.write(f"{feature_id}\t{dhs_id}\n")
+            sources.write(f"{reo_id}\t{dhs_id}\n")
 
             significance = float(line["pval_empirical"])
             effect_size = float(line["avg_logFC"])
@@ -150,7 +150,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 ).values_list("id", flat=True)
 
             try:
-                targets.write(f"{feature_id}\t{target_id[0]}\n")
+                targets.write(f"{reo_id}\t{target_id[0]}\n")
             except IndexError as ie:
                 print(f"{ref_genome} {ref_genome_patch} {line['gene_symbol']} [{gene_start}, {gene_end})")
                 raise ie
@@ -163,9 +163,9 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 }
             )
             effects.write(
-                f"{feature_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
+                f"{reo_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
             )
-            effect_directions.write(f"{feature_id}\t{direction.id}\n")
+            effect_directions.write(f"{reo_id}\t{direction.id}\n")
     bulk_save(sources, effects, effect_directions, targets)
 
 

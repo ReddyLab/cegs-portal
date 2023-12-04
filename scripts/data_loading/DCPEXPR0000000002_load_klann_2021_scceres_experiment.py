@@ -14,8 +14,8 @@ from cegs_portal.search.models import (
 )
 from utils import timer
 from utils.ccres import CcreSource, associate_ccres
+from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
-from utils.features import FeatureIds
 
 from . import get_closest_gene
 
