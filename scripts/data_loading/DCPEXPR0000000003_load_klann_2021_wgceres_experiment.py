@@ -53,7 +53,7 @@ def load_dhss(
     dhs_file, closest_ccre_filename, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","
 ):
     reader = csv.DictReader(dhs_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_dhss: dict[str, DNAFeature] = {}
+    new_dhss: dict[str, CcreSource] = {}
     dhss = StringIO()
     region_source_id = region_source.id
     experiment_accession_id = experiment.accession_id
