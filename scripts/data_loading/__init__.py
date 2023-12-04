@@ -1,6 +1,9 @@
 from functools import lru_cache
+from io import StringIO
+from os import SEEK_SET
+from typing import Optional
 
-from django.db import connection
+from django.db import connection, transaction
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
 
@@ -184,3 +187,85 @@ def get_closest_gene(ref_genome, chrom_name, start, end):
         gene_name = closest_feature["name"]
 
     return closest_feature, distance, gene_name
+
+
+def bulk_reo_save(
+    source_associations: StringIO,
+    effects: StringIO,
+    effect_directions: StringIO,
+    target_associations: Optional[StringIO] = None,
+):
+    with transaction.atomic(), connection.cursor() as cursor:
+        effects.seek(0, SEEK_SET)
+        print("Adding RegulatoryEffectObservations")
+        cursor.copy_from(
+            effects,
+            "search_regulatoryeffectobservation",
+            columns=(
+                "id",
+                "accession_id",
+                "experiment_id",
+                "experiment_accession_id",
+                "analysis_accession_id",
+                "facet_num_values",
+                "archived",
+                "public",
+            ),
+        )
+
+    with transaction.atomic(), connection.cursor() as cursor:
+        effect_directions.seek(0, SEEK_SET)
+        print("Adding effect directions to effects")
+        cursor.copy_from(
+            effect_directions,
+            "search_regulatoryeffectobservation_facet_values",
+            columns=(
+                "regulatoryeffectobservation_id",
+                "facetvalue_id",
+            ),
+        )
+
+    with transaction.atomic(), connection.cursor() as cursor:
+        source_associations.seek(0, SEEK_SET)
+        print("Adding sources to RegulatoryEffectObservations")
+        cursor.copy_from(
+            source_associations,
+            "search_regulatoryeffectobservation_sources",
+            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
+        )
+
+        if target_associations is not None:
+            target_associations.seek(0, SEEK_SET)
+            print("Adding targets to RegulatoryEffectObservations")
+            cursor.copy_from(
+                target_associations,
+                "search_regulatoryeffectobservation_targets",
+                columns=("regulatoryeffectobservation_id", "dnafeature_id"),
+            )
+
+
+def bulk_feature_save(features: StringIO):
+    features.seek(0, SEEK_SET)
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.copy_from(
+            features,
+            "search_dnafeature",
+            columns=(
+                "id",
+                "accession_id",
+                "cell_line",
+                "chrom_name",
+                "closest_gene_id",
+                "closest_gene_distance",
+                "closest_gene_name",
+                "closest_gene_ensembl_id",
+                "location",
+                "ref_genome",
+                "ref_genome_patch",
+                "feature_type",
+                "source_file_id",
+                "experiment_accession_id",
+                "archived",
+                "public",
+            ),
+        )

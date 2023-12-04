@@ -1,9 +1,7 @@
 import csv
 import json
 from io import StringIO
-from os import SEEK_SET
 
-from django.db import connection, transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -20,53 +18,10 @@ from utils import timer
 from utils.db_ids import ReoIds
 from utils.experiment import AnalysisMetadata
 
+from . import bulk_reo_save
+
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
-
-
-def bulk_save(
-    source_associations: StringIO,
-    effects: StringIO,
-    effect_directions: StringIO,
-):
-    with transaction.atomic(), connection.cursor() as cursor:
-        effects.seek(0, SEEK_SET)
-        print("Adding RegulatoryEffectObservations")
-        cursor.copy_from(
-            effects,
-            "search_regulatoryeffectobservation",
-            columns=(
-                "id",
-                "accession_id",
-                "experiment_id",
-                "experiment_accession_id",
-                "analysis_accession_id",
-                "facet_num_values",
-                "archived",
-                "public",
-            ),
-        )
-
-    with transaction.atomic(), connection.cursor() as cursor:
-        effect_directions.seek(0, SEEK_SET)
-        print("Adding effect directions to effects")
-        cursor.copy_from(
-            effect_directions,
-            "search_regulatoryeffectobservation_facet_values",
-            columns=(
-                "regulatoryeffectobservation_id",
-                "facetvalue_id",
-            ),
-        )
-
-    with transaction.atomic(), connection.cursor() as cursor:
-        source_associations.seek(0, SEEK_SET)
-        print("Adding sources to RegulatoryEffectObservations")
-        cursor.copy_from(
-            source_associations,
-            "search_regulatoryeffectobservation_sources",
-            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
-        )
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -131,7 +86,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
                 f"{reo_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
             )
             effect_directions.write(f"{reo_id}\t{direction.id}\n")
-    bulk_save(sources, effects, effect_directions)
+    bulk_reo_save(sources, effects, effect_directions)
 
 
 def unload_analysis(analysis_metadata):
