@@ -35,7 +35,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
     sources = StringIO()
     effects = StringIO()
     effect_directions = StringIO()
-    experiment = analysis.experiment
+    cars = {}
 
     with ReoIds() as reo_ids:
         for reo_id, line in zip(reo_ids, reader):
@@ -44,13 +44,19 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, delimiter=",
             car_start = int(line["start"])
             car_end = int(line["end"])
 
-            car_id = DNAFeature.objects.filter(
-                experiment_accession=experiment,
-                chrom_name=chrom_name,
-                location=NumericRange(car_start, car_end, "[)"),
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.CAR,
-            ).values_list("id", flat=True)[0]
+            car_string = f"{chrom_name}:{car_start}-{car_end}:{ref_genome}"
+
+            if car_string in cars:
+                car_id = cars[car_string]
+            else:
+                car_id = DNAFeature.objects.filter(
+                    experiment_accession=experiment,
+                    chrom_name=chrom_name,
+                    location=NumericRange(car_start, car_end, "[)"),
+                    ref_genome=ref_genome,
+                    feature_type=DNAFeatureType.CAR,
+                ).values_list("id", flat=True)[0]
+                cars[car_string] = car_id
 
             sources.write(f"{reo_id}\t{car_id}\n")
 
