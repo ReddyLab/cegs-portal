@@ -1,8 +1,6 @@
 import csv
 from io import StringIO
-from os import SEEK_SET
 
-from django.db import connection, transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -17,34 +15,7 @@ from utils.ccres import CcreSource, associate_ccres
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
-from . import get_closest_gene
-
-
-def save_data(dhss: StringIO):
-    dhss.seek(0, SEEK_SET)
-    with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            dhss,
-            "search_dnafeature",
-            columns=(
-                "id",
-                "accession_id",
-                "cell_line",
-                "chrom_name",
-                "closest_gene_id",
-                "closest_gene_distance",
-                "closest_gene_name",
-                "closest_gene_ensembl_id",
-                "location",
-                "ref_genome",
-                "ref_genome_patch",
-                "feature_type",
-                "source_file_id",
-                "experiment_accession_id",
-                "archived",
-                "public",
-            ),
-        )
+from . import bulk_feature_save, get_closest_gene
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -89,7 +60,7 @@ def load_dhss(
                     experiment_accession_id=experiment_accession_id,
                 )
     print(f"DHS Count: {len(new_dhss)}")
-    save_data(dhss)
+    bulk_feature_save(dhss)
 
     associate_ccres(closest_ccre_filename, new_dhss.values(), ref_genome, accession_ids)
 
