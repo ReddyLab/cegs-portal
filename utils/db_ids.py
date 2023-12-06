@@ -17,7 +17,7 @@ class FeatureIds:
         FeatureIds.in_use = True
 
         last_object = DNAFeature.objects.all().values_list("id", flat=True).order_by("-id")
-        if len(last_object) > 0:
+        if last_object.exists():
             self.current_id = last_object[0]
         else:
             self.current_id = 0
@@ -53,7 +53,7 @@ class ReoIds:
         ReoIds.in_use = True
 
         last_object = RegulatoryEffectObservation.objects.all().values_list("id", flat=True).order_by("-id")
-        if len(last_object) > 0:
+        if last_object.exists():
             self.current_id = last_object[0]
         else:
             self.current_id = 0

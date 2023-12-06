@@ -1,6 +1,6 @@
 import csv
+from io import StringIO
 
-from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -11,29 +11,11 @@ from cegs_portal.search.models import (
     Experiment,
 )
 from utils import timer
-from utils.ccres import associate_ccres
+from utils.ccres import CcreSource, associate_ccres
+from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
-from . import get_closest_gene
-
-
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(dhss: list[DNAFeature]):
-    with transaction.atomic():
-        print("Adding Chromatin Accessible Regions")
-        DNAFeature.objects.bulk_create(dhss, batch_size=1000)
+from . import bulk_feature_save, get_closest_gene
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -42,36 +24,41 @@ def load_cars(
     ceres_file, closest_ccre_filename, accession_ids, experiment, cell_line, ref_genome, region_source, delimiter=","
 ):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    new_cars: dict[str, DNAFeature] = {}
-    for line in reader:
-        chrom_name = line["seqnames"]
+    new_cars: dict[str, CcreSource] = {}
+    cars = StringIO()
+    region_source_id = region_source.id
+    experiment_accession_id = experiment.accession_id
+    with FeatureIds() as feature_ids:
+        for feature_id, line in zip(feature_ids, reader):
+            chrom_name = line["seqnames"]
 
-        ths_start = int(line["start"])
-        ths_end = int(line["end"])
-        car_location = NumericRange(ths_start, ths_end, "[]")
+            car_start = int(line["start"])
+            car_end = int(line["end"])
+            car_location = f"[{car_start},{car_end})"
 
-        car_name = f"{chrom_name}:{car_location}"
+            car_name = f"{chrom_name}:{car_location}"
 
-        if car_name in new_cars:
-            car = new_cars[car_name]
-        else:
-            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, ths_start, ths_end)
-            car = DNAFeature(
-                accession_id=accession_ids.incr(AccessionType.CAR),
-                experiment_accession=experiment,
-                source_file=region_source,
-                cell_line=cell_line,
-                chrom_name=chrom_name,
-                closest_gene=closest_gene,
-                closest_gene_distance=distance,
-                closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
-                location=car_location,
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.CAR,
-            )
-            new_cars[car_name] = car
-    bulk_save(new_cars.values())
+            if car_name not in new_cars:
+                closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, car_start, car_end)
+                closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
+
+                cars.write(
+                    f"{feature_id}\t{accession_ids.incr(AccessionType.CAR)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{car_location}\t{ref_genome}\t0\t{DNAFeatureType.CAR}\t{region_source_id}\t{experiment_accession_id}\tfalse\ttrue\n"
+                )
+                new_cars[car_name] = CcreSource(
+                    _id=feature_id,
+                    chrom_name=chrom_name,
+                    location=NumericRange(car_start, car_end),
+                    cell_line=cell_line,
+                    closest_gene_id=closest_gene["id"],
+                    closest_gene_distance=distance,
+                    closest_gene_name=gene_name,
+                    closest_gene_ensembl_id=closest_gene_ensembl_id,
+                    ref_genome=ref_genome,
+                    source_file_id=region_source_id,
+                    experiment_accession_id=experiment_accession_id,
+                )
+    bulk_feature_save(cars)
 
     associate_ccres(closest_ccre_filename, new_cars.values(), ref_genome, accession_ids)
 
