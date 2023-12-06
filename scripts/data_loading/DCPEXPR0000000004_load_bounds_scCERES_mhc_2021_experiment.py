@@ -1,6 +1,8 @@
 import csv
 from io import StringIO
 
+from psycopg2.extras import NumericRange
+
 from cegs_portal.search.models import (
     AccessionIds,
     AccessionType,
@@ -111,8 +113,10 @@ def load_grnas(
 
                 if strand == "+":
                     grna_location = f"[{grna_start},{grna_end})"
+                    bounds = "[)"
                 elif strand == "-":
                     grna_location = f"({grna_start},{grna_end}]"
+                    bounds = "(]"
 
                 closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
                 closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
@@ -123,7 +127,7 @@ def load_grnas(
                 guide = CcreSource(
                     _id=feature_id,
                     chrom_name=chrom_name,
-                    location=grna_location,
+                    location=NumericRange(grna_start, grna_end, bounds),
                     cell_line=cell_line,
                     closest_gene_id=closest_gene["id"],
                     closest_gene_distance=distance,
