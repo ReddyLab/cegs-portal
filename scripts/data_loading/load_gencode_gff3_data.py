@@ -158,7 +158,6 @@ def create_genes(accession_ids, ref_genome, ref_genome_patch):
     ensembl_ids = {}
     with FeatureIds() as feature_ids:
         for i, (feature_id, annotation) in enumerate(zip(feature_ids, gene_annotations.iterator()), start=1):
-            feature_id = feature_ids.next_id()
             if i % ANNOTATION_BUFFER_SIZE == 0:
                 bulk_feature_save(assembly_buffer)
                 assembly_buffer.close()
