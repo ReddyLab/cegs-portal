@@ -17,7 +17,8 @@ from utils.ccres import CcreSource, associate_ccres
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
-from . import bulk_feature_facet_save, bulk_feature_save, get_closest_gene
+from . import get_closest_gene
+from .db import bulk_feature_facet_save, bulk_feature_save, feature_entry
 
 GRNA_TYPE_FACET = Facet.objects.get(name="gRNA Type")
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
@@ -32,7 +33,14 @@ PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES["Non-promoter"]
 
 @timer("Load gRNAs")
 def load_grnas(
-    grna_file, closest_ccre_filename, accession_ids, experiment, region_source, cell_line, ref_genome, delimiter=","
+    grna_file,
+    closest_ccre_filename,
+    accession_ids,
+    experiment,
+    region_source,
+    cell_line,
+    ref_genome,
+    delimiter=",",
 ):
     reader = csv.DictReader(grna_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
     new_grnas = {}
@@ -68,12 +76,27 @@ def load_grnas(
                     closest_gene, distance, gene_name = get_closest_gene(ref_genome, dhs_chrom_name, dhs_start, dhs_end)
                     closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
                     dhs_feature_id = feature_ids.next_id()
+                    dhs_accession_id = accession_ids.incr(AccessionType.DHS)
                     dhss.write(
-                        f"{dhs_feature_id}\t{accession_ids.incr(AccessionType.DHS)}\t{cell_line}\t{dhs_chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{dhs_location}\t{ref_genome}\t0\t{DNAFeatureType.DHS}\t{region_source_id}\t{experiment_accession_id}\t\\N\tfalse\ttrue\n"
+                        feature_entry(
+                            id_=dhs_feature_id,
+                            accession_id=dhs_accession_id,
+                            cell_line=cell_line,
+                            chrom_name=dhs_chrom_name,
+                            location=dhs_location,
+                            closest_gene_id=closest_gene["id"],
+                            closest_gene_distance=distance,
+                            closest_gene_name=gene_name,
+                            closest_gene_ensembl_id=closest_gene_ensembl_id,
+                            ref_genome=ref_genome,
+                            feature_type=DNAFeatureType.DHS,
+                            source_file_id=region_source_id,
+                            experiment_accession_id=experiment_accession_id,
+                        )
                     )
-                    new_dhss[dhs_name] = dhs_feature_id
+                    new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id)
                 else:
-                    dhs_feature_id = new_dhss[dhs_name]
+                    dhs_feature_id, dhs_accession_id = new_dhss[dhs_name]
 
             if grna_id not in new_grnas:
                 grna_info = grna_id.split("-")
@@ -122,7 +145,25 @@ def load_grnas(
                 closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
 
                 grnas.write(
-                    f"{feature_id}\t{accession_ids.incr(AccessionType.GRNA)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{grna_location}\t{ref_genome}\t0\t{DNAFeatureType.GRNA}\t{region_source_id}\t{experiment_accession_id}\t{dhs_feature_id}\tfalse\ttrue\n"
+                    feature_entry(
+                        id_=feature_id,
+                        accession_id=accession_ids.incr(AccessionType.GRNA),
+                        cell_line=cell_line,
+                        chrom_name=chrom_name,
+                        location=grna_location,
+                        strand=strand,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.GRNA,
+                        parent_id=dhs_feature_id,
+                        parent_accession_id=dhs_accession_id,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                        misc={"grna": grna_id},
+                    )
                 )
                 guide = CcreSource(
                     _id=feature_id,
