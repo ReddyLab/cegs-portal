@@ -15,7 +15,8 @@ from utils.ccres import CcreSource, associate_ccres
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
-from . import bulk_feature_save, get_closest_gene
+from . import get_closest_gene
+from .db import bulk_feature_save, feature_entry
 
 CORRECT_FEATURES = ["ENSG00000272333"]
 
@@ -46,7 +47,21 @@ def load_dhss(
                 closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
 
                 dhss.write(
-                    f"{feature_id}\t{accession_ids.incr(AccessionType.DHS)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{dhs_location}\t{ref_genome}\t0\t{DNAFeatureType.DHS}\t{region_source_id}\t{experiment_accession_id}\tfalse\ttrue\n"
+                    feature_entry(
+                        id_=feature_id,
+                        accession_id=accession_ids.incr(AccessionType.DHS),
+                        cell_line=cell_line,
+                        chrom_name=chrom_name,
+                        location=dhs_location,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.DHS,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                    )
                 )
                 new_dhss[dhs_name] = CcreSource(
                     _id=feature_id,

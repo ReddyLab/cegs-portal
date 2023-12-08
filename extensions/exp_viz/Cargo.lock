@@ -93,7 +93,8 @@ checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 
 [[package]]
 name = "exp_viz"
-version = "0.3.0"
+version = "0.3.1"
+source = "git+https://github.com/ReddyLab/exp_viz?rev=a66cadd178a68d0143e8d1e70ce881b4d26e1caa#a66cadd178a68d0143e8d1e70ce881b4d26e1caa"
 dependencies = [
  "bincode",
  "cov_viz_ds",

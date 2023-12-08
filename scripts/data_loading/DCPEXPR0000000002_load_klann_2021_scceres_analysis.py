@@ -1,5 +1,4 @@
 import csv
-import json
 from io import StringIO
 
 from psycopg2.extras import NumericRange
@@ -18,7 +17,7 @@ from utils import timer
 from utils.db_ids import ReoIds
 from utils.experiment import AnalysisMetadata
 
-from . import bulk_reo_save
+from .db import bulk_reo_save, reo_entry
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
@@ -102,18 +101,23 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 print(f"{ref_genome} {ref_genome_patch} {line['gene_symbol']} [{gene_start}, {gene_end})")
                 raise ie
 
-            facet_num_values = json.dumps(
-                {
-                    RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
-                    RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
-                    RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
-                }
-            )
+            facet_num_values = {
+                RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
+                RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
+                RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+            }
             effects.write(
-                f"{reo_id}\t{accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS)}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\tfalse\ttrue\n"
+                reo_entry(
+                    id_=reo_id,
+                    accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
+                    experiment_id=experiment_id,
+                    experiment_accession_id=experiment_accession_id,
+                    analysis_accession_id=analysis_accession_id,
+                    facet_num_values=facet_num_values,
+                )
             )
             effect_directions.write(f"{reo_id}\t{direction.id}\n")
-    bulk_reo_save(sources, effects, effect_directions, targets)
+    bulk_reo_save(effects, effect_directions, sources, targets)
 
 
 def unload_analysis(analysis_metadata):

@@ -15,7 +15,8 @@ from utils.ccres import CcreSource, associate_ccres
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
-from . import bulk_feature_save, get_closest_gene
+from . import get_closest_gene
+from .db import bulk_feature_save, feature_entry
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -43,7 +44,21 @@ def load_cars(
                 closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
 
                 cars.write(
-                    f"{feature_id}\t{accession_ids.incr(AccessionType.CAR)}\t{cell_line}\t{chrom_name}\t{closest_gene['id']}\t{distance}\t{gene_name}\t{closest_gene_ensembl_id}\t{car_location}\t{ref_genome}\t0\t{DNAFeatureType.CAR}\t{region_source_id}\t{experiment_accession_id}\tfalse\ttrue\n"
+                    feature_entry(
+                        id_=feature_id,
+                        accession_id=accession_ids.incr(AccessionType.CAR),
+                        cell_line=cell_line,
+                        chrom_name=chrom_name,
+                        location=car_location,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.CAR,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                    )
                 )
                 new_cars[car_name] = CcreSource(
                     _id=feature_id,
