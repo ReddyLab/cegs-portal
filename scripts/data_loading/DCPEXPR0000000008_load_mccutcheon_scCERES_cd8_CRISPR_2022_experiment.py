@@ -40,28 +40,6 @@ GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.fil
 GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
 
 
-# #
-# # The following lines should work as expected when using postgres. See
-# # https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-# #
-# #     If the model’s primary key is an AutoField, the primary key attribute can
-# #     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-# #     On other databases, it will not be set.
-# #
-# # So the objects won't need to be saved one-at-a-time like they are, which is slow.
-# #
-# # In postgres the objects automatically get their id's when bulk_created but
-# # objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# # get their foreign keys updated. The for loops do that necessary updating.
-# def bulk_save(grnas):
-#     with transaction.atomic():
-#         print("Adding gRNA Regions")
-#         DNAFeature.objects.bulk_create(grnas, batch_size=1000)
-
-#         for grna in grnas:
-#             grna.facet_values.add(GRNA_TYPE_TARGETING)
-
-
 def load_dhss(dhs_filename):
     dhss = {}
     with open(dhs_filename, "r") as dhs_file:
@@ -76,7 +54,6 @@ def load_dhss(dhs_filename):
     return dhss
 
 
-# loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load GRNAs")
 def load_grnas(
     ceres_file,
