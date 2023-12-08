@@ -95,6 +95,7 @@ def load_grnas(
     grnas = StringIO()
     grna_type_facets = StringIO()
     new_dhss: dict[str, int] = {}
+    new_ccre_sources: list[CcreSource] = []
     dhss = StringIO()
     region_source_id = region_source.id
     experiment_accession_id = experiment.accession_id
@@ -129,6 +130,21 @@ def load_grnas(
                         ref_genome=ref_genome,
                         feature_type=DNAFeatureType.DHS,
                         source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                    )
+                )
+                new_ccre_sources.append(
+                    CcreSource(
+                        _id=dhs_feature_id,
+                        chrom_name=dhs_chrom_name,
+                        location=NumericRange(dhs_start, dhs_end, "[)"),
+                        cell_line=cell_line,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        source_file_id=region_source_id,
+                        ref_genome=ref_genome,
                         experiment_accession_id=experiment_accession_id,
                     )
                 )
@@ -176,27 +192,15 @@ def load_grnas(
                         misc={"grna": grna_id},
                     )
                 )
-                guide = CcreSource(
-                    _id=feature_id,
-                    chrom_name=chrom_name,
-                    location=NumericRange(grna_start, grna_end, bounds),
-                    cell_line=cell_line,
-                    closest_gene_id=closest_gene["id"],
-                    closest_gene_distance=distance,
-                    closest_gene_name=gene_name,
-                    closest_gene_ensembl_id=closest_gene["ensembl_id"] if closest_gene is not None else None,
-                    source_file_id=region_source_id,
-                    ref_genome=ref_genome,
-                    experiment_accession_id=experiment_accession_id,
-                )
+
                 grna_type_facets.write(f"{feature_id}\t{GRNA_TYPE_TARGETING.id}\n")
-                new_grnas[grna_id] = guide
+                new_grnas[grna_id] = feature_id
 
     bulk_feature_save(dhss)
     bulk_feature_save(grnas)
     bulk_feature_facet_save(grna_type_facets)
 
-    associate_ccres(closest_ccre_filename, new_grnas.values(), ref_genome, accession_ids)
+    associate_ccres(closest_ccre_filename, new_ccre_sources, ref_genome, accession_ids)
 
 
 def unload_experiment(experiment_metadata):
