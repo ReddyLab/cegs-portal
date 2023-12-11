@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.http import Http404
+from django.shortcuts import render
 
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
@@ -73,8 +74,10 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
+
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
+            regeffects = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
             else:
@@ -126,6 +129,9 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
 
+        if request.headers.get("HX-Request"):
+            return render(request, "search/v1/partials/_reg_effect.html", {"regeffects": regeffects})
+
         return super().get(
             request,
             options,
@@ -133,6 +139,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "features": data,
                 "feature_name": "Genome Features",
                 "feature_reos": feature_reos,
+                "regeffects": regeffects,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
