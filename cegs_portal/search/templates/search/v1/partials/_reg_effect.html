@@ -62,26 +62,26 @@
             <td>-</td>
         </tr>
     {% endfor %}
-{% endfor %}
+    {% endfor %}
 </table>
 
-<!-- <div class="pagination">
-<span class="step-links">
-    {% if regeffects.has_previous %}
-        <a href="?page=1">&laquo; first</a>
-        <a href="?page={{ regeffects.previous_page_number }}">previous</a>
-    {% endif %}
+<div class="pagination">
+    <span class="step-links">
+        {% if regeffects.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ regeffects.previous_page_number }}">previous</a>
+        {% endif %}
 
-    <span class="current">
-        Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
+        <span class="current">
+            Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
+        </span>
+
+        {% if regeffects.has_next %}
+            <a href="?page={{ regeffects.next_page_number }}">next</a>
+            <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
     </span>
-
-    {% if regeffects.has_next %}
-        <a href="?page={{ regeffects.next_page_number }}">next</a>
-        <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
-    {% endif %}
-</span>
-</div> -->
+</div>
 </div>
 
 {% include 'search/v1/partials/_row_click_js.html' %}
