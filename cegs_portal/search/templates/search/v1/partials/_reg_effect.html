@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load custom_helpers %}
 
 
 <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
@@ -32,22 +33,20 @@
 
 <table class="data-table" hx-target="#reg-table">
     <tr>
-        <th class="chrom-first-end-cap chrom-light-band">Accession ID</th>
-        <th class="chrom-dark-band">Effect Size</th>
+        <th class="chrom-first-end-cap chrom-dark-band">Effect Size (log2FC)</th>
         <th class="chrom-light-band">Direction</th>
-        <th class="chrom-light-band chrom-right-centromere">Significance</th>
+        <th class="chrom-light-band chrom-right-centromere">Significance (p-value)</th>
         <th class="chrom-light-band chrom-left-centromere">Experiment</th>
-        <th class="chrom-dark-band">Target Gene</th>
-        <th class="chrom-last-end-cap chrom-dark-band">Target Gene Location</th>
+        <th class="chrom-dark-band">Target</th>
+        <th class="chrom-last-end-cap chrom-dark-band">REO Details</th>
     </tr>
     {% for regeffect in regeffects %}
     {% for re_target in regeffect.targets.all %}
     <tr>
         {% if forloop.first %}
-        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a></td>
-        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size }}</td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.effect_size|format_effect_size }}</td>
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance }}</td>
+        <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance|format_pval }}</td>
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
         {% endif %}
     <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a></td>
