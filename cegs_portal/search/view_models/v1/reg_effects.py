@@ -132,3 +132,7 @@ class RegEffectSearch:
         )
 
         return reg_effects
+
+    @classmethod
+    def id_feature_search(cls, feature_accession_id: str):
+        return DNAFeature.objects.get(accession_id=feature_accession_id)

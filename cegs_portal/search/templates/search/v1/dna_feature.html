@@ -220,7 +220,7 @@
         </div>
 
         <div
-            class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            class="opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-source-target"
             role="tabpanel"
             aria-labelledby="tabs-source-target"
@@ -236,8 +236,8 @@
             </div>
             {% endif %}
             {% if sources %}
-            <div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effect' feature.accession_id %}" hx-trigger="load" >
-                {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects %}
+            <div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
+                {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
             </div>
             {% endif %}
 
@@ -482,7 +482,7 @@
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
     import { featureTable } from "{% static 'search/js/tables.js' %}"
-    import { dataPages, reTable, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
+    import { dataPages, reTargetTable, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
 
     let assemblies = [
         {% for feature in features %}
@@ -554,10 +554,6 @@
 
     g("feature-dist-submit").onclick = fetchDataAndRenderTable;
 
-    let sourceForURL = function(accessionID) {
-        return `/search/regeffect/source/${accessionID}?accept=application/json`;
-    };
-
     let targetOfURL = function(accessionID) {
         return `/search/regeffect/target/${accessionID}?accept=application/json`;
     };
@@ -578,9 +574,6 @@
     }
 
     {% for feature, sources, targets, _ in feature_reos %}
-    {% if sources %}
-    __genDataPages("{{ feature.accession_id }}", 1, "{{ sources.nav_prefix }}", sourceForURL, reTable)();
-    {% endif %}
     {% if targets %}
     __genDataPages("{{ feature.accession_id }}", 1, "{{ targets.nav_prefix }}", targetOfURL, reTargetTable)();
     {% endif %}
@@ -611,6 +604,7 @@
 
         g("genoverse-container").after(e("div", {class: "title-separator"}, []));
     }
+
 </script>
 
 {% include 'search/v1/partials/_row_click_js.html' %}

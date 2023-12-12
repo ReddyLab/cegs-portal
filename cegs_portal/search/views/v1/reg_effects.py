@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.http import Http404
+from django.shortcuts import render
 
 from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.feature_reg_effects import feature_reg_effects
@@ -136,7 +137,17 @@ class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
     tsv_renderer = re_data
 
+    def get(self, request, options, data, feature_id):
+        regeffects, feature = data
+        if request.headers.get("HX-Request"):
+            return render(
+                request, "search/v1/partials/_reg_effect.html", {"regeffects": regeffects, "feature": feature}
+            )
+
+        return super().get(request, options, regeffects, feature_id)
+
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+        feature = RegEffectSearch.id_feature_search(feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -146,7 +157,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects
+        return reg_effects, feature
 
     def get_tsv(self, request, options, data, feature_id):
         if is_bed6(options):
@@ -154,7 +165,7 @@ class SourceEffectsView(FeatureEffectsView):
         else:
             filename = f"{feature_id}_regulatory_effect_observations_table_data.tsv"
 
-        return super().get_tsv(request, options, data, filename=filename)
+        return super().get_tsv(request, options, data[0], filename=filename)
 
 
 class TargetEffectsView(FeatureEffectsView):
