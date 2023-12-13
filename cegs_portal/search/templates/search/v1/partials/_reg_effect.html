@@ -33,11 +33,11 @@
 
 <table class="data-table" hx-target="#reg-table">
     <tr>
-        <th class="chrom-first-end-cap chrom-dark-band">Effect Size (log2FC)</th>
-        <th class="chrom-light-band">Direction</th>
-        <th class="chrom-light-band chrom-right-centromere">Significance (p-value)</th>
-        <th class="chrom-light-band chrom-left-centromere">Experiment</th>
-        <th class="chrom-dark-band">Target</th>
+        <th class="chrom-first-end-cap chrom-light-band">Effect Size (log2FC)</th>
+        <th class="chrom-dark-band">Direction</th>
+        <th class="chrom-light-band">Significance (p-value)</th>
+        <th class="chrom-light-band chrom-right-centromere">Experiment</th>
+        <th class="chrom-light-band chrom-left-centromere">Target</th>
         <th class="chrom-last-end-cap chrom-dark-band">REO Details</th>
     </tr>
     {% for regeffect in regeffects %}
@@ -49,7 +49,13 @@
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup">{{ regeffect.significance|format_pval }}</td>
         <td rowspan="{% firstof regeffect.targets.all|length 1 %}" scope="rowgroup"><a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">{{ regeffect.experiment.name }}</a></td>
         {% endif %}
-    <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a></td>
+        <td><a href="{% url 'search:dna_features' 'accession' re_target.accession_id %}">{{ re_target.name }}</a></td>
+        <td> <a href="{% url 'search:reg_effect' regeffect.accession_id %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                </svg>
+             </a>
+        </td>
     </tr>
     {% empty %}
         <tr data-href="{% url 'search:reg_effect' regeffect.accession_id %}">
