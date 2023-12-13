@@ -35,8 +35,9 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
     effects = StringIO()
     effect_directions = StringIO()
     sources = StringIO()
-    target_genes = StringIO()
+    targets = StringIO()
     grnas = {}
+    target_genes = {}
     with ReoIds() as reo_ids:
         for i, line in enumerate(reader):
             # every other line in this file is basically a duplicate of the previous line
@@ -107,14 +108,18 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             else:
                 direction = DIR_FACET_VALUES["Non-significant"]
 
-            target_gene_id = DNAFeature.objects.filter(
-                ref_genome=ref_genome, ensembl_id=line["gene_stable_id"]
-            ).values_list("id", flat=True)
+            # Find targets
+            gene_stable_id = line["gene_stable_id"]
+            if gene_stable_id not in target_genes:
+                target_gene_id = DNAFeature.objects.filter(
+                    ref_genome=ref_genome, ensembl_id=gene_stable_id
+                ).values_list("id", flat=True)
+                target_genes[gene_stable_id] = target_gene_id
 
             try:
-                target_genes.write(f"{reo_id}\t{target_gene_id[0]}\n")
+                targets.write(f"{reo_id}\t{target_genes[gene_stable_id][0]}\n")
             except IndexError as ie:
-                print(f'"{ref_genome}", "{line["gene_stable_id"]}"')
+                print(f'"{ref_genome}", "{gene_stable_id}"')
                 raise ie
 
             facet_num_values = {
@@ -135,7 +140,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             )
             effect_directions.write(f"{reo_id}\t{direction.id}\n")
 
-    bulk_reo_save(effects, effect_directions, sources, target_genes)
+    bulk_reo_save(effects, effect_directions, sources, targets)
 
 
 def unload_analysis(analysis_metadata):

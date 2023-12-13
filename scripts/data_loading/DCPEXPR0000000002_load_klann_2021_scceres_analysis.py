@@ -38,6 +38,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
     effects = StringIO()
     effect_directions = StringIO()
     dhss = {}
+    target_genes = {}
 
     with ReoIds() as reo_ids:
         for reo_id, line in zip(reo_ids, reader):
@@ -72,28 +73,31 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
             else:
                 direction = DIR_FACET_VALUES["Non-significant"]
 
-            target_id = DNAFeature.objects.filter(
-                ref_genome=ref_genome,
-                ref_genome_patch=ref_genome_patch,
-                name=line["gene_symbol"],
-                location=NumericRange(gene_start, gene_end, "[)"),
-            ).values_list("id", flat=True)
-            if len(target_id) > 1:
-                # There is ONE instance where there are two genes with the same name
-                # in the exact same location. This handles that situation.
-                # The two gene IDs are ENSG00000272333 and ENSG00000105663.
-                # I decided that ENSG00000272333 was the "correct" gene to use here
-                # because it's the one that still exists in GRCh38.
-                target_id = DNAFeature.objects.filter(
+            target_location = NumericRange(gene_start, gene_end, "[)")
+            gene_key = f"{line['gene_symbol']}:{target_location}"
+            if gene_key not in target_genes:
+                target_genes[gene_key] = DNAFeature.objects.filter(
                     ref_genome=ref_genome,
                     ref_genome_patch=ref_genome_patch,
                     name=line["gene_symbol"],
-                    location=NumericRange(gene_start, gene_end, "[)"),
-                    ensembl_id__in=CORRECT_FEATURES,
+                    location=target_location,
                 ).values_list("id", flat=True)
+                if len(target_genes[gene_key]) > 1:
+                    # There is ONE instance where there are two genes with the same name
+                    # in the exact same location. This handles that situation.
+                    # The two gene IDs are ENSG00000272333 and ENSG00000105663.
+                    # I decided that ENSG00000272333 was the "correct" gene to use here
+                    # because it's the one that still exists in GRCh38.
+                    target_genes[gene_key] = DNAFeature.objects.filter(
+                        ref_genome=ref_genome,
+                        ref_genome_patch=ref_genome_patch,
+                        name=line["gene_symbol"],
+                        location=NumericRange(gene_start, gene_end, "[)"),
+                        ensembl_id__in=CORRECT_FEATURES,
+                    ).values_list("id", flat=True)
 
             try:
-                targets.write(f"{reo_id}\t{target_id[0]}\n")
+                targets.write(f"{reo_id}\t{target_genes[gene_key][0]}\n")
             except IndexError as ie:
                 print(f"{ref_genome} {ref_genome_patch} {line['gene_symbol']} [{gene_start}, {gene_end})")
                 raise ie
