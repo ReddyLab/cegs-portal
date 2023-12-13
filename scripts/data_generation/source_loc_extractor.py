@@ -1,5 +1,6 @@
 import argparse
 import csv
+import re
 
 from utils.misc import get_delimiter
 
@@ -24,7 +25,12 @@ def run(data_file, output_file, chr_name_col, chr_start_col, chr_end_col):
     else:
         reader = csv.DictReader(data_file, delimiter=get_delimiter(data_file.name))
     for row in reader:
-        output_file.write(f"{row[chr_name_col]}\t{row[chr_start_col]}\t{row[chr_end_col]}\n")
+        if (
+            re.match(r"chr(\d{1,2}|[XYxy])", row[chr_name_col]) is not None
+            and row[chr_start_col].isnumeric()
+            and row[chr_end_col].isnumeric()
+        ):
+            output_file.write(f"{row[chr_name_col]}\t{row[chr_start_col]}\t{row[chr_end_col]}\n")
 
 
 if __name__ == "__main__":
