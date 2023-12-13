@@ -43,8 +43,8 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             if i % 2 == 0:
                 continue
 
-            grna_id = line["grna"]
-            grna_info = grna_id.split("-")
+            grna_label = line["grna"]
+            grna_info = grna_label.split("-")
 
             # Skip non-targeting guides
             if not grna_info[0].startswith("chr"):
@@ -52,9 +52,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
 
             reo_id = reo_ids.next_id()
 
-            if grna_id in grnas:
-                guide_id = grnas[grna_id]
-            else:
+            if grna_label not in grnas:
                 grna_type = line["type"]
 
                 if len(grna_info) == 5:
@@ -82,26 +80,21 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
                 grna_location = NumericRange(grna_start, grna_end, bounds)
 
                 try:
-                    guide_id = DNAFeature.objects.filter(
+                    grnas[grna_label] = DNAFeature.objects.filter(
                         experiment_accession=experiment,
-                        misc__grna=grna_id,
+                        chrom_name=chrom_name,
                         location=grna_location,
                         strand=strand,
+                        misc__grna=grna_label,
                         ref_genome=ref_genome,
                         feature_type=DNAFeatureType.GRNA,
                     ).values_list("id", flat=True)[0]
-                except DNAFeature.MultipleObjectsReturned as e:
+                except IndexError as e:
                     print(
-                        f"{grna_id} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
+                        f"{grna_label} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
                     )
                     raise e
-                except DNAFeature.DoesNotExist as e:
-                    print(
-                        f"{grna_id} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
-                    )
-                    raise e
-                grnas[grna_id] = guide_id
-            sources.write(f"{reo_id}\t{guide_id}\n")
+            sources.write(f"{reo_id}\t{grnas[grna_label]}\n")
 
             significance = float(line["pval_fdr_corrected"])
             effect_size = float(line["avg_logFC"])

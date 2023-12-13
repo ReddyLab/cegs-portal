@@ -48,19 +48,16 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
             dhs_end = int(line["chromEnd"])
             dhs_string = f"{chrom_name}:{dhs_start}-{dhs_end}:{ref_genome}"
 
-            if dhs_string in dhss:
-                dhs_id = dhss[dhs_string]
-            else:
-                dhs_id = DNAFeature.objects.filter(
+            if dhs_string not in dhss:
+                dhss[dhs_string] = DNAFeature.objects.filter(
                     experiment_accession=experiment,
                     chrom_name=chrom_name,
                     location=NumericRange(dhs_start, dhs_end, "[)"),
                     ref_genome=ref_genome,
                     feature_type=DNAFeatureType.DHS,
                 ).values_list("id", flat=True)[0]
-                dhss[dhs_string] = dhs_id
 
-            sources.write(f"{reo_id}\t{dhs_id}\n")
+            sources.write(f"{reo_id}\t{dhss[dhs_string]}\n")
 
             effect_size_field = line["wgCERES_score_top3_wg"].strip()
             if effect_size_field == "":
