@@ -1,6 +1,6 @@
 import csv
+from io import StringIO
 
-from django.db import transaction
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -13,9 +13,12 @@ from cegs_portal.search.models import (
     FacetValue,
 )
 from utils import timer
+from utils.ccres import CcreSource, associate_ccres
+from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
 from . import get_closest_gene
+from .db import bulk_feature_facet_save, bulk_feature_save, feature_entry
 
 # These gene names appear in the data and have a "version" ("".1") in a few instances.
 # We don't know why. It's safe to remove the version for processing though.
@@ -37,32 +40,25 @@ GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.fil
 GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
 
 
-#
-# The following lines should work as expected when using postgres. See
-# https://docs.djangoproject.com/en/3.1/ref/models/querysets/#bulk-create
-#
-#     If the model’s primary key is an AutoField, the primary key attribute can
-#     only be retrieved on certain databases (currently PostgreSQL and MariaDB 10.5+).
-#     On other databases, it will not be set.
-#
-# So the objects won't need to be saved one-at-a-time like they are, which is slow.
-#
-# In postgres the objects automatically get their id's when bulk_created but
-# objects that reference the bulk_created objects (i.e., with foreign keys) don't
-# get their foreign keys updated. The for loops do that necessary updating.
-def bulk_save(grnas):
-    with transaction.atomic():
-        print("Adding gRNA Regions")
-        DNAFeature.objects.bulk_create(grnas, batch_size=1000)
-
-        for grna in grnas:
-            grna.facet_values.add(GRNA_TYPE_TARGETING)
+def load_dhss(dhs_filename):
+    dhss = {}
+    with open(dhs_filename, "r") as dhs_file:
+        reader = csv.DictReader(dhs_file, delimiter="\t", quoting=csv.QUOTE_NONE)
+        for line in reader:
+            dhss[line["grna_id"]] = (
+                line["dhs_chrom"],
+                int(line["dhs_start"]),
+                int(line["dhs_end"]),
+                line["gene_symbol"],
+            )
+    return dhss
 
 
-# loading does buffered writes to the DB, with a buffer size of 10,000 annotations
 @timer("Load GRNAs")
 def load_grnas(
     ceres_file,
+    closest_ccre_filename,
+    dhs_filename,
     accession_ids,
     experiment,
     region_source,
@@ -71,52 +67,117 @@ def load_grnas(
     delimiter=",",
 ):
     reader = csv.DictReader(ceres_file, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-    grnas = {}
-    existing_grna_facets = {}
-    for line in reader:
-        target_gene = line["target_gene"]
+    dhs_info = load_dhss(dhs_filename)
+    new_grnas = {}
+    grnas = StringIO()
+    grna_type_facets = StringIO()
+    new_dhss: dict[str, int] = {}
+    new_ccre_sources: list[CcreSource] = []
+    dhss = StringIO()
+    region_source_id = region_source.id
+    experiment_accession_id = experiment.accession_id
+    with FeatureIds() as feature_ids:
+        for line in reader:
+            target_gene = line["target_gene"]
 
-        if target_gene in TRIM_GENE_NAMES:
-            target_gene = target_gene[:-2]
+            if target_gene in TRIM_GENE_NAMES:
+                target_gene = target_gene[:-2]
 
-        grna_id = line["grna"]
-        if grna_id in grnas:
-            guide = grnas[grna_id]
-        else:
-            existing_grna_facets[grna_id] = set()
-            strand = line["Strand"]
-            chrom_name = line["chr"]
-            grna_start = int(line["start"])
-            grna_end = int(line["end"])
+            # Create DHS associated with gRNA
+            dhs_chrom_name, dhs_start, dhs_end, _ = dhs_info[line["grna"]]
+            dhs_location = f"[{dhs_start},{dhs_end})"
+            dhs_name = f"{dhs_chrom_name}:{dhs_location}"
 
-            if strand == "+":
-                bounds = "[)"
-            elif strand == "-":
-                bounds = "(]"
+            if dhs_name not in new_dhss:
+                closest_gene, distance, gene_name = get_closest_gene(ref_genome, dhs_chrom_name, dhs_start, dhs_end)
+                closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
+                dhs_feature_id = feature_ids.next_id()
+                dhs_accession_id = accession_ids.incr(AccessionType.DHS)
+                dhss.write(
+                    feature_entry(
+                        id_=dhs_feature_id,
+                        accession_id=dhs_accession_id,
+                        cell_line=cell_line,
+                        chrom_name=dhs_chrom_name,
+                        location=dhs_location,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.DHS,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                    )
+                )
+                new_ccre_sources.append(
+                    CcreSource(
+                        _id=dhs_feature_id,
+                        chrom_name=dhs_chrom_name,
+                        location=NumericRange(dhs_start, dhs_end, "[)"),
+                        cell_line=cell_line,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        source_file_id=region_source_id,
+                        ref_genome=ref_genome,
+                        experiment_accession_id=experiment_accession_id,
+                    )
+                )
+                new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id)
+            else:
+                dhs_feature_id, dhs_accession_id = new_dhss[dhs_name]
 
-            grna_location = NumericRange(grna_start, grna_end, bounds)
+            grna_id = line["grna"]
+            if grna_id not in new_grnas:
+                feature_id = feature_ids.next_id()
 
-            closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
+                strand = line["Strand"]
+                chrom_name = line["chr"]
+                grna_start = int(line["start"])
+                grna_end = int(line["end"])
 
-            guide = DNAFeature(
-                accession_id=accession_ids.incr(AccessionType.GRNA),
-                experiment_accession=experiment,
-                source_file=region_source,
-                cell_line=cell_line,
-                chrom_name=chrom_name,
-                closest_gene=closest_gene,
-                closest_gene_distance=distance,
-                closest_gene_name=gene_name,
-                closest_gene_ensembl_id=closest_gene.ensembl_id if closest_gene is not None else None,
-                location=grna_location,
-                strand=strand,
-                misc={"grna": grna_id},
-                ref_genome=ref_genome,
-                feature_type=DNAFeatureType.GRNA,
-            )
-            grnas[grna_id] = guide
+                if strand == "+":
+                    bounds = "[)"
+                elif strand == "-":
+                    bounds = "(]"
 
-    bulk_save(grnas.values())
+                grna_location = NumericRange(grna_start, grna_end, bounds)
+
+                closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
+                closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
+
+                grnas.write(
+                    feature_entry(
+                        id_=feature_id,
+                        accession_id=accession_ids.incr(AccessionType.GRNA),
+                        cell_line=cell_line,
+                        chrom_name=chrom_name,
+                        location=grna_location,
+                        strand=strand,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.GRNA,
+                        parent_id=dhs_feature_id,
+                        parent_accession_id=dhs_accession_id,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
+                        misc={"grna": grna_id},
+                    )
+                )
+
+                grna_type_facets.write(f"{feature_id}\t{GRNA_TYPE_TARGETING.id}\n")
+                new_grnas[grna_id] = feature_id
+
+    bulk_feature_save(dhss)
+    bulk_feature_save(grnas)
+    bulk_feature_facet_save(grna_type_facets)
+
+    associate_ccres(closest_ccre_filename, new_ccre_sources, ref_genome, accession_ids)
 
 
 def unload_experiment(experiment_metadata):
@@ -130,7 +191,7 @@ def check_filename(experiment_filename: str):
         raise ValueError(f"scCERES experiment filename '{experiment_filename}' must not be blank")
 
 
-def run(experiment_filename):
+def run(experiment_filename, closest_ccre_filename, dhs_filename):
     with open(experiment_filename) as experiment_file:
         experiment_metadata = ExperimentMetadata.json_load(experiment_file)
     check_filename(experiment_metadata.name)
@@ -147,6 +208,8 @@ def run(experiment_filename):
         ceres_file, file_info, _delimiter = next(experiment_metadata.metadata())
         load_grnas(
             ceres_file,
+            closest_ccre_filename,
+            dhs_filename,
             accession_ids,
             experiment,
             experiment.files.all()[0],
