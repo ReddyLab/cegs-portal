@@ -146,7 +146,7 @@ class SourceEffectsView(FeatureEffectsView):
                 request, "search/v1/partials/_reg_effect.html", {"regeffects": reg_effect_page, "feature": feature}
             )
 
-        return super().get(request, options, regeffects, feature_id)
+        return super().get(request, options, regeffects, feature, feature_id)
 
     def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
         feature = RegEffectSearch.id_feature_search(feature_id)
