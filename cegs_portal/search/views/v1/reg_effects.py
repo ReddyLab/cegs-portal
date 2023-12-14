@@ -140,8 +140,10 @@ class SourceEffectsView(FeatureEffectsView):
     def get(self, request, options, data, feature_id):
         regeffects, feature = data
         if request.headers.get("HX-Request"):
+            reg_effect_paginator = Paginator(regeffects, options["per_page"])
+            reg_effect_page = reg_effect_paginator.get_page(options["page"])
             return render(
-                request, "search/v1/partials/_reg_effect.html", {"regeffects": regeffects, "feature": feature}
+                request, "search/v1/partials/_reg_effect.html", {"regeffects": reg_effect_page, "feature": feature}
             )
 
         return super().get(request, options, regeffects, feature_id)
