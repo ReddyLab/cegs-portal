@@ -92,23 +92,6 @@
         {% endif %}
     </span>
 </div>
-<!-- <div class="pagination">
-    <span class="step-links">
-        {% if non_targeting_reos.has_previous %}
-            <a href="?page=1" hx-get="{% url 'search:non_target_reo' feature.accession_id %}?page=1" hx-target="#non-target-table">&laquo; first</a>
-            <a href="?page={{ non_targeting_reos.previous_page_number }}" hx-get="{% url 'search:non_target_reo' feature.accession_id %}?page={{ non_targeting_reos.previous_page_number }}" hx-target="#non-target-table">previous</a>
-        {% endif %}
-
-        <span class="current">
-            Page {{ non_targeting_reos.number }} of {{ non_targeting_reos.paginator.num_pages }}
-        </span>
-
-        {% if non_targeting_reos.has_next %}
-            <a href="?page={{ non_targeting_reos.next_page_number }}" hx-get="{% url 'search:non_target_reo' feature.accession_id %}?page={{ non_targeting_reos.next_page_number }}" hx-target="#non-target-table">next</a>
-            <a href="?page={{ non_targeting_reos.paginator.num_pages }}" hx-get="{% url 'search:non_target_reo' feature.accession_id %}?page={{ non_targeting_reos.paginator.num_pages }}" hx-target="#non-target-table">last &raquo;</a>
-        {% endif %}
-    </span>
-</div> -->
 </div>
 
 {% include 'search/v1/partials/_row_click_js.html' %}
