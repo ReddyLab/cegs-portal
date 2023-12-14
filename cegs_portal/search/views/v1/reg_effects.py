@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.db.models import QuerySet
 from django.http import Http404
 from django.shortcuts import render
 
@@ -16,7 +17,6 @@ from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     MultiResponseFormatView,
 )
-from cegs_portal.utils.pagination_types import Pageable
 
 
 class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
@@ -64,9 +64,8 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = feature_reg_effects
+    table_partial = ""
     template = ""
-    template_data_name = "regeffects"
-    page_title = ""
 
     def get_experiment_accession_id(self):
         try:
@@ -118,10 +117,15 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, *args, **kwargs):
-        reg_effect_paginator = Paginator(data, options["per_page"])
+        regeffects, feature = data
+        reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
+        data = {"regeffects": reg_effect_page, "feature": feature}
 
-        return super().get(request, options, reg_effect_page, *args, **kwargs)
+        if request.headers.get("HX-Request"):
+            return render(request, self.table_partial, data)
+
+        return super().get(request, options, data, *args, **kwargs)
 
     def get_json(self, request, options, data, *args, **kwargs):
         reg_effect_paginator = Paginator(data, options["per_page"])
@@ -129,26 +133,16 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
 
-    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
 
 class SourceEffectsView(FeatureEffectsView):
     template = "search/v1/source_reg_effects.html"
+    table_partial = "search/v1/partials/_reg_effect.html"
     tsv_renderer = re_data
 
-    def get(self, request, options, data, feature_id):
-        regeffects, feature = data
-        if request.headers.get("HX-Request"):
-            reg_effect_paginator = Paginator(regeffects, options["per_page"])
-            reg_effect_page = reg_effect_paginator.get_page(options["page"])
-            return render(
-                request, "search/v1/partials/_reg_effect.html", {"regeffects": reg_effect_page, "feature": feature}
-            )
-
-        return super().get(request, options, regeffects, feature, feature_id)
-
-    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.source_search_public(feature_id, options.get("sig_only"))
@@ -172,9 +166,11 @@ class SourceEffectsView(FeatureEffectsView):
 
 class TargetEffectsView(FeatureEffectsView):
     template = "search/v1/target_reg_effects.html"
+    table_partial = "search/v1/partials/_reg_effect.html"
     tsv_renderer = target_data
 
-    def get_data(self, options, feature_id) -> Pageable[RegulatoryEffectObservation]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
+        feature = RegEffectSearch.id_feature_search(feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.target_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -184,7 +180,7 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects
+        return reg_effects, feature
 
     def get_tsv(self, request, options, data, feature_id):
         feature = DNAFeature.objects.get(accession_id=feature_id)
