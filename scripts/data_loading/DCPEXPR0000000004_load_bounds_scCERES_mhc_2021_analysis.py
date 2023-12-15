@@ -35,16 +35,17 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
     effects = StringIO()
     effect_directions = StringIO()
     sources = StringIO()
-    target_genes = StringIO()
+    targets = StringIO()
     grnas = {}
+    target_genes = {}
     with ReoIds() as reo_ids:
         for i, line in enumerate(reader):
             # every other line in this file is basically a duplicate of the previous line
             if i % 2 == 0:
                 continue
 
-            grna_id = line["grna"]
-            grna_info = grna_id.split("-")
+            grna_label = line["grna"]
+            grna_info = grna_label.split("-")
 
             # Skip non-targeting guides
             if not grna_info[0].startswith("chr"):
@@ -52,9 +53,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
 
             reo_id = reo_ids.next_id()
 
-            if grna_id in grnas:
-                guide_id = grnas[grna_id]
-            else:
+            if grna_label not in grnas:
                 grna_type = line["type"]
 
                 if len(grna_info) == 5:
@@ -82,26 +81,21 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
                 grna_location = NumericRange(grna_start, grna_end, bounds)
 
                 try:
-                    guide_id = DNAFeature.objects.filter(
+                    grnas[grna_label] = DNAFeature.objects.filter(
                         experiment_accession=experiment,
-                        misc__grna=grna_id,
+                        chrom_name=chrom_name,
                         location=grna_location,
                         strand=strand,
+                        misc__grna=grna_label,
                         ref_genome=ref_genome,
                         feature_type=DNAFeatureType.GRNA,
                     ).values_list("id", flat=True)[0]
-                except DNAFeature.MultipleObjectsReturned as e:
+                except IndexError as e:
                     print(
-                        f"{grna_id} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
+                        f"{grna_label} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
                     )
                     raise e
-                except DNAFeature.DoesNotExist as e:
-                    print(
-                        f"{grna_id} {cell_line} {chrom_name}:{grna_location} {ref_genome} {ref_genome_patch} {DNAFeatureType.GRNA}"
-                    )
-                    raise e
-                grnas[grna_id] = guide_id
-            sources.write(f"{reo_id}\t{guide_id}\n")
+            sources.write(f"{reo_id}\t{grnas[grna_label]}\n")
 
             significance = float(line["pval_fdr_corrected"])
             effect_size = float(line["avg_logFC"])
@@ -114,14 +108,18 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             else:
                 direction = DIR_FACET_VALUES["Non-significant"]
 
-            target_gene_id = DNAFeature.objects.filter(
-                ref_genome=ref_genome, ensembl_id=line["gene_stable_id"]
-            ).values_list("id", flat=True)
+            # Find targets
+            gene_stable_id = line["gene_stable_id"]
+            if gene_stable_id not in target_genes:
+                target_gene_id = DNAFeature.objects.filter(
+                    ref_genome=ref_genome, ensembl_id=gene_stable_id
+                ).values_list("id", flat=True)
+                target_genes[gene_stable_id] = target_gene_id
 
             try:
-                target_genes.write(f"{reo_id}\t{target_gene_id[0]}\n")
+                targets.write(f"{reo_id}\t{target_genes[gene_stable_id][0]}\n")
             except IndexError as ie:
-                print(f'"{ref_genome}", "{line["gene_stable_id"]}"')
+                print(f'"{ref_genome}", "{gene_stable_id}"')
                 raise ie
 
             facet_num_values = {
@@ -142,7 +140,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             )
             effect_directions.write(f"{reo_id}\t{direction.id}\n")
 
-    bulk_reo_save(effects, effect_directions, sources, target_genes)
+    bulk_reo_save(effects, effect_directions, sources, targets)
 
 
 def unload_analysis(analysis_metadata):
