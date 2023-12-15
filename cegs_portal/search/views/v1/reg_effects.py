@@ -166,7 +166,7 @@ class SourceEffectsView(FeatureEffectsView):
 
 class TargetEffectsView(FeatureEffectsView):
     template = "search/v1/target_reg_effects.html"
-    table_partial = "search/v1/partials/_reg_effect.html"
+    table_partial = "search/v1/partials/_target_reg_effect.html"
     tsv_renderer = target_data
 
     def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
