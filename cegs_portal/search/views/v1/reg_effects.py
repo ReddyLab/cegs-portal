@@ -128,7 +128,8 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return super().get(request, options, data, *args, **kwargs)
 
     def get_json(self, request, options, data, *args, **kwargs):
-        reg_effect_paginator = Paginator(data, options["per_page"])
+        regeffects, _ = data
+        reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
