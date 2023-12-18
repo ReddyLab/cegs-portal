@@ -79,11 +79,12 @@
         {% endfor %}
         {% endfor %}
     </table>
+
     <div class="pagination">
         <span class="step-links">
             {% if regeffects.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ regeffects.previous_page_number }}">previous</a>
+                <a href="?page=1" hx-get="{% url 'search:target_effects' feature.accession_id %}?page=1" hx-target="#target-table">&laquo;>&laquo; first</a>
+                <a href="?page={{ regeffects.previous_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.previous_page_number }}" hx-target="#target-table"></a>>previous</a>
             {% endif %}
 
             <span class="current">
@@ -91,11 +92,13 @@
             </span>
 
             {% if regeffects.has_next %}
-                <a href="?page={{ regeffects.next_page_number }}">next</a>
-                <a href="?page={{ regeffects.paginator.num_pages }}">last &raquo;</a>
+                <a href="?page={{ regeffects.next_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.next_page_number }}" hx-target="#target-table">next</a>
+                <a href="?page={{ regeffects.paginator.num_pages }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.paginator.num_pages }}" hx-target="#target-table">last &raquo;</a>
             {% endif %}
         </span>
     </div>
+    </div>
+
 </div>
 
 {% include 'search/v1/partials/_row_click_js.html' %}
