@@ -1,15 +1,10 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-
-
 {% block content %}
-<div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}">
-    {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
+
+<div class="container min-w-full" id="target-table">
+    {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
 </div>
 
-{% endblock content %}{% block inline_javascript %}
-
-{% include 'search/v1/partials/_row_click_js.html' %}
-
-{% endblock %}
+{% endblock content %}
