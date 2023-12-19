@@ -190,4 +190,4 @@ class TargetEffectsView(FeatureEffectsView):
         else:
             filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
 
-        return super().get_tsv(request, options, data, filename=filename)
+        return super().get_tsv(request, options, data[0], filename=filename)

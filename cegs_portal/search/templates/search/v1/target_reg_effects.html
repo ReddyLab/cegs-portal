@@ -4,7 +4,7 @@
 
 
 {% block content %}
-<div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
+<div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}">
     {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
 </div>
 
