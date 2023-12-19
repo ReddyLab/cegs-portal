@@ -83,8 +83,8 @@
     <div class="pagination">
         <span class="step-links">
             {% if regeffects.has_previous %}
-                <a href="?page=1" hx-get="{% url 'search:target_effects' feature.accession_id %}?page=1" hx-target="#target-table">&laquo;>&laquo; first</a>
-                <a href="?page={{ regeffects.previous_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.previous_page_number }}" hx-target="#target-table"></a>>previous</a>
+                <a href="?page=1" hx-get="{% url 'search:target_effects' feature.accession_id %}?page=1" hx-target="#target-table">&laquo; first</a>
+                <a href="?page={{ regeffects.previous_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.previous_page_number }}" hx-target="#target-table">previous</a>
             {% endif %}
 
             <span class="current">
