@@ -13,9 +13,18 @@ pub struct PyCoverageData {
     pub wraps: CoverageData,
 }
 
+#[pymethods]
+impl PyCoverageData {
+    pub fn __str__(&self) -> String {
+        format!("significant_observations: {}\nnonsignificant_observations: {}\nbucket_size: {}\nchromosomes: {}", self.wraps.significant_observations.len(), self.wraps.nonsignificant_observations.len(), self.wraps.bucket_size, self.wraps.chromosomes.len())
+    }
+}
+
 #[pyclass(name = "Filter")]
 #[derive(Debug)]
 pub struct PyFilter {
+    #[pyo3(get, set)]
+    pub chrom: Option<u8>,
     #[pyo3(get, set)]
     pub categorical_facets: FxHashSet<DbID>,
     #[pyo3(get, set)]
@@ -27,6 +36,7 @@ impl PyFilter {
     #[new]
     pub fn new() -> Self {
         PyFilter {
+            chrom: None,
             categorical_facets: FxHashSet::default(),
             numeric_intervals: None,
         }
@@ -40,6 +50,7 @@ impl PyFilter {
 impl PyFilter {
     pub fn as_filter(&self) -> Filter {
         Filter {
+            chrom: self.chrom,
             categorical_facets: self.categorical_facets.clone(),
             numeric_intervals: self.numeric_intervals.map(|ci| ci.as_filter_intervals()),
         }

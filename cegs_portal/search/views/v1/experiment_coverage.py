@@ -25,7 +25,7 @@ from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http400
 
-CHROM_NAMES = {
+CHROM_NAMES = [
     "1",
     "2",
     "3",
@@ -51,7 +51,7 @@ CHROM_NAMES = {
     "X",
     "Y",
     "MT",
-}
+]
 
 
 @lru_cache(maxsize=100)
@@ -106,9 +106,11 @@ def get_analyses(exp_acc_ids: list[str]) -> list[tuple[str, str]]:
     return exp_analysis_pairs
 
 
-def get_filter(filters):
+def get_filter(filters, chrom):
     data_filter = Filter()
     data_filter.categorical_facets = set(filters[0])
+    if chrom is not None:
+        data_filter.chrom = CHROM_NAMES.index(chrom)
 
     if len(filters) > 1:
         effect_size_interval, sig_interval = filters[1]
@@ -176,7 +178,7 @@ class ExperimentCoverageView(MultiResponseFormatView):
 
     def post_data(self, options):
         accession_ids = get_analysis(options["exp_acc_id"])
-        data_filter = get_filter(options["filters"])
+        data_filter = get_filter(options["filters"], options["zoom_chr"])
         loaded_data = load_coverage(*accession_ids, options["zoom_chr"])
         filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data, None)
 
@@ -240,7 +242,7 @@ class CombinedExperimentView(MultiResponseFormatView):
     def post_data(self, options):
         accession_ids = get_analyses(options["exp_acc_ids"])
 
-        data_filter = get_filter(options["filters"])
+        data_filter = get_filter(options["filters"], options["zoom_chr"])
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {
