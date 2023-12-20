@@ -16,13 +16,14 @@
 
 {% block content %}
 <div>
+    <div class="title-separator"></div>
     <div class="text-2xl font-bold">{{ feature_name }}</div>
     <div>
         <div class="title-separator"></div>
         <div class="p-2" id="genoverse"></div>
         <div class="title-separator"></div>
-        <div class="container">
-        {% include "search/v1/partials/_paged_nav.html" with data=features no_data="No DNA Features Fount" container_id="dnafeature" prefix="feature" page_query="page" table="search/v1/partials/_features.html" %}
+        <div class="container min-w-full" id="feature-table">
+        {% include "search/v1/partials/_features.html" with data=features no_data="No DNA Features Found" %}
         </div>
     </div>
 </div>
@@ -31,7 +32,7 @@
 {% block inline_javascript %}
     <script type="module">
         import { State } from "{% static 'search/js/state.js' %}";
-        import { dataPages, featureTable, emptyFeatureTable, pageLink } from "{% static 'search/js/tables.js' %}"
+        import { dataPages, pageLink } from "{% static 'search/js/tables.js' %}"
 
         const STATE_LOCATION = "location";
         let state = new State({
@@ -55,12 +56,6 @@
 
         let initialLocation = state.getSharedState(STATE_LOCATION);
 
-        let featureURL = function(chromosome, start, end) {
-            return `/search/featureloc/${chromosome}/${start}/${end}?search_type=overlap&accept=application/json`;
-        };
-
-        {% include "search/v1/partials/_paged_nav_js.html" with data=features no_data="No DNA Feature Found" container_id="dnafeature" prefix="feature" page_query="page" url_function="_ => featureURL(chromo, start, end)" %}
-
         new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
             // If no genome supplied, it must have at least chromosomeSize, e.g.:
@@ -82,7 +77,5 @@
         });
 
     </script>
-
-{% include 'search/v1/partials/_row_click_js.html' %}
 
 {% endblock %}

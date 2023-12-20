@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.http import Http404
+from django.shortcuts import render
 
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
@@ -149,6 +150,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
 class DNAFeatureLoc(MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_features.html"
+    table_partial = "search/v1/partials/_features.html"
 
     def request_options(self, request):
         """
@@ -182,14 +184,19 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
-        options["paginate"] = "page" in request.GET or bool(request.GET.get("paginate", False))
+        options["per_page"] = int(request.GET.get("per_page", 20))
         options["json_format"] = request.GET.get("format", None)
 
         return options
 
     def get(self, request, options, data, chromo, start, end):
-        features_paginator = Paginator(data, 20)
+        features = data
+        features_paginator = Paginator(features, options["per_page"])
         feature_page = features_paginator.get_page(options["page"])
+
+        if request.headers.get("HX-Request"):
+            return render(request, self.table_partial, {"features": feature_page})
+
         return super().get(
             request,
             options,
