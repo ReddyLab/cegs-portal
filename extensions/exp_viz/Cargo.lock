@@ -93,8 +93,8 @@ checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 
 [[package]]
 name = "exp_viz"
-version = "0.3.2"
-source = "git+https://github.com/ReddyLab/exp_viz?rev=19729ac67d4ccb6dfbafbb718a226ef5203ea21a#19729ac67d4ccb6dfbafbb718a226ef5203ea21a"
+version = "0.3.3"
+source = "git+https://github.com/ReddyLab/exp_viz?rev=ecac836fe9e3dd91d4ee5cd7cae5c130367a4185#ecac836fe9e3dd91d4ee5cd7cae5c130367a4185"
 dependencies = [
  "bincode",
  "cov_viz_ds",
@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "exp_viz_extension"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "bincode",
  "cov_viz_ds",
