@@ -195,7 +195,11 @@ class DNAFeatureLoc(MultiResponseFormatView):
         feature_page = features_paginator.get_page(options["page"])
 
         if request.headers.get("HX-Request"):
-            return render(request, self.table_partial, {"features": feature_page})
+            return render(
+                request,
+                self.table_partial,
+                {"features": feature_page, "loc": {"chr": chromo, "start": int(start), "end": int(end)}},
+            )
 
         return super().get(
             request,
