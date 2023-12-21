@@ -33,3 +33,22 @@
                 </tr>
             {% endfor %}
         </table>
+
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if features.has_previous %}
+                    <a href="?page=1" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1" hx-target="#features-table">« first</a>
+                    <a href="?page={{ features.previous_page_number }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}" hx-target="#features-table">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ features.number }} of {{ features.paginator.num_pages }}
+                </span>
+
+                {% if features.has_next %}
+                    <a href="?page={{ features.next_page_number }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}" hx-target="#features-table">next</a>
+                    <a href="?page={{ features.paginator.num_pages }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}" hx-target="#features-table">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
