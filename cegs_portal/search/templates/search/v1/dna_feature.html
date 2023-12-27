@@ -240,8 +240,6 @@
                 {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
             </div>
             {% endif %}
-
-
             {% if targets %}
             <div class="container min-w-full" id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
                 {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
@@ -452,7 +450,7 @@
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
     import { featureTable } from "{% static 'search/js/tables.js' %}"
-    import { dataPages, emptyRETable, pageLink } from "{% static 'search/js/tables.js' %}"
+    import { dataPages, pageLink } from "{% static 'search/js/tables.js' %}"
 
     let assemblies = [
         {% for feature in features %}
