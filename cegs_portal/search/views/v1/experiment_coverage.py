@@ -113,7 +113,7 @@ def get_analyses(combo_tree):
         elif isinstance(combination, str):
             exp_analysis_pairs.append(combination)
         else:
-            raise
+            raise Http400("Invalid analysis")
 
     return exp_analysis_pairs
 
