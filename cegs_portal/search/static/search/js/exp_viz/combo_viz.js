@@ -274,7 +274,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             state.g(STATE_NUMERIC_FACET_VALUES),
         ]);
 
-        postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+        postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
         });
     });
@@ -286,7 +286,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     function get_all_data() {
         let body = getFilterBody(state, genome, manifests[0].chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
 
-        postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+        postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
             state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
             state.u(
@@ -318,7 +318,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                 state.g(STATE_NUMERIC_FACET_VALUES),
             ]);
 
-            postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+            postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
