@@ -9,7 +9,6 @@ from exp_viz import (
     Filter,
     FilterIntervals,
     filter_coverage_data_allow_threads,
-    intersect_coverage_data_features,
     load_coverage_data_allow_threads,
     load_feature_data_allow_threads,
     merge_filtered_data,
@@ -20,7 +19,6 @@ from cegs_portal.search.json_templates.v1.combined_experiments import (
 )
 from cegs_portal.search.json_templates.v1.experiment_coverage import experiment_coverage
 from cegs_portal.search.models.validators import validate_accession_id
-from cegs_portal.search.view_models.v1 import ExperimentCoverageSearch
 from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.view_utils import JSON_MIME
 from cegs_portal.utils.http_exceptions import Http400
@@ -55,7 +53,8 @@ CHROM_NAMES = [
 
 
 @lru_cache(maxsize=100)
-def load_coverage(exp_acc_id, analysis_acc_id, chrom):
+def load_coverage(acc_id, chrom):
+    exp_acc_id, analysis_acc_id = acc_id.split("/")
     if chrom is None:
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd"))
     else:
@@ -65,45 +64,100 @@ def load_coverage(exp_acc_id, analysis_acc_id, chrom):
 
 
 @lru_cache(maxsize=100)
-def load_features(exp_acc_id, analysis_acc_id, chrom):
+def load_features(acc_id, chrom):
+    exp_acc_id, analysis_acc_id = acc_id.split("/")
     if chrom is None:
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.fd"))
     else:
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.fd"))
 
-    return load_feature_data_allow_threads(filename)
+    return acc_id, load_feature_data_allow_threads(filename)
 
 
-def get_analysis(exp_acc_id: str) -> tuple[str, str]:
-    ids = exp_acc_id.split("/")
-    if len(ids) == 1:
-        validate_accession_id(ids[0])
-        return ExperimentCoverageSearch.default_analysis(ids[0])
-    elif len(ids) == 2:
-        validate_accession_id(ids[0])
-        validate_accession_id(ids[1])
-        return (ids[0], ids[1])
-    else:
-        raise Http400(f"Invalid experiment id {exp_acc_id}")
+def build_ops(combinations, features):
+    op, left, right = combinations["op"], combinations["left"], combinations["right"]
+
+    if isinstance(left, str):
+        left = features[left]
+    elif isinstance(left, dict):
+        left = build_ops(left, features)
+
+    if isinstance(right, str):
+        right = features[right]
+    elif isinstance(right, dict):
+        right = build_ops(right, features)
+
+    if left is None:
+        return right
+
+    if right is None:
+        return left
+
+    match op:
+        case "i":
+            return left.intersection(right)
+        case "u":
+            return left.union(right)
 
 
-def get_analyses(exp_acc_ids: list[str]) -> list[tuple[str, str]]:
+def get_analyses(combo_tree):
     exp_analysis_pairs = []
-    exps_only = []
-    for exp_id in exp_acc_ids:
-        ids = exp_id.split("/")
-        if len(ids) == 1:
-            validate_accession_id(ids[0])
-            exps_only.append(ids[0])
-        elif len(ids) == 2:
-            validate_accession_id(ids[0])
-            validate_accession_id(ids[1])
-            exp_analysis_pairs.append((ids[0], ids[1]))
+    combinations = [combo_tree]
+    while len(combinations) > 0:
+        combination = combinations.pop(0)
+        if combination is None:
+            pass
+        elif isinstance(combination, dict):
+            combinations.append(combination["left"])
+            combinations.append(combination["right"])
+        elif isinstance(combination, str):
+            exp_analysis_pairs.append(combination)
         else:
-            raise Http400(f"Invalid experiment id {exp_id}")
+            raise
 
-    exp_analysis_pairs.extend(ExperimentCoverageSearch.default_analyses(exps_only))
     return exp_analysis_pairs
+
+
+def validate_accession_string(accession_string):
+    if isinstance(accession_string, str):
+        ids = accession_string.split("/")
+        return len(ids) == 2 and all(validate_accession_id(a) is None for a in ids)
+
+    return False
+
+
+def validate_combinations(combinations):
+    if set(combinations.keys()) != {"op", "left", "right"}:
+        raise Http400("Invalid combination dictionary")
+
+    experiment_count = 0
+
+    op, left, right = combinations["op"], combinations["left"], combinations["right"]
+    if op not in ["i", "u"]:
+        raise Http400(f"Invalid experiment set operation {op}")
+
+    if validate_accession_string(left):
+        experiment_count += 1
+    elif isinstance(left, dict):
+        experiment_count += validate_combinations(left)
+    elif left is None:
+        pass
+    else:
+        raise Http400(f"Invalid value {left}")
+
+    if validate_accession_string(right):
+        experiment_count += 1
+    elif isinstance(right, dict):
+        experiment_count += validate_combinations(right)
+    elif right is None:
+        pass
+    else:
+        raise Http400(f"Invalid value {right}")
+
+    if left is None and right is None:
+        raise Http400("Invalid set operation: both sides can't be null/None")
+
+    return experiment_count
 
 
 def get_filter(filters, chrom):
@@ -143,6 +197,8 @@ class ExperimentCoverageView(MultiResponseFormatView):
 
         if options["exp_acc_id"] is None:
             raise Http400("Must query an experiment")
+        if not validate_accession_string(options["exp_acc_id"]):
+            raise Http400(f"Invalid experiment id {options['exp_acc_id']}")
 
         try:
             body = json.loads(request.body)
@@ -177,9 +233,8 @@ class ExperimentCoverageView(MultiResponseFormatView):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        accession_ids = get_analysis(options["exp_acc_id"])
         data_filter = get_filter(options["filters"], options["zoom_chr"])
-        loaded_data = load_coverage(*accession_ids, options["zoom_chr"])
+        loaded_data = load_coverage(options["exp_acc_id"], options["zoom_chr"])
         filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data, None)
 
         return filtered_data
@@ -190,9 +245,6 @@ class CombinedExperimentView(MultiResponseFormatView):
 
     def request_options(self, request):
         """
-        GET queries used:
-            exp (multiple)
-                * Experiment Accession ID
         POST body:
             filters:
                 * object - the filter values
@@ -200,17 +252,20 @@ class CombinedExperimentView(MultiResponseFormatView):
                 * array - names of chromosomes that will be merged
             zoom:
                 * str - the chromosome that's zoomed in on
+            combinations:
+                * object describing how to combine the experiments
         """
         options = super().request_options(request)
-        options["exp_acc_ids"] = request.GET.getlist("exp", [])
-
-        if len(options["exp_acc_ids"]) == 0:
-            raise Http400("Must query at least 1 experiment")
 
         try:
             body = json.loads(request.body)
         except Exception as e:
             raise Http400(f"Invalid request body:\n{request.body}") from e
+
+        combinations = body["combinations"]
+        if validate_combinations(combinations) == 0:
+            raise Http400("Must query at least 1 experiment")
+        options["combinations"] = combinations
 
         try:
             options["filters"] = body["filters"]
@@ -240,32 +295,24 @@ class CombinedExperimentView(MultiResponseFormatView):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        accession_ids = get_analyses(options["exp_acc_ids"])
+        accession_ids = get_analyses(options["combinations"])
 
         data_filter = get_filter(options["filters"], options["zoom_chr"])
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {
-                executor.submit(load_coverage, exp_acc_id, analysis_acc_id, options["zoom_chr"]): (
-                    exp_acc_id,
-                    analysis_acc_id,
-                )
-                for exp_acc_id, analysis_acc_id in accession_ids
+                executor.submit(load_coverage, acc_id, options["zoom_chr"]): (acc_id,) for acc_id in accession_ids
             }
             loaded_data = wait(load_to_acc_id, return_when=ALL_COMPLETED)
 
             load_feat_to_acc_id = {
-                executor.submit(load_features, exp_acc_id, analysis_acc_id, options["zoom_chr"]): (
-                    exp_acc_id,
-                    analysis_acc_id,
-                )
-                for exp_acc_id, analysis_acc_id in accession_ids
+                executor.submit(load_features, acc_id, options["zoom_chr"]): (acc_id,) for acc_id in accession_ids
             }
             loaded_features = wait(load_feat_to_acc_id, return_when=ALL_COMPLETED)
+            loaded_features = dict(load_future.result() for load_future in loaded_features.done)
+            included_features = build_ops(options["combinations"], loaded_features)
+            included_features = included_features.coalesce()
 
-            included_features = intersect_coverage_data_features(
-                [load_future.result() for load_future in loaded_features.done]
-            )
             filter_to_acc_id = {
                 executor.submit(
                     filter_coverage_data_allow_threads, data_filter, load_future.result(), included_features

@@ -208,11 +208,6 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
     return [genome, manifests];
 }
 
-function experimentsQuery(state) {
-    let selectedExperiments = state.g(STATE_SELECTED_EXPERIMENTS);
-    return selectedExperiments.map((e) => `exp=${e[0]}`).join("&");
-}
-
 export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     let experiment_info = JSON.parse(g("experiment_viz").innerText);
     let accessionIDs = experiment_info.map((exp) => [exp.accession_id, exp.analysis_accession_id]);
@@ -279,14 +274,9 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             state.g(STATE_NUMERIC_FACET_VALUES),
         ]);
 
-        postJson(`/search/combined_experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
-            (response_json) => {
-                state.u(
-                    STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
-                );
-            }
-        );
+        postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+            state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+        });
     });
 
     state.ac(STATE_ALL_FILTERED, (s, key) => {
@@ -296,25 +286,20 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     function get_all_data() {
         let body = getFilterBody(state, genome, manifests[0].chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
 
-        postJson(`/search/combined_experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
-            (response_json) => {
-                state.u(
-                    STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
-                );
-                state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
-                state.u(
-                    STATE_NUMERIC_FACET_VALUES,
-                    [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                    false
-                );
-                state.u(STATE_ITEM_COUNTS, [
-                    response_json.reo_count,
-                    response_json.source_count,
-                    response_json.target_count,
-                ]);
-            }
-        );
+        postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+            state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+            state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
+            state.u(
+                STATE_NUMERIC_FACET_VALUES,
+                [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
+                false
+            );
+            state.u(STATE_ITEM_COUNTS, [
+                response_json.reo_count,
+                response_json.source_count,
+                response_json.target_count,
+            ]);
+        });
     }
 
     get_all_data();
@@ -333,19 +318,17 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                 state.g(STATE_NUMERIC_FACET_VALUES),
             ]);
 
-            postJson(`/search/combined_experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
-                (response_json) => {
-                    state.u(
-                        STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
-                    );
-                    state.u(STATE_ITEM_COUNTS, [
-                        response_json.reo_count,
-                        response_json.source_count,
-                        response_json.target_count,
-                    ]);
-                }
-            );
+            postJson(`/search/combined_experiment_coverage`, JSON.stringify(body)).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
         }, 300)
     );
 
