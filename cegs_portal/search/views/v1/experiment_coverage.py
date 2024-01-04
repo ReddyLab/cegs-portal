@@ -51,6 +51,8 @@ CHROM_NAMES = [
     "MT",
 ]
 
+SET_OPS = ["i", "u"]
+
 
 @lru_cache(maxsize=100)
 def load_coverage(acc_id, chrom):
@@ -74,48 +76,31 @@ def load_features(acc_id, chrom):
     return acc_id, load_feature_data_allow_threads(filename)
 
 
-def build_ops(combinations, features):
-    op, left, right = combinations["op"], combinations["left"], combinations["right"]
+def calc_set(combinations, features):
+    stack = []
+    try:
+        while len(combinations) > 0:
+            item = combinations.pop(0)
+            if item == "i":
+                x, y = stack[-2:]
+                x.intersection(y)  # mutates x
+                stack.pop()  # drops y
+            elif item == "u":
+                x, y = stack[-2:]
+                x.union(y)  # mutates x
+                stack.pop()  # drops y
+            else:
+                stack.append(features[item])
+    except IndexError:
+        raise Http400(f"Invalid set operations: [{', '.join(combinations)}]")
 
-    if isinstance(left, str):
-        left = features[left]
-    elif isinstance(left, dict):
-        left = build_ops(left, features)
-
-    if isinstance(right, str):
-        right = features[right]
-    elif isinstance(right, dict):
-        right = build_ops(right, features)
-
-    if left is None:
-        return right
-
-    if right is None:
-        return left
-
-    match op:
-        case "i":
-            return left.intersection(right)
-        case "u":
-            return left.union(right)
+    if len(stack) != 1:
+        raise Http400(f"Invalid set operations: [{', '.join(combinations)}]")
+    return stack[0]
 
 
-def get_analyses(combo_tree):
-    exp_analysis_pairs = []
-    combinations = [combo_tree]
-    while len(combinations) > 0:
-        combination = combinations.pop(0)
-        if combination is None:
-            pass
-        elif isinstance(combination, dict):
-            combinations.append(combination["left"])
-            combinations.append(combination["right"])
-        elif isinstance(combination, str):
-            exp_analysis_pairs.append(combination)
-        else:
-            raise Http400("Invalid analysis")
-
-    return exp_analysis_pairs
+def get_analyses(combinations):
+    return [analysis for analysis in combinations if analysis not in SET_OPS]
 
 
 def validate_accession_string(accession_string):
@@ -127,35 +112,14 @@ def validate_accession_string(accession_string):
 
 
 def validate_combinations(combinations):
-    if set(combinations.keys()) != {"op", "left", "right"}:
-        raise Http400("Invalid combination dictionary")
-
     experiment_count = 0
-
-    op, left, right = combinations["op"], combinations["left"], combinations["right"]
-    if op not in ["i", "u"]:
-        raise Http400(f"Invalid experiment set operation {op}")
-
-    if validate_accession_string(left):
-        experiment_count += 1
-    elif isinstance(left, dict):
-        experiment_count += validate_combinations(left)
-    elif left is None:
-        pass
-    else:
-        raise Http400(f"Invalid value {left}")
-
-    if validate_accession_string(right):
-        experiment_count += 1
-    elif isinstance(right, dict):
-        experiment_count += validate_combinations(right)
-    elif right is None:
-        pass
-    else:
-        raise Http400(f"Invalid value {right}")
-
-    if left is None and right is None:
-        raise Http400("Invalid set operation: both sides can't be null/None")
+    for item in combinations:
+        if item in SET_OPS:
+            pass
+        elif validate_accession_string(item):
+            experiment_count += 1
+        else:
+            raise Http400(f"Invalid value {item}")
 
     return experiment_count
 
@@ -310,8 +274,7 @@ class CombinedExperimentView(MultiResponseFormatView):
             }
             loaded_features = wait(load_feat_to_acc_id, return_when=ALL_COMPLETED)
             loaded_features = dict(load_future.result() for load_future in loaded_features.done)
-            included_features = build_ops(options["combinations"], loaded_features)
-            included_features = included_features.coalesce()
+            included_features = calc_set(options["combinations"], loaded_features)
 
             filter_to_acc_id = {
                 executor.submit(

@@ -30,10 +30,7 @@ pub fn load_coverage_data_allow_threads(
 #[pyfunction]
 pub fn load_feature_data(location: PathBuf) -> PyResult<PyExperimentFeatureData> {
     let result = match ExperimentFeatureData::deserialize(&location) {
-        Ok(data) => Ok(PyExperimentFeatureData {
-            data: Some(data),
-            op: None,
-        }),
+        Ok(data) => Ok(PyExperimentFeatureData { data }),
         Err(e) => Err(PyOSError::new_err(e.to_string())),
     };
 

@@ -170,17 +170,8 @@ export function getFilterBody(state, genome, chroms, filter_values) {
         filters.zoom = chroms[zoomChromoIndex].chrom;
     }
     try {
-        let combinations = {op: "i", left: null, right: null};
-        for (let id of state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"))) {
-            if (combinations.left == null) {
-                combinations.left = id;
-            } else if (combinations.right == null) {
-                combinations.right = id;
-            } else {
-                combinations = {op: "i", left: id, right: combinations};
-            }
-        }
-        filters.combinations = combinations;
+        let combinations = state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"));
+        filters.combinations = combinations.concat(combinations.slice(1).map((_) => "i"));
     } catch (e) {
         // An "Invalid State Key" exception is expected when this is called from
         // the single experiment page, but other exceptions are not

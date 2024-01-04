@@ -11,7 +11,7 @@ pub fn filter_coverage_data(
     included_features: Option<PyExperimentFeatureData>,
 ) -> PyResult<PyFilteredData> {
     let filtered_data = if let Some(feature_data) = included_features {
-        fcd(&filters.as_filter(), &data.wraps, &feature_data.data)
+        fcd(&filters.as_filter(), &data.wraps, &Some(feature_data.data))
     } else {
         fcd(&filters.as_filter(), &data.wraps, &None)
     };
