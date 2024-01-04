@@ -240,6 +240,7 @@
                 {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
             </div>
             {% endif %}
+
             {% if targets %}
             <div class="container min-w-full" id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
                 {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
@@ -348,31 +349,35 @@
                         Find Nearby DNA Features
                     </div>
                 </div>
-                <div class="title-separator min-w-full"></div>
-                <fieldset name="facetfield">
-                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                    </legend>
-                    <div class="flex flex-row flex-wrap gap-1"
-                        aria-labelledby="facetHeader{{ forloop.counter }}">
-                        {% for feature_type in dna_feature_types %}
-                        <div class="checkbox-divider">
-                            <input type="checkbox" id="{{ feature_type }}" name="feature_type"></input>
-                            <label for="{{ feature_type }}">{{ feature_type }}</label>
-                        </div>
-                        {% endfor %}
+        {% for feature, sources, targets, reo in feature_reos %}
+        {% if forloop.first %}
+        <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name search_start search_end %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="afterend">
+            <div class="title-separator min-w-full"></div>
+            <fieldset name="facetfield">
+                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                </legend>
+                <div class="flex flex-row flex-wrap gap-1"
+                    aria-labelledby="facetHeader{{ forloop.counter }}">
+                    {% for feature_type in dna_feature_types %}
+                    <div class="checkbox-divider">
+                        <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                        <label for="{{ feature_type }}">{{ feature_type }}</label>
                     </div>
-                </fieldset>
-                <div class="title-separator min-w-full"></div>
-                <form>
-                    <label for="feature-dist">Feature Distance in base pairs:</label>
-                    <input type="text" id="feature-dist" value="1000" />
-                    <input
-                        type="button"
-                        id="feature-dist-submit"
-                        value="Find Features"
-                        class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
-                    />
-                </form>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="title-separator min-w-full"></div>
+            <label for="feature-dist">Feature Distance in base pairs:</label>
+            <input type="text" id="feature-dist" name="dist" value="{{ dist }}" />
+            <input
+                type="submit"
+                id="feature-dist-submit"
+                value="Find Features"
+                class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
+            />
+        </form>
+        {% endif %}
+        {% endfor %}
             </div>
         </div>
         {% endif %}
@@ -445,11 +450,11 @@
     </div>
 </div>
 
+
 {% endblock content %}
 {% block inline_javascript %}
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
-    import { featureTable } from "{% static 'search/js/tables.js' %}"
     import { dataPages, pageLink } from "{% static 'search/js/tables.js' %}"
 
     let assemblies = [
@@ -464,78 +469,6 @@
         {% endfor %}
     ];
 
-    const localFeaturesId = "local_features_id";
-
-    function fetchDataAndRenderTable() {
-        let button = document.getElementById("feature-dist-submit");
-        let originalValue = button.value;
-        button.value = "Searching...";
-        let dist = Number(g("feature-dist").value);
-        let fetches = assemblies.map((a) => {
-            let search_start = Math.max(a.start - dist, 0);
-            let search_end = a.end + dist;
-            let url = `/search/featureloc/${a.chromo}/${search_start}/${search_end}?assembly=${a.assembly}&search_type=overlap&accept=application/json`;
-
-            let checkboxes = document.querySelectorAll('input[name="feature_type"]:checked');
-            checkboxes.forEach((checkbox) => {
-                url += `&feature_type=${checkbox.id}`;
-            });
-
-            return fetch(url).then((response) => {
-                return response.json();
-            });
-        });
-
-        Promise.all(fetches).then((data) => {
-            button.value = originalValue;
-            let features = [];
-            for (const d of data) {
-                features.push(...d);
-            }
-
-            let localFeaturesElement = g(localFeaturesId);
-            if (localFeaturesElement) {
-                localFeaturesElement.parentNode.remove();
-            }
-            let parent = g("tabs-find-features");
-            if (features.length === 0) {
-                parent.appendChild(
-                    e(
-                        "div",
-                        {class: "container min-w-full"},
-                        e(
-                            "div",
-                            {
-                                class: "table-title",
-                                id: localFeaturesId,
-                                style: "display: flex; align-items: center; justify-content: center",
-                            },
-                            "DNA Feature Type Not Found"
-                        )
-                    )
-                );
-            } else {
-                parent.appendChild(featureTable(features, localFeaturesId));
-            }
-        });
-    }
-
-    g("feature-dist-submit").onclick = fetchDataAndRenderTable;
-
-    let __genDataPages = function(accessionID, page, prefix, urlGen, tableGen) {
-        return dataPages(
-            page,
-            _ => urlGen(accessionID),
-            tableGen,
-            emptyRETable,
-            feature => true,
-            "",
-            prefix,
-            `${prefix}_pagination`,
-            prefix,
-            "page"
-        );
-    }
 
     if (assemblies.length == 1 && assemblies[0].type == "Gene") {
         let assembly = assemblies[0];

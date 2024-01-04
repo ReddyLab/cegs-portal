@@ -67,6 +67,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
         options["json_format"] = request.GET.get("format", None)
+        options["dist"] = int(request.GET.get("dist", "1000"))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
         return options
@@ -74,8 +75,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
+        dist = options.get("dist")
 
         for feature in data.all():
+            search_start = max(feature.location.lower - dist, 0)
+            search_end = feature.location.upper + dist
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
@@ -138,6 +142,8 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
+                "search_start": search_start,
+                "search_end": search_end,
             },
         )
 
