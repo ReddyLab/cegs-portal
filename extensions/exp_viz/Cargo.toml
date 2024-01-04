@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 bincode = "1.3.3"
 cov_viz_ds = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "826fb4f5feb40d6f674ed2fef4613097cff7d30d" }
 # cov_viz_ds = { path = "../../../exp_cov_viz/cov_viz_ds" } # For working with a local copy during development
-exp_viz = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "f42737e0f49816ecbd142548ad85491981f48a94" }
+exp_viz = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "9e37ff15be5ebc1be83ac50c24c393c4a2893ab5" }
 # exp_viz = { path = "../../../exp_cov_viz/exp_viz" }            # For working with a local copy during development
 pyo3 = { version = "0.20.0", features = ["extension-module"] }
 roaring = "0.10.2"
