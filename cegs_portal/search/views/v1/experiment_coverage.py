@@ -79,8 +79,7 @@ def load_features(acc_id, chrom):
 def calc_set(combinations, features):
     stack = []
     try:
-        while len(combinations) > 0:
-            item = combinations.pop(0)
+        for item in combinations:
             if item == "i":
                 x, y = stack[-2:]
                 x.intersection(y)  # mutates x
