@@ -67,7 +67,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
         options["json_format"] = request.GET.get("format", None)
-        options["dist"] = int(request.GET.get("dist", "1000"))
         sig_only = request.GET.get("sig_only", True)
         options["sig_only"] = get_sig_only(sig_only)
         return options
@@ -75,11 +74,8 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
-        dist = options.get("dist")
 
         for feature in data.all():
-            search_start = max(feature.location.lower - dist, 0)
-            search_end = feature.location.upper + dist
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
@@ -142,8 +138,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
-                "search_start": search_start,
-                "search_end": search_end,
             },
         )
 
@@ -192,6 +186,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
         options["json_format"] = request.GET.get("format", None)
+        options["dist"] = int(request.GET.get("dist", 0))
 
         return options
 
@@ -231,13 +226,16 @@ class DNAFeatureLoc(MultiResponseFormatView):
     def get_data(self, options, chromo, start, end) -> QuerySet[DNAFeature]:
         start = int(start)
         end = int(end)
+        search_start = max(start - options["dist"], 0)
+        search_end = end + options["dist"]
+
         if chromo.isnumeric():
             chromo = f"chr{chromo}"
         try:
             loc_search_params = [
                 chromo,
-                start,
-                end,
+                search_start,
+                search_end,
                 options["assembly"],
                 options["feature_types"],
                 options["feature_properties"],

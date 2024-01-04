@@ -351,7 +351,7 @@
                 </div>
         {% for feature, sources, targets, reo in feature_reos %}
         {% if forloop.first %}
-        <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name search_start search_end %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="afterend">
+        <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="afterend">
             <div class="title-separator min-w-full"></div>
             <fieldset name="facetfield">
                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
