@@ -7,6 +7,7 @@ import {
     STATE_LEGEND_INTERVALS,
     STATE_NUMERIC_FILTER_INTERVALS,
     STATE_NUMERIC_FACET_VALUES,
+    STATE_SELECTED_EXPERIMENTS,
     STATE_SOURCE_TYPE,
     STATE_ZOOM_CHROMO_INDEX,
     STATE_ZOOMED,
@@ -167,6 +168,16 @@ export function getFilterBody(state, genome, chroms, filter_values) {
     if (state.g(STATE_ZOOMED)) {
         let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
         filters.zoom = chroms[zoomChromoIndex].chrom;
+    }
+    try {
+        let combinations = state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"));
+        filters.combinations = combinations.concat(combinations.slice(1).map((_) => "i"));
+    } catch (e) {
+        // An "Invalid State Key" exception is expected when this is called from
+        // the single experiment page, but other exceptions are not
+        if (!(typeof e === "string" && e.startsWith("Invalid State Key"))) {
+            throw e;
+        }
     }
 
     return filters;

@@ -1,8 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::filter_data_structures::*;
-use crate::intersect_data_structures::PyExperimentFeatureData;
-use cov_viz_ds::ExperimentFeatureData;
+use crate::set_ops::PyExperimentFeatureData;
 use exp_viz::filter_coverage_data as fcd;
 
 #[pyfunction]
@@ -11,9 +10,8 @@ pub fn filter_coverage_data(
     data: &PyCoverageData,
     included_features: Option<&PyExperimentFeatureData>,
 ) -> PyResult<PyFilteredData> {
-    let filtered_data = if let Some(included_features) = included_features {
-        let i_f: ExperimentFeatureData = included_features.to_feature_data();
-        fcd(&filters.as_filter(), &data.wraps, Some(&i_f))
+    let filtered_data = if let Some(feature_data) = included_features {
+        fcd(&filters.as_filter(), &data.wraps, Some(&feature_data.data))
     } else {
         fcd(&filters.as_filter(), &data.wraps, None)
     };

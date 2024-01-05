@@ -120,7 +120,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
 }
 
 function experimentQuery(state) {
-    return `exp=${state.g(STATE_SELECTED_EXPERIMENT)}`;
+    return `exp=${state.g(STATE_SELECTED_EXPERIMENT)}/${state.g(STATE_ANALYSIS)}`;
 }
 
 export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, csrfToken, sourceType, loggedIn) {
