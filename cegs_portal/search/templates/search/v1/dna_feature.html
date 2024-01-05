@@ -349,36 +349,37 @@
                         Find Nearby DNA Features
                     </div>
                 </div>
-        {% for feature, sources, targets, reo in feature_reos %}
-        {% if forloop.first %}
-        <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="afterend">
-            <div class="title-separator min-w-full"></div>
-            <fieldset name="facetfield">
-                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                </legend>
-                <div class="flex flex-row flex-wrap gap-1"
-                    aria-labelledby="facetHeader{{ forloop.counter }}">
-                    {% for feature_type in dna_feature_types %}
-                    <div class="checkbox-divider">
-                        <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
-                        <label for="{{ feature_type }}">{{ feature_type }}</label>
-                    </div>
-                    {% endfor %}
-                </div>
-            </fieldset>
-            <div class="title-separator min-w-full"></div>
-            <label for="feature-dist">Feature Distance in base pairs:</label>
-            <input type="text" id="feature-dist" name="dist" value="{{ dist }}" />
-            <input
-                type="submit"
-                id="feature-dist-submit"
-                value="Find Features"
-                class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
-            />
-        </form>
-        {% endif %}
-        {% endfor %}
+                {% for feature, sources, targets, reo in feature_reos %}
+                {% if forloop.first %}
+                <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="innerHTML" hx-target="#search-results">
+                    <div class="title-separator min-w-full"></div>
+                    <fieldset name="facetfield">
+                        <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                        </legend>
+                        <div class="flex flex-row flex-wrap gap-1"
+                            aria-labelledby="facetHeader{{ forloop.counter }}">
+                            {% for feature_type in dna_feature_types %}
+                            <div class="checkbox-divider">
+                                <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                                <label for="{{ feature_type }}">{{ feature_type }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    <div class="title-separator min-w-full"></div>
+                    <label for="feature-dist">Feature Distance in base pairs:</label>
+                    <input type="text" id="feature-dist" name="dist" value="{{ dist }}" />
+                    <input
+                        type="submit"
+                        id="feature-dist-submit"
+                        value="Find Features"
+                        class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
+                    />
+                </form>
             </div>
+            <div id="search-results"></div>
+                {% endif %}
+                {% endfor %}
         </div>
         {% endif %}
 
