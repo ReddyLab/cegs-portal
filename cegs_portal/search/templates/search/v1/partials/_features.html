@@ -1,3 +1,5 @@
+    {% load custom_helpers %}
+
     <div class="container min-w-full">
         <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
             <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
@@ -15,22 +17,22 @@
         <table class="data-table">
             <tr>
                 <th class="chrom-first-end-cap chrom-light-band">Name</th>
-                <th class="chrom-light-band">Feature Type</th>
-                <th class="chrom-dark-band">Cell Line</th>
+                <th class="chrom-dark-band">Feature Type</th>
                 <th class="chrom-light-band">Location</th>
                 <th class="chrom-right-centromere chrom-light-band">Closest Gene</th>
                 <th class="chrom-left-centromere chrom-light-band">Reference Genome</th>
-                <th class="chrom-last-end-cap chrom-dark-band">Parent</th>
+                <th class="chrom-light-band">Parent</th>
+                <th class="chrom-last-end-cap chrom-dark-band">Details</th>
             </tr>
             {% for feature in features %}
                 <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
                     <td>{{ feature.name|default:"N/A" }}</a></td>
                     <td>{{ feature.get_feature_type_display }}</td>
-                    <td>{{ feature.cell_line }}</td>
-                    <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}:{{ feature.strand }}</span></td>
+                    <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}:{{ feature.strand|if_strand }}</span></td>
                     <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}">{{ feature.closest_gene_ensembl_id }}</a>{% else %}{% endif %}</td>
                     <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                     <td>{{ feature.parent.name }}</td>
+                    <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">details</a></td>
                 </tr>
             {% endfor %}
         </table>
