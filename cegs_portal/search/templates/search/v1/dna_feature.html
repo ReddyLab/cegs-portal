@@ -369,12 +369,13 @@
                     <div class="title-separator min-w-full"></div>
                     <label for="feature-dist">Feature Distance in base pairs:</label>
                     <input type="text" id="feature-dist" name="dist" value="1000" />
-                    <input
+                    <button
                         type="submit"
                         id="feature-dist-submit"
-                        value="Find Features"
-                        class="search-button border-2 border-gray-300 h-10 pl-2 pr-8 text-sm"
-                    />
+                        class="search-button border-2 border-gray-300 h-10 pl-2 text-sm"
+                        >Find Features
+                        <i class='fas fa-spinner fa-spin htmx-indicator'></i>
+                    </button>
                 </form>
             </div>
             <div id="features-table"></div>
@@ -469,7 +470,6 @@
         },
         {% endfor %}
     ];
-
 
     if (assemblies.length == 1 && assemblies[0].type == "Gene") {
         let assembly = assemblies[0];
