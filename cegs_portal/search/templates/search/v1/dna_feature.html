@@ -351,7 +351,7 @@
                 </div>
                 {% for feature, sources, targets, reo in feature_reos %}
                 {% if forloop.first %}
-                <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="innerHTML" hx-target="#features-table">
+                <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#feature-dist-submit" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                     <div class="title-separator min-w-full"></div>
                     <fieldset name="facetfield">
                         <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
@@ -368,7 +368,7 @@
                     </fieldset>
                     <div class="title-separator min-w-full"></div>
                     <label for="feature-dist">Feature Distance in base pairs:</label>
-                    <input type="text" id="feature-dist" name="dist" value="{{ dist }}" />
+                    <input type="text" id="feature-dist" name="dist" value="1000" />
                     <input
                         type="submit"
                         id="feature-dist-submit"
