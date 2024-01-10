@@ -63,7 +63,7 @@ def load_cars(
                 new_cars[car_name] = CcreSource(
                     _id=feature_id,
                     chrom_name=chrom_name,
-                    location=NumericRange(car_start, car_end),
+                    test_location=NumericRange(car_start, car_end),
                     cell_line=cell_line,
                     closest_gene_id=closest_gene["id"],
                     closest_gene_distance=distance,

@@ -12,7 +12,7 @@ echo "Loading DCPEXPR0000000002"
 # generate ccre overlaps
 ./scripts/data_generation/ccre_overlaps.sh \
     ${DATA_DIR}/DCPEXPR0000000002_klann_scCERES_K562_2021/supplementary_table_17_grna.de.markers.all.filtered.empirical_pvals.w_gene_info.csv \
-    ${DATA_DIR}/screen_ccres/GRCh37-cCREs.bed \
+    GRCh37 \
     dhs_chrom dhs_start dhs_end \
     ${CLOSEST_CCRE_FILE}
 

@@ -64,7 +64,7 @@ def load_dhss(
                 new_dhss[dhs_name] = CcreSource(
                     _id=feature_id,
                     chrom_name=chrom_name,
-                    location=NumericRange(dhs_start, dhs_end),
+                    test_location=NumericRange(dhs_start, dhs_end),
                     cell_line=cell_line,
                     closest_gene_id=closest_gene["id"],
                     closest_gene_distance=distance,

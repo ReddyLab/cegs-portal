@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from io import StringIO
 from os import SEEK_SET
+from typing import Optional
 
 from django.db import connection, transaction
 from psycopg2.extras import NumericRange
@@ -17,7 +18,7 @@ from .db_ids import FeatureIds
 class CcreSource:
     _id: int
     chrom_name: str
-    location: NumericRange
+    test_location: NumericRange
     cell_line: str
     closest_gene_id: int
     closest_gene_distance: int
@@ -27,6 +28,7 @@ class CcreSource:
     ref_genome: str
     experiment_accession_id: str
     ref_genome_patch: str = "0"
+    new_location: Optional[NumericRange] = None
     feature_type: DNAFeatureType = DNAFeatureType.CCRE
     misc: dict = field(default_factory=lambda: {"pseudo": True})
 
@@ -78,10 +80,10 @@ def get_ccres(locs: list[tuple[str, int, int, str]]):
 
 
 def source_ccre_locs(closest_ccre_filename, ref_genome):
-    ccres = defaultdict(lambda: [])
+    ccres = defaultdict(list)
     with open(closest_ccre_filename, "r") as closest_ccres:
         ccre_reader = csv.reader(closest_ccres, delimiter="\t")
-        for source_chr, source_start, source_end, ccre_chr, ccre_start, ccre_end, _, _, _, _ in ccre_reader:
+        for source_chr, source_start, source_end, ccre_chr, ccre_start, ccre_end, _ in ccre_reader:
             source_start = int(source_start)
             source_end = int(source_end)
             ccre_start = int(ccre_start)
@@ -95,17 +97,24 @@ def associate_ccres(closest_ccre_filename, sources: list[CcreSource], ref_genome
     source_ccres = source_ccre_locs(closest_ccre_filename, ref_genome)
     new_ccres = StringIO()
     ccre_associations = StringIO()
+    found = 0
+    missing = 0
     with FeatureIds() as feature_ids:
         for source in sources:
-            ccres = source_ccres[(source.chrom_name, source.location.lower, source.location.upper)]
+            ccres = source_ccres[(source.chrom_name, source.test_location.lower, source.test_location.upper)]
             if len(ccres) > 0:
+                found += 1
                 for ccre_id in get_ccres(ccres).all():
                     ccre_associations.write(f"{source._id}\t{ccre_id}\n")
             else:
+                missing += 1
                 feature_id = feature_ids.next_id()
+                location = source.new_location if source.new_location is not None else source.test_location
                 new_ccres.write(
-                    f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{source.cell_line}\t{source.chrom_name}\t{source.closest_gene_id}\t{source.closest_gene_distance}\t{source.closest_gene_name}\t{source.closest_gene_ensembl_id}\t{source.location}\t{source.ref_genome}\t{source.ref_genome_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{source.source_file_id}\t{source.experiment_accession_id}\tfalse\ttrue\n"
+                    f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{source.cell_line}\t{source.chrom_name}\t{source.closest_gene_id}\t{source.closest_gene_distance}\t{source.closest_gene_name}\t{source.closest_gene_ensembl_id}\t{location}\t{source.ref_genome}\t{source.ref_genome_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{source.source_file_id}\t{source.experiment_accession_id}\tfalse\ttrue\n"
                 )
                 ccre_associations.write(f"{source._id}\t{feature_id}\n")
     save_ccres(new_ccres)
     save_associations(ccre_associations)
+    print(f"Found: {found}")
+    print(f"Missing: {missing}")

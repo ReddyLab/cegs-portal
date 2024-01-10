@@ -110,24 +110,9 @@ def load_grnas(
                         experiment_accession_id=experiment_accession_id,
                     )
                 )
-                new_ccre_sources.append(
-                    CcreSource(
-                        _id=dhs_feature_id,
-                        chrom_name=dhs_chrom_name,
-                        location=NumericRange(dhs_start, dhs_end, "[)"),
-                        cell_line=cell_line,
-                        closest_gene_id=closest_gene["id"],
-                        closest_gene_distance=distance,
-                        closest_gene_name=gene_name,
-                        closest_gene_ensembl_id=closest_gene_ensembl_id,
-                        source_file_id=region_source_id,
-                        ref_genome=ref_genome,
-                        experiment_accession_id=experiment_accession_id,
-                    )
-                )
-                new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id)
-            else:
-                dhs_feature_id, dhs_accession_id = new_dhss[dhs_name]
+                new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id, NumericRange(dhs_start, dhs_end, "[)"))
+
+            dhs_feature_id, dhs_accession_id, dhs_location = new_dhss[dhs_name]
 
             grna_id = line["grna"]
             if grna_id not in new_grnas:
@@ -167,6 +152,22 @@ def load_grnas(
                         source_file_id=region_source_id,
                         experiment_accession_id=experiment_accession_id,
                         misc={"grna": grna_id},
+                    )
+                )
+                new_ccre_sources.append(
+                    CcreSource(
+                        _id=feature_id,
+                        chrom_name=chrom_name,
+                        test_location=NumericRange(grna_start, grna_end, "[)"),
+                        new_location=dhs_location,
+                        cell_line=cell_line,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        source_file_id=region_source_id,
+                        ref_genome=ref_genome,
+                        experiment_accession_id=experiment_accession_id,
                     )
                 )
 

@@ -13,9 +13,11 @@ echo "Loading DCPEXPR0000000008"
 # generate ccre overlaps
 ./scripts/data_generation/ccre_overlaps.sh \
     ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/crispra.mast.volcano.all.min_thres_4.with_coords.tsv \
-    ${DATA_DIR}/screen_ccres/GRCh38-cCREs.bed \
+    GRCh38 \
     chr start end \
     ${CLOSEST_CCRE_FILE}
 
 python manage.py shell -c "from scripts.data_loading import DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022_experiment; DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022_experiment.run(\"${EXPERIMENT_FILE}\", \"${CLOSEST_CCRE_FILE}\", \"${DHS_FILE}\")"
 python manage.py shell -c "from scripts.data_loading import DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022_analysis; DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPR_2022_analysis.run(\"${ANALYSIS_FILE}\", \"${FEATURES_FILE}\")"
+
+rm ${CLOSEST_CCRE_FILE}

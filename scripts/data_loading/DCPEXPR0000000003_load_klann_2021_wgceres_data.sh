@@ -12,7 +12,7 @@ echo "Loading DCPEXPR0000000003"
 # generate ccre overlaps
 ./scripts/data_generation/ccre_overlaps.sh \
     ${DATA_DIR}/DCPEXPR0000000003_klann_wgCERES_K562_2021/supplementary_table_5_DHS_summary_results.tsv \
-    ${DATA_DIR}/screen_ccres/GRCh37-cCREs.bed \
+    GRCh37 \
     chrom chromStart chromEnd \
     ${CLOSEST_CCRE_FILE}
 
