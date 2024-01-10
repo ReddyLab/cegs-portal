@@ -199,7 +199,12 @@ class DNAFeatureLoc(MultiResponseFormatView):
             return render(
                 request,
                 self.table_partial,
-                {"features": feature_page, "loc": {"chr": chromo, "start": int(start), "end": int(end)}},
+                {
+                    "features": feature_page,
+                    "loc": {"chr": chromo, "start": int(start), "end": int(end)},
+                    "dist": options["dist"],
+                    "feature_types": options["feature_types"],
+                },
             )
 
         return super().get(
@@ -209,6 +214,8 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 "features": feature_page,
                 "feature_name": "Genome Features",
                 "loc": {"chr": chromo, "start": int(start), "end": int(end)},
+                "dist": options["dist"],
+                "feature_types": options["feature_types"],
             },
         )
 
