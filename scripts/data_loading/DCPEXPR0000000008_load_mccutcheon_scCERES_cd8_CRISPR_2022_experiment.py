@@ -157,6 +157,7 @@ def load_grnas(
                 new_ccre_sources.append(
                     CcreSource(
                         _id=feature_id,
+                        _new_id=dhs_feature_id,
                         chrom_name=chrom_name,
                         test_location=NumericRange(grna_start, grna_end, "[)"),
                         new_location=dhs_location,

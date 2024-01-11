@@ -28,6 +28,7 @@ class CcreSource:
     ref_genome: str
     experiment_accession_id: str
     ref_genome_patch: str = "0"
+    _new_id: Optional[int] = None
     new_location: Optional[NumericRange] = None
     feature_type: DNAFeatureType = DNAFeatureType.CCRE
     misc: dict = field(default_factory=lambda: {"pseudo": True})
@@ -110,10 +111,11 @@ def associate_ccres(closest_ccre_filename, sources: list[CcreSource], ref_genome
                 missing += 1
                 feature_id = feature_ids.next_id()
                 location = source.new_location if source.new_location is not None else source.test_location
+                source_id = source._new_id if source._new_id is not None else source._id
                 new_ccres.write(
                     f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{source.cell_line}\t{source.chrom_name}\t{source.closest_gene_id}\t{source.closest_gene_distance}\t{source.closest_gene_name}\t{source.closest_gene_ensembl_id}\t{location}\t{source.ref_genome}\t{source.ref_genome_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{source.source_file_id}\t{source.experiment_accession_id}\tfalse\ttrue\n"
                 )
-                ccre_associations.write(f"{source._id}\t{feature_id}\n")
+                ccre_associations.write(f"{source_id}\t{feature_id}\n")
     save_ccres(new_ccres)
     save_associations(ccre_associations)
     print(f"Found: {found}")
