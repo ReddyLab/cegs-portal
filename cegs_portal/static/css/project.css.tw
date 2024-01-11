@@ -105,6 +105,11 @@
     align-items: center;
   }
 
+  a.link, a.link:visited {
+    color: #3490dc;
+    text-decoration: underline;
+  }
+
   .data-table a,
   .data-table a:visited {
     color: #3490dc;

@@ -1,7 +1,7 @@
 use rustc_hash::FxHashSet;
 
 use cov_viz_ds::{CoverageData, DbID};
-use exp_viz::{Filter, FilterIntervals, FilteredChromosome, FilteredData};
+use exp_viz::{Filter, FilterIntervals, FilteredChromosome, FilteredData, SetOpFeature};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -20,6 +20,24 @@ impl PyCoverageData {
     }
 }
 
+#[pyclass(name = "SetOpFeature")]
+#[derive(Clone, Debug)]
+pub enum PySetOpFeature {
+    Source,
+    Target,
+    SourceTarget,
+}
+
+impl PySetOpFeature {
+    pub fn as_set_op_feature(&self) -> SetOpFeature {
+        match self {
+            PySetOpFeature::Source => SetOpFeature::Source,
+            PySetOpFeature::Target => SetOpFeature::Target,
+            PySetOpFeature::SourceTarget => SetOpFeature::SourceTarget,
+        }
+    }
+}
+
 #[pyclass(name = "Filter")]
 #[derive(Debug)]
 pub struct PyFilter {
@@ -29,6 +47,8 @@ pub struct PyFilter {
     pub categorical_facets: FxHashSet<DbID>,
     #[pyo3(get, set)]
     pub numeric_intervals: Option<PyFilterIntervals>,
+    #[pyo3(get, set)]
+    pub set_op_feature: Option<PySetOpFeature>,
 }
 
 #[pymethods]
@@ -39,6 +59,7 @@ impl PyFilter {
             chrom: None,
             categorical_facets: FxHashSet::default(),
             numeric_intervals: None,
+            set_op_feature: None,
         }
     }
 
@@ -53,6 +74,7 @@ impl PyFilter {
             chrom: self.chrom,
             categorical_facets: self.categorical_facets.clone(),
             numeric_intervals: self.numeric_intervals.map(|ci| ci.as_filter_intervals()),
+            set_op_feature: self.set_op_feature.as_ref().map(|x| x.as_set_op_feature()),
         }
     }
 }
@@ -117,7 +139,7 @@ impl FilteredJsonData {
 }
 
 #[pyclass(name = "FilteredData")]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct PyFilteredData {
     pub filtered_data: FilteredData,
 }
