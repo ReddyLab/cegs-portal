@@ -375,7 +375,9 @@
                     <div class="title-separator min-w-full"></div>
                     <label for="feature-dist">Feature Distance in base pairs:</label>
                     <input type="text" name="dist" value="1000" />
-                    <input type="hidden" name="assembly" value="{{ feature.ref_genome }}" />
+                    {% for assembly in assemblies %}
+                    <input type="hidden" name="assembly" value="{{ assembly }}" />
+                    {% endfor %}
                         <input
                             type="submit"
                             class="search-button border-2 border-gray-300 h-10 text-sm"
