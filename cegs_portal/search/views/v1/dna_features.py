@@ -191,8 +191,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, chromo, start, end):
-        features = data
-        features_paginator = Paginator(features, options["per_page"])
+        features_paginator = Paginator(data, options["per_page"])
         feature_page = features_paginator.get_page(options["page"])
 
         if request.headers.get("HX-Request"):
