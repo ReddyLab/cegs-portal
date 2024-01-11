@@ -45,8 +45,8 @@
         <div class="pagination">
             <span class="step-links">
                 {% if features.has_previous %}
-                    <a href="?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-target="#features-table">« first</a>
-                    <a href="?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-target="#features-table">previous</a>
+                    <a href="?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-target="#features-table">« first</a>
+                    <a href="?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-target="#features-table">previous</a>
                 {% endif %}
 
                 <span class="current">
@@ -54,9 +54,10 @@
                 </span>
 
                 {% if features.has_next %}
-                    <a href="?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-target="#features-table">next</a>
-                    <a href="?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}" hx-target="#features-table">last »</a>
+                    <a href="?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-target="#features-table">next</a>
+                    <a href="?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}{% for assemble in assembly %}&assembly={{ assembly }}{% endfor %}" hx-target="#features-table">last »</a>
                 {% endif %}
             </span>
         </div>
+
     </div>

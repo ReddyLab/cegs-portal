@@ -203,6 +203,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                     "loc": {"chr": chromo, "start": int(start), "end": int(end)},
                     "dist": options["dist"],
                     "feature_types": options["feature_types"],
+                    "assembly": options["assembly"],
                 },
             )
 
@@ -215,6 +216,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 "loc": {"chr": chromo, "start": int(start), "end": int(end)},
                 "dist": options["dist"],
                 "feature_types": options["feature_types"],
+                "assembly": options["assembly"],
             },
         )
 
