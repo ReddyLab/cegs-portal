@@ -47,8 +47,8 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
             grna_label = line["grna"]
             grna_info = grna_label.split("-")
 
-            # Skip non-targeting guides
-            if not grna_info[0].startswith("chr"):
+            # Skip non-targeting guides and guides with no assigned enhancer
+            if not grna_info[0].startswith("chr") or line["dhs.chr"] == "NA":
                 continue
 
             reo_id = reo_ids.next_id()

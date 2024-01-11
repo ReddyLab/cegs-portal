@@ -12,7 +12,7 @@ echo "Loading DCPEXPR0000000006"
 # generate ccre overlaps
 ./scripts/data_generation/ccre_overlaps.sh \
     ${DATA_DIR}/DCPEXPR0000000006_bounds_scCERES_mhc_npc_2021/npc.expect_cells.grna.de.markers.MAST.annotatedfull.final.update20220117.LRB.tsv \
-    ${DATA_DIR}/screen_ccres/GRCh38-cCREs.bed \
+    GRCh38 \
     grna.chr grna.start grna.end \
     ${CLOSEST_CCRE_FILE}
 

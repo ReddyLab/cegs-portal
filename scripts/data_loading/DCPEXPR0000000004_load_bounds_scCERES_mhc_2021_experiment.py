@@ -63,64 +63,47 @@ def load_grnas(
             grna_type = line["type"]
             grna_promoter_class = line["annotation_manual"]
 
+            grna_info = grna_id.split("-")
+
+            # Skip non-targeting guides and guides with no assigned enhancer
+            if not grna_info[0].startswith("chr") or line["dhs.chr"] == "NA":
+                continue
+
             dhs_chrom_name = line["dhs.chr"]
 
-            # skip DHSs associated with non-targeting guides
-            if dhs_chrom_name.startswith("chr"):
-                dhs_start = int(line["dhs.start"])
-                dhs_end = int(line["dhs.end"])
-                dhs_location = f"[{dhs_start},{dhs_end})"
+            dhs_start = int(line["dhs.start"])
+            dhs_end = int(line["dhs.end"])
+            dhs_location = f"[{dhs_start},{dhs_end})"
 
-                dhs_name = f"{dhs_chrom_name}:{dhs_location}"
+            dhs_name = f"{dhs_chrom_name}:{dhs_location}"
 
-                if dhs_name not in new_dhss:
-                    closest_gene, distance, gene_name = get_closest_gene(ref_genome, dhs_chrom_name, dhs_start, dhs_end)
-                    closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
-                    dhs_feature_id = feature_ids.next_id()
-                    dhs_accession_id = accession_ids.incr(AccessionType.DHS)
-                    dhss.write(
-                        feature_entry(
-                            id_=dhs_feature_id,
-                            accession_id=dhs_accession_id,
-                            cell_line=cell_line,
-                            chrom_name=dhs_chrom_name,
-                            location=dhs_location,
-                            closest_gene_id=closest_gene["id"],
-                            closest_gene_distance=distance,
-                            closest_gene_name=gene_name,
-                            closest_gene_ensembl_id=closest_gene_ensembl_id,
-                            ref_genome=ref_genome,
-                            feature_type=DNAFeatureType.DHS,
-                            source_file_id=region_source_id,
-                            experiment_accession_id=experiment_accession_id,
-                        )
+            if dhs_name not in new_dhss:
+                closest_gene, distance, gene_name = get_closest_gene(ref_genome, dhs_chrom_name, dhs_start, dhs_end)
+                closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
+                dhs_feature_id = feature_ids.next_id()
+                dhs_accession_id = accession_ids.incr(AccessionType.DHS)
+                dhss.write(
+                    feature_entry(
+                        id_=dhs_feature_id,
+                        accession_id=dhs_accession_id,
+                        cell_line=cell_line,
+                        chrom_name=dhs_chrom_name,
+                        location=dhs_location,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        ref_genome=ref_genome,
+                        feature_type=DNAFeatureType.DHS,
+                        source_file_id=region_source_id,
+                        experiment_accession_id=experiment_accession_id,
                     )
-                    new_ccre_sources.append(
-                        CcreSource(
-                            _id=dhs_feature_id,
-                            chrom_name=dhs_chrom_name,
-                            location=NumericRange(dhs_start, dhs_end, "[)"),
-                            cell_line=cell_line,
-                            closest_gene_id=closest_gene["id"],
-                            closest_gene_distance=distance,
-                            closest_gene_name=gene_name,
-                            closest_gene_ensembl_id=closest_gene_ensembl_id,
-                            source_file_id=region_source_id,
-                            ref_genome=ref_genome,
-                            experiment_accession_id=experiment_accession_id,
-                        )
-                    )
-                    new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id)
-                else:
-                    dhs_feature_id, dhs_accession_id = new_dhss[dhs_name]
+                )
+                new_dhss[dhs_name] = (dhs_feature_id, dhs_accession_id, NumericRange(dhs_start, dhs_end, "[)"))
+
+            dhs_feature_id, dhs_accession_id, dhs_location = new_dhss[dhs_name]
 
             if grna_id not in new_grnas:
-                grna_info = grna_id.split("-")
-
-                # Skip non-targeting guides
-                if not grna_info[0].startswith("chr"):
-                    continue
-
                 feature_id = feature_ids.next_id()
 
                 if len(grna_info) == 5:
@@ -177,6 +160,23 @@ def load_grnas(
                         source_file_id=region_source_id,
                         experiment_accession_id=experiment_accession_id,
                         misc={"grna": grna_id},
+                    )
+                )
+                new_ccre_sources.append(
+                    CcreSource(
+                        _id=feature_id,
+                        _new_id=dhs_feature_id,
+                        chrom_name=chrom_name,
+                        test_location=NumericRange(grna_start, grna_end, "[)"),
+                        new_location=dhs_location,
+                        cell_line=cell_line,
+                        closest_gene_id=closest_gene["id"],
+                        closest_gene_distance=distance,
+                        closest_gene_name=gene_name,
+                        closest_gene_ensembl_id=closest_gene_ensembl_id,
+                        source_file_id=region_source_id,
+                        ref_genome=ref_genome,
+                        experiment_accession_id=experiment_accession_id,
                     )
                 )
                 new_grnas[grna_id] = feature_id

@@ -11,7 +11,7 @@ echo "Loading DCPEXPR0000000007"
 # generate ccre overlaps
 ./scripts/data_generation/ccre_overlaps.sh \
     ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/atacSTARR.ultra_deep.csaw.hg38.v10.common_file_formatted.tsv \
-    ${DATA_DIR}/screen_ccres/GRCh38-cCREs.bed \
+    GRCh38 \
     seqnames start end \
     ${CLOSEST_CCRE_FILE}
 
