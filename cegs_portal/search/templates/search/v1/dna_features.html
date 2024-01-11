@@ -32,7 +32,6 @@
 {% block inline_javascript %}
     <script type="module">
         import { State } from "{% static 'search/js/state.js' %}";
-        import { dataPages, pageLink } from "{% static 'search/js/tables.js' %}"
 
         const STATE_LOCATION = "location";
         let state = new State({

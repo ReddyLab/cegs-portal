@@ -461,7 +461,6 @@
 {% block inline_javascript %}
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
-    import { dataPages, pageLink } from "{% static 'search/js/tables.js' %}"
 
     let assemblies = [
         {% for feature in features %}
