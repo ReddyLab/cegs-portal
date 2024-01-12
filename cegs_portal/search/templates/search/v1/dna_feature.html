@@ -107,7 +107,6 @@
                 <td>{{ feature.get_feature_type_display }}</td>
                 {% if feature.feature_subtype %}
                 <td>{{ feature.feature_subtype|remove_underscores }}</td>
-
                 {% endif %}
             </tr>
             {% endfor %}
@@ -116,7 +115,6 @@
 
     <!--Tabs navigation-->
     <div class="min-w-full">
-
         <div class="flex flex-column justify-center">
             <ul
                 class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
@@ -375,9 +373,13 @@
                     <div class="title-separator min-w-full"></div>
                     <label for="feature-dist">Feature Distance in base pairs:</label>
                     <input type="text" name="dist" value="1000" />
-                    {% for assembly in assemblies %}
-                    <input type="hidden" name="assembly" value="{{ assembly }}" />
-                    {% endfor %}
+                    {% if request.GET.assembly %}
+                    <input type="hidden" name="assembly" value="{{ request.GET.assembly }}" />
+                    {% else %}
+                        {% for assembly in assemblies %}
+                            <input type="hidden" name="assembly" value="{{ assembly }}" />
+                        {% endfor %}
+                    {% endif %}
                         <input
                             type="submit"
                             class="search-button border-2 border-gray-300 h-10 text-sm"
