@@ -50,11 +50,14 @@ def test_feature(feature: DNAFeature):
 
     assert "source_for" not in f_dict
     assert "target_of" not in f_dict
+    assert "effect_directions" not in f_dict
 
     f_dict = f_json(feature, {"feature_properties": ["regeffects"]})
-
     assert "source_for" in f_dict
     assert "target_of" in f_dict
+
+    f_dict = f_json(feature, {"feature_properties": ["effect_directions"]})
+    assert "effect_directions" in f_dict
 
     result["id"] = result["accession_id"]
     result["chr"] = feature.chrom_name.removeprefix("chr")

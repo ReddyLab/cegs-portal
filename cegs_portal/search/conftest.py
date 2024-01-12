@@ -261,7 +261,7 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
 
 def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
-    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
+    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(), DNAFeatureFactory()),
         facet_values=(direction,),
@@ -523,15 +523,12 @@ def genoverse_dhs_features():
         feature_type=DNAFeatureType.GENE,
     )
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,))
-    _ = RegEffectFactory(sources=(f2,))
-    _ = RegEffectFactory(sources=(f3,))
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
 
-    g1 = DNAFeatureFactory(
-        ref_genome=ref_genome,
-        chrom_name=chrom,
-        feature_type=DNAFeatureType.GENE,
-    )
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(direction,))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(direction,))
+    _ = RegEffectFactory(sources=(f3,), facet_values=(direction,))
 
     return {
         "chrom": chrom,
