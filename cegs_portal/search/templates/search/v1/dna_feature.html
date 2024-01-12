@@ -375,10 +375,6 @@
                     <input type="text" name="dist" value="1000" />
                     {% if request.GET.assembly %}
                     <input type="hidden" name="assembly" value="{{ request.GET.assembly }}" />
-                    {% else %}
-                        {% for assembly in assemblies %}
-                            <input type="hidden" name="assembly" value="{{ assembly }}" />
-                        {% endfor %}
                     {% endif %}
                         <input
                             type="submit"
