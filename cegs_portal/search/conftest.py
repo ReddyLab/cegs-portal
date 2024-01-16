@@ -536,11 +536,12 @@ def genoverse_dhs_features():
     )
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
-    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(direction,))
-    _ = RegEffectFactory(sources=(f2,), facet_values=(direction,))
-    _ = RegEffectFactory(sources=(f3,), facet_values=(direction,))
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f3,), facet_values=(non_sig,))
 
     return {
         "chrom": chrom,
