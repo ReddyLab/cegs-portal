@@ -353,6 +353,7 @@
                         Find Nearby DNA Features
                     </div>
                 </div>
+
                 {% for feature, sources, targets, reo in feature_reos %}
                 {% if forloop.first %}
                 <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
@@ -374,7 +375,9 @@
                     <label for="feature-dist">Feature Distance in base pairs:</label>
                     <input type="text" name="dist" value="1000" />
                     {% if request.GET.assembly %}
-                    <input type="hidden" name="assembly" value="{{ request.GET.assembly }}" />
+                        <input type="hidden" name="assembly" value="{{ request.GET.assembly }}" />
+                    {% else %}
+                        <input type="hidden" name="assembly" value="GRCh38" />
                     {% endif %}
                         <input
                             type="submit"
@@ -385,8 +388,8 @@
                 </form>
             </div>
             <div id="features-table"></div>
-                {% endif %}
-                {% endfor %}
+        {% endif %}
+        {% endfor %}
         </div>
         {% endif %}
 

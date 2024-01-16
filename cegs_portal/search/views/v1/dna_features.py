@@ -178,7 +178,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * int
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", None)
+        options["assembly"] = request.GET.get("assembly", "GRCh38")
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
@@ -187,7 +187,6 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         options["json_format"] = request.GET.get("format", None)
         options["dist"] = int(request.GET.get("dist", 0))
-
         return options
 
     def get(self, request, options, data, chromo, start, end):
