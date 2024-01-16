@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from exp_viz import (
     Filter,
     FilterIntervals,
+    SetOpFeature,
     filter_coverage_data_allow_threads,
     load_coverage_data_allow_threads,
     load_feature_data_allow_threads,
@@ -65,7 +66,6 @@ def load_coverage(acc_id, chrom):
     return load_coverage_data_allow_threads(filename)
 
 
-@lru_cache(maxsize=100)
 def load_features(acc_id, chrom):
     exp_acc_id, analysis_acc_id = acc_id.split("/")
     if chrom is None:
@@ -123,7 +123,7 @@ def validate_combinations(combinations):
     return experiment_count
 
 
-def get_filter(filters, chrom):
+def get_filter(filters, chrom, combination_features=None):
     data_filter = Filter()
     data_filter.categorical_facets = set(filters[0])
     if chrom is not None:
@@ -135,6 +135,16 @@ def get_filter(filters, chrom):
         data_filter_intervals.effect = (effect_size_interval[0], effect_size_interval[1])
         data_filter_intervals.sig = (sig_interval[0], sig_interval[1])
         data_filter.numeric_intervals = data_filter_intervals
+
+    match combination_features:
+        case "sources":
+            data_filter.set_op_feature = SetOpFeature.Source
+        case "targets":
+            data_filter.set_op_feature = SetOpFeature.Target
+        case "sources-targets":
+            data_filter.set_op_feature = SetOpFeature.SourceTarget
+        case _:
+            data_filter.set_op_feature = None
 
     return data_filter
 
@@ -240,6 +250,8 @@ class CombinedExperimentView(MultiResponseFormatView):
         except Exception as e:
             raise Http400(f'Invalid request body, no "chromosomes" object:\n{request.body}') from e
 
+        options["combination_features"] = body.get("combination_features")
+
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
         options["zoom_chr"] = zoom_chr
@@ -260,7 +272,7 @@ class CombinedExperimentView(MultiResponseFormatView):
     def post_data(self, options):
         accession_ids = get_analyses(options["combinations"])
 
-        data_filter = get_filter(options["filters"], options["zoom_chr"])
+        data_filter = get_filter(options["filters"], options["zoom_chr"], options["combination_features"])
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {

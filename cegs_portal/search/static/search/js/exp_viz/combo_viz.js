@@ -30,6 +30,7 @@ import {
     STATE_SOURCE_TYPE,
     STATE_COVERAGE_TYPE,
     STATE_LEGEND_INTERVALS,
+    STATE_FEATURE_FILTER_TYPE,
 } from "./consts.js";
 import {
     numericFilterControls,
@@ -169,6 +170,7 @@ function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
             source: legendIntervalFunc(coverageData, "source_intervals"),
             target: legendIntervalFunc(coverageData, "target_intervals"),
         },
+        [STATE_FEATURE_FILTER_TYPE]: "sources",
     });
 
     return state;
@@ -448,5 +450,22 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
         setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
         render(state, genomeRenderer);
+    });
+
+    //
+    // Feature Filter Selector
+    //
+    let featureFilterSelector = g("feature-select");
+    featureFilterSelector.value = "sources";
+    featureFilterSelector.addEventListener(
+        "change",
+        () => {
+            state.u(STATE_FEATURE_FILTER_TYPE, featureFilterSelector.value);
+        },
+        false
+    );
+
+    state.ac(STATE_FEATURE_FILTER_TYPE, (s, key) => {
+        get_all_data();
     });
 }

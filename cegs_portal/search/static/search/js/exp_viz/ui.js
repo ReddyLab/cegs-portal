@@ -4,6 +4,7 @@ import {
     STATE_CATEGORICAL_FACET_VALUES,
     STATE_COUNT_FILTER_INTERVALS,
     STATE_COUNT_FILTER_VALUES,
+    STATE_FEATURE_FILTER_TYPE,
     STATE_LEGEND_INTERVALS,
     STATE_NUMERIC_FILTER_INTERVALS,
     STATE_NUMERIC_FACET_VALUES,
@@ -172,6 +173,7 @@ export function getFilterBody(state, genome, chroms, filter_values) {
     try {
         let combinations = state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"));
         filters.combinations = combinations.concat(combinations.slice(1).map((_) => "i"));
+        filters.combination_features = state.g(STATE_FEATURE_FILTER_TYPE);
     } catch (e) {
         // An "Invalid State Key" exception is expected when this is called from
         // the single experiment page, but other exceptions are not

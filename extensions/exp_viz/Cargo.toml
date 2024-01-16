@@ -1,6 +1,6 @@
 [package]
 name = "exp_viz_extension"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,9 +10,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 bincode = "1.3.3"
-cov_viz_ds = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "826fb4f5feb40d6f674ed2fef4613097cff7d30d" }
+cov_viz_ds = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "d547248852ba69a9ee031734b7a0f0be6d0107de" }
 # cov_viz_ds = { path = "../../../exp_cov_viz/cov_viz_ds" } # For working with a local copy during development
-exp_viz = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "9e37ff15be5ebc1be83ac50c24c393c4a2893ab5" }
+exp_viz = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "4a0eda638f2946a5060342598bffdf13a11e8b36" }
 # exp_viz = { path = "../../../exp_cov_viz/exp_viz" }            # For working with a local copy during development
 pyo3 = { version = "0.20.0", features = ["extension-module"] }
 roaring = "0.10.2"

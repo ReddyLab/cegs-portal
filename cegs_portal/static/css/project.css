@@ -760,6 +760,11 @@ h1 {
           align-items: center;
 }
 
+a.link, a.link:visited {
+  color: #3490dc;
+  text-decoration: underline;
+}
+
 .data-table a,
   .data-table a:visited {
   color: #3490dc;
@@ -1230,6 +1235,10 @@ input[type="submit"], input[type="button"], button {
 .transform {
   -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
           transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.list-disc {
+  list-style-type: disc;
 }
 
 .list-none {

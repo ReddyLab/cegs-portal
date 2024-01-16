@@ -19,6 +19,7 @@ export const STATE_ITEM_COUNTS = "state-item-counts";
 export const STATE_SOURCE_TYPE = "state-source-type";
 export const STATE_ANALYSIS = "state-analysis";
 export const STATE_COVERAGE_TYPE = "state-coverage-type";
+export const STATE_FEATURE_FILTER_TYPE = "state-feature-filter-type";
 export const STATE_LEGEND_INTERVALS = "state-legend-intervals";
 
 export const COVERAGE_TYPE_COUNT = "coverage-type-count";
