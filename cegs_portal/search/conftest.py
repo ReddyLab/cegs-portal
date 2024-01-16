@@ -224,6 +224,18 @@ def feature() -> DNAFeature:
 
 
 @pytest.fixture
+def effect_dir_feature() -> DNAFeature:
+    return DNAFeatureFactory(
+        ref_genome="GRCh38",
+        effect_directions=[
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.NON_SIGNIFICANT.value,
+        ],
+    )
+
+
+@pytest.fixture
 def search_feature() -> DNAFeature:
     return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
 

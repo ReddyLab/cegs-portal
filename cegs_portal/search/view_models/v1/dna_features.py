@@ -202,7 +202,6 @@ class DNAFeatureSearch:
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
         filters: dict[str, Any] = {"chrom_name": chromo}
-        excludes = Q(experiment_accession=None)
 
         new_feature_types: list[DNAFeatureType] = []
         for ft in feature_types:
@@ -268,12 +267,6 @@ class DNAFeatureSearch:
                     default=[],
                 )
             )
-            features = features.annotate(
-                sig_count=Count(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__value__in=["Depleted Only", "Enriched Only", "Mixed"]),
-                )
-            )
 
         if "effect_targets" in feature_properties:
             features = features.annotate(effect_targets=ArrayAgg("source_for__targets__accession_id", default=[]))
@@ -287,7 +280,7 @@ class DNAFeatureSearch:
             )
             filters["sig_count__gt"] = 0
 
-        return features.filter(**filters).exclude(excludes).prefetch_related(*prefetch_values).order_by("location")
+        return features.filter(**filters).prefetch_related(*prefetch_values).order_by("location")
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):

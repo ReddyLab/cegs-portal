@@ -24,14 +24,11 @@ def test_genoverse_track_view_DHS(client: Client, genoverse_dhs_features):
 
     json_content = json.loads(response.content)
     assert isinstance(json_content, list)
-    assert len(json_content) == len(features)
+    assert len(json_content) == len([f for f in features if len(f.source_for.all()) > 0])
 
     for feature in json_content:
         assert feature.get("effect_directions", None) is not None
         assert feature.get("effect_targets", None) is not None
-        if len(feature["effect_targets"]) > 0:
-            print(feature["effect_targets"])
-            assert False
 
 
 def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_features):
@@ -49,7 +46,7 @@ def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_feature
 
     json_content = json.loads(response.content)
     assert isinstance(json_content, list)
-    assert len(json_content) == len(features)
+    assert len(json_content) == len([f for f in features if len(f.source_for.all()) > 0])
 
     effectful_dhs = [f for f in json_content if len(f["effect_directions"]) > 0]
     for dhs in effectful_dhs:

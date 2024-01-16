@@ -20,7 +20,7 @@ def test_features(features: Iterable[DNAFeature]):
     assert fs_json(features, {"json_format": "genoverse"}) == result
 
 
-def test_feature(feature: DNAFeature):
+def test_feature(feature: DNAFeature, effect_dir_feature: DNAFeature):
     result = {
         "accession_id": feature.accession_id,
         "ensembl_id": feature.ensembl_id,
@@ -56,7 +56,7 @@ def test_feature(feature: DNAFeature):
     assert "source_for" in f_dict
     assert "target_of" in f_dict
 
-    f_dict = f_json(feature, {"feature_properties": ["effect_directions"]})
+    f_dict = f_json(effect_dir_feature, {"feature_properties": ["effect_directions"]})
     assert "effect_directions" in f_dict
 
     result["id"] = result["accession_id"]
