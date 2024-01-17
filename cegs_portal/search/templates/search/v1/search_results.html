@@ -250,6 +250,7 @@
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
+        import { STATE_DHS_EFFECT, STATE_FACETS, STATE_REGION } from "{% static 'search/js/search_results/consts.js' %}";
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
@@ -257,9 +258,6 @@
             return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
         }
 
-        const STATE_REGION = "region";
-        const STATE_FACETS = "facets"
-        const STATE_DHS_EFFECT = "dhs-effect-data"
         let state = new State({
             [STATE_REGION]: {
                 chr: "{{ region.chromo }}",
