@@ -178,7 +178,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * int
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", "GRCh38")
+        options["assembly"] = request.GET.get("assembly", None)
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
