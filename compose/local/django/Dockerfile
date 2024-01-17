@@ -53,6 +53,8 @@ RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main
 RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recommends -y \
   curl \
   gcc \
+  gcc-multilib \
+  libc6 \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
