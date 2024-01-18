@@ -1,4 +1,5 @@
 import json
+import logging
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 from functools import lru_cache
 from os.path import join
@@ -203,13 +204,20 @@ class ExperimentCoverageView(MultiResponseFormatView):
         )
 
     def post_json(self, _request, options, data, *args, **kwargs):
+        logger = logging.getLogger("django.request")
+        logger.debug("response json")
+        logger.debug(data.to_json())
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
+        logger = logging.getLogger("django.request")
+        logger.debug("Creating Filter")
         data_filter = get_filter(options["filters"], options["zoom_chr"])
+        logger.debug("Loading Coverage File")
         loaded_data = load_coverage(options["exp_acc_id"], options["zoom_chr"])
+        logger.debug("Filtering Coverage")
         filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data, None)
-
+        logger.debug("Returning Filtered data")
         return filtered_data
 
 
