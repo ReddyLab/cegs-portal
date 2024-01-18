@@ -64,14 +64,27 @@ RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recomme
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
+# copy application code to WORKDIR
+COPY --chown=django:root . ${APP_HOME}
+
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
+# COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
   && rm -rf /wheels/
+# RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/*
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+WORKDIR /app/extensions/exp_viz
+RUN ls
+RUN PATH=$PATH:$HOME/.cargo/bin maturin build -r
+RUN python -m pip install target/wheels/exp_viz-0.4.1-cp311-cp311-manylinux_2_28_x86_64.whl
+RUN rm -rf target
+WORKDIR ${APP_HOME}
+
 
 COPY --chown=django:root ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
@@ -85,8 +98,7 @@ COPY --chown=django:root ./compose/production/django/start_huey /start_huey
 RUN sed -i 's/\r$//g' /start_huey
 RUN chmod +x /start_huey
 
-# copy application code to WORKDIR
-COPY --chown=django:root . ${APP_HOME}
+
 
 # Create media directory for temporarily served files
 RUN mkdir -p ${APP_HOME}/cegs_portal/media/expr_data_dir
