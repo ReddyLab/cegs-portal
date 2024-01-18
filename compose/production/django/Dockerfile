@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.11.2-slim-bullseye
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
 
-FROM ghcr.io/pyo3/maturin@sha256:be0e6b84bcbb67d734cd01774c840ab89efc1efba93107a8bae0a274d4c38ac5 AS maturin
+FROM ghcr.io/pyo3/maturin@sha256:1c75eb0d2b92999b583b02f699acf4a2ad892c0bf679918d5941f65f9b1bf9a1 AS maturin
 
 WORKDIR /exp_viz
 
@@ -15,6 +15,8 @@ RUN ls /exp_viz/target/wheels
 FROM python as python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
+
+RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -50,15 +52,17 @@ RUN adduser --system --ingroup root django
 RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
 # Install required system dependencies
-RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recommends -y \
+RUN apt-get update
+RUN apt-get upgrade --no-install-recommends -y
+RUN apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
-  libgmp10 \
-  # cleaning up unused files
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+  libgmp10
+# cleaning up unused files
+RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+RUN rm -rf /var/lib/apt/lists/*
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
