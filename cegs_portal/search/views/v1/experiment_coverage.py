@@ -55,6 +55,8 @@ CHROM_NAMES = [
 
 SET_OPS = ["i", "u"]
 
+logger = logging.getLogger("django.request")
+
 
 @lru_cache(maxsize=100)
 def load_coverage(acc_id, chrom):
@@ -63,7 +65,7 @@ def load_coverage(acc_id, chrom):
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd"))
     else:
         filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd"))
-
+    logger.debug(f"coverage file: {filename}")
     return load_coverage_data_allow_threads(filename)
 
 
@@ -204,13 +206,11 @@ class ExperimentCoverageView(MultiResponseFormatView):
         )
 
     def post_json(self, _request, options, data, *args, **kwargs):
-        logger = logging.getLogger("django.request")
         logger.debug("response json")
         logger.debug(data.to_json())
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        logger = logging.getLogger("django.request")
         logger.debug("Creating Filter")
         data_filter = get_filter(options["filters"], options["zoom_chr"])
         logger.debug("Loading Coverage File")
