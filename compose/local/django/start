@@ -7,4 +7,4 @@ set -o nounset
 
 python manage.py migrate
 
-uvicorn config.asgi:application --host 0.0.0.0 --port 5000 --reload --log-level trace --access-log
+/usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -k uvicorn.workers.UvicornWorker -w 4 --log-level debug --access-logfile -
