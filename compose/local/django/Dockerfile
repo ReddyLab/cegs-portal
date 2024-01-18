@@ -80,7 +80,7 @@ RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheel
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
 WORKDIR /app/extensions/exp_viz
 RUN ls
-RUN PATH=$PATH:$HOME/.cargo/bin maturin build -r
+RUN PATH=$PATH:$HOME/.cargo/bin maturin build
 RUN python -m pip install target/wheels/exp_viz-0.4.1-cp311-cp311-manylinux_2_28_x86_64.whl
 RUN rm -rf target
 WORKDIR ${APP_HOME}
