@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Any, Optional, cast
 
-from django.db.models import Q, QuerySet
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Count, Q, QuerySet
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -200,7 +201,7 @@ class DNAFeatureSearch:
         search_type: str,
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
-        query: dict[str, Any] = {"chrom_name": chromo}
+        filters: dict[str, Any] = {"chrom_name": chromo}
 
         new_feature_types: list[DNAFeatureType] = []
         for ft in feature_types:
@@ -210,7 +211,7 @@ class DNAFeatureSearch:
                 new_feature_types.append(DNAFeatureType(ft))
 
         if len(new_feature_types) > 0:
-            query["feature_type__in"] = new_feature_types
+            filters["feature_type__in"] = new_feature_types
 
         field = "location"
         if search_type == LocSearchType.EXACT.value:
@@ -221,13 +222,15 @@ class DNAFeatureSearch:
             raise ViewModelError(f"Invalid search type: {search_type}")
 
         if assembly is not None:
-            query["ref_genome"] = assembly
+            filters["ref_genome"] = assembly
 
         field_lookup = join_fields(field, lookup)
-        query[field_lookup] = NumericRange(int(start), int(end), "[)")
+        filters[field_lookup] = NumericRange(int(start), int(end), "[)")
 
         prefetch_values = ["parent", "parent_accession"]
+
         if len(facets) > 0:
+            filters["facet_values__in"] = facets
             prefetch_values.extend(["facet_values", "facet_values__facet"])
 
         if "regeffects" in feature_properties:
@@ -249,12 +252,35 @@ class DNAFeatureSearch:
                 ]
             )
 
-        features = DNAFeature.objects.filter(**query).prefetch_related(*prefetch_values)
+        features = DNAFeature.objects
 
-        if len(facets) > 0:
-            features = features.filter(facet_values__in=facets)
+        if any(p in {"effect_directions", "effect_targets", "significant"} for p in feature_properties):
+            # skip any feature that not the sources for any REOs
+            features = features.annotate(reo_count=Count("source_for"))
+            filters["reo_count__gt"] = 0
 
-        return features.order_by("location")
+        if "effect_directions" in feature_properties:
+            features = features.annotate(
+                effect_directions=ArrayAgg(
+                    "source_for__facet_values__value",
+                    filter=Q(source_for__facet_values__facet__name="Direction"),
+                    default=[],
+                )
+            )
+
+        if "effect_targets" in feature_properties:
+            features = features.annotate(effect_targets=ArrayAgg("source_for__targets__accession_id", default=[]))
+
+        if "significant" in feature_properties:
+            features = features.annotate(
+                sig_count=Count(
+                    "source_for__facet_values__value",
+                    filter=Q(source_for__facet_values__value__in=["Depleted Only", "Enriched Only", "Mixed"]),
+                )
+            )
+            filters["sig_count__gt"] = 0
+
+        return features.filter(**filters).prefetch_related(*prefetch_values).order_by("location")
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):

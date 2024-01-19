@@ -34,7 +34,7 @@ CEGSGenoverse = Genoverse.extend({
 });
 
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=regeffects",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=effect_targets&property=significant",
     dataRequestLimit: 5000000,
 });
 
@@ -52,7 +52,10 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
         feature.color = this.dhsColor;
         feature.legend = `${feature.type} w/o Reg Effect`;
 
-        if (feature.source_for.every((effect) => effect.direction == "Non-significant")) {
+        if (
+            feature.effect_directions.length > 0 &&
+            feature.effect_directions.every((effect) => effect.effect_directions == "Non-significant")
+        ) {
             feature.color = this.withNonSigEffectColor;
             feature.legend = `${feature.type} w/ Non-significant Effect`;
         } else {
@@ -76,7 +79,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     },
     setData: function (data) {
         let oldEffectfulDHSs = this.browser.getSharedState("dhs-effect-data");
-        let newEffectfulDHSs = data.filter((feature) => feature.source_for.length > 0);
+        let newEffectfulDHSs = data.filter((feature) => feature.effect_directions.length > 0);
         let allEffectfulDHSs = oldEffectfulDHSs ? oldEffectfulDHSs.concat(newEffectfulDHSs) : newEffectfulDHSs;
 
         // Sort DHSs with effects
@@ -207,7 +210,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
     },
     parseData: function (data, chr) {
         for (let feature of data) {
-            if (feature.source_for.length == 0) {
+            if (feature.effect_directions.length == 0) {
                 //  Skip sources that haven't been part of an experiment
                 continue;
             }
@@ -392,24 +395,42 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     model: Genoverse.Track.Model.DHS,
     view: Genoverse.Track.View.DHS,
     legend: true,
-    populateMenu: function (feature) {
-        var url = `/search/feature/accession/${feature.accession_id}`;
-        var type = feature.type.toUpperCase();
-        var menu = {
+    populateMenu: async function (feature) {
+        let url = `/search/feature/accession/${feature.accession_id}`;
+        let type = feature.type.toUpperCase();
+        let menu = {
             title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
             Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
-        var i = 1;
-        for (effect of feature.source_for) {
-            for (target of effect.targets) {
-                menu[`Target ${i}`] = `<a target="_blank" href="/search/feature/ensembl/${target.ensembl_id}">${
-                    target.name
-                } ${effect.effect_size >= 0 ? "+" : "-"}${effect.effect_size}</a>`;
-                i++;
+        let effects = await fetch(`/search/regeffect/source/${feature.accession_id}?accept=application/json`).then(
+            (response) => {
+                if (!response.ok) {
+                    throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
+                }
+
+                return response.json();
             }
+        );
+        let i = 1;
+        for (let reo of effects.object_list.slice(0, 5)) {
+            if (reo.targets.length > 0) {
+                menu[
+                    `${i}. Effect Size`
+                ] = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
+            } else {
+                menu[`${i}. Effect Size`] = `${reo.effect_size >= 0 ? "" : "-"}${reo.effect_size}`;
+            }
+
+            i++;
+        }
+
+        if (effects.object_list.length > 5) {
+            menu[
+                `Full Effect List`
+            ] = `<a target="_blank" href="/search/regeffect/source/${feature.accession_id}">All Associated Effects</a>`;
         }
 
         return menu;

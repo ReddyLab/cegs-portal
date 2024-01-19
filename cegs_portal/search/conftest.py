@@ -224,6 +224,18 @@ def feature() -> DNAFeature:
 
 
 @pytest.fixture
+def effect_dir_feature() -> DNAFeature:
+    return DNAFeatureFactory(
+        ref_genome="GRCh38",
+        effect_directions=[
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.NON_SIGNIFICANT.value,
+        ],
+    )
+
+
+@pytest.fixture
 def search_feature() -> DNAFeature:
     return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
 
@@ -261,7 +273,7 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
 
 def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
-    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
+    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(), DNAFeatureFactory()),
         facet_values=(direction,),
@@ -523,15 +535,13 @@ def genoverse_dhs_features():
         feature_type=DNAFeatureType.GENE,
     )
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,))
-    _ = RegEffectFactory(sources=(f2,))
-    _ = RegEffectFactory(sources=(f3,))
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
-    g1 = DNAFeatureFactory(
-        ref_genome=ref_genome,
-        chrom_name=chrom,
-        feature_type=DNAFeatureType.GENE,
-    )
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f3,), facet_values=(non_sig,))
 
     return {
         "chrom": chrom,

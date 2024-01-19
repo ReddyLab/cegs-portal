@@ -17,21 +17,25 @@ def test_genoverse_track_view_DHS(client: Client, genoverse_dhs_features):
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=regeffects"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=effect_targets&property=significant"  # noqa: E501
     )
 
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
     assert isinstance(json_content, list)
-    assert len(json_content) == len(features)
+    assert len(json_content) == len(
+        [
+            f
+            for f in features
+            if len(f.source_for.all()) > 0
+            and all(all(s.value != "Non-significant" for s in r.facet_values.all()) for r in f.source_for.all())
+        ]
+    )
 
     for feature in json_content:
-        assert feature.get("source_for", None) is not None
-        assert feature.get("target_of", None) is not None
-
-        for effect in feature["source_for"]:
-            assert effect.get("targets", None) is not None
+        assert feature.get("effect_directions", None) is not None
+        assert feature.get("effect_targets", None) is not None
 
 
 def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_features):
@@ -42,16 +46,23 @@ def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_feature
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=regeffects"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=effect_targets&property=significant"  # noqa: E501
     )
 
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
     assert isinstance(json_content, list)
-    assert len(json_content) == len(features)
+    assert len(json_content) == len(
+        [
+            f
+            for f in features
+            if len(f.source_for.all()) > 0
+            and all(all(s.value != "Non-significant" for s in r.facet_values.all()) for r in f.source_for.all())
+        ]
+    )
 
-    effectful_dhs = [f for f in json_content if len(f["source_for"]) > 0]
+    effectful_dhs = [f for f in json_content if len(f["effect_directions"]) > 0]
     for dhs in effectful_dhs:
         assert "chr" in dhs
         assert "start" in dhs
