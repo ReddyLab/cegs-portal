@@ -1,4 +1,5 @@
 import {g, rc, t} from "../dom.js";
+import {STATE_REGION} from "./consts.js";
 
 function getDownload(url, filename) {
     rc(g("dataDownloadLink"), t("Getting your data..."));
@@ -58,7 +59,7 @@ export function downloadRegionsSetup(state, assembly) {
                 .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
                 .map((i) => i.id);
 
-            let location = state.g("location");
+            let location = state.g(STATE_REGION);
             getDownloadRegions(checkedFacets, location.chr, location.start, location.end, assembly);
         },
         false
