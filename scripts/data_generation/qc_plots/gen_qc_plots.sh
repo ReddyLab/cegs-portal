@@ -132,7 +132,7 @@ python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXP
 # DCPEXPR0000000007
 echo DCPEXPR0000000007
 python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000007/vpdata.pd \
-    --input ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/atacSTARR.ultra_deep.csaw.hg38.v10.common_file_formatted.txt \
+    --input ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/atacSTARR.ultra_deep.csaw.hg38.v10.common_file_formatted.tsv \
     -x logFC \
     -y minusLog10PValue
 # python3 ./scripts/data_generation/qc_plots/histogram.py --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000007/c_per_g.pd \
@@ -143,7 +143,7 @@ python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_porta
 #     --header \
 #     --input ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/npc.run_negbinom.ngrnas_per_cell.txt \
 #     --bin-size 1
-python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/atacSTARR.ultra_deep.csaw.hg38.v10.common_file_formatted.txt \
+python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000007_siklenka_atac-starr-seq_K562_2022/atacSTARR.ultra_deep.csaw.hg38.v10.common_file_formatted.tsv \
     --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000007/qqplot.pd \
     -p minusLog10PValue \
     -q 10_000
@@ -151,7 +151,7 @@ python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXP
 # DCPEXPR0000000008
 echo DCPEXPR0000000008
 python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000008/vpdata.pd \
-    --input ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/crispra.mast.volcano.all.min_thres_4.with_coords.txt \
+    --input ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/crispra.mast.volcano.all.min_thres_4.with_coords.tsv \
     -x avg_log2FC \
     -y p_val \
     -g target_gene
@@ -163,7 +163,7 @@ python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_porta
 #     --header \
 #     --input ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/npc.run_negbinom.ngrnas_per_cell.txt \
 #     --bin-size 1
-python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/crispra.mast.volcano.all.min_thres_4.with_coords.txt \
+python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000008_mccutcheon_scCERES_cd8_CRISPRa_2022/crispra.mast.volcano.all.min_thres_4.with_coords.tsv \
     --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000008/qqplot.pd \
     -p p_val \
     --log-p-value \
@@ -172,7 +172,7 @@ python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXP
 # DCPEXPR0000000009
 echo DCPEXPR0000000009
 python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000009/vpdata.pd \
-    --input ${DATA_DIR}/DCPEXPR0000000009_mccutcheon_scCERES_cd8_CRISPRi_2022/crispri.mast.volcano.all.min_thres_4.with_coords.txt \
+    --input ${DATA_DIR}/DCPEXPR0000000009_mccutcheon_scCERES_cd8_CRISPRi_2022/crispri.mast.volcano.all.min_thres_4.with_coords.tsv \
     -x avg_log2FC \
     -y p_val \
     -g target_gene
@@ -184,7 +184,7 @@ python3 ./scripts/data_generation/qc_plots/volcano_plot.py --output ./cegs_porta
 #     --header \
 #     --input ${DATA_DIR}/DCPEXPR0000000009_mccutcheon_scCERES_cd8_CRISPRi_2022/npc.run_negbinom.ngrnas_per_cell.txt \
 #     --bin-size 1
-python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000009_mccutcheon_scCERES_cd8_CRISPRi_2022/crispri.mast.volcano.all.min_thres_4.with_coords.txt \
+python3 ./scripts/data_generation/qc_plots/qq_plot.py --input ${DATA_DIR}/DCPEXPR0000000009_mccutcheon_scCERES_cd8_CRISPRi_2022/crispri.mast.volcano.all.min_thres_4.with_coords.tsv \
     --output ./cegs_portal/static_data/search/experiments/DCPEXPR0000000009/qqplot.pd \
     -p p_val \
     --log-p-value \
