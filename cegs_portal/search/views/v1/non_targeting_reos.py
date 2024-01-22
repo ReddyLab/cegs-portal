@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
 
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.non_targeting_reos import (
     non_targeting_regulatory_effects,
 )
@@ -90,7 +91,7 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get_tsv(self, request, options, data, feature_id):
         _, feature = data
-        if options is not None and options.get("tsv_format", None) == "bed6":
+        if is_bed6(options):
             filename = f"{feature.name}_proximal_regulatory_observations_table_data.bed"
         else:
             filename = f"{feature.name}_proximal_regulatory_observations_table_data.tsv"

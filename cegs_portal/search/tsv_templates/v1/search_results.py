@@ -2,11 +2,13 @@ from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.templatetags.custom_helpers import if_strand
 
 
-def item_name(source, feature):
-    return f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(feature.strand)}:{feature.name}"
+def item_name(source):
+    return (
+        f"{source.chrom_name}:{source.location.lower}-{source.location.upper}:{if_strand(source.strand)}:{source.name}"
+    )
 
 
-def bed6_output(reos, feature):
+def sig_reos_bed6(reos):
     tsv_data = []
     for reo in reos:
         for source in reo.sources.all():
@@ -14,9 +16,9 @@ def bed6_output(reos, feature):
                 source.chrom_name,
                 source.location.lower,
                 source.location.upper,
-                item_name(source, feature),
+                item_name(source),
                 "0",
-                if_strand(feature.strand),
+                if_strand(source.strand),
             ]
 
             tsv_data.append(row)
@@ -24,10 +26,10 @@ def bed6_output(reos, feature):
     return tsv_data
 
 
-def non_targeting_regulatory_effects(data, options):
-    reos, feature = data
+def sig_reos(data, options):
+    reos = data
     if is_bed6(options):
-        return bed6_output(reos, feature)
+        return sig_reos_bed6(reos)
     tsv_data = []
     tsv_data.append(
         [
@@ -53,9 +55,9 @@ def non_targeting_regulatory_effects(data, options):
                 source.chrom_name,
                 source.location.lower,
                 source.location.upper,
-                item_name(source, feature),
+                item_name(source),
                 "0",
-                if_strand(feature.strand),
+                if_strand(source.strand),
                 reo.effect_size,
                 reo.direction,
                 reo.significance,

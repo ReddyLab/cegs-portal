@@ -3,12 +3,21 @@
 <div id="modal">
 <div class="modal-underlay" onclick="closeModal()"></div>
 <div class="container modal-content" id="feature-sig-reg-effects">
-    <div class="flex justify-between max-w-full">
-        <div class="text-xl font-bold">Significant Reg Effect Observations</div>
-        <div class="close-button" onclick="closeModal()">
+    <div class="flex max-w-full min-w-full justify-between items-center">
+        <div class="close-button justify-self-start" onclick="closeModal()">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
                 <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
             </svg>
+        </div>
+        <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
+        <div class="justify-self-end">
+            <span class="text-lg">Download:</span>
+            <a href="{% url 'search:feature_sigreo' %}?region={{ region }}{% for feature in features %}&feature_type={{ feature }}{% endfor %}&accept=text/tab-separated-values&tsv_format=original">
+                <button class="tsv-button" id="downloadButton">TSV</button>
+            </a>
+            <a href="{% url 'search:feature_sigreo' %}?region={{ region }}{% for feature in features %}&feature_type={{ feature }}{% endfor %}&accept=text/tab-separated-values&tsv_format=bed6">
+                <button class="tsv-button" id="downloadButtonNew">BED6</button>
+            </a>
         </div>
     </div>
     {% if sig_reg_effects|length > 0 %}
