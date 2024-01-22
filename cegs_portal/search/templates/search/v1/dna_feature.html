@@ -62,7 +62,7 @@
                     {% if feature.name %}
                         <span>{{ feature.name }}</span>
                         {% if feature.ensembl_id %}
-                            <!-- <span class="text-2xl">({{ feature.ensembl_id }})<span style="font-size: large;">{{feature.ref_genome}}</span></span> -->
+                            <span class="text-2xl">({{ feature.ensembl_id }})<span class="text-lg">{{feature.ref_genome}}</span></span>
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }} @
@@ -71,12 +71,12 @@
                         </a>
                     {% endif %}
                 </h1>
-                <!-- <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+                <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
                     <option selected disabled>Select Reference genome</option>
                     {% for assembly in all_assemblies %}
                         <option value="{% url 'search:dna_features' 'name' feature.name %}?assembly={{ assembly }}">{{ assembly }}</option>
                     {% endfor %}
-                </select> -->
+                </select>
             </div>
         {% endif %}
     {% endfor %}
@@ -506,10 +506,10 @@
         g("genoverse-container").after(e("div", {class: "title-separator"}, []));
     }
 
-    // var dropdown = document.getElementById("dropdown");
-    // dropdown.addEventListener("change", function() {
-    //     window.location.href = this.value;
-    // });
+    var dropdown = document.getElementById("dropdown");
+    dropdown.addEventListener("change", function() {
+        window.location.href = this.value;
+    });
 
 </script>
 
