@@ -28,7 +28,7 @@ def check_json_response(response, feature):
     assert response_feature["name"] == feature.name
     assert response_feature["ref_genome"] == feature.ref_genome
     assert response_feature["ref_genome_patch"] == feature.ref_genome_patch
-    assert response_feature["type"] == feature.feature_type.value
+    assert response_feature["type"] == feature.get_feature_type_display()
 
 
 def check_tsv_response(response, feature):
@@ -450,14 +450,14 @@ def test_get_feature_loc_not_exact_json(client: Client, feature: DNAFeature):
 
 def test_get_feature_loc_feature_type_json(client: Client, feature: DNAFeature):
     response = client.get(
-        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={cast(DNAFeatureType, feature.feature_type).value}"  # noqa: E501
+        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={feature.get_feature_type_display()}"  # noqa: E501
     )
 
     check_json_response(response, feature)
 
 
 def test_get_feature_loc_not_feature_type_json(client: Client, feature: DNAFeature):
-    not_feature_type = [f for f in DNAFeatureType if f.value != cast(DNAFeatureType, feature.feature_type).value][0]
+    not_feature_type = [f for f in DNAFeatureType if str(f) != feature.feature_type][0]
     response = client.get(
         f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={not_feature_type.value}"  # noqa: E501
     )
