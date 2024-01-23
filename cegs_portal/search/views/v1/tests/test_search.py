@@ -685,3 +685,50 @@ def test_feature_sigreo(reg_effects, login_client: SearchClient):
         )
     for target in nonsig_targets:
         assert re.search(target.name, response_html, flags=re.MULTILINE) is None
+
+
+def test_feature_sigreo_tsv(reg_effects, login_client: SearchClient):
+    effect_source, _, _, _, _, _, _ = reg_effects
+
+    response = login_client.get("/search/feature_sigreo?region=chr1:1-100000&accept=text/tab-separated-values")
+    assert response.status_code == 200
+
+    sig_sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
+
+    response_tsv = response.content.decode("utf-8")
+
+    for source in sig_sources:
+        match source.strand:
+            case "+":
+                strand = r"\+"
+            case None:
+                strand = "."
+            case "-":
+                strand = "-"
+        gene_dist = source.closest_gene_distance if source.closest_gene_distance is not None else ""
+        line = f'{source.chrom_name}\t{source.location.lower}\t{source.location.upper}\t{source.chrom_name}:{source.location.lower}-{source.location.upper}:{strand}:\t0\t{strand}\t{effect_source.effect_size}\t{effect_source.direction}\t{effect_source.significance}\t{gene_dist}\t{source.get_feature_type_display()}\t"{effect_source.experiment.name}"\t{effect_source.accession_id}'
+        assert re.search(line, response_tsv) is not None
+
+
+def test_feature_sigreo_bed6(reg_effects, login_client: SearchClient):
+    effect_source, _, _, _, _, _, _ = reg_effects
+
+    response = login_client.get(
+        "/search/feature_sigreo?region=chr1:1-100000&accept=text/tab-separated-values&tsv_format=bed6"
+    )
+    assert response.status_code == 200
+
+    sig_sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
+
+    response_tsv = response.content.decode("utf-8")
+
+    for source in sig_sources:
+        match source.strand:
+            case "+":
+                strand = r"\+"
+            case None:
+                strand = "."
+            case "-":
+                strand = "-"
+        line = f"{source.chrom_name}\t{source.location.lower}\t{source.location.upper}\t{source.chrom_name}:{source.location.lower}-{source.location.upper}:{strand}:\t0\t{strand}"
+        assert re.search(line, response_tsv) is not None

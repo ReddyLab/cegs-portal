@@ -1357,6 +1357,14 @@ input[type="submit"], input[type="button"], button {
   justify-self: start;
 }
 
+.justify-self-end {
+  justify-self: end;
+}
+
+.justify-self-center {
+  justify-self: center;
+}
+
 .overflow-hidden {
   overflow: hidden;
 }

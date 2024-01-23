@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views.generic import View
 
 from cegs_portal.search.forms import SearchForm
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.feature_counts import (
     feature_counts as fc_json,
 )
@@ -17,6 +18,7 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
 from cegs_portal.search.models.utils import IdType
+from cegs_portal.search.tsv_templates.v1.search_results import sig_reos as sr
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
 from cegs_portal.search.views.custom_views import MultiResponseFormatView
@@ -416,22 +418,65 @@ class SignificantExperimentDataView(View):
         )
 
 
-class FeatureSignificantREOsView(View):
+class FeatureSignificantREOsView(MultiResponseFormatView):
     """
     Show significant REOs associated with one or more DNA Feature types in a given area.
     """
 
-    def get(self, request, *args, **kwargs):
-        assembly = get_assembly(request)
-        features = request.GET.getlist("feature_type", [])
-        facets = [int(facet) for facet in request.GET.getlist("facet", [])]
+    template = "search/v1/partials/_feature_sig_reg_effects.html"
+    tsv_renderer = sr
 
+    def request_options(self, request):
+        """
+        GET queries used:
+            assembly
+                * Should match a genome assembly that exists in the DB
+            facet (multiple)
+                * Should match a categorical facet value
+            feature_type (multiple)
+                * Should match a feature type (gene, transcript, etc.)
+            region
+                * genome location in chrom:lower-upper format
+            tsv_format (optional)
+                * bed6
+        """
+
+        options = super().request_options(request)
+        options["assembly"] = get_assembly(request)
+        options["features"] = request.GET.getlist("feature_type", [])
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        options["tsv_format"] = request.GET.get("tsv_format", None)
         try:
             region = get_region(request)
             if region is None:
                 raise Http400("Must specify a region")
+            options["region"] = region
         except Http400 as error:
             raise BadRequest() from error
+        return options
+
+    def get(self, request, options, data):
+        return super().get(
+            request,
+            options,
+            {"sig_reg_effects": data, "region": request.GET["region"], "features": options["features"]},
+        )
+
+    def get_tsv(self, request, options, data):
+        region = options["region"]
+        if is_bed6(options):
+            filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.bed"
+        else:
+            filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
+
+    def get_data(self, options):
+        region, assembly, features, facets = (
+            options["region"],
+            options["assembly"],
+            options["features"],
+            options["facets"],
+        )
 
         if self.request.user.is_anonymous:
             sig_reos = Search.feature_sig_reos(region, assembly, features, facets)
@@ -446,9 +491,4 @@ class FeatureSignificantREOsView(View):
                 UserType.LOGGED_IN,
                 private_experiments=self.request.user.all_experiments(),
             )
-
-        return render(
-            request,
-            "search/v1/partials/_feature_sig_reg_effects.html",
-            {"sig_reg_effects": sig_reos},
-        )
+        return sig_reos

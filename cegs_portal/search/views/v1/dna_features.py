@@ -154,12 +154,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
 
     def request_options(self, request):
         """
-        Headers used:
-            accept
-                * application/json
         GET queries used:
-            accept
-                * "application/json"
             assembly
                 * Should match a genome assembly that exists in the DB
             facet (multiple)

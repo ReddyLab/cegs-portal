@@ -1,3 +1,4 @@
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.templatetags.custom_helpers import if_strand
 
 
@@ -25,7 +26,7 @@ def bed6_output(reos, feature):
 
 def non_targeting_regulatory_effects(data, options):
     reos, feature = data
-    if options is not None and options.get("tsv_format", None) == "bed6":
+    if is_bed6(options):
         return bed6_output(reos, feature)
     tsv_data = []
     tsv_data.append(
