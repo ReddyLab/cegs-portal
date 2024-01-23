@@ -30,7 +30,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     strand = random.choice(["+", "-", None])
     ref_genome = "GRCh38"
     ref_genome_patch = Faker("numerify", text="##")
-    feature_type = random.choice(list(DNAFeatureType))
+    feature_type = str(random.choice(list(DNAFeatureType)))
     feature_subtype = Faker("text", max_nb_chars=50)
     ids = {"id_type": "id_value"}
     misc = {"other id": "id value"}
