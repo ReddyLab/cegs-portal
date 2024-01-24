@@ -38,10 +38,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
-    def get_all_assemblies(self):
-        all_assemblies = list(DNAFeature.objects.values_list("ref_genome", flat=True).distinct())
-        return all_assemblies
-
     def request_options(self, request):
         """
         Headers used:
@@ -78,6 +74,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
+        all_assemblies = ["GRCh37", "GRCh38"]
 
         for feature in data.all():
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
@@ -131,8 +128,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
 
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
-
-        all_assemblies = self.get_all_assemblies()
 
         return super().get(
             request,
