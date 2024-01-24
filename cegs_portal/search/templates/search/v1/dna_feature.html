@@ -62,7 +62,7 @@
                     {% if feature.name %}
                         <span>{{ feature.name }}</span>
                         {% if feature.ensembl_id %}
-                            <span class="text-2xl">({{ feature.ensembl_id }})<span class="text-lg">{{feature.ref_genome}}</span></span>
+                            <span class="text-2xl">({{ feature.ensembl_id }})<span class="text-lg"> {{feature.ref_genome}}</span></span>
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }} @
