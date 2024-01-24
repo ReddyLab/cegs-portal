@@ -71,21 +71,12 @@
                         </a>
                     {% endif %}
                 </h1>
-                    {% if feature.name %}
-                        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
-                            <option selected disabled>Select Reference genome</option>
-                            {% for assembly in all_assemblies %}
-                                <option value="{% url 'search:dna_features' 'name' feature.name %}?assembly={{ assembly }}">{{ assembly }}</option>
-                            {% endfor %}
-                        </select>
-                    {% else %}
-                        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
-                            <option selected disabled>Select Reference genome</option>
-                            {% for assembly in all_assemblies %}
-                                <option value="{% url 'search:dna_features' 'accession' feature.accession_id %}?assembly={{ assembly }}">{{ assembly }}</option>
-                            {% endfor %}
-                        </select>
-                    {% endif %}
+                <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+                    <option selected disabled>Select Reference genome</option>
+                    {% for assembly in all_assemblies %}
+                    <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+                    {% endfor %}
+                </select>
             </div>
         {% endif %}
     {% endfor %}
@@ -516,19 +507,9 @@
     }
 
     var dropdown = document.getElementById("dropdown");
-    dropdown.onchange = function() {
-        var url = this.value;
-        var selectedText = this.options[this.selectedIndex].text;
-        fetch(url, {redirect: 'manual'}).then(function(response) {
-            if (!response.ok) {
-                dropdown.options[dropdown.selectedIndex].text = selectedText + ' - Not Found';
-            } else {
-                window.location.href = url;
-            }
-        }).catch(function() {
-            dropdown.options[dropdown.selectedIndex].text = selectedText + ' - Not Found';
-        });
-    };
+     dropdown.addEventListener("change", function() {
+         window.location.href = this.value;
+     });
 
 </script>
 

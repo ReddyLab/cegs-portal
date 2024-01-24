@@ -75,8 +75,10 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         feature_reos = []
         reo_page = None
         all_assemblies = ["GRCh37", "GRCh38"]
+        feature_assemblies = []
 
         for feature in data.all():
+            feature_assemblies.append(feature.ref_genome)
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
@@ -129,6 +131,13 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
 
+        assembly_list = []
+        for assembly in all_assemblies:
+            if assembly in feature_assemblies:
+                assembly_list.append((assembly, "", assembly))
+            else:
+                assembly_list.append((assembly, "disabled", f"{assembly} - Not Found"))
+
         return super().get(
             request,
             options,
@@ -139,14 +148,14 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
-                "all_assemblies": all_assemblies,
+                "all_assemblies": assembly_list,
+                "id_type": id_type,
+                "feature_id": feature_id,
             },
         )
 
     def get_data(self, options, id_type, feature_id):
-        return DNAFeatureSearch.id_search(
-            id_type, feature_id, assembly=options["assembly"], feature_properties=options["feature_properties"]
-        )
+        return DNAFeatureSearch.id_search(id_type, feature_id, None, feature_properties=options["feature_properties"])
 
 
 class DNAFeatureLoc(MultiResponseFormatView):
