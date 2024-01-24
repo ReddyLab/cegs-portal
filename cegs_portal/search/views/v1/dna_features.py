@@ -3,8 +3,10 @@ from django.db.models import QuerySet
 from django.http import Http404
 from django.shortcuts import render
 
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.dna_features import features
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from cegs_portal.search.tsv_templates.v1.dna_features import dnafeatures as f_tsv
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch
 from cegs_portal.search.views.custom_views import (
@@ -151,6 +153,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_features.html"
     table_partial = "search/v1/partials/_features.html"
+    tsv_renderer = f_tsv
 
     def request_options(self, request):
         """
@@ -182,6 +185,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["per_page"] = int(request.GET.get("per_page", 20))
         options["json_format"] = request.GET.get("format", None)
         options["dist"] = int(request.GET.get("dist", 0))
+        options["tsv_format"] = request.GET.get("tsv_format", None)
         return options
 
     def get(self, request, options, data, chromo, start, end):
@@ -224,6 +228,13 @@ class DNAFeatureLoc(MultiResponseFormatView):
             options,
             data,
         )
+
+    def get_tsv(self, request, options, data, chromo, start, end):
+        if is_bed6(options):
+            filename = f"dna_features_{chromo}_{start}_{end}.bed"
+        else:
+            filename = f"dna_features_{chromo}_{start}_{end}.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
 
     def get_data(self, options, chromo, start, end) -> QuerySet[DNAFeature]:
         start = int(start)
