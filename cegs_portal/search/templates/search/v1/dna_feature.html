@@ -71,12 +71,21 @@
                         </a>
                     {% endif %}
                 </h1>
-                <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
-                    <option selected disabled>Select Reference genome</option>
-                    {% for assembly in all_assemblies %}
-                        <option value="{% url 'search:dna_features' 'name' feature.name %}?assembly={{ assembly }}">{{ assembly }}</option>
-                    {% endfor %}
-                </select>
+                    {% if feature.name %}
+                        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+                            <option selected disabled>Select Reference genome</option>
+                            {% for assembly in all_assemblies %}
+                                <option value="{% url 'search:dna_features' 'name' feature.name %}?assembly={{ assembly }}">{{ assembly }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+                            <option selected disabled>Select Reference genome</option>
+                            {% for assembly in all_assemblies %}
+                                <option value="{% url 'search:dna_features' 'accession' feature.accession_id %}?assembly={{ assembly }}">{{ assembly }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
             </div>
         {% endif %}
     {% endfor %}
@@ -507,9 +516,19 @@
     }
 
     var dropdown = document.getElementById("dropdown");
-    dropdown.addEventListener("change", function() {
-        window.location.href = this.value;
-    });
+    dropdown.onchange = function() {
+        var url = this.value;
+        var selectedText = this.options[this.selectedIndex].text;
+        fetch(url, {redirect: 'manual'}).then(function(response) {
+            if (!response.ok) {
+                dropdown.options[dropdown.selectedIndex].text = selectedText + ' - Not Found';
+            } else {
+                window.location.href = url;
+            }
+        }).catch(function() {
+            dropdown.options[dropdown.selectedIndex].text = selectedText + ' - Not Found';
+        });
+    };
 
 </script>
 
