@@ -51,7 +51,6 @@ def check_tsv_response(response, feature):
 def check_bed_response(response, feature):
     assert response.status_code == 200
     response_tsv = response.content.decode("utf-8")
-    print(response_tsv)
 
     match feature.strand:
         case "+":

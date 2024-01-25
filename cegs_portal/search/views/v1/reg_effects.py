@@ -11,6 +11,7 @@ from cegs_portal.search.tsv_templates.v1.reg_effects import reg_effects as re_da
 from cegs_portal.search.tsv_templates.v1.reg_effects import (
     target_reg_effects as target_data,
 )
+from cegs_portal.search.tsv_templates.v1.reo_features import dnafeatures as f_tsv
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import DNAFeatureSearch, RegEffectSearch
 from cegs_portal.search.views.custom_views import (
@@ -60,6 +61,72 @@ class RegEffectView(ExperimentAccessMixin, MultiResponseFormatView):
         setattr(search_results, "tissue_types", tissue_types)
 
         return search_results
+
+
+class RegEffectFeaturesView(ExperimentAccessMixin, MultiResponseFormatView):
+    tsv_renderer = f_tsv
+
+    def get_experiment_accession_id(self):
+        try:
+            return RegEffectSearch.expr_id(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return RegEffectSearch.is_public(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return RegEffectSearch.is_archived(self.kwargs["re_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * text/tab-separated-values
+        GET queries used:
+            accept
+                * text/tab-separated-values
+        """
+
+        options = super().request_options(request)
+        options["tsv_format"] = request.GET.get("tsv_format", None)
+
+        return options
+
+    def get_data(self, _options, re_id):
+        raise NotImplementedError("RegEffectFeaturesView.get_data")
+
+
+class RegEffectSourcesView(RegEffectFeaturesView):
+    def get_tsv(self, request, options, data, re_id):
+        if is_bed6(options):
+            filename = f"{re_id}_regulatory_effect_observations_sources.bed"
+        else:
+            filename = f"{re_id}_regulatory_effect_observations_sources.tsv"
+
+        return super().get_tsv(request, options, data, filename=filename)
+
+    def get_data(self, _options, re_id):
+        return RegEffectSearch.sources_search(re_id), RegEffectSearch.id_search_basic(re_id)
+
+
+class RegEffectTargetsView(RegEffectFeaturesView):
+    def get_tsv(self, request, options, data, re_id):
+        if is_bed6(options):
+            filename = f"{re_id}_regulatory_effect_observations_targets.bed"
+        else:
+            filename = f"{re_id}_regulatory_effect_observations_targets.tsv"
+
+        return super().get_tsv(request, options, data, filename=filename)
+
+    def get_data(self, _options, re_id):
+        return RegEffectSearch.targets_search(re_id), RegEffectSearch.id_search_basic(re_id)
 
 
 class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
@@ -146,11 +213,11 @@ class SourceEffectsView(FeatureEffectsView):
     def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
         if self.request.user.is_anonymous:
-            reg_effects = RegEffectSearch.source_search_public(feature_id, options.get("sig_only"))
+            reg_effects = RegEffectSearch.feature_source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            reg_effects = RegEffectSearch.source_search(feature_id, options.get("sig_only"))
+            reg_effects = RegEffectSearch.feature_source_search(feature_id, options.get("sig_only"))
         else:
-            reg_effects = RegEffectSearch.source_search_with_private(
+            reg_effects = RegEffectSearch.feature_source_search_with_private(
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
@@ -173,11 +240,11 @@ class TargetEffectsView(FeatureEffectsView):
     def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
         if self.request.user.is_anonymous:
-            reg_effects = RegEffectSearch.target_search_public(feature_id, options.get("sig_only"))
+            reg_effects = RegEffectSearch.feature_target_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
-            reg_effects = RegEffectSearch.target_search(feature_id, options.get("sig_only"))
+            reg_effects = RegEffectSearch.feature_target_search(feature_id, options.get("sig_only"))
         else:
-            reg_effects = RegEffectSearch.target_search_with_private(
+            reg_effects = RegEffectSearch.feature_target_search_with_private(
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
