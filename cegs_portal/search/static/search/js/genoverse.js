@@ -405,15 +405,15 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
-        let effects = await fetch(`/search/regeffect/source/${feature.accession_id}?accept=application/json`).then(
-            (response) => {
-                if (!response.ok) {
-                    throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
-                }
-
-                return response.json();
+        let effects = await fetch(
+            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`
+        ).then((response) => {
+            if (!response.ok) {
+                throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
             }
-        );
+
+            return response.json();
+        });
         let i = 1;
         for (let reo of effects.object_list.slice(0, 5)) {
             if (reo.targets.length > 0) {
@@ -430,7 +430,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         if (effects.object_list.length > 5) {
             menu[
                 `Full Effect List`
-            ] = `<a target="_blank" href="/search/regeffect/source/${feature.accession_id}">All Associated Effects</a>`;
+            ] = `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
         }
 
         return menu;
