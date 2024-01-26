@@ -482,8 +482,6 @@
 
     if (assemblies.length == 1 && assemblies[0].type == "Gene") {
         let assembly = assemblies[0];
-        let geneLength = assembly.end - assembly.start;
-        let geneBuffer = Math.round(geneLength * .5);
 
         new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
@@ -492,8 +490,8 @@
             genome    : assembly.assembly, // see js/genomes/
             assembly  : assembly.assembly,
             chr       : assembly.chromo.replace("chr", ""),
-            start     : assembly.start - geneBuffer,
-            end       : assembly.end + geneBuffer,
+            start     : assembly.start - 1000,
+            end       : assembly.end + 1000,
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
