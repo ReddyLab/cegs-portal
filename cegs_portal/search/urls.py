@@ -48,6 +48,16 @@ urlpatterns = [
         name="combined_experiment_coverage",
     ),
     re_path(r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})$", views.v1.RegEffectView.as_view(), name="reg_effect"),
+    re_path(
+        r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})/sources$",
+        views.v1.RegEffectSourcesView.as_view(),
+        name="reg_effect_sources",
+    ),
+    re_path(
+        r"regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})/targets$",
+        views.v1.RegEffectTargetsView.as_view(),
+        name="reg_effect_targets",
+    ),
     path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
     path("sigdata", view=views.v1.SignificantExperimentDataView.as_view(), name="sigdata"),
     path("feature_sigreo", view=views.v1.FeatureSignificantREOsView.as_view(), name="feature_sigreo"),
@@ -83,5 +93,13 @@ urlpatterns = [
         csrf_exempt(views.v1.CombinedExperimentView.as_view()),
     ),
     re_path(r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})$", views.v1.RegEffectView.as_view()),
+    re_path(
+        r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})/sources$",
+        views.v1.RegEffectSourcesView.as_view(),
+    ),
+    re_path(
+        r"v1/regeffect/(?P<re_id>DCPREO[A-F0-9]{8,10})/targets$",
+        views.v1.RegEffectTargetsView.as_view(),
+    ),
     path("v1/feature_counts", views.v1.FeatureCountView.as_view()),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))

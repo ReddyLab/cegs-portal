@@ -276,6 +276,7 @@ def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(), DNAFeatureFactory()),
+        targets=(DNAFeatureFactory(),),
         facet_values=(direction,),
         public=public,
         archived=archived,

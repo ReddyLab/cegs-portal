@@ -24,7 +24,7 @@ def dnafeatures_bed6(features):
 
 
 def dnafeatures(data, options):
-    features = data
+    features, reo = data
     if is_bed6(options):
         return dnafeatures_bed6(features)
     tsv_data = []
@@ -39,6 +39,9 @@ def dnafeatures(data, options):
             "Distance",
             "Feature Type",
             "Accession ID",
+            "Effect Size (log2FC)",
+            "Direction",
+            "Significance",
             "Experiment",
         ]
     )
@@ -54,6 +57,9 @@ def dnafeatures(data, options):
             feature.closest_gene_distance,
             feature.get_feature_type_display(),
             feature.accession_id,
+            reo.effect_size,
+            reo.direction,
+            reo.significance,
             feature.experiment_accession_id,
         ]
 

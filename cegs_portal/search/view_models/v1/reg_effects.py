@@ -29,6 +29,21 @@ class RegEffectSearch:
         return reg_effect
 
     @classmethod
+    def id_search_basic(cls, re_id: str):
+        reg_effect = RegulatoryEffectObservation.objects.filter(accession_id=re_id).first()
+        return reg_effect
+
+    @classmethod
+    def sources_search(cls, re_id: str):
+        sources = DNAFeature.objects.filter(source_for__accession_id=re_id)
+        return sources
+
+    @classmethod
+    def targets_search(cls, re_id: str):
+        targets = DNAFeature.objects.filter(target_of__accession_id=re_id)
+        return targets
+
+    @classmethod
     def expr_id(cls, reo_id: str) -> Optional[str]:
         reo = RegulatoryEffectObservation.objects.filter(accession_id=reo_id).values_list(
             "experiment_accession_id", flat=True
@@ -58,7 +73,7 @@ class RegEffectSearch:
         return reo[0]
 
     @classmethod
-    def source_search(cls, source_id: str, sig_only: bool):
+    def feature_source_search(cls, source_id: str, sig_only: bool):
         reg_effects = (
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
@@ -77,17 +92,17 @@ class RegEffectSearch:
         return reg_effects
 
     @classmethod
-    def source_search_public(cls, *args, **kwargs):
-        return cls.source_search(*args, *kwargs).filter(public=True, archived=False)
+    def feature_source_search_public(cls, *args, **kwargs):
+        return cls.feature_source_search(*args, *kwargs).filter(public=True, archived=False)
 
     @classmethod
-    def source_search_with_private(cls, *args, **kwargs):
-        return cls.source_search(*args[:-1], *kwargs).filter(
+    def feature_source_search_with_private(cls, *args, **kwargs):
+        return cls.feature_source_search(*args[:-1], *kwargs).filter(
             Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
         )
 
     @classmethod
-    def target_search(cls, source_id: str, sig_only: bool):
+    def feature_target_search(cls, source_id: str, sig_only: bool):
         reg_effects = (
             cast(RegulatoryEffectObservationSet, RegulatoryEffectObservation.objects)
             .with_facet_values()
@@ -106,12 +121,12 @@ class RegEffectSearch:
         return reg_effects
 
     @classmethod
-    def target_search_public(cls, *args, **kwargs):
-        return cls.target_search(*args, *kwargs).filter(public=True, archived=False)
+    def feature_target_search_public(cls, *args, **kwargs):
+        return cls.feature_target_search(*args, *kwargs).filter(public=True, archived=False)
 
     @classmethod
-    def target_search_with_private(cls, *args, **kwargs):
-        return cls.target_search(*args[:-1], *kwargs).filter(
+    def feature_target_search_with_private(cls, *args, **kwargs):
+        return cls.feature_target_search(*args[:-1], *kwargs).filter(
             Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
         )
 
