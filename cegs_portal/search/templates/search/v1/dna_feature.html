@@ -322,9 +322,9 @@
             {% for feature in features %}
             {% if feature.closest_features.exists %}
                     {% for close_feature in feature.closest_features.all %}
-                    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
+                    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}?assembly={{close_feature.ref_genome}}">
                         <td>
-                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
+                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}?assembly={{close_feature.ref_genome}}">{{ close_feature.accession_id }}</a>
                         </td>
                         <td>{{ close_feature.get_feature_type_display }}</td>
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
@@ -439,8 +439,8 @@
             {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
-                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">
-                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
+                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}?assembly={{ child.ref_genome }}">
+                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}?assembly={{ child.ref_genome }}">{{ child.ensembl_id }}</a></td>
                             <td>{{ child.get_feature_type_display }}</td>
                             <td>{{ child.name }}</td>
                             <td>

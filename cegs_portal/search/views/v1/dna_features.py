@@ -16,6 +16,8 @@ from cegs_portal.search.views.custom_views import (
 from cegs_portal.utils.http_exceptions import Http400
 
 DEFAULT_TABLE_LENGTH = 20
+GRCH37 = "GRCh37"
+GRCH38 = "GRCh38"
 
 
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
@@ -76,31 +78,32 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
-        all_assemblies = ["GRCh37", "GRCh38"]
+        all_assemblies = [GRCH37, GRCH38]
         feature_assemblies = []
 
         for feature in data.all():
             feature_assemblies.append(feature.ref_genome)
-            sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
-            if sources.exists():
-                sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
-            else:
-                sources = None
+            if feature.ref_genome == options["assembly"]:
+                sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
+                if sources.exists():
+                    sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
+                else:
+                    sources = None
 
-            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
-            if targets.exists():
-                targets = {"nav_prefix": f"target_for_{feature.accession_id}"}
-            else:
-                targets = None
+                targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
+                if targets.exists():
+                    targets = {"nav_prefix": f"target_for_{feature.accession_id}"}
+                else:
+                    targets = None
 
-            reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
-            if reos.exists():
-                paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
-                reo_page = paginated_reos.page(1)
-            else:
-                reo_page = None
+                reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
+                if reos.exists():
+                    paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
+                    reo_page = paginated_reos.page(1)
+                else:
+                    reo_page = None
 
-            feature_reos.append((feature, sources, targets, reo_page))
+                feature_reos.append((feature, sources, targets, reo_page))
 
         def sort_key(feature_reo):
             feature = feature_reo[0]
