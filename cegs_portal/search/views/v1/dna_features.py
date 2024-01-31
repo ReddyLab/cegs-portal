@@ -83,6 +83,12 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
 
         for feature in data.all():
             feature_assemblies.append(feature.ref_genome)
+
+            if GRCH37 in feature_assemblies and GRCH38 not in feature_assemblies:
+                options["assembly"] = GRCH37
+            else:
+                options["assembly"] = GRCH38
+
             if feature.ref_genome != options["assembly"]:
                 continue
 
