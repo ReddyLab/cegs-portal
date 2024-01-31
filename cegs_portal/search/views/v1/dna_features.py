@@ -162,6 +162,13 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             },
         )
 
+    def get_json(self, request, options, data, id_type, feature_id):
+        if options["assembly"] is None:
+            return super().get_json(request, options, data, id_type, feature_id)
+
+        features = [feature for feature in data.all() if feature.ref_genome == options["assembly"]]
+        return super().get_json(request, options, features, id_type, feature_id)
+
     def get_data(self, options, id_type, feature_id):
         return DNAFeatureSearch.id_search(id_type, feature_id, None, feature_properties=options["feature_properties"])
 
