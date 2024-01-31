@@ -33,6 +33,7 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
         DIRECTION = "Direction"  # EffectObservationDirectionType
         RAW_P_VALUE = "Raw p value"  # float
         SIGNIFICANCE = "Significance"  # float
+        LOG_SIGNIFICANCE = "-log10 Significance"  # float
         EFFECT_SIZE = "Effect Size"  # float
         AVG_COUNTS_PER_MILLION = "Average Counts per Million"
 
@@ -84,6 +85,10 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
     @property
     def significance(self):
         return self.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value]
+
+    @property
+    def log_significance(self):
+        return self.facet_num_values[RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value]
 
     @property
     def raw_p_value(self):

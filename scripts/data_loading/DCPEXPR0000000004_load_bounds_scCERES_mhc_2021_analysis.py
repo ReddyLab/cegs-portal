@@ -1,4 +1,5 @@
 import csv
+import math
 from io import StringIO
 
 from psycopg2.extras import NumericRange
@@ -21,6 +22,8 @@ from .db import bulk_reo_save, reo_entry
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
+
+MIN_SIG = 1e-100
 
 
 # loading does buffered writes to the DB, with a buffer size of 10,000 annotations
@@ -126,6 +129,7 @@ def load_reg_effects(ceres_file, accession_ids, analysis, ref_genome, ref_genome
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
                 RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: -math.log10(max(significance, MIN_SIG)),
             }
 
             effects.write(

@@ -1,4 +1,5 @@
 import csv
+import math
 from io import StringIO
 
 from psycopg2.extras import NumericRange
@@ -36,6 +37,8 @@ TRIM_GENE_NAMES = [
     "ARMCX5-GPRASP2.1",
     "LINC01505.1",
 ]
+
+MIN_SIG = 1e-100
 
 
 @timer("Load Reg Effects")
@@ -127,6 +130,7 @@ def load_reg_effects(ceres_file, accession_ids, gene_name_map, analysis, ref_gen
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
                 RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: -math.log10(max(significance, MIN_SIG)),
             }
             effects.write(
                 reo_entry(
