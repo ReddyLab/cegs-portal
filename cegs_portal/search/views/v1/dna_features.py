@@ -80,6 +80,8 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         reo_page = None
         all_assemblies = [GRCH38, GRCH37]  # Ordered by "importance"
         feature_assemblies = []
+        matching_feature_assemblies = []
+        non_matching_feature_assemblies = []
 
         features = list(data.all())
         ref_genome_dict = {f.ref_genome: f for f in features}
@@ -92,6 +94,14 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         for feature in sorted_features:
             if options["assembly"] is not None and feature.ref_genome != options["assembly"]:
                 continue
+
+            for assembly in all_assemblies:
+                if assembly == feature.ref_genome:
+                    matching_feature_assemblies.append(assembly)
+                else:
+                    non_matching_feature_assemblies.append(assembly)
+
+            ordered_assemblies = matching_feature_assemblies + non_matching_feature_assemblies
 
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -140,11 +150,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             child_feature_type = first_child.get_feature_type_display()
 
         assembly_list = []
-        for assembly in all_assemblies:
+        for assembly in ordered_assemblies:
             if assembly in feature_assemblies:
                 assembly_list.append((assembly, "", assembly))
             else:
-                assembly_list.append((assembly, "disabled", f"{assembly} - Not Found"))
+                assembly_list.append((assembly, "Disabled", f"{assembly} - Not Found"))
 
         return super().get(
             request,
@@ -156,7 +166,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
-                "all_assemblies": assembly_list,
+                "all_assemblies": assembly_list[:2],
                 "id_type": id_type,
                 "feature_id": feature_id,
             },
