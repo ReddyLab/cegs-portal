@@ -62,7 +62,14 @@
                     {% if feature.name %}
                         <span>{{ feature.name }}</span>
                         {% if feature.ensembl_id %}
-                            <span class="text-2xl">({{ feature.ensembl_id }})<span class="text-lg"> {{feature.ref_genome}}</span></span>
+                            <span class="text-2xl">({{ feature.ensembl_id }}) </span>
+                                <span class="text-lg">
+                                    <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
+                                        {% for assembly in all_assemblies %}
+                                            <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </span>
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }} @
@@ -71,12 +78,6 @@
                         </a>
                     {% endif %}
                 </h1>
-                <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
-                    <option selected disabled>Select Reference genome</option>
-                    {% for assembly in all_assemblies %}
-                    <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
-                    {% endfor %}
-                </select>
             </div>
         {% endif %}
     {% endfor %}
