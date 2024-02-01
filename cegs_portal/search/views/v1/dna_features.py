@@ -16,6 +16,8 @@ from cegs_portal.search.views.custom_views import (
 from cegs_portal.utils.http_exceptions import Http400
 
 DEFAULT_TABLE_LENGTH = 20
+GRCH37 = "GRCh37"
+GRCH38 = "GRCh38"
 
 
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
@@ -76,11 +78,21 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
-        all_assemblies = ["GRCh37", "GRCh38"]
+        all_assemblies = [GRCH38, GRCH37]  # Ordered by "importance"
         feature_assemblies = []
 
-        for feature in data.all():
-            feature_assemblies.append(feature.ref_genome)
+        features = list(data.all())
+        ref_genome_dict = {f.ref_genome: f for f in features}
+        sorted_features = []
+        for ref_genome in all_assemblies:
+            if (feature := ref_genome_dict.get(ref_genome)) is not None:
+                sorted_features.append(feature)
+                feature_assemblies.append(feature.ref_genome)
+
+        for feature in sorted_features:
+            if options["assembly"] is not None and feature.ref_genome != options["assembly"]:
+                continue
+
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
                 sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
@@ -101,12 +113,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 reo_page = None
 
             feature_reos.append((feature, sources, targets, reo_page))
-
-        def sort_key(feature_reo):
-            feature = feature_reo[0]
-            return (feature.ref_genome, int(feature.ref_genome_patch or 0))
-
-        feature_reos.sort(key=sort_key, reverse=True)
 
         if len(feature_reos) == 0:
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
@@ -144,9 +150,9 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             request,
             options,
             {
-                "features": data,
+                "features": [first_feature],
                 "feature_name": "Genome Features",
-                "feature_reos": feature_reos,
+                "feature_reos": feature_reos[:1],
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
@@ -155,6 +161,13 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "feature_id": feature_id,
             },
         )
+
+    def get_json(self, request, options, data, id_type, feature_id):
+        if options["assembly"] is None:
+            return super().get_json(request, options, data, id_type, feature_id)
+
+        features = [feature for feature in data.all() if feature.ref_genome == options["assembly"]]
+        return super().get_json(request, options, features, id_type, feature_id)
 
     def get_data(self, options, id_type, feature_id):
         return DNAFeatureSearch.id_search(id_type, feature_id, None, feature_properties=options["feature_properties"])

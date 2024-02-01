@@ -41,7 +41,7 @@ class DNAFeatureSearch:
         cls,
         id_type: str,
         feature_id: str,
-        assembly: Optional[str],
+        assembly: Optional[str] = None,
         feature_properties: Optional[list[str]] = None,
         distinct=True,
     ) -> QuerySet[DNAFeature]:

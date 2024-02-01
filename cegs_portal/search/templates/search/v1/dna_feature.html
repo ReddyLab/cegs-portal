@@ -439,8 +439,8 @@
             {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
-                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">
-                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}">{{ child.ensembl_id }}</a></td>
+                        <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}?assembly={{ feature.ref_genome }}">
+                            <td><a href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}?assembly={{ feature.ref_genome }}">{{ child.ensembl_id }}</a></td>
                             <td>{{ child.get_feature_type_display }}</td>
                             <td>{{ child.name }}</td>
                             <td>
