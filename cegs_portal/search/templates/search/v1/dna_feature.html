@@ -490,8 +490,8 @@
             genome    : assembly.assembly, // see js/genomes/
             assembly  : assembly.assembly,
             chr       : assembly.chromo.replace("chr", ""),
-            start     : assembly.start,
-            end       : assembly.end,
+            start     : assembly.start - 1000,
+            end       : assembly.end + 1000,
             plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
             useHash   : true,
             hideEmptyTracks: false,
