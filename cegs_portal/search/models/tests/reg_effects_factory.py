@@ -20,6 +20,7 @@ class RegEffectFactory(DjangoModelFactory):
         RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: -0.0660384670056446,
         RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 3.19229500470051e-06,
         RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: 0.000427767530629869,
+        RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: 3.3687921833,
     }
 
     @classmethod

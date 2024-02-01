@@ -67,7 +67,7 @@ RUN rm -rf /var/lib/apt/lists/*
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
