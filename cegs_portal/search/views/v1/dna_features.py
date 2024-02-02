@@ -91,6 +91,21 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
 
+                for assembly in all_assemblies:
+                    if assembly == feature.ref_genome:
+                        matching_feature_assemblies.append(assembly)
+                    else:
+                        non_matching_feature_assemblies.append(assembly)
+
+                ordered_assemblies = matching_feature_assemblies + non_matching_feature_assemblies
+
+                assembly_list = []
+                for assembly in ordered_assemblies:
+                    if assembly in feature_assemblies:
+                        assembly_list.append((assembly, "", assembly))
+                    else:
+                        assembly_list.append((assembly, "Disabled", f"{assembly} - Not Found"))
+
         for feature in sorted_features:
             if options["assembly"] is not None and feature.ref_genome != options["assembly"]:
                 continue
@@ -148,13 +163,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
 
             first_child = first_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
-
-        assembly_list = []
-        for assembly in ordered_assemblies:
-            if assembly in feature_assemblies:
-                assembly_list.append((assembly, "", assembly))
-            else:
-                assembly_list.append((assembly, "Disabled", f"{assembly} - Not Found"))
 
         return super().get(
             request,

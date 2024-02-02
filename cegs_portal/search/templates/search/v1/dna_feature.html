@@ -63,27 +63,18 @@
                         <span>{{ feature.name }}</span>
                         {% if feature.ensembl_id %}
                             <span class="text-2xl">({{ feature.ensembl_id }}) </span>
-                                <span class="text-lg">
-                                    <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
-                                        {% for assembly in all_assemblies %}
-                                            <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </span>
                         {% endif %}
                     {% else %}
                         {{ feature.get_feature_type_display }} @
                         <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
                             <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                         </a>
-                        <span class="text-lg">
-                            <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
-                                {% for assembly in all_assemblies %}
-                                    <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
-                                {% endfor %}
-                            </select>
-                        </span>
                     {% endif %}
+                    <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
+                        {% for assembly in all_assemblies %}
+                            <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+                        {% endfor %}
+                    </select>
                 </h1>
             </div>
         {% endif %}
