@@ -226,6 +226,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                     "dist": options["dist"],
                     "feature_types": options["feature_types"],
                     "assembly": options["assembly"],
+                    "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
                 },
             )
 
@@ -239,6 +240,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 "dist": options["dist"],
                 "feature_types": options["feature_types"],
                 "assembly": options["assembly"],
+                "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
             },
         )
 

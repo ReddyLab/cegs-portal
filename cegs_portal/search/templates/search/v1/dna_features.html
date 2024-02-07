@@ -4,6 +4,35 @@
 {% block title %}{{ feature_name }}{% endblock %}
 
 {% block css %}
+<style>
+    #feature-dist {
+        border-radius: 0.5rem;
+        height: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .centered-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .svg-link-arrow {
+        font-size: 14pt;
+    }
+
+    .checkbox-divider:not(:last-child) {
+        border-right: 1px solid #000;
+        padding-right: 10px;
+        margin-right: 10px;
+    }
+
+    .htmx-indicator {
+        position: absolute;
+        margin-left: 8px;
+        margin-top: 10px;
+    }
+</style>
 {{ block.super }}
 <link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 {% endblock %}
@@ -17,11 +46,60 @@
 {% block content %}
 <div>
     <div class="title-separator"></div>
-    <div class="text-2xl font-bold">{{ feature_name }}</div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2">
+                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path
+                    d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
+                />
+            </svg>
+            DNA Elements Location Search
+        </h1>
+    </div>
     <div>
-        <div class="title-separator"></div>
-        <div class="p-2" id="genoverse"></div>
-        <div class="title-separator"></div>
+    <div class="title-separator"></div>
+    <div class="flex flex-row justify-center" id="genoverse-container">
+        <div id="genoverse"></div>
+    </div>
+    <div class="title-separator"></div>
+    <div class="container centered-container min-w-full">
+        <a name="near_features"></a>
+        <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+            <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                </svg>
+                Find Nearby DNA Features
+            </div>
+        </div>
+        <form hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+            <div class="title-separator min-w-full"></div>
+            <fieldset name="facetfield">
+                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                </legend>
+                <div class="flex flex-row flex-wrap gap-1"
+                    aria-labelledby="facetHeader{{ forloop.counter }}">
+                    {% for feature_type in dna_feature_types %}
+                    <div class="checkbox-divider">
+                        <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                        <label for="{{ feature_type }}">{{ feature_type }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="title-separator min-w-full"></div>
+            <label for="feature-dist">Feature Distance in base pairs:</label>
+            <input type="text" name="dist" value="1000" />
+            <input
+                type="submit"
+                class="search-button border-2 border-gray-300 h-10 text-sm"
+                value="Find Features"
+            />
+            <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
+        </form>
+    </div>
         <div id="features-table">
         {% include "search/v1/partials/_features.html" with data=features no_data="No DNA Features Found" %}
         </div>
