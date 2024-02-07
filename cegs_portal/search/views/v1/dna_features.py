@@ -80,43 +80,33 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         reo_page = None
         all_assemblies = [GRCH38, GRCH37]  # Ordered by "importance"
         feature_assemblies = []
-        matching_feature_assemblies = []
-        non_matching_feature_assemblies = []
 
         features = list(data.all())
         ref_genome_dict = {f.ref_genome: f for f in features}
         sorted_features = []
+        assembly_list = []
+        selected = False
         for ref_genome in all_assemblies:
             if (feature := ref_genome_dict.get(ref_genome)) is not None:
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
 
-                for assembly in all_assemblies:
-                    if assembly == feature.ref_genome:
-                        matching_feature_assemblies.append(assembly)
-                    else:
-                        non_matching_feature_assemblies.append(assembly)
+                # We want to mark one of the enabled ref genomes as selected. If no assembly query parameter
+                # has been passed in, we mark the first ref genome that exists for this feature.
+                # If there is an assembly query parameter we mark that ref genome as selected.
+                if (options["assembly"] is None and not selected) or (options["assembly"] == ref_genome):
+                    assembly_list.append((ref_genome, "selected", ref_genome))
+                    selected = True
+                else:
+                    assembly_list.append((ref_genome, "", ref_genome))
 
-                ordered_assemblies = matching_feature_assemblies + non_matching_feature_assemblies
-
-                assembly_list = []
-                for assembly in ordered_assemblies:
-                    if assembly in feature_assemblies:
-                        assembly_list.append((assembly, "", assembly))
-                    else:
-                        assembly_list.append((assembly, "Disabled", f"{assembly} - Not Found"))
+            else:
+                # This ref genome doesn't exist for this feature, so we disable it in the dropdown.
+                assembly_list.append((ref_genome, "disabled", f"{ref_genome} - Not Found"))
 
         for feature in sorted_features:
             if options["assembly"] is not None and feature.ref_genome != options["assembly"]:
                 continue
-
-            for assembly in all_assemblies:
-                if assembly == feature.ref_genome:
-                    matching_feature_assemblies.append(assembly)
-                else:
-                    non_matching_feature_assemblies.append(assembly)
-
-            ordered_assemblies = matching_feature_assemblies + non_matching_feature_assemblies
 
             sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
             if sources.exists():
@@ -174,7 +164,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
-                "all_assemblies": assembly_list[:2],
+                "all_assemblies": assembly_list,
                 "id_type": id_type,
                 "feature_id": feature_id,
             },
