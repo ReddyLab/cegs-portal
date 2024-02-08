@@ -55,6 +55,11 @@
             </svg>
             {{ loc.chr|intcomma }}: {{loc.start|intcomma}} - {{ loc.end|intcomma }}
         </h1>
+        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+            {% for assembly in all_assemblies %}
+                <option value="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+            {% endfor %}
+        </select>
     </div>
     <div>
     <div class="title-separator"></div>
@@ -148,6 +153,12 @@
                 Genoverse.Track.Gene,
             ]
         });
+
+
+        var dropdown = document.getElementById("dropdown");
+        dropdown.addEventListener("change", function() {
+         window.location.href = this.value;
+     });
 
     </script>
 
