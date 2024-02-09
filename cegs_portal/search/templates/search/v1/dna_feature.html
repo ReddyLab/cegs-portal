@@ -9,40 +9,6 @@
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 {% endblock %}
 
-{% block css %}
-{{ block.super }}
-<style>
-    #feature-dist {
-        border-radius: 0.5rem;
-        height: 2.5rem;
-        margin-bottom: 10px;
-    }
-
-    .centered-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .svg-link-arrow {
-        font-size: 14pt;
-    }
-
-    .checkbox-divider:not(:last-child) {
-        border-right: 1px solid #000;
-        padding-right: 10px;
-        margin-right: 10px;
-    }
-
-    .htmx-indicator {
-        position: absolute;
-        margin-left: 8px;
-        margin-top: 10px;
-    }
-
-</style>
-{% endblock %}
-
 {% block title %}{{ feature_name }}{% endblock %}
 
 {% block content %}
@@ -379,7 +345,7 @@
                         </div>
                     </fieldset>
                     <div class="title-separator min-w-full"></div>
-                    <label for="feature-dist">Feature Distance in base pairs:</label>
+                    <label>Feature Distance in base pairs:</label>
                     <input type="text" name="dist" value="1000" />
                     <input
                         type="submit"
