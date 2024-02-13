@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% load humanize %}
 
 {% block title %}{{ feature_name }}{% endblock %}
 
@@ -17,11 +18,60 @@
 {% block content %}
 <div>
     <div class="title-separator"></div>
-    <div class="text-2xl font-bold">{{ feature_name }}</div>
+    <div class="flex justify-center items-center">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
+                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+            </svg>
+            {{ loc.chr|intcomma }}: {{loc.start|intcomma}} - {{ loc.end|intcomma }}
+        </h1>
+        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+            {% for assembly in all_assemblies %}
+                <option value="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <div>
-        <div class="title-separator"></div>
-        <div class="p-2" id="genoverse"></div>
-        <div class="title-separator"></div>
+    <div class="title-separator"></div>
+    <div class="flex flex-row justify-center" id="genoverse-container">
+        <div id="genoverse"></div>
+    </div>
+    <div class="title-separator"></div>
+    <div class="container centered-container min-w-full">
+        <a name="near_features"></a>
+        <div class="table-title flex items-center justify-between relative">
+            <div class="flex items-center justify-center flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
+                    <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                </svg>
+                Filter DNA Features
+            </div>
+        </div>
+        <form hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+            <div class="title-separator min-w-full"></div>
+            <fieldset name="facetfield">
+                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                </legend>
+                <div class="flex flex-row flex-wrap gap-1"
+                    aria-labelledby="facetHeader{{ forloop.counter }}">
+                    {% for feature_type in dna_feature_types %}
+                    <div class="checkbox-divider">
+                        <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                        <label for="{{ feature_type }}">{{ feature_type }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="title-separator min-w-full"></div>
+            <input
+                type="submit"
+                class="search-button border-2 border-gray-300 h-10 text-sm"
+                value="Filter Features"
+            />
+            <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
+        </form>
+    </div>
         <div id="features-table">
         {% include "search/v1/partials/_features.html" with data=features no_data="No DNA Features Found" %}
         </div>
@@ -73,6 +123,11 @@
                 Genoverse.Track.Scalebar,
                 Genoverse.Track.Gene,
             ]
+        });
+
+        var dropdown = document.getElementById("dropdown");
+        dropdown.addEventListener("change", function () {
+            window.location.href = this.value;
         });
 
     </script>

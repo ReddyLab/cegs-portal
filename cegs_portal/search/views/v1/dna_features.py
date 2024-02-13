@@ -18,6 +18,7 @@ from cegs_portal.utils.http_exceptions import Http400
 DEFAULT_TABLE_LENGTH = 20
 GRCH37 = "GRCh37"
 GRCH38 = "GRCh38"
+ALL_ASSEMBLIES = [GRCH38, GRCH37]  # Ordered by "importance"
 
 
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
@@ -78,15 +79,14 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, id_type, feature_id):
         feature_reos = []
         reo_page = None
-        all_assemblies = [GRCH38, GRCH37]  # Ordered by "importance"
         feature_assemblies = []
-
         features = list(data.all())
         ref_genome_dict = {f.ref_genome: f for f in features}
         sorted_features = []
         assembly_list = []
         selected = False
-        for ref_genome in all_assemblies:
+
+        for ref_genome in ALL_ASSEMBLIES:
             if (feature := ref_genome_dict.get(ref_genome)) is not None:
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
@@ -208,7 +208,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * int
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", None)
+        options["assembly"] = request.GET.get("assembly", GRCH38)
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
@@ -223,6 +223,8 @@ class DNAFeatureLoc(MultiResponseFormatView):
     def get(self, request, options, data, chromo, start, end):
         features_paginator = Paginator(data, options["per_page"])
         feature_page = features_paginator.get_page(options["page"])
+        assembly_list = []
+        selected = False
 
         if request.headers.get("HX-Request"):
             return render(
@@ -237,6 +239,13 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 },
             )
 
+        for ref_genome in ALL_ASSEMBLIES:
+            if (options["assembly"] is None and not selected) or (options["assembly"] == ref_genome):
+                assembly_list.append((ref_genome, "selected", ref_genome))
+                selected = True
+            else:
+                assembly_list.append((ref_genome, "", ref_genome))
+
         return super().get(
             request,
             options,
@@ -247,6 +256,8 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 "dist": options["dist"],
                 "feature_types": options["feature_types"],
                 "assembly": options["assembly"],
+                "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
+                "all_assemblies": assembly_list,
             },
         )
 
