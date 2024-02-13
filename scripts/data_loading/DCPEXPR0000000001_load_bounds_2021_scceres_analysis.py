@@ -1,4 +1,5 @@
 import csv
+import math
 
 from django.db import transaction
 from psycopg2.extras import NumericRange
@@ -18,6 +19,8 @@ from utils.experiment import AnalysisMetadata
 
 DIR_FACET = Facet.objects.get(name="Direction")
 DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
+
+MIN_SIG = 1e-100
 
 
 #
@@ -123,6 +126,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
                 RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: effect_size,
                 RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: float(line["p_val"]),
                 RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: significance,
+                RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: -math.log10(max(significance, MIN_SIG)),
             },
         )
         targets.append(target)

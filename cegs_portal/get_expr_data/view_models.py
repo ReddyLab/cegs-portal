@@ -306,7 +306,7 @@ def retrieve_experiment_data(
         for i in inputs:
             i.append(NumericRange(*facets.effect_size_range))
     if facets.sig_range is not None:
-        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
+        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> '-log10 Significance')::numeric"
         for i in inputs:
             i.append(NumericRange(*facets.sig_range))
 

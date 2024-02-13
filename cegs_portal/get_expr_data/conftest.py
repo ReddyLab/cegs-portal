@@ -95,6 +95,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
             RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: 2.0760384670056446,
             RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 7.19229500470051e-06,
             RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: 0.057767530629869,
+            RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: 1.2383161967,
         },
         public=public,
         archived=archived,

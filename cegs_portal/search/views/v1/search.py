@@ -160,11 +160,9 @@ def parse_source_target_data_html(reo_data):
     }
 
 
-def feature_redirect(feature, assembly_name):
+def feature_redirect(feature):
     id_type, feature_id = feature
     url = reverse("search:dna_features", args=[id_type, feature_id])
-    if assembly_name is not None:
-        url = f"{url}?assembly={assembly_name}"
     raise Http303("Specific feature Id", location=url)
 
 
@@ -237,7 +235,7 @@ class SearchView(MultiResponseFormatView):
 
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
-                feature_redirect(query_terms[0], assembly_name)
+                feature_redirect(query_terms[0])
 
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_ids_search_public(query_terms, assembly_name)
