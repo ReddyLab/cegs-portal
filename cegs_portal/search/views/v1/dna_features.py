@@ -18,7 +18,7 @@ from cegs_portal.utils.http_exceptions import Http400
 DEFAULT_TABLE_LENGTH = 20
 GRCH37 = "GRCh37"
 GRCH38 = "GRCh38"
-all_assemblies = [GRCH38, GRCH37]  # Ordered by "importance"
+ALL_ASSEMBLIES = [GRCH38, GRCH37]  # Ordered by "importance"
 
 
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
@@ -83,7 +83,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         features = list(data.all())
         ref_genome_dict = {f.ref_genome: f for f in features}
         sorted_features = []
-        for ref_genome in all_assemblies:
+        for ref_genome in ALL_ASSEMBLIES:
             if (feature := ref_genome_dict.get(ref_genome)) is not None:
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
@@ -139,7 +139,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             child_feature_type = first_child.get_feature_type_display()
 
         assembly_list = []
-        for assembly in all_assemblies:
+        for assembly in ALL_ASSEMBLIES:
             if assembly in feature_assemblies:
                 assembly_list.append((assembly, "", assembly))
             else:
@@ -230,7 +230,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 },
             )
 
-        for ref_genome in all_assemblies:
+        for ref_genome in ALL_ASSEMBLIES:
             if (options["assembly"] is None and not selected) or (options["assembly"] == ref_genome):
                 assembly_list.append((ref_genome, "selected", ref_genome))
                 selected = True
