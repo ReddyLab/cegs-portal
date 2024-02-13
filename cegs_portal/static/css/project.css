@@ -953,6 +953,10 @@ input[type="submit"], input[type="button"], button {
   position: relative;
 }
 
+.right-0 {
+  right: 0px;
+}
+
 .right-2 {
   right: 0.5rem;
 }
@@ -1205,6 +1209,12 @@ input[type="submit"], input[type="button"], button {
   max-width: -webkit-max-content;
   max-width: -moz-max-content;
   max-width: max-content;
+}
+
+.flex-1 {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0%;
+          flex: 1 1 0%;
 }
 
 .flex-none {
