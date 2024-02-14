@@ -16,7 +16,6 @@
 <div>
     <div class="title-separator"></div>
     {% for feature, sources, targets, reo in feature_reos %}
-        {% if forloop.first %}
             <div style="display: flex; justify-content: space-between">
                 <h1>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1.5">
@@ -43,7 +42,6 @@
                     </select>
                 </h1>
             </div>
-        {% endif %}
     {% endfor %}
 
     <div class="title-separator"></div>
@@ -59,13 +57,12 @@
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
         {% for feature, sources, targets, reo in feature_reos %}
-            {% if feature.feature_subtype and forloop.first %}
+            {% if feature.feature_subtype %}
                 <th>Feature Subtype</th>
             {% endif %}
         {% endfor %}
             </tr>
             {% for feature, sources, targets, reo in feature_reos %}
-            {% if forloop.first %}
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
                 <td>
@@ -81,7 +78,6 @@
                 <td>{{ feature.feature_subtype|remove_underscores }}</td>
                 {% endif %}
             </tr>
-            {% endif %}
             {% endfor %}
         </table>
     </div>
