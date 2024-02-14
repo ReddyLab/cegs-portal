@@ -323,7 +323,6 @@
                     </div>
                 </div>
                 {% for feature, sources, targets, reo in feature_reos %}
-                {% if forloop.first %}
                 <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper%}?assembly={{ feature.ref_genome }}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                     <div class="title-separator min-w-full"></div>
                     <fieldset name="facetfield">
@@ -351,7 +350,6 @@
                 </form>
             </div>
             <div id="features-table"></div>
-        {% endif %}
         {% endfor %}
         </div>
         {% endif %}
@@ -365,7 +363,7 @@
         >
             <!-- Children -->
             {% for feature, sources, targets, reo in feature_reos %}
-            {% if feature.children.exists and forloop.first %}
+            {% if feature.children.exists %}
             <div class="mb-8 min-w-full">
                 <div class="container">
                     <a name="children-{{ feature.accession_id }}"></a>
