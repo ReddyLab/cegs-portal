@@ -168,78 +168,166 @@
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    <div class="flex flex-row items-start gap-x-10 min-w-full">
-        <div class="flex flex-col gap-4 flex-none">
-            <div id="facets" class="container">
-                <div class="w-60">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
-                            <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
-                        </svg>
-                        <div class="text-xl font-bold text-slate-500">Filter Facets</div>
-                    </div>
-                    <div class="title-separator"></div>
-                    {% for facet in facets.all %}
-                        <fieldset name="facetfield">
-                            <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
-                            data-te-collapse-init
-
-                            data-te-target="#facetCollapse{{ forloop.counter }}"
-                            aria-expanded="true"
-                            aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                            <div
-                                class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
-                                <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="h-6 w-6">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    <div class="min-w-full">
+        <div class="flex flex-column justify-center">
+            <ul
+                class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+                role="tablist"
+                data-te-nav-ref
+            >
+                <li role="presentation">
+                    <a
+                        href="#tabs-coverage"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                        id="tabs-coverage-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-coverage"
+                        data-te-nav-active
+                        role="tab"
+                        aria-controls="tabs-coverage"
+                        aria-selected="true"
+                        >Region Summary <i class="bi bi-layers-half"></i
+                    ></a>
+                </li>
+                <li role="presentation">
+                    <a
+                        href="#tabs-details"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                        id="tabs-details-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-details"
+                        role="tab"
+                        aria-controls="tabs-details"
+                        aria-selected="false"
+                        >View Region Elements <i class="bi bi-file-text"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div
+            class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-coverage"
+            role="tabpanel"
+            aria-labelledby="tabs-coverage-tab"
+            data-te-tab-active
+        >
+            <div class="flex flex-row items-start gap-x-10 min-w-full">
+                <div class="flex flex-col gap-4 flex-none">
+                    <div id="facets" class="container">
+                        <div class="w-60">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
+                                    <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
+                                <div class="text-xl font-bold text-slate-500">Filter Facets</div>
                             </div>
-                            </legend>
-                            <div class="flex flex-row flex-wrap gap-1"
-                                id="facetCollapse{{ forloop.counter }}"
-                                data-te-collapse-item
-                                data-te-collapse-show
-                                aria-labelledby="facetHeader{{ forloop.counter }}">
-                                {% for value in facet.values.all %}
-                                <div>
-                                    <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
-                                    <label for="{{ value.id }}">{{ value.value }}</label>
-                                </div>
-                                {% endfor %}
+                            <div class="title-separator"></div>
+                            {% for facet in facets.all %}
+                                <fieldset name="facetfield">
+                                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
+                                    data-te-collapse-init
+
+                                    data-te-target="#facetCollapse{{ forloop.counter }}"
+                                    aria-expanded="true"
+                                    aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                                    <div
+                                        class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                        <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="h-6 w-6">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                    </legend>
+                                    <div class="flex flex-row flex-wrap gap-1"
+                                        id="facetCollapse{{ forloop.counter }}"
+                                        data-te-collapse-item
+                                        data-te-collapse-show
+                                        aria-labelledby="facetHeader{{ forloop.counter }}">
+                                        {% for value in facet.values.all %}
+                                        <div>
+                                            <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
+                                            <label for="{{ value.id }}">{{ value.value }}</label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </fieldset>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if logged_in %}
+                    <div class="container">
+                        <form name="dataDownloadForm">
+                            <div>
+                                <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
+                                <div class="text-sm">Includes all observations, filtered by selected facets</div>
                             </div>
-                        </fieldset>
-                    {% endfor %}
+                        </form>
+                        <div id="dataDownloadLink" class="mt-5"></div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    {% if feature_counts %}
+                    <div class="container" id="feature-counts">
+                    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+                    </div>
+                    {% endif %}
+                    <div class="container basis-3/4" id="sig-reg-effects">
+                    {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+                    </div>
                 </div>
             </div>
-            {% if logged_in %}
-            <div class="container">
-                <form name="dataDownloadForm">
-                    <div>
-                        <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
-                        <div class="text-sm">Includes all observations, filtered by selected facets</div>
-                    </div>
-                </form>
-                <div id="dataDownloadLink" class="mt-5"></div>
-            </div>
-            {% endif %}
         </div>
-
-        <div class="flex flex-col gap-4">
-            {% if feature_counts %}
-            <div class="container" id="feature-counts">
-            {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+        <div
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-details"
+            role="tabpanel"
+            aria-labelledby="tabs-details-tab"
+        >
+            <div class="container centered-container min-w-full">
+                <a name="near_features"></a>
+                <div class="table-title flex items-center justify-between relative">
+                    <div class="flex items-center justify-center flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
+                            <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                        </svg>
+                        View DNA Features
+                    </div>
+                </div>
+                <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                    <div class="title-separator min-w-full"></div>
+                    <fieldset name="facetfield">
+                        <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                        </legend>
+                        <div class="flex flex-row flex-wrap gap-1"
+                            aria-labelledby="facetHeader{{ forloop.counter }}">
+                            {% for feature_type in dna_feature_types %}
+                            <div class="checkbox-divider">
+                                <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                                <label for="{{ feature_type }}">{{ feature_type }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    <div class="title-separator min-w-full"></div>
+                    <input
+                        type="submit"
+                        class="search-button border-2 border-gray-300 h-10 text-sm"
+                        value="View Features"
+                    />
+                    <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
+                </form>
             </div>
-            {% endif %}
-            <div class="container basis-3/4" id="sig-reg-effects">
-            {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+                <div id="features-table"></div>
             </div>
         </div>
     </div>

@@ -279,6 +279,7 @@ class SearchView(MultiResponseFormatView):
             "feature_counts": feature_counts,
             "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
             "sig_reo_count_gene": DNAFeatureType.GENE.value,
+            "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
         }
 
 
