@@ -84,7 +84,7 @@ def source_ccre_locs(closest_ccre_filename, ref_genome):
     ccres = defaultdict(list)
     with open(closest_ccre_filename, "r") as closest_ccres:
         ccre_reader = csv.reader(closest_ccres, delimiter="\t")
-        for source_chr, source_start, source_end, ccre_chr, ccre_start, ccre_end, _ in ccre_reader:
+        for source_chr, source_start, source_end, ccre_chr, ccre_start, ccre_end in ccre_reader:
             source_start = int(source_start)
             source_end = int(source_end)
             ccre_start = int(ccre_start)
