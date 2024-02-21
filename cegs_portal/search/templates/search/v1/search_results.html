@@ -177,14 +177,14 @@
             >
                 <li role="presentation">
                     <a
-                        href="#tabs-coverage"
+                        href="#tabs-summary"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-coverage-tab"
+                        id="tabs-summary-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-coverage"
+                        data-te-target="#tabs-summary"
                         data-te-nav-active
                         role="tab"
-                        aria-controls="tabs-coverage"
+                        aria-controls="tabs-summary"
                         aria-selected="true"
                         >Effect Summary
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
@@ -198,13 +198,13 @@
                 </li>
                 <li role="presentation">
                     <a
-                        href="#tabs-details"
+                        href="#tabs-effects"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-details-tab"
+                        id="tabs-effects-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-details"
+                        data-te-target="#tabs-effects"
                         role="tab"
-                        aria-controls="tabs-details"
+                        aria-controls="tabs-effects"
                         aria-selected="false"
                         >All Effects
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
@@ -217,13 +217,13 @@
                 </li>
                 <li role="presentation">
                     <a
-                        href="#tabs-details"
+                        href="#tabs-features"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
-                        id="tabs-details-tab"
+                        id="tabs-features-tab"
                         data-te-toggle="pill"
-                        data-te-target="#tabs-details"
+                        data-te-target="#tabs-features"
                         role="tab"
-                        aria-controls="tabs-details"
+                        aria-controls="tabs-features"
                         aria-selected="false"
                         >DNA Features <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -241,9 +241,9 @@
         </div>
         <div
             class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-coverage"
+            id="tabs-summary"
             role="tabpanel"
-            aria-labelledby="tabs-coverage-tab"
+            aria-labelledby="tabs-summary-tab"
             data-te-tab-active
         >
             <div class="flex flex-row items-start gap-x-10 min-w-full">
@@ -322,11 +322,21 @@
                 </div>
             </div>
         </div>
+
+        <div
+        class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-effects"
+        role="tabpanel"
+        aria-labelledby="tabs-effects-tab"
+        data-te-tab-active
+    >
+        </div>
+
         <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-            id="tabs-details"
+            id="tabs-features"
             role="tabpanel"
-            aria-labelledby="tabs-details-tab"
+            aria-labelledby="tabs-features-tab"
         >
             <div class="container centered-container min-w-full">
                 <a name="near_features"></a>
