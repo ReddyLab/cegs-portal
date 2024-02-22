@@ -350,7 +350,7 @@
                 </div>
                 <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                     <div class="title-separator min-w-full"></div>
-                    <fieldset name="facetfield">
+                    <fieldset name="feature_type_field">
                         <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                         </legend>
                         <div class="flex flex-row flex-wrap gap-1"
@@ -384,12 +384,18 @@
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
-        import { STATE_DHS_EFFECT, STATE_FACETS, STATE_REGION } from "{% static 'search/js/search_results/consts.js' %}";
+        import { STATE_DHS_EFFECT, STATE_FACETS, STATE_REGION, STATE_FEATURE_TYPES } from "{% static 'search/js/search_results/consts.js' %}";
 
         let searchURL = function(facets) {
             let enabledFacets = facets.map(id => `facet=${id}`)
                                   .join('&')
             return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        }
+
+        let searchFeatureTypeURL = function(feature_types) {
+            let enabledFeature = feature_types.map(id => `feature_type=${id}`)
+                                  .join('&')
+            return `{% url 'search:results' %}?query={{ query }}${enabledFeature !== '' ? '&' + enabledFeature : ''}`;
         }
 
         let state = new State({
@@ -399,6 +405,7 @@
                 end: {{ region.range.upper }}
             },
             [STATE_FACETS]: [],
+            [STATE_FEATURE_TYPES]: [],
             [STATE_DHS_EFFECT]: null
         });
 
@@ -408,12 +415,20 @@
         }
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
+        const featureCheckboxes = document.querySelectorAll("[name=feature_type_field] input[type=checkbox]");
 
         const updateFacetState = function() {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
                                      .map(i => i.id);
             state.updateSharedState(STATE_FACETS, checkedFacets);
+        }
+
+        const updateFeatureState = function() {
+            let checkedFeatures = Array.from(featureCheckboxes)
+                                     .filter(i => i.checked)
+                                     .map(i => i.id);
+            state.updateSharedState(STATE_FEATURE_TYPES, checkedFeatures);
         }
 
         let queryParams = new URLSearchParams(window.location.search);
@@ -426,6 +441,17 @@
         });
 
         updateFacetState();
+
+        let queryParam = new URLSearchParams(window.location.search);
+        let searchFeatures = queryParam.getAll("feature_type");
+        featureCheckboxes.forEach(checkbox => {
+            checkbox.checked = searchFeatures.includes(checkbox.id);
+            checkbox.addEventListener("change", _ => {
+                updateFeatureState();
+            });
+        });
+
+        updateFeatureState();
 
         // Update the chromosome region at the top of the page
         state.addCallback(STATE_REGION, (s, key) => {
@@ -462,13 +488,19 @@
 
         state.addCallback(STATE_REGION, (s, key) => {
             let region = state.g(STATE_REGION);
+            let featureTypes = state.g(STATE_FEATURE_TYPES);
             let form = document.querySelector('form[hx-get]');
             let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
+
+            if (featureTypes.length > 0) {
+                url += `?feature_type=${featureTypes.join('&feature_type=')}`;
+            }
 
             form.setAttribute('hx-get', url);
 
             htmx.ajax('GET', url, {target: '#features-table'});
         });
+
 
         {% if region and assembly %}
         // Show the browser
