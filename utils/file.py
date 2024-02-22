@@ -35,7 +35,7 @@ class FileMetadata:
             experiment=experiment,
             data_file_info=experiment_data_file,
             analysis=analysis,
-            filename=self.filename,
+            filename=os.path.basename(self.filename),
             misc=self.misc,
             url=self.url,
         )
