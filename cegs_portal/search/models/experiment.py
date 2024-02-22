@@ -86,7 +86,10 @@ class ExperimentDataFile(models.Model):
 class ExperimentDataFileInfo(models.Model):
     ref_genome = models.CharField(max_length=20, blank=True)
     ref_genome_patch = models.CharField(max_length=10, null=True, blank=True)
-    significance_measure = models.CharField(max_length=2048, blank=True)
+
+    # significance_measure should probably be removed. This column in the input files will be standardized
+    # so there's no need to keep track of it.
+    significance_measure = models.CharField(max_length=2048, null=True, blank=True)
     p_value_threshold = models.FloatField(default=0.05, blank=True)
 
     def __str__(self):

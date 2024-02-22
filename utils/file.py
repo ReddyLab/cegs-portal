@@ -1,20 +1,33 @@
 import json
+import os
 from typing import IO, Any, Dict, Optional
 
 from cegs_portal.search.models import File
+
+from .biosample import ExperimentBiosample
 
 
 class FileMetadata:
     description: Optional[str]
     filename: str
+    genome_assembly: str
     url: Optional[str]
     misc: dict[str, Any]
+    id_: Optional[int] = None
+    biosample: Optional[ExperimentBiosample] = None
 
-    def __init__(self, file_metadata: Dict[str, str]):
-        self.description = file_metadata.get("description", None)
-        self.filename = file_metadata["file"]
-        self.url = file_metadata.get("url", None)
-        self.misc = file_metadata.get("misc", None)
+    def __init__(
+        self, file_metadata: Dict[str, str], base_path: str, biosamples: Optional[list[ExperimentBiosample]] = None
+    ):
+        self.description = file_metadata.get("description")
+        self.filename = os.path.join(base_path, file_metadata["file"])
+        self.genome_assembly = file_metadata["genome_assembly"]
+        self.url = file_metadata.get("url")
+        self.misc = file_metadata.get("misc")
+
+        biosample_index = file_metadata.get("biosample")
+        if biosample_index is not None and biosamples is not None:
+            self.biosample = biosamples[biosample_index]
 
     def db_save(self, experiment=None, analysis=None, experiment_data_file=None):
         source_file = File(
@@ -27,11 +40,21 @@ class FileMetadata:
             url=self.url,
         )
         source_file.save()
+        self.id_ = source_file.id
 
         return source_file
 
     def db_del(self):
         self.file.delete()
+
+    def delimiter(self):
+        _, ext = os.path.splitext(self.filename)
+        if ext in [".csv"]:
+            return ","
+        elif ext in [".tsv", ".bed"]:
+            return "\t"
+
+        return ","
 
     @property
     def file(self):

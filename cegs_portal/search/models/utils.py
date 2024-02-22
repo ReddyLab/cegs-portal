@@ -3,6 +3,8 @@ from typing import Optional
 
 from psycopg2.extras import NumericRange
 
+from .dna_feature_type import DNAFeatureType
+
 
 class AccessionType(Enum):
     GENE = "gene"
@@ -48,6 +50,26 @@ class AccessionType(Enum):
             return "AN"
 
         raise Exception("Invalid Accession type")
+
+    @classmethod
+    def from_feature_type(cls, feature_type):
+        match feature_type:
+            case DNAFeatureType.GENE.value:
+                return AccessionType.GENE
+            case DNAFeatureType.TRANSCRIPT.value:
+                return AccessionType.TRANSCRIPT
+            case DNAFeatureType.EXON.value:
+                return AccessionType.EXON
+            case DNAFeatureType.CCRE.value:
+                return AccessionType.CCRE
+            case DNAFeatureType.DHS.value:
+                return AccessionType.DHS
+            case DNAFeatureType.GRNA.value:
+                return AccessionType.GRNA
+            case DNAFeatureType.CAR.value:
+                return AccessionType.CAR
+
+        raise Exception("Invalid DNAFeatureType")
 
 
 class AccessionId:
