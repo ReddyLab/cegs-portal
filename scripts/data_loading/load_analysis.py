@@ -63,10 +63,17 @@ class ObservationRow:
 
 
 class Analysis:
-    def __init__(self, metadata: AnalysisMetadata, observations: list[ObservationRow]):
-        self.metadata = metadata
-        self.observations = observations
-        self.accession_id = None
+    observations: Optional[list[ObservationRow]] = None
+    accession_id: Optional[str] = None
+
+    def __init__(self, metadata_filename: str):
+        with open(metadata_filename) as analysis_file:
+            self.metadata = AnalysisMetadata.json_load(analysis_file)
+
+    def load(self, load_function):
+        self.observations = load_function(self.metadata)
+
+        return self
 
     def _save_reos(self, reos: list[ObservationRow], accession_ids):
         analysis_accession_id = self.accession_id
@@ -135,6 +142,8 @@ class Analysis:
 
             with AccessionIds(message=f"{self.accession_id}: {self.metadata.name}"[:200]) as accession_ids:
                 self._save_reos(self.observations, accession_ids)
+
+        return self
 
     def delete(self):
         analysis = AnalysisModel.objects.get(

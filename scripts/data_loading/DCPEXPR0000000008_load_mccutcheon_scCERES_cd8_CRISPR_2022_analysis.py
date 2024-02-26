@@ -67,9 +67,4 @@ def get_observations(analysis_metadata: AnalysisMetadata):
 
 
 def run(analysis_filename):
-    with open(analysis_filename) as analysis_file:
-        analysis_metadata = AnalysisMetadata.json_load(analysis_file)
-
-    observations_rows = get_observations(analysis_metadata)
-    analysis = Analysis(analysis_metadata, observations_rows)
-    analysis.save()
+    Analysis(analysis_filename).load(get_observations).save()
