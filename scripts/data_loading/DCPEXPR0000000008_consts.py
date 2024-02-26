@@ -13,7 +13,8 @@ TRIM_GENE_NAMES = [
     "LINC01505.1",
 ]
 
-# These genes "don't exist" anymore (they exists in GRCh37 but were removed in GRCh38), so any REOs targeting them probably aren't important
+# These genes "don't exist" anymore (they existed in GRCh37 but were removed in GRCh38).
+# Any REOs targeting them probably aren't important.
 DROP_GENE_NAMES = {
     "ENSG00000228106",
     "ENSG00000255823",
