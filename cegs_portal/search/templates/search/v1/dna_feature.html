@@ -15,34 +15,32 @@
 <!-- HEADER -->
 <div>
     <div class="title-separator"></div>
-    {% for feature, sources, targets, reo in feature_reos %}
-            <div style="display: flex; justify-content: space-between">
-                <h1>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1.5">
-                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                        <path
-                            d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
-                        />
-                    </svg>
-                    {% if feature.name %}
-                        <span>{{ feature.name }}</span>
-                        {% if feature.ensembl_id %}
-                            <span class="text-2xl">({{ feature.ensembl_id }}) </span>
-                        {% endif %}
-                    {% else %}
-                        {{ feature.get_feature_type_display }} @
-                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                            <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
-                        </a>
+        <div style="display: flex; justify-content: space-between">
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1.5">
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path
+                        d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
+                    />
+                </svg>
+                {% if feature.name %}
+                    <span>{{ feature.name }}</span>
+                    {% if feature.ensembl_id %}
+                        <span class="text-2xl">({{ feature.ensembl_id }}) </span>
                     {% endif %}
-                    <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
-                        {% for assembly in all_assemblies %}
-                            <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
-                        {% endfor %}
-                    </select>
-                </h1>
-            </div>
-    {% endfor %}
+                {% else %}
+                    {{ feature.get_feature_type_display }} @
+                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                        <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
+                    </a>
+                {% endif %}
+                <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
+                    {% for assembly in all_assemblies %}
+                        <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
+                    {% endfor %}
+                </select>
+            </h1>
+        </div>
 
     <div class="title-separator"></div>
     <div class="flex flex-row justify-center" id="genoverse-container">
@@ -56,13 +54,10 @@
                 <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
-        {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.feature_subtype %}
                 <th>Feature Subtype</th>
             {% endif %}
-        {% endfor %}
             </tr>
-            {% for feature, sources, targets, reo in feature_reos %}
             <tr>
                 <td>{{ feature.name|default:feature.accession_id }}</td>
                 <td>
@@ -78,7 +73,6 @@
                 <td>{{ feature.feature_subtype|remove_underscores }}</td>
                 {% endif %}
             </tr>
-            {% endfor %}
         </table>
     </div>
 
@@ -200,7 +194,6 @@
             data-te-tab-active
         >
 
-        {% for feature, sources, targets, reo in feature_reos %}
             {% if not sources and not targets %}
             <div class="container min-w-full">
                 <div class="table-title" style="display: flex; align-items: center; justify-content: center">
@@ -219,7 +212,6 @@
                 {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
             </div>
             {% endif %}
-        {% endfor %}
         </div>
 
         {% for tab in tabs %}
@@ -230,13 +222,11 @@
             role="tabpanel"
             aria-labelledby="tabs-nearest-reo-tab"
         >
-        {% for feature, _, _, reos in feature_reos %}
             {% if reos %}
             <div class="mb-8" id="non-target-table">
                 {% include "search/v1/partials/_non_targeting_reo.html" with feature=feature non_targeting_reos=reos %}
             </div>
             {% endif %}
-            {% endfor %}
         </div>
         {% endif %}
 
@@ -247,9 +237,7 @@
             role="tabpanel"
             aria-labelledby="tabs-files-closest-features"
         >
-
-            {% for feature in features %}
-            {% if feature.closest_features.exists and forloop.first %}
+            {% if feature.closest_features.exists %}
             <div class="container min-w-full">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
                 <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
@@ -279,10 +267,9 @@
                         <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
                     </tr>
             {% endif %}
-            {% endfor %}
-            {% for feature in features %}
+
             {% if feature.closest_features.exists %}
-                    {% for close_feature in feature.closest_features.all %}
+                {% for close_feature in feature.closest_features.all %}
                     <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
                         <td>
                             <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
@@ -296,9 +283,8 @@
                         <td>{{ close_feature.strand|default:"N/A" }}</td>
                         <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
                     </tr>
-                    {% endfor %}
+                {% endfor %}
             {% endif %}
-            {% endfor %}
                 </table>
             </div>
         </div>
@@ -322,7 +308,6 @@
                         Find Nearby DNA Features
                     </div>
                 </div>
-                {% for feature, sources, targets, reo in feature_reos %}
                 <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper%}?assembly={{ feature.ref_genome }}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                     <div class="title-separator min-w-full"></div>
                     <fieldset name="facetfield">
@@ -350,7 +335,6 @@
                 </form>
             </div>
             <div id="features-table"></div>
-        {% endfor %}
         </div>
         {% endif %}
 
@@ -362,7 +346,6 @@
             aria-labelledby="tabs-children-tab"
         >
             <!-- Children -->
-            {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
             <div class="mb-8 min-w-full">
                 <div class="container">
@@ -394,8 +377,6 @@
                             <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
                         </tr>
             {% endif %}
-            {% endfor %}
-            {% for feature, sources, targets, reo in feature_reos %}
             {% if feature.children.exists %}
                         {% for child in feature.children.all %}
                         <tr data-href="{% url 'search:dna_features' 'ensembl' child.ensembl_id %}?assembly={{ feature.ref_genome }}">
@@ -412,7 +393,6 @@
                         </tr>
                         {% endfor %}
             {% endif %}
-            {% endfor %}
                     </table>
                 </div>
             </div>
@@ -421,27 +401,21 @@
         {% endfor %}
     </div>
 </div>
-
 {% endblock content %}
+
 {% block inline_javascript %}
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
 
-    let assemblies = [
-        {% for feature in features %}
-        {
+    let assembly = {
             assembly: "{{ feature.ref_genome }}",
             chromo: "{{ feature.chrom_name }}",
             start: {{ feature.location.lower }},
             end: {{ feature.location.upper|add:"-1" }},
             type: "{{ feature.get_feature_type_display }}",
-        },
-        {% endfor %}
-    ];
+        };
 
-    if (assemblies.length == 1 && assemblies[0].type == "Gene") {
-        let assembly = assemblies[0];
-
+    if (assembly.type == "Gene") {
         new CEGSGenoverse({
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector/DOM element)
             // If no genome supplied, it must have at least chromosomeSize, e.g.:
