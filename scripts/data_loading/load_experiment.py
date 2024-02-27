@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, field
+from enum import Enum
 from io import StringIO
 from typing import Any, Optional
 
@@ -13,6 +15,7 @@ from cegs_portal.search.models import (
 )
 from cegs_portal.search.models import Experiment as ExperimentModel
 from cegs_portal.search.models import Facet, FacetValue
+from utils.ccres import get_ccres, save_associations, save_ccres
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
@@ -74,6 +77,77 @@ class FeatureRow:
             raise ValueError(f"Invalid facets: '{self.facets}'")
 
 
+class FeatureOverlap(Enum):
+    BEFORE = 1
+    OVERLAP = 2
+    AFTER = 3
+
+
+@dataclass
+class CCREFeature:
+    _id: int
+    accession_id: str
+    chrom_name: str
+    location: NumericRange
+    cell_line: str
+    closest_gene_id: int
+    closest_gene_distance: int
+    closest_gene_name: str
+    closest_gene_ensembl_id: int
+    source_file_id: int
+    genome_assembly: str
+    experiment_accession_id: str
+    feature_type: DNAFeatureType
+    genome_assembly_patch: str = "0"
+    parent: Optional["CCREFeature"] = None
+    misc: dict = field(default_factory=lambda: {"pseudo": True})
+
+    def __lt__(self, other) -> bool:
+        if not isinstance(other, CCREFeature):
+            return NotImplemented
+
+        if self.chrom_name < other.chrom_name:
+            return True
+
+        if self.location.lower < other.location.lower:
+            return True
+
+        if self.location.upper < other.location.upper:
+            return True
+
+        return False
+
+    def ccre_assoc_id(self) -> int:
+        if self.parent is not None:
+            return self.parent._id
+
+        return self._id
+
+    def ccre_assoc_loc(self) -> NumericRange:
+        if self.parent is not None:
+            return self.parent.location
+
+        return self.location
+
+    def ccre_comp(self, ccre) -> FeatureOverlap:
+        _, ccre_chrom_name, ccre_loc = ccre
+        if self.chrom_name < ccre_chrom_name:
+            return FeatureOverlap.BEFORE
+
+        if self.chrom_name > ccre_chrom_name:
+            return FeatureOverlap.AFTER
+
+        # chrom names are equal
+
+        if self.location.upper <= ccre_loc.lower:
+            return FeatureOverlap.BEFORE
+
+        if self.location.lower >= ccre_loc.upper:
+            return FeatureOverlap.AFTER
+
+        return FeatureOverlap.OVERLAP
+
+
 class Experiment:
     metadata: ExperimentMetadata
     features: Optional[list[FeatureRow]] = None
@@ -94,6 +168,7 @@ class Experiment:
         experiment_accession_id = self.accession_id
         feature_rows = StringIO()
         feature_facets = StringIO()
+
         db_ids = {}
         with FeatureIds() as feature_ids:
             for feature, feature_id in zip(features, feature_ids):
@@ -104,11 +179,29 @@ class Experiment:
                 closest_gene_ensembl_id = closest_gene["ensembl_id"] if closest_gene is not None else None
                 accession_type = AccessionType.from_feature_type(feature.feature_type)
                 accession_id = accession_ids.incr(accession_type)
-                db_ids[feature.name] = (feature_id, accession_id)
-                if parents is not None:
-                    parent_id, parent_accession_id = parents[feature.parent_name]
+
+                parent = parents.get(feature.parent_name) if parents is not None else None
+                if parent is not None:
+                    parent_id, parent_accession_id = (parent._id, parent.accession_id)
                 else:
                     parent_id, parent_accession_id = (None, None)
+
+                db_ids[feature.name] = CCREFeature(
+                    _id=feature_id,
+                    accession_id=accession_id,
+                    chrom_name=feature.chrom_name,
+                    location=feature_location,
+                    cell_line=feature.cell_line,
+                    closest_gene_id=closest_gene["id"],
+                    closest_gene_distance=distance,
+                    closest_gene_name=gene_name,
+                    closest_gene_ensembl_id=closest_gene_ensembl_id,
+                    source_file_id=source_file_id,
+                    genome_assembly=feature.genome_assembly,
+                    experiment_accession_id=experiment_accession_id,
+                    feature_type=DNAFeatureType(feature.feature_type),
+                    parent=parent,
+                )
 
                 feature_rows.write(
                     feature_entry(
@@ -139,8 +232,78 @@ class Experiment:
         bulk_feature_facet_save(feature_facets)
         return db_ids
 
-    def _save_ccres(self, accession_ids):
-        pass
+    def _save_ccres(self, features: list[CCREFeature], accession_ids):
+        features.sort()
+        ccres = get_ccres(self.metadata.tested_elements_file.genome_assembly)
+        new_ccres = StringIO()
+        ccre_associations = StringIO()
+
+        f_idx = 0  # features list index
+        c_idx = 0  # ccre list index
+        with FeatureIds() as ccre_ids:
+            # To associate features with cCREs we need two lists -- The list of all current cCREs for a genome
+            # assembly and the the list of features. These two lists must be sorted, and must be sorted in the
+            # same manner.
+            #
+            # We work our way through both lists linearly, on each iteration moving forward on one or the other
+            # (but not both). Which list we move forward on depends on the comparison between the current ccre
+            # and current feature.
+            # If the current feature is AFTER the current cCRE we just advance to the next cCRE.
+            # If the current feature is BEFORE the current cCRE, then we create a new pseudo-cCRE from that
+            # feature. The new pseudo-cCRE get associated with the current feature. We then advance to the next
+            # feature.
+            # If the current feature OVERLAPS with this current cCRE then we associate the feature with the cCRE.
+            # Afterwards we look ahead to see if we advance the feature or the cCRE. If the feature also overlaps
+            # the next cCRE we advance the cCRE -- this way if a feature overlaps multiple cCREs it will be
+            # associated with all of them. Otherwise we advance to the next feature.
+            #
+            # If we get through all the features without getting through the cCREs, then we're done. If we get
+            # through all the cCREs without getting through all the features then we have to make new psudeo-cCREs
+            # with the remaining features, and do the association.
+            #
+            # Once we're through the lists we save all the new pseudo-cCREs and then the associations.
+            #
+            # By sorting the lists and advancing through only one at a time we can be sure to catch all the matches
+            # without incurring massive algorithmic overhead. This is an O(n+m) algorithm, modulo the list sorting.
+            while True:
+                if f_idx >= len(features):
+                    # We're done, we associated all the features with cCREs.
+                    break
+
+                if c_idx >= len(ccres):
+                    # We got through all the existing cCREs so we have to create new pseudo-cCREs from
+                    # all the remaining features.
+                    for feature in features[f_idx:]:
+                        ccre_id = ccre_ids.next_id()
+                        new_ccres.write(
+                            f"{ccre_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{feature.cell_line}\t{feature.chrom_name}\t{feature.closest_gene_id}\t{feature.closest_gene_distance}\t{feature.closest_gene_name}\t{feature.closest_gene_ensembl_id}\t{feature.ccre_assoc_loc()}\t{feature.genome_assembly}\t{feature.genome_assembly_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{feature.source_file_id}\t{feature.experiment_accession_id}\tfalse\ttrue\n"
+                        )
+                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre_id}\n")
+                    break
+
+                feature = features[f_idx]
+                ccre = ccres[c_idx]
+
+                match feature.ccre_comp(ccre):
+                    case FeatureOverlap.BEFORE:
+                        ccre_id = ccre_ids.next_id()
+                        new_ccres.write(
+                            f"{ccre_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{feature.cell_line}\t{feature.chrom_name}\t{feature.closest_gene_id}\t{feature.closest_gene_distance}\t{feature.closest_gene_name}\t{feature.closest_gene_ensembl_id}\t{feature.ccre_assoc_loc()}\t{feature.genome_assembly}\t{feature.genome_assembly_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{feature.source_file_id}\t{feature.experiment_accession_id}\tfalse\ttrue\n"
+                        )
+                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre_id}\n")
+                        f_idx += 1
+                    case FeatureOverlap.AFTER:
+                        c_idx += 1
+                    case FeatureOverlap.OVERLAP:
+                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre[0]}\n")
+
+                        if c_idx < (len(ccres) - 1) and feature.ccre_comp(ccres[c_idx + 1]) == FeatureOverlap.OVERLAP:
+                            c_idx += 1
+                        else:
+                            f_idx += 1
+
+        save_ccres(new_ccres)
+        save_associations(ccre_associations)
 
     def save(self):
         with transaction.atomic():
@@ -154,8 +317,8 @@ class Experiment:
                     parents = self._save_features(self.parent_features, accession_ids, parent_file.id_)
 
                 feature_file = self.metadata.tested_elements_file
-                self._save_features(self.features, accession_ids, feature_file.id_, parents)
-                self._save_ccres(accession_ids)
+                features = self._save_features(self.features, accession_ids, feature_file.id_, parents)
+                self._save_ccres(list(features.values()), accession_ids)
 
         return self
 

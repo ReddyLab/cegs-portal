@@ -7,6 +7,7 @@ from os import SEEK_SET
 from typing import Optional
 
 from django.db import connection, transaction
+from django.db.models import F, Func
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import AccessionType, DNAFeature, DNAFeatureType
@@ -25,9 +26,9 @@ class CcreSource:
     closest_gene_name: str
     closest_gene_ensembl_id: int
     source_file_id: int
-    ref_genome: str
+    genome_assembly: str
     experiment_accession_id: str
-    ref_genome_patch: str = "0"
+    genome_assembly_patch: str = "0"
     _new_id: Optional[int] = None
     new_location: Optional[NumericRange] = None
     feature_type: DNAFeatureType = DNAFeatureType.CCRE
@@ -70,14 +71,16 @@ def save_associations(associations):
         )
 
 
-def get_ccres(locs: list[tuple[str, int, int, str]]):
-    chrom, _, _, ref_genome = locs[0]
-    return DNAFeature.objects.filter(
-        chrom_name=chrom,
-        location__in=[NumericRange(loc[1], loc[2], "[)") for loc in locs],
-        ref_genome=ref_genome,
-        feature_type=DNAFeatureType.CCRE,
-    ).values_list("id", flat=True)
+def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
+    if genome_assembly not in ["GRCh37", "GRCh38"]:
+        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+
+    return (
+        DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)
+        .order_by("chrom_name", Func(F("location"), function="lower"), Func(F("location"), function="upper"))
+        .values_list("id", "chrom_name", "location")
+        .all()
+    )
 
 
 def source_ccre_locs(closest_ccre_filename, ref_genome):
