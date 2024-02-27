@@ -86,24 +86,24 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         assembly_list = []
         selected = False
 
-        for ref_genome in ALL_ASSEMBLIES:
-            if (feature := genome_assembly_dict.get(ref_genome)) is not None:
+        for genome_assembly in ALL_ASSEMBLIES:
+            if (feature := genome_assembly_dict.get(genome_assembly)) is not None:
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
 
                 # We want to mark one of the enabled ref genomes as selected. If no assembly query parameter
                 # has been passed in, we mark the first ref genome that exists for this feature.
                 # If there is an assembly query parameter we mark that ref genome as selected.
-                if (options["assembly"] is None and not selected) or (options["assembly"] == ref_genome):
-                    assembly_list.append((ref_genome, "selected", ref_genome))
+                if (options["assembly"] is None and not selected) or (options["assembly"] == genome_assembly):
+                    assembly_list.append((genome_assembly, "selected", genome_assembly))
                     selected_feature = feature
                     selected = True
                 else:
-                    assembly_list.append((ref_genome, "", ref_genome))
+                    assembly_list.append((genome_assembly, "", genome_assembly))
 
             else:
                 # This ref genome doesn't exist for this feature, so we disable it in the dropdown.
-                assembly_list.append((ref_genome, "disabled", f"{ref_genome} - Not Found"))
+                assembly_list.append((genome_assembly, "disabled", f"{genome_assembly} - Not Found"))
 
         if selected_feature is None:
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
