@@ -1103,6 +1103,10 @@ input[type="submit"], input[type="button"], button {
   display: table;
 }
 
+.grid {
+  display: grid;
+}
+
 .list-item {
   display: list-item;
 }
@@ -1280,6 +1284,10 @@ input[type="submit"], input[type="button"], button {
   list-style-type: none;
 }
 
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
 .flex-row {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
@@ -1331,6 +1339,10 @@ input[type="submit"], input[type="button"], button {
 .justify-around {
   -ms-flex-pack: distribute;
       justify-content: space-around;
+}
+
+.gap-0 {
+  gap: 0px;
 }
 
 .gap-1 {

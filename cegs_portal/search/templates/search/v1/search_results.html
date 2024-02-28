@@ -127,6 +127,25 @@
         0% {transform: scale(1);}
         100% {transform: scale(0.9);}
     }
+
+    .search-results-data-table td {
+        padding: 4px;
+        border-bottom: 1px solid lightgrey;
+        font-size: small;
+    }
+
+    .search-results-table-title  {
+        justify-content: left;
+        font-family: sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        color: rgb(107, 107, 107);
+    }
+
+    #hidden {
+        display: none;
+    }
+
 </style>
 {% endblock %}
 {% block javascript %}
@@ -309,41 +328,48 @@
             role="tabpanel"
             aria-labelledby="tabs-features-tab"
         >
-            <div class="container centered-container min-w-full">
-                <a name="near_features"></a>
-                <div class="table-title flex items-center justify-between relative">
-                    <div class="flex items-center justify-center flex-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
-                            <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
-                        </svg>
-                        Filter DNA Features  <span class="inline ml-2" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span>
+            <div class="flex flex-row items-start gap-x-10 min-w-full">
+                <div class="flex flex-col gap-4 flex-none">
+                    <div class="container">
+                        <a name="near_features"></a>
+                        <div class="search-results-table-title flex items-center justify-between relative">
+                            <div class="flex items-center justify-center flex-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
+                                    <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                                </svg>
+                                Filter DNA Features
+                            </div>
+                        </div>
+                        <div class="text-sm flex items-center justify-center" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
+                        <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                            <div class="title-separator min-w-full"></div>
+                            <fieldset name="feature_type_field">
+                                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                                </legend>
+                                <div class="feature_type_field grid grid-cols-1 gap-0">
+                                    {% for feature_type in dna_feature_types %}
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}" class="mr-2">
+                                            <label for="{{ feature_type }}">{{ feature_type }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </fieldset>
+                            <div class="title-separator min-w-full"></div>
+                            <input
+                                type="submit"
+                                class="search-button border-2 border-gray-300 h-10 text-sm"
+                                value="Filter Features"
+                            />
+                            <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
+                        </form>
                     </div>
                 </div>
-                <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
-                    <div class="title-separator min-w-full"></div>
-                    <fieldset name="feature_type_field">
-                        <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                        </legend>
-                        <div class="flex flex-row flex-wrap gap-1"
-                            aria-labelledby="facetHeader{{ forloop.counter }}">
-                            {% for feature_type in dna_feature_types %}
-                            <div class="checkbox-divider">
-                                <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
-                                <label for="{{ feature_type }}">{{ feature_type }}</label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </fieldset>
-                    <div class="title-separator min-w-full"></div>
-                    <input
-                        type="submit"
-                        class="search-button border-2 border-gray-300 h-10 text-sm"
-                        value="Filter Features"
-                    />
-                    <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
-                </form>
-            </div>
-                <div id="features-table"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="basis-3/4 text-sm">
+                        <div id="features-table"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
