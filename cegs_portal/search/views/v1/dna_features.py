@@ -84,7 +84,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         genome_assembly_dict = {f.ref_genome: f for f in features}
         sorted_features = []
         assembly_list = []
-        selected = False
 
         for genome_assembly in ALL_ASSEMBLIES:
             if (feature := genome_assembly_dict.get(genome_assembly)) is not None:
@@ -94,10 +93,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 # We want to mark one of the enabled genome assemblies as selected. If no assembly query
                 # parameter has been passed in, we mark the first assembly that exists for this feature.
                 # If there is an assembly query parameter we mark that genome assembly as selected.
-                if (options["assembly"] is None and not selected) or (options["assembly"] == genome_assembly):
+                if (options["assembly"] is None and selected_feature is None) or (
+                    options["assembly"] == genome_assembly
+                ):
                     assembly_list.append((genome_assembly, "selected", genome_assembly))
                     selected_feature = feature
-                    selected = True
                 else:
                     assembly_list.append((genome_assembly, "", genome_assembly))
 
