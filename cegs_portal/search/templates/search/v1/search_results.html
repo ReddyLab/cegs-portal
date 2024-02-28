@@ -356,12 +356,6 @@
                                 </div>
                             </fieldset>
                             <div class="title-separator min-w-full"></div>
-                            <input
-                                type="submit"
-                                class="search-button border-2 border-gray-300 h-10 text-sm"
-                                value="Filter Features"
-                            />
-                            <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
                         </form>
                     </div>
                 </div>
@@ -445,8 +439,17 @@
             checkbox.checked = searchFeatures.includes(checkbox.id);
             checkbox.addEventListener("change", _ => {
                 updateFeatureState();
-            });
-        });
+                let region = state.g(STATE_REGION);
+                let featureTypes = state.g(STATE_FEATURE_TYPES);
+                let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
+
+                if (featureTypes.length > 0) {
+                    url += `?feature_type=${featureTypes.join('&feature_type=')}`;
+                }
+
+                htmx.ajax('GET', url, {target: '#features-table'});
+                        });
+                    });
 
         updateFeatureState();
 
