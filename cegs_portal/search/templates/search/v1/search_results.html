@@ -142,8 +142,14 @@
         color: rgb(107, 107, 107);
     }
 
-    #hidden {
+    #table-column-hidden {
         display: none;
+    }
+
+    #spinner {
+        margin-left: 550px;
+        font-size: 75px;
+        color: rgb(107, 107, 107);
     }
 
 </style>
@@ -346,6 +352,7 @@
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
                                 <div class="feature_type_field grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
