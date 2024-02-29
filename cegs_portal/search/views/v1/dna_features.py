@@ -21,6 +21,13 @@ GRCH38 = "GRCh38"
 ALL_ASSEMBLIES = [GRCH38, GRCH37]  # Ordered by "importance"
 
 
+def get_sig_only(value):
+    if value == "0" or value == "false" or value == "False":
+        return False
+    else:
+        return True
+
+
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_feature.html"
@@ -61,13 +68,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 * "name"
             feature_id
         """
-
-        def get_sig_only(value):
-            if value == "0" or value == "false" or value == "False":
-                return False
-            else:
-                return True
-
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", None)
         options["feature_properties"] = request.GET.getlist("property", [])
@@ -77,90 +77,87 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, id_type, feature_id):
-        feature_reos = []
         reo_page = None
         feature_assemblies = []
         features = list(data.all())
-        ref_genome_dict = {f.ref_genome: f for f in features}
+        selected_feature = None
+        genome_assembly_dict = {f.ref_genome: f for f in features}
         sorted_features = []
         assembly_list = []
-        selected = False
 
-        for ref_genome in ALL_ASSEMBLIES:
-            if (feature := ref_genome_dict.get(ref_genome)) is not None:
+        for genome_assembly in ALL_ASSEMBLIES:
+            if (feature := genome_assembly_dict.get(genome_assembly)) is not None:
                 sorted_features.append(feature)
                 feature_assemblies.append(feature.ref_genome)
 
-                # We want to mark one of the enabled ref genomes as selected. If no assembly query parameter
-                # has been passed in, we mark the first ref genome that exists for this feature.
-                # If there is an assembly query parameter we mark that ref genome as selected.
-                if (options["assembly"] is None and not selected) or (options["assembly"] == ref_genome):
-                    assembly_list.append((ref_genome, "selected", ref_genome))
-                    selected = True
+                # We want to mark one of the enabled genome assemblies as selected. If no assembly query
+                # parameter has been passed in, we mark the first assembly that exists for this feature.
+                # If there is an assembly query parameter we mark that genome assembly as selected.
+                if (options["assembly"] is None and selected_feature is None) or (
+                    options["assembly"] == genome_assembly
+                ):
+                    assembly_list.append((genome_assembly, "selected", genome_assembly))
+                    selected_feature = feature
                 else:
-                    assembly_list.append((ref_genome, "", ref_genome))
+                    assembly_list.append((genome_assembly, "", genome_assembly))
 
             else:
-                # This ref genome doesn't exist for this feature, so we disable it in the dropdown.
-                assembly_list.append((ref_genome, "disabled", f"{ref_genome} - Not Found"))
+                # This genome assembly doesn't exist for this feature, so we disable it in the dropdown.
+                assembly_list.append((genome_assembly, "disabled", f"{genome_assembly} - Not Found"))
 
-        for feature in sorted_features:
-            if options["assembly"] is not None and feature.ref_genome != options["assembly"]:
-                continue
-
-            sources = DNAFeatureSearch.source_reo_search(feature.accession_id)
-            if sources.exists():
-                sources = {"nav_prefix": f"source_for_{feature.accession_id}"}
-            else:
-                sources = None
-
-            targets = DNAFeatureSearch.target_reo_search(feature.accession_id)
-            if targets.exists():
-                targets = {"nav_prefix": f"target_for_{feature.accession_id}"}
-            else:
-                targets = None
-
-            reos = DNAFeatureSearch.non_targeting_reo_search(feature.accession_id, options.get("sig_only"))
-            if reos.exists():
-                paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
-                reo_page = paginated_reos.page(1)
-            else:
-                reo_page = None
-
-            feature_reos.append((feature, sources, targets, reo_page))
-
-        if len(feature_reos) == 0:
+        if selected_feature is None:
             raise Http404(f"DNA Feature {id_type}/{feature_id} not found.")
 
+        sources = DNAFeatureSearch.source_reo_search(selected_feature.accession_id)
+        if sources.exists():
+            sources = {"nav_prefix": f"source_for_{selected_feature.accession_id}"}
+        else:
+            sources = None
+
+        targets = DNAFeatureSearch.target_reo_search(selected_feature.accession_id)
+        if targets.exists():
+            targets = {"nav_prefix": f"target_for_{selected_feature.accession_id}"}
+        else:
+            targets = None
+
+        reos = DNAFeatureSearch.non_targeting_reo_search(selected_feature.accession_id, options.get("sig_only"))
+        if reos.exists():  # use exists here because we _don't_ want to load all of the reos
+            paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
+            reo_page = paginated_reos.page(1)
+        else:
+            reo_page = None
+
         tabs = []
-        first_feature = feature_reos[0][0]
         child_feature_type = None
+
+        if reo_page is not None:
+            tabs.append("nearest reo")
+
         # According to the documentation
         # (https://docs.djangoproject.com/en/4.2/ref/models/querysets/#django.db.models.query.QuerySet.exists),
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
         # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
-        if any(f[3] is not None for f in feature_reos):
-            tabs.append("nearest reo")
-
-        if any(bool(f[0].closest_features.all()) for f in feature_reos):
+        if bool(selected_feature.closest_features.all()):
             tabs.append("closest features")
 
         tabs.append("find nearby")
 
-        if any(bool(f[0].children.all()) for f in feature_reos):
+        if bool(selected_feature.children.all()):
             tabs.append("children")
 
-            first_child = first_feature.children.first()
+            first_child = selected_feature.children.first()
             child_feature_type = first_child.get_feature_type_display()
 
         return super().get(
             request,
             options,
             {
-                "features": [first_feature],
+                "feature": selected_feature,
+                "sources": sources,
+                "targets": targets,
+                "reos": reo_page,
                 "feature_name": "Genome Features",
-                "feature_reos": feature_reos[:1],
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
