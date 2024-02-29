@@ -37,21 +37,18 @@ class ExperimentFileMetadata:
     file_metadata: FileMetadata
     genome_assembly: str
     genome_assembly_patch: str
-    significance_measure: str
     p_val_threshold: float
 
     def __init__(self, file_metadata: dict[str, str], base_path: str):
         self.file_metadata = FileMetadata(file_metadata, base_path)
         self.genome_assembly = file_metadata["genome_assembly"]
         self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.significance_measure = file_metadata.get("significance_measure")
         self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
 
     def db_save(self, experiment: Experiment, analysis: Analysis = None):
         data_file_info = ExperimentDataFileInfo(
             ref_genome=self.genome_assembly,
             ref_genome_patch=self.genome_assembly_patch,
-            significance_measure=self.significance_measure,
             p_value_threshold=self.p_val_threshold,
         )
         data_file_info.save()
@@ -64,8 +61,8 @@ class AnalysisMetadata:
     filename: str
     description: str
     name: str
-    results: list[ExperimentFileMetadata] = []
-    misc_files: list[ExperimentFileMetadata] = []
+    results: ExperimentFileMetadata
+    misc_files: list[FileMetadata] = []
 
     def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
@@ -76,10 +73,9 @@ class AnalysisMetadata:
 
         base_path = os.path.dirname(analysis_filename)
 
-        for result in analysis_dict["results"]:
-            self.results.append(ExperimentFileMetadata(result))
+        self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
 
-        self.misc_files = [FileMetadata(file, base_path, self.biosamples) for file in analysis_dict["misc_files"]]
+        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict["misc_files"]]
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
@@ -92,8 +88,8 @@ class AnalysisMetadata:
             # Set the new analysis as default
             experiment.default_analysis = analysis
             experiment.save()
-        for result in self.results:
-            result.db_save(experiment, analysis)
+
+            self.results.db_save(experiment, analysis)
 
         return analysis
 

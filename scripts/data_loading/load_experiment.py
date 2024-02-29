@@ -10,9 +10,9 @@ from cegs_portal.search.models import (
     AccessionType,
     DNAFeature,
     DNAFeatureType,
-    Facet,
-    FacetValue,
 )
+from cegs_portal.search.models import Experiment as ExperimentModel
+from cegs_portal.search.models import Facet, FacetValue
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
@@ -159,6 +159,6 @@ class Experiment:
         Please note that it won't reset DB id numbers, so running this script with
         delete() uncommented is not, strictly, idempotent."""
 
-        experiment = Experiment.objects.get(accession_id=self.metadata.accession_id)
+        experiment = ExperimentModel.objects.get(accession_id=self.metadata.accession_id)
         DNAFeature.objects.filter(experiment_accession=experiment).delete()
         self.metadata.db_del()

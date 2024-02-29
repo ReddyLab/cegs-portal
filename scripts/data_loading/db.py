@@ -169,6 +169,18 @@ def feature_facet_entry(feature_id, facet_id):
     return f"{feature_id}\t{facet_id}\n"
 
 
+def source_entry(reo_id, source_id):
+    return f"{reo_id}\t{source_id}\n"
+
+
+def target_entry(reo_id, target_id):
+    return f"{reo_id}\t{target_id}\n"
+
+
+def direction_entry(reo_id, direction_id):
+    return f"{reo_id}\t{direction_id}\n"
+
+
 def bulk_feature_save(features: StringIO):
     features.seek(0, SEEK_SET)
     with transaction.atomic(), connection.cursor() as cursor:
