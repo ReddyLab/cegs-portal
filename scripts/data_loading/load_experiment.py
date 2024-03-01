@@ -1,10 +1,10 @@
-import json
 from dataclasses import dataclass, field
 from enum import Enum
 from io import StringIO
 from typing import Any, Optional
 
 from django.db import transaction
+from django.db.models import F, Func
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
@@ -14,8 +14,7 @@ from cegs_portal.search.models import (
     DNAFeatureType,
 )
 from cegs_portal.search.models import Experiment as ExperimentModel
-from cegs_portal.search.models import Facet, FacetValue
-from utils.ccres import get_ccres, save_associations, save_ccres
+from cegs_portal.search.models import Facet, FacetValue, GrnaType, PromoterType
 from utils.db_ids import FeatureIds
 from utils.experiment import ExperimentMetadata
 
@@ -23,19 +22,21 @@ from . import get_closest_gene
 from .db import (
     bulk_feature_facet_save,
     bulk_feature_save,
+    bulk_save_associations,
+    ccre_associate_entry,
     feature_entry,
     feature_facet_entry,
 )
 
-GRNA_TYPE_FACET = Facet.objects.get(name="gRNA Type")
+GRNA_TYPE_FACET = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
-GRNA_TYPE_POS_CTRL = GRNA_TYPE_FACET_VALUES["Positive Control"]
-GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES["Targeting"]
+GRNA_TYPE_POS_CTRL = GRNA_TYPE_FACET_VALUES[GrnaType.POSITIVE_CONTROL.value]
+GRNA_TYPE_TARGETING = GRNA_TYPE_FACET_VALUES[GrnaType.TARGETING.value]
 
-PROMOTER_FACET = Facet.objects.get(name="Promoter Classification")
+PROMOTER_FACET = Facet.objects.get(name=DNAFeature.Facet.PROMOTER.value)
 PROMOTER_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=PROMOTER_FACET.id).all()}
-PROMOTER_PROMOTER = PROMOTER_FACET_VALUES["Promoter"]
-PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES["Non-promoter"]
+PROMOTER_PROMOTER = PROMOTER_FACET_VALUES[PromoterType.PROMOTER.value]
+PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES[PromoterType.NON_PROMOTER.value]
 
 FACET_VALUES = GRNA_TYPE_FACET_VALUES | PROMOTER_FACET_VALUES
 
@@ -137,7 +138,7 @@ class CCREFeature:
         if self.chrom_name > ccre_chrom_name:
             return FeatureOverlap.AFTER
 
-        # chrom names are equal
+        # chrom names are equal, lets check coordinates
 
         if self.location.upper <= ccre_loc.lower:
             return FeatureOverlap.BEFORE
@@ -146,6 +147,18 @@ class CCREFeature:
             return FeatureOverlap.AFTER
 
         return FeatureOverlap.OVERLAP
+
+
+def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
+    if genome_assembly not in ["GRCh37", "GRCh38"]:
+        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+
+    return (
+        DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)
+        .order_by("chrom_name", Func(F("location"), function="lower"), Func(F("location"), function="upper"))
+        .values_list("id", "chrom_name", "location")
+        .all()
+    )
 
 
 class Experiment:
@@ -276,9 +289,25 @@ class Experiment:
                     for feature in features[f_idx:]:
                         ccre_id = ccre_ids.next_id()
                         new_ccres.write(
-                            f"{ccre_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{feature.cell_line}\t{feature.chrom_name}\t{feature.closest_gene_id}\t{feature.closest_gene_distance}\t{feature.closest_gene_name}\t{feature.closest_gene_ensembl_id}\t{feature.ccre_assoc_loc()}\t{feature.genome_assembly}\t{feature.genome_assembly_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{feature.source_file_id}\t{feature.experiment_accession_id}\tfalse\ttrue\n"
+                            feature_entry(
+                                id_=ccre_id,
+                                accession_id=accession_ids.incr(AccessionType.CCRE),
+                                cell_line=feature.cell_line,
+                                chrom_name=feature.chrom_name,
+                                closest_gene_id=feature.closest_gene_id,
+                                closest_gene_distance=feature.closest_gene_distance,
+                                closest_gene_name=feature.closest_gene_name,
+                                closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
+                                location=feature.ccre_assoc_loc(),
+                                genome_assembly=feature.genome_assembly,
+                                genome_assembly_patch=feature.genome_assembly_patch,
+                                misc=feature.misc,
+                                feature_type=DNAFeatureType.CCRE,
+                                source_file_id=feature.source_file_id,
+                                experiment_accession_id=feature.experiment_accession_id,
+                            )
                         )
-                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre_id}\n")
+                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre_id))
                     break
 
                 feature = features[f_idx]
@@ -288,22 +317,38 @@ class Experiment:
                     case FeatureOverlap.BEFORE:
                         ccre_id = ccre_ids.next_id()
                         new_ccres.write(
-                            f"{ccre_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{feature.cell_line}\t{feature.chrom_name}\t{feature.closest_gene_id}\t{feature.closest_gene_distance}\t{feature.closest_gene_name}\t{feature.closest_gene_ensembl_id}\t{feature.ccre_assoc_loc()}\t{feature.genome_assembly}\t{feature.genome_assembly_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{feature.source_file_id}\t{feature.experiment_accession_id}\tfalse\ttrue\n"
+                            feature_entry(
+                                id_=ccre_id,
+                                accession_id=accession_ids.incr(AccessionType.CCRE),
+                                cell_line=feature.cell_line,
+                                chrom_name=feature.chrom_name,
+                                closest_gene_id=feature.closest_gene_id,
+                                closest_gene_distance=feature.closest_gene_distance,
+                                closest_gene_name=feature.closest_gene_name,
+                                closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
+                                location=feature.ccre_assoc_loc(),
+                                genome_assembly=feature.genome_assembly,
+                                genome_assembly_patch=feature.genome_assembly_patch,
+                                misc=feature.misc,
+                                feature_type=DNAFeatureType.CCRE,
+                                source_file_id=feature.source_file_id,
+                                experiment_accession_id=feature.experiment_accession_id,
+                            )
                         )
-                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre_id}\n")
+                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre_id))
                         f_idx += 1
                     case FeatureOverlap.AFTER:
                         c_idx += 1
                     case FeatureOverlap.OVERLAP:
-                        ccre_associations.write(f"{feature.ccre_assoc_id()}\t{ccre[0]}\n")
+                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre[0]))
 
                         if c_idx < (len(ccres) - 1) and feature.ccre_comp(ccres[c_idx + 1]) == FeatureOverlap.OVERLAP:
                             c_idx += 1
                         else:
                             f_idx += 1
 
-        save_ccres(new_ccres)
-        save_associations(ccre_associations)
+        bulk_feature_save(new_ccres)
+        bulk_save_associations(ccre_associations)
 
     def save(self):
         with transaction.atomic():
