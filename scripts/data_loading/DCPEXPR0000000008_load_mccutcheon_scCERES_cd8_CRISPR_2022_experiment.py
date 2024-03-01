@@ -95,4 +95,5 @@ def get_features(experiment_metadata: ExperimentMetadata):
 
 
 def run(experiment_filename):
-    Experiment(experiment_filename).load(get_features).save()
+    metadata = ExperimentMetadata.file_load(experiment_filename)
+    Experiment(metadata).load(get_features).save()

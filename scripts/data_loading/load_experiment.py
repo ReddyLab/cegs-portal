@@ -80,12 +80,8 @@ class Experiment:
     parent_features: Optional[list[FeatureRow]] = None
     accession_id: Optional[str] = None
 
-    def __init__(
-        self,
-        metadata_filename: str,
-    ):
-        with open(metadata_filename) as experiment_file:
-            self.metadata = ExperimentMetadata.json_load(experiment_file)
+    def __init__(self, metadata: ExperimentMetadata):
+        self.metadata = metadata
 
     def load(self, load_function):
         feature_rows, parent_rows = load_function(self.metadata)

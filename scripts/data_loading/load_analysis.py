@@ -66,9 +66,8 @@ class Analysis:
     observations: Optional[list[ObservationRow]] = None
     accession_id: Optional[str] = None
 
-    def __init__(self, metadata_filename: str):
-        with open(metadata_filename) as analysis_file:
-            self.metadata = AnalysisMetadata.json_load(analysis_file)
+    def __init__(self, metadata: AnalysisMetadata):
+        self.metadata = metadata
 
     def load(self, load_function):
         self.observations = load_function(self.metadata)
