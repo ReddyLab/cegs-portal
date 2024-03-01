@@ -353,7 +353,7 @@
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
                                 <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
-                                <div class="feature_type_field grid grid-cols-1 gap-0">
+                                <div class="grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
                                             <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}" class="mr-2">
@@ -444,15 +444,8 @@
             checkbox.checked = searchFeatures.includes(checkbox.id);
             checkbox.addEventListener("change", _ => {
                 updateFeatureState();
-                let region = state.g(STATE_REGION);
-                let featureTypes = state.g(STATE_FEATURE_TYPES);
-                let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
+                updateFeatureTypeTable();
 
-                if (featureTypes.length > 0) {
-                    url += `?feature_type=${featureTypes.join('&feature_type=')}`;
-                }
-
-                htmx.ajax('GET', url, {target: '#features-table'});
             });
         });
 
@@ -501,14 +494,13 @@
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
             updateFeatureTypeTable();
+
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
             window.history.pushState({}, document.title, searchURL(s[key]));
             updateDynamicIslands();
         });
-
-
 
 
         {% if region and assembly %}
