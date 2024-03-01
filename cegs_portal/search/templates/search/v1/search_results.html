@@ -142,11 +142,11 @@
         color: rgb(107, 107, 107);
     }
 
-    #table-column-hidden {
+    .table-column-hidden {
         display: none;
     }
 
-    #spinner {
+    #dna-feature-loading-spinner {
         margin-left: 550px;
         font-size: 75px;
         color: rgb(107, 107, 107);
@@ -347,12 +347,12 @@
                             </div>
                         </div>
                         <div class="text-sm flex items-center justify-center" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
-                        <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                        <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
-                                <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
                                 <div class="feature_type_field grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
@@ -362,7 +362,6 @@
                                     {% endfor %}
                                 </div>
                             </fieldset>
-                            <div class="title-separator min-w-full"></div>
                         </form>
                     </div>
                 </div>
@@ -440,8 +439,7 @@
 
         updateFacetState();
 
-        let queryParam = new URLSearchParams(window.location.search);
-        let searchFeatures = queryParam.getAll("feature_type");
+        let searchFeatures = queryParams.getAll("feature_type");
         featureCheckboxes.forEach(checkbox => {
             checkbox.checked = searchFeatures.includes(checkbox.id);
             checkbox.addEventListener("change", _ => {
@@ -455,8 +453,8 @@
                 }
 
                 htmx.ajax('GET', url, {target: '#features-table'});
-                        });
-                    });
+            });
+        });
 
         updateFeatureState();
 
@@ -482,10 +480,27 @@
                 htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#feature-counts", source: featureCountsElement})
             ])
         }
+        let updateFeatureTypeTable = () => {
+            let region = state.g(STATE_REGION);
+            let featureTypes = state.g(STATE_FEATURE_TYPES);
+            let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
+
+            if (featureTypes.length > 0) {
+                url += `?feature_type=${featureTypes.join('&feature_type=')}`;
+            }
+
+            let form = document.querySelector('form[hx-get]');
+            if (form) {
+                form.setAttribute('hx-get', url);
+            }
+
+            htmx.ajax('GET', url, {target: '#features-table'});
+        }
 
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
+            updateFeatureTypeTable();
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
@@ -493,20 +508,7 @@
             updateDynamicIslands();
         });
 
-        state.addCallback(STATE_REGION, (s, key) => {
-            let region = state.g(STATE_REGION);
-            let featureTypes = state.g(STATE_FEATURE_TYPES);
-            let form = document.querySelector('form[hx-get]');
-            let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
 
-            if (featureTypes.length > 0) {
-                url += `?feature_type=${featureTypes.join('&feature_type=')}`;
-            }
-
-            form.setAttribute('hx-get', url);
-
-            htmx.ajax('GET', url, {target: '#features-table'});
-        });
 
 
         {% if region and assembly %}
