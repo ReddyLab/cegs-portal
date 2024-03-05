@@ -383,16 +383,12 @@
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
         import { STATE_DHS_EFFECT, STATE_FACETS, STATE_REGION, STATE_FEATURE_TYPES } from "{% static 'search/js/search_results/consts.js' %}";
 
-        let searchURL = function(facets) {
-            let enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&')
-            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
-        }
+        let searchURL = function(facets, feature_types) {
+            let enabledFacets = facets.map(id => `facet=${id}`).join('&');
+            let enabledFeatureTypes = feature_types.map(id => `feature_type=${id}`).join('&');
 
-        let searchFeatureTypeURL = function(feature_types) {
-            let enabledFeature = feature_types.map(id => `feature_type=${id}`)
-                                  .join('&')
-            return `{% url 'search:results' %}?query={{ query }}${enabledFeature !== '' ? '&' + enabledFeature : ''}`;
+            let combinedEnabledParams = [enabledFacets, enabledFeatureTypes].join('&');
+            return `{% url 'search:results' %}?query={{ query }}${combinedEnabledParams !== '' ? '&' + combinedEnabledParams : ''}`;
         }
 
         let state = new State({
@@ -441,11 +437,12 @@
 
         let searchFeatures = queryParams.getAll("feature_type");
         featureCheckboxes.forEach(checkbox => {
-            checkbox.checked = searchFeatures.includes(checkbox.id);
+            if (checkbox.id !== 'Exon' && checkbox.id !== 'Transcript') {
+                checkbox.checked = true;
+            }
             checkbox.addEventListener("change", _ => {
                 updateFeatureState();
                 updateFeatureTypeTable();
-
             });
         });
 
@@ -490,16 +487,27 @@
             htmx.ajax('GET', url, {target: '#features-table'});
         }
 
+        let defaultFeatureTypes = Array.from(featureCheckboxes)
+                               .filter(i => i.id !== 'Exon' && i.id !== 'Transcript')
+                               .map(i => i.id);
+            state.updateSharedState(STATE_FEATURE_TYPES, defaultFeatureTypes);
+
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
-            updateFeatureTypeTable();
 
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
-            window.history.pushState({}, document.title, searchURL(s[key]));
-            updateDynamicIslands();
+            let stateURL = searchURL(s[key], state.g(STATE_FEATURE_TYPES));
+            window.history.pushState({}, document.title, stateURL);
+
+        });
+
+        state.addCallback(STATE_FEATURE_TYPES, (s, key) => {
+            let stateURL = searchURL(state.g(STATE_FACETS), s[key]);
+            window.history.pushState({}, document.title, stateURL);
+            updateFeatureTypeTable();
         });
 
 
