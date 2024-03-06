@@ -1,6 +1,7 @@
 import pytest
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
+from scripts.data_loading.types import FeatureType, GrnaFacet
 
 pytestmark = pytest.mark.django_db
 
@@ -36,8 +37,8 @@ def test_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "0"},
             ),
             FeatureRow(
@@ -47,8 +48,8 @@ def test_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "1"},
             ),
             FeatureRow(
@@ -58,8 +59,8 @@ def test_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "1"},
             ),
             FeatureRow(
@@ -69,8 +70,8 @@ def test_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "1"},
             ),
             FeatureRow(
@@ -80,8 +81,8 @@ def test_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "2"},
             ),
         ]
@@ -126,8 +127,8 @@ def test_close_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "0"},
             ),
             FeatureRow(
@@ -137,8 +138,8 @@ def test_close_ccre_associations(experiment_metadata):
                 strand="+",
                 genome_assembly="GRCh38",
                 cell_line="iPSC",
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 misc={"grna": "1"},
             ),
         ]
