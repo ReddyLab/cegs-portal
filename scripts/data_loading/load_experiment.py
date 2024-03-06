@@ -75,16 +75,20 @@ class FeatureRow:
 
 
 class Experiment:
-    def __init__(
-        self,
-        metadata: ExperimentMetadata,
-        features: list[FeatureRow],
-        parent_features: Optional[list[FeatureRow]] = None,
-    ):
+    metadata: ExperimentMetadata
+    features: Optional[list[FeatureRow]] = None
+    parent_features: Optional[list[FeatureRow]] = None
+    accession_id: Optional[str] = None
+
+    def __init__(self, metadata: ExperimentMetadata):
         self.metadata = metadata
-        self.features = features
-        self.parent_features = parent_features
-        self.accession_id = None
+
+    def load(self, load_function):
+        feature_rows, parent_rows = load_function(self.metadata)
+        self.features = feature_rows
+        self.parent_features = parent_rows
+
+        return self
 
     def _save_features(self, features, accession_ids, source_file_id, parents=None):
         experiment_accession_id = self.accession_id
@@ -152,6 +156,8 @@ class Experiment:
                 feature_file = self.metadata.tested_elements_file
                 self._save_features(self.features, accession_ids, feature_file.id_, parents)
                 self._save_ccres(accession_ids)
+
+        return self
 
     def delete(self):
         """Only run delete if you want to delete the experiment, all

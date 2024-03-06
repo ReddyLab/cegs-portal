@@ -1,7 +1,7 @@
 import json
 import os.path
 from datetime import datetime, timezone
-from typing import IO, Any, Optional
+from typing import Any, Optional
 
 from cegs_portal.search.models import (
     AccessionIdLog,
@@ -115,9 +115,10 @@ class AnalysisMetadata:
             data_file.close()
 
     @classmethod
-    def json_load(cls, file: IO):
-        analysis_data = json.load(file)
-        metadata = AnalysisMetadata(analysis_data, file.name)
+    def file_load(cls, filename):
+        with open(filename) as file:
+            analysis_data = json.load(file)
+            metadata = AnalysisMetadata(analysis_data, file.name)
         return metadata
 
 
@@ -193,7 +194,8 @@ class ExperimentMetadata:
         experiment.delete()
 
     @classmethod
-    def json_load(cls, file: IO):
-        experiment_data = json.load(file)
-        metadata = ExperimentMetadata(experiment_data, file.name)
+    def file_load(cls, filename: str):
+        with open(filename) as file:
+            experiment_data = json.load(file)
+            metadata = ExperimentMetadata(experiment_data, file.name)
         return metadata

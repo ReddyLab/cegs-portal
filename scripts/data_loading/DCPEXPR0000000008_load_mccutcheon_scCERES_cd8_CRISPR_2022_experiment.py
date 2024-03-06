@@ -29,7 +29,7 @@ def read_dhss(dhs_filename):
     return dhss
 
 
-def get_features(experiment_metadata):
+def get_features(experiment_metadata: ExperimentMetadata):
     new_grnas: dict[str, FeatureRow] = {}
     new_dhss: dict[str, FeatureRow] = {}
 
@@ -95,9 +95,5 @@ def get_features(experiment_metadata):
 
 
 def run(experiment_filename):
-    with open(experiment_filename) as experiment_file:
-        experiment_metadata = ExperimentMetadata.json_load(experiment_file)
-
-    feature_rows, parent_rows = get_features(experiment_metadata)
-    experiment = Experiment(experiment_metadata, feature_rows, parent_rows)
-    experiment.save()
+    metadata = ExperimentMetadata.file_load(experiment_filename)
+    Experiment(metadata).load(get_features).save()
