@@ -387,8 +387,7 @@
             let enabledFacets = facets.map(id => `facet=${id}`).join('&');
             let enabledFeatureTypes = feature_types.map(id => `feature_type=${id}`).join('&');
 
-            let combinedEnabledParams = [enabledFacets, enabledFeatureTypes].join('&');
-            return `{% url 'search:results' %}?query={{ query }}${combinedEnabledParams !== '' ? '&' + combinedEnabledParams : ''}`;
+            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}${enabledFeatureTypes !== '' ? '&' + enabledFeatureTypes : ''}`;
         }
 
         let state = new State({
@@ -475,8 +474,10 @@
             let featureTypes = state.g(STATE_FEATURE_TYPES);
             let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
 
+            url += `?assembly={{ assembly }}`;
+
             if (featureTypes.length > 0) {
-                url += `?feature_type=${featureTypes.join('&feature_type=')}`;
+                url += `&feature_type=${featureTypes.join('&feature_type=')}`;
             }
 
             let form = document.querySelector('form[hx-get]');
@@ -495,12 +496,14 @@
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
+            updateFeatureTypeTable();
 
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
             let stateURL = searchURL(s[key], state.g(STATE_FEATURE_TYPES));
             window.history.pushState({}, document.title, stateURL);
+            updateDynamicIslands();
 
         });
 
