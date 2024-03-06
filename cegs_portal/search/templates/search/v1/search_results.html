@@ -347,7 +347,7 @@
                             </div>
                         </div>
                         <div class="text-sm flex items-center justify-center" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
-                        <form hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
@@ -479,7 +479,7 @@
                 url += `&feature_type=${featureTypes.join('&feature_type=')}`;
             }
 
-            let form = document.querySelector('form[hx-get]');
+            let form = document.getElementById('dna-feature-form');
             if (form) {
                 form.setAttribute('hx-get', url);
             }
