@@ -45,6 +45,7 @@ class SourceInfo:
     start: int
     end: int
     bounds: str
+    strand: Optional[str]
     feature_type: FeatureType
 
     def __post_init__(self):
@@ -91,13 +92,14 @@ class Analysis:
         with ReoIds() as reo_ids:
             for reo_id, reo in zip(reo_ids, reos):
                 for source in reo.sources:
-                    source_string = f"{source.chrom}:{source.start}-{source.end}:{genome_assembly}"
+                    source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
 
                     if source_string not in source_cache:
                         source_cache[source_string] = DNAFeature.objects.filter(
                             experiment_accession_id=experiment_accession_id,
                             chrom_name=source.chrom,
                             location=NumericRange(source.start, source.end, source.bounds),
+                            strand=source.strand,
                             ref_genome=genome_assembly,
                             feature_type=DNAFeatureType(source.feature_type),
                         ).values_list("id", flat=True)[0]

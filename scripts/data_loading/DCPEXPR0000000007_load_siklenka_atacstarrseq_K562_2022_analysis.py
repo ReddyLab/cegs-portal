@@ -19,7 +19,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         car_start = int(line["start"])
         car_end = int(line["end"])
 
-        sources = [SourceInfo(chrom_name, car_start, car_end, "[)", FeatureType.CAR)]
+        sources = [SourceInfo(chrom_name, car_start, car_end, "[)", None, FeatureType.CAR)]
 
         effect_size_field = line["logFC"].strip()
         if effect_size_field == "":

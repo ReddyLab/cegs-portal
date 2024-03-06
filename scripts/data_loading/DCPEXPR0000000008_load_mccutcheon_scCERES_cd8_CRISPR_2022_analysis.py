@@ -45,7 +45,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         elif strand == "-":
             bounds = "(]"
 
-        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, FeatureType.GRNA)]
+        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, strand, FeatureType.GRNA)]
 
         targets = [gene_name_map[target_gene]]
 
