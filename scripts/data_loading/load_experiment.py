@@ -27,6 +27,7 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
+from .types import FeatureType
 
 GRNA_TYPE_FACET = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
@@ -54,7 +55,7 @@ class FeatureRow:
     location: tuple[int, int, str]  # start, end, bounds ("[]", "()", "[)", "(]")
     genome_assembly: str  # ("GRCh38", "GRCh37")
     cell_line: str
-    feature_type: str  # ("cCRE", "DHS", "gRNA", "Chromatin Accessible Region")
+    feature_type: FeatureType  # ("cCRE", "DHS", "gRNA", "Chromatin Accessible Region")
     facets: Optional[list[str]] = None  # list[("Positive Control", "Targeting", "Promoter", "Non-promoter")]
     parent_name: Optional[str] = None
     misc: Optional[Any] = None

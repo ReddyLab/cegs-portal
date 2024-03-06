@@ -19,10 +19,13 @@ from cegs_portal.search.models import (
 from utils.db_ids import ReoIds
 from utils.experiment import AnalysisMetadata
 
-from .db import bulk_reo_save, direction_entry, reo_entry, source_entry, target_entry
+from .db import bulk_reo_save, cat_facet_entry, reo_entry, source_entry, target_entry
+from .types import FeatureType, NumericFacets
 
 DIR_FACET = Facet.objects.get(name="Direction")
-DIR_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
+DIR_FACET_VALUES = {facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
+
+CATEGORICAL_FACET_VALUES = DIR_FACET_VALUES
 
 MIN_SIG = 1e-100
 
@@ -42,7 +45,7 @@ class SourceInfo:
     start: int
     end: int
     bounds: str
-    feature_type: str
+    feature_type: FeatureType
 
     def __post_init__(self):
         DNAFeatureType(self.feature_type)
@@ -52,14 +55,13 @@ class SourceInfo:
 class ObservationRow:
     sources: list[SourceInfo]
     targets: list[str]  # ensembl ids
-    direction: str
-    effect_size: float
-    raw_p_value: float
-    significance: float
+    categorical_facets: list[str]
+    numeric_facets: dict[str:float]
 
     def __post_init__(self):
-        if self.direction not in DIR_FACET_VALUES:
-            raise ValueError(f"Invalid direction: '{self.direction}'")
+        for facet in self.categorical_facets:
+            if facet not in CATEGORICAL_FACET_VALUES:
+                raise ValueError(f"Invalid categorical facet: '{facet}'")
 
 
 class Analysis:
@@ -82,7 +84,7 @@ class Analysis:
         sources = StringIO()
         targets = StringIO()
         effects = StringIO()
-        effect_directions = StringIO()
+        cat_facets = StringIO()
         source_cache = {}
         target_cache = {}
 
@@ -111,13 +113,13 @@ class Analysis:
                     targets.write(target_entry(reo_id, target_cache[target]))
 
                 facet_num_values = {
-                    RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: reo.effect_size,
-                    RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: reo.raw_p_value,
-                    RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: reo.significance,
-                    RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: -math.log10(
-                        max(reo.significance, MIN_SIG)
-                    ),
+                    RegulatoryEffectObservation.Facet(key).value: value for key, value in reo.numeric_facets.items()
                 }
+
+                if NumericFacets.LOG_SIGNIFICANCE not in facet_num_values:
+                    facet_num_values[RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value] = -math.log10(
+                        max(reo.numeric_facets[NumericFacets.SIGNIFICANCE], MIN_SIG)
+                    )
                 effects.write(
                     reo_entry(
                         id_=reo_id,
@@ -129,10 +131,14 @@ class Analysis:
                     )
                 )
 
-                direction = DIR_FACET_VALUES[reo.direction]
-                effect_directions.write(direction_entry(reo_id, direction.id))
+                for facet in reo.categorical_facets:
+                    if facet is None:
+                        continue
 
-        bulk_reo_save(effects, effect_directions, sources, targets)
+                    facet_id = CATEGORICAL_FACET_VALUES[facet]
+                    cat_facets.write(cat_facet_entry(reo_id, facet_id))
+
+        bulk_reo_save(effects, cat_facets, sources, targets)
 
     def save(self):
         with transaction.atomic():

@@ -4,6 +4,7 @@ from utils.experiment import AnalysisMetadata
 
 from .DCPEXPR0000000008_consts import DROP_GENE_NAMES, TRIM_GENE_NAMES
 from .load_analysis import Analysis, ObservationRow, SourceInfo
+from .types import DirectionFacets, FeatureType, NumericFacets
 
 
 def gene_ensembl_mapping(features_file):
@@ -44,24 +45,28 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         elif strand == "-":
             bounds = "(]"
 
-        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, "gRNA")]
+        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, FeatureType.GRNA)]
 
         targets = [gene_name_map[target_gene]]
 
         significance = float(line["p_val_adj"])
         effect_size = float(line["avg_log2FC"])
         if significance >= 0.01:
-            direction = "Non-significant"
+            direction = DirectionFacets.NON_SIGNIFICANT
         elif effect_size > 0:
-            direction = "Enriched Only"
+            direction = DirectionFacets.ENRICHED
         elif effect_size < 0:
-            direction = "Depleted Only"
+            direction = DirectionFacets.DEPLETED
         else:
-            direction = "Non-significant"
+            direction = DirectionFacets.NON_SIGNIFICANT
 
-        observations.append(
-            ObservationRow(sources, targets, direction, effect_size, float(line["p_val"]), significance)
-        )
+        num_facets = {
+            NumericFacets.EFFECT_SIZE: effect_size,
+            NumericFacets.SIGNIFICANCE: significance,
+            NumericFacets.RAW_P_VALUE: float(line["p_val"]),
+        }
+
+        observations.append(ObservationRow(sources, targets, [direction], num_facets))
     results_file.close()
     return observations
 

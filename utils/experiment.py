@@ -75,7 +75,7 @@ class AnalysisMetadata:
 
         self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
 
-        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict["misc_files"]]
+        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict.get("misc_files", [])]
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)

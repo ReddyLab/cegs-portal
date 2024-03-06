@@ -79,7 +79,7 @@ def reo_entry(
 
 def bulk_reo_save(
     effects: StringIO,
-    effect_directions: StringIO,
+    categorical_facets: StringIO,
     source_associations: StringIO,
     target_associations: Optional[StringIO] = None,
 ):
@@ -102,10 +102,10 @@ def bulk_reo_save(
         )
 
     with transaction.atomic(), connection.cursor() as cursor:
-        effect_directions.seek(0, SEEK_SET)
-        print("Adding effect directions to effects")
+        categorical_facets.seek(0, SEEK_SET)
+        print("Adding categorical facets to effects")
         cursor.copy_from(
-            effect_directions,
+            categorical_facets,
             "search_regulatoryeffectobservation_facet_values",
             columns=(
                 "regulatoryeffectobservation_id",
@@ -178,8 +178,8 @@ def target_entry(reo_id, target_id):
     return f"{reo_id}\t{target_id}\n"
 
 
-def direction_entry(reo_id, direction_id):
-    return f"{reo_id}\t{direction_id}\n"
+def cat_facet_entry(reo_id, facet_id):
+    return f"{reo_id}\t{facet_id}\n"
 
 
 def ccre_associate_entry(feature_id, ccre_id):
@@ -188,6 +188,7 @@ def ccre_associate_entry(feature_id, ccre_id):
 
 def bulk_feature_save(features: StringIO):
     features.seek(0, SEEK_SET)
+    print("Adding features")
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.copy_from(
             features,
@@ -224,7 +225,7 @@ def bulk_feature_save(features: StringIO):
 def bulk_feature_facet_save(facets):
     with transaction.atomic(), connection.cursor() as cursor:
         facets.seek(0, SEEK_SET)
-        print("Adding facets to gRNAs")
+        print("Adding facets to features")
         cursor.copy_from(
             facets,
             "search_dnafeature_facet_values",
@@ -237,6 +238,7 @@ def bulk_feature_facet_save(facets):
 
 def bulk_save_associations(associations):
     associations.seek(0, SEEK_SET)
+    print("Adding ccre associations to features")
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.copy_from(
             associations, "search_dnafeature_associated_ccres", columns=("from_dnafeature_id", "to_dnafeature_id")
