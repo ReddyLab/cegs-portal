@@ -441,7 +441,6 @@
             }
             checkbox.addEventListener("change", _ => {
                 updateFeatureState();
-                updateFeatureTypeTable();
             });
         });
 
@@ -488,23 +487,16 @@
             htmx.ajax('GET', url, {target: '#features-table'});
         }
 
-        let defaultFeatureTypes = Array.from(featureCheckboxes)
-                               .filter(i => i.id !== 'Exon' && i.id !== 'Transcript')
-                               .map(i => i.id);
-            state.updateSharedState(STATE_FEATURE_TYPES, defaultFeatureTypes);
-
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
             updateFeatureTypeTable();
-
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
             let stateURL = searchURL(s[key], state.g(STATE_FEATURE_TYPES));
             window.history.pushState({}, document.title, stateURL);
             updateDynamicIslands();
-
         });
 
         state.addCallback(STATE_FEATURE_TYPES, (s, key) => {

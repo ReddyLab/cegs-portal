@@ -28,9 +28,8 @@
             <tr>
                 <th class="chrom-first-end-cap chrom-light-band">Name</th>
                 <th class="chrom-dark-band">Feature Type</th>
-                <th class="chrom-light-band">Location</th>
-                <th class="chrom-right-centromere chrom-light-band">Closest Gene</th>
-                <th class="chrom-left-centromere chrom-light-band">Reference Genome</th>
+                <th class="chrom-right-centromere chrom-light-band">Location</th>
+                <th class="chrom-left-centromere chrom-light-band">Closest Gene</th>
                 <th class="chrom-light-band table-column-hidden">Parent</th>
                 <th class="chrom-last-end-cap chrom-dark-band">Details</th>
             </tr>
@@ -40,7 +39,6 @@
                     <td>{{ feature.get_feature_type_display }}</td>
                     <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}:{{ feature.strand|if_strand }}</span></td>
                     <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}?assembly={{ feature.ref_genome }}">{{ feature.closest_gene_ensembl_id }}</a>{% else %}{% endif %}</td>
-                    <td>{{ feature.ref_genome }}</td>
                     <td class="table-column-hidden">{{ feature.parent.name }}</td>
                     <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
