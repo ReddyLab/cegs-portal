@@ -129,7 +129,7 @@
     }
 
     .search-results-data-table td {
-        padding: 4px;
+        padding: 10px;
         border-bottom: 1px solid lightgrey;
         font-size: small;
     }
@@ -150,6 +150,25 @@
         margin-left: 550px;
         font-size: 75px;
         color: rgb(107, 107, 107);
+    }
+
+    .search-results-text-small {
+        font-size: small;
+    }
+
+    .search-results-tsv-buttons {
+        border: 2px solid #807e7e;
+        background-color: #fff;
+        color: #525050;
+        padding: 1.5px 3px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 8pt;
+        margin: 4px 2px;
+        cursor: pointer;
+        -webkit-transition-duration: 0.4s;
+                transition-duration: 0.4s;
     }
 
 </style>
@@ -346,7 +365,7 @@
                                 Filter DNA Features
                             </div>
                         </div>
-                        <div class="text-sm flex items-center justify-center" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
+                        <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
                         <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">

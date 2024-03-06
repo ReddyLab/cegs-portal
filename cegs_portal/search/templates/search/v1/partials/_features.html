@@ -14,12 +14,12 @@
                 DNA Features
             </div>
             <div class="absolute right-0">
-                <span class="text-lg">Download:</span>
+                <span class="search-results-text-small">Download:</span>
                 <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                    <button class="tsv-button" id="downloadButton">TSV</button>
+                    <button class="tsv-button search-results-tsv-buttons" id="downloadButton">TSV</button>
                 </a>
                 <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values&tsv_format=bed6{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                    <button class="tsv-button" id="downloadButtonNew">BED6</button>
+                    <button class="tsv-button search-results-tsv-buttons" id="downloadButtonNew">BED6</button>
                 </a>
             </div>
         </div>
