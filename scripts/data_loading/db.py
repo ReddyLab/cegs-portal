@@ -149,7 +149,7 @@ def feature_entry(
     closest_gene_ensembl_id="\\N",
     genome_assembly_patch="0",
     feature_subtype="\\N",
-    strand="\\N",
+    strand=None,
     source_file_id=None,
     experiment_accession_id="\\N",
     parent_id=None,
@@ -160,6 +160,7 @@ def feature_entry(
 ):
     ids = "\\N" if ids is None else json.dumps(ids)
     misc = "\\N" if misc is None else json.dumps(misc)
+    strand = "\\N" if strand is None else strand
     source_file_id = "\\N" if source_file_id is None else source_file_id
     parent_id = "\\N" if parent_id is None else parent_id
     parent_accession_id = "\\N" if parent_accession_id is None else parent_accession_id

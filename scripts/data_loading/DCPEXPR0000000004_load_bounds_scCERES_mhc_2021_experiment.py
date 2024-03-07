@@ -26,9 +26,6 @@ def get_features(experiment_metadata: ExperimentMetadata):
             continue
 
         grna_id = line["grna"]
-        grna_type = line["type"]
-        grna_promoter_class = line["annotation_manual"]
-
         grna_info = grna_id.split("-")
 
         # Skip non-targeting guides and guides with no assigned enhancer
@@ -56,6 +53,9 @@ def get_features(experiment_metadata: ExperimentMetadata):
         dhs_row = new_dhss[dhs_name]
 
         if grna_id not in new_grnas:
+            grna_type = line["type"]
+            grna_promoter_class = line["annotation_manual"]
+
             chrom_name, grna_start, grna_end, grna_bounds, grna_strand = grna_loc(line)
 
             categorical_facets = []
@@ -72,7 +72,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_grnas[grna_id] = FeatureRow(
                 name=grna_id,
                 chrom_name=chrom_name,
-                location=(int(grna_start), int(grna_end), grna_bounds),
+                location=(grna_start, grna_end, grna_bounds),
                 strand=grna_strand,
                 genome_assembly=grna_file.genome_assembly,
                 cell_line=grna_cell_line,
