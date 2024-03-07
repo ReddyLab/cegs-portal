@@ -1,5 +1,4 @@
 import csv
-import json
 from collections import defaultdict
 from dataclasses import dataclass, field
 from io import StringIO
@@ -7,9 +6,15 @@ from os import SEEK_SET
 from typing import Optional
 
 from django.db import connection, transaction
+from django.db.models import F, Func
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import AccessionType, DNAFeature, DNAFeatureType
+from scripts.data_loading.db import (
+    bulk_feature_save,
+    ccre_associate_entry,
+    feature_entry,
+)
 
 from .db_ids import FeatureIds
 
@@ -25,41 +30,13 @@ class CcreSource:
     closest_gene_name: str
     closest_gene_ensembl_id: int
     source_file_id: int
-    ref_genome: str
+    genome_assembly: str
     experiment_accession_id: str
-    ref_genome_patch: str = "0"
+    genome_assembly_patch: str = "0"
     _new_id: Optional[int] = None
     new_location: Optional[NumericRange] = None
     feature_type: DNAFeatureType = DNAFeatureType.CCRE
     misc: dict = field(default_factory=lambda: {"pseudo": True})
-
-
-def save_ccres(ccres: StringIO):
-    ccres.seek(0, SEEK_SET)
-    with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            ccres,
-            "search_dnafeature",
-            columns=(
-                "id",
-                "accession_id",
-                "cell_line",
-                "chrom_name",
-                "closest_gene_id",
-                "closest_gene_distance",
-                "closest_gene_name",
-                "closest_gene_ensembl_id",
-                "location",
-                "ref_genome",
-                "ref_genome_patch",
-                "misc",
-                "feature_type",
-                "source_file_id",
-                "experiment_accession_id",
-                "archived",
-                "public",
-            ),
-        )
 
 
 def save_associations(associations):
@@ -70,14 +47,16 @@ def save_associations(associations):
         )
 
 
-def get_ccres(locs: list[tuple[str, int, int, str]]):
-    chrom, _, _, ref_genome = locs[0]
-    return DNAFeature.objects.filter(
-        chrom_name=chrom,
-        location__in=[NumericRange(loc[1], loc[2], "[)") for loc in locs],
-        ref_genome=ref_genome,
-        feature_type=DNAFeatureType.CCRE,
-    ).values_list("id", flat=True)
+def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
+    if genome_assembly not in ["GRCh37", "GRCh38"]:
+        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+
+    return (
+        DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)
+        .order_by("chrom_name", Func(F("location"), function="lower"), Func(F("location"), function="upper"))
+        .values_list("id", "chrom_name", "location")
+        .all()
+    )
 
 
 def source_ccre_locs(closest_ccre_filename, ref_genome):
@@ -106,17 +85,34 @@ def associate_ccres(closest_ccre_filename, sources: list[CcreSource], ref_genome
             if len(ccres) > 0:
                 found += 1
                 for ccre_id in get_ccres(ccres).all():
-                    ccre_associations.write(f"{source._id}\t{ccre_id}\n")
+                    ccre_associations.write(ccre_associate_entry(source._id, ccre_id))
             else:
                 missing += 1
                 feature_id = feature_ids.next_id()
                 location = source.new_location if source.new_location is not None else source.test_location
-                source_id = source._new_id if source._new_id is not None else source._id
                 new_ccres.write(
-                    f"{feature_id}\t{accession_ids.incr(AccessionType.CCRE)}\t{source.cell_line}\t{source.chrom_name}\t{source.closest_gene_id}\t{source.closest_gene_distance}\t{source.closest_gene_name}\t{source.closest_gene_ensembl_id}\t{location}\t{source.ref_genome}\t{source.ref_genome_patch}\t{json.dumps({'pseudo': True})}\t{DNAFeatureType.CCRE}\t{source.source_file_id}\t{source.experiment_accession_id}\tfalse\ttrue\n"
+                    feature_entry(
+                        id_=feature_id,
+                        accession_id=accession_ids.incr(AccessionType.CCRE),
+                        cell_line=source.cell_line,
+                        chrom_name=source.chrom_name,
+                        closest_gene_id=source.closest_gene_id,
+                        closest_gene_distance=source.closest_gene_distance,
+                        closest_gene_name=source.closest_gene_name,
+                        closest_gene_ensembl_id=source.closest_gene_ensembl_id,
+                        location=location,
+                        genome_assembly=source.ref_genome,
+                        genome_assembly_patch=source.ref_genome_patch,
+                        misc={"pseudo": True},
+                        feature_type=DNAFeatureType.CCRE,
+                        source_file_id=source.source_file_id,
+                        experiment_accession_id=source.experiment_accession_id,
+                    )
                 )
-                ccre_associations.write(f"{source_id}\t{feature_id}\n")
-    save_ccres(new_ccres)
+
+                source_id = source._new_id if source._new_id is not None else source._id
+                ccre_associations.write(ccre_associate_entry(source_id, feature_id))
+    bulk_feature_save(new_ccres)
     save_associations(ccre_associations)
     print(f"Found: {found}")
     print(f"Missing: {missing}")

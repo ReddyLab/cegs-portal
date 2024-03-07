@@ -15,6 +15,17 @@ from cegs_portal.search.models.file import File
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
+class GrnaType(Enum):
+    POSITIVE_CONTROL = "Positive Control"
+    NEGATIVE_CONTROL = "Negative Control"
+    TARGETING = "Targeting"
+
+
+class PromoterType(Enum):
+    PROMOTER = "Promoter"
+    NON_PROMOTER = "Non-promoter"
+
+
 class DNAFeature(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -32,6 +43,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         CCRE_CATEGORIES = "cCRE Category"
         DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
         GRNA_TYPE = "gRNA Type"
+        PROMOTER = "Promoter Classification"
 
     FEATURE_TYPE = (
         (str(DNAFeatureType.GENE), DNAFeatureType.GENE.value),
