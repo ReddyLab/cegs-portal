@@ -455,7 +455,9 @@
 
         let searchFeatures = queryParams.getAll("feature_type");
         featureCheckboxes.forEach(checkbox => {
-            if (checkbox.id !== 'Exon' && checkbox.id !== 'Transcript') {
+            if (searchFeatures.length != 0) {
+                checkbox.checked = searchFeatures.includes(checkbox.id);
+            } else if (checkbox.id !== 'Exon' && checkbox.id !== 'Transcript') {
                 checkbox.checked = true;
             }
             checkbox.addEventListener("change", _ => {
