@@ -7,10 +7,10 @@ from .load_analysis import Analysis, ObservationRow, SourceInfo
 from .types import DirectionFacets, FeatureType, NumericFacets
 
 
-def gene_ensembl_mapping(features_file):
+def gene_ensembl_mapping(genes_filename):
     gene_name_map = {}
-    with open(features_file, newline="") as facet_file:
-        reader = csv.reader(facet_file, delimiter="\t")
+    with open(genes_filename, newline="") as genes_file:
+        reader = csv.reader(genes_file, delimiter="\t")
         for row in reader:
             if row[2] != "Gene Expression":
                 continue
