@@ -208,6 +208,7 @@ class Experiment:
                 feature_rows.write(
                     feature_entry(
                         id_=feature_id,
+                        name=feature.name,
                         accession_id=accession_id,
                         cell_line=feature.cell_line,
                         chrom_name=feature.chrom_name,
@@ -235,7 +236,7 @@ class Experiment:
         bulk_feature_facet_save(feature_facets)
         return db_ids
 
-    def _save_ccres(self, features: list[CCREFeature], accession_ids):
+    def _save_ccres(self, features: list[CCREFeature], accession_ids, parent_ccre_assignments: dict[int:int] = None):
         features.sort()
         ccres = get_ccres(self.metadata.tested_elements_file.genome_assembly)
         new_ccres = StringIO()
@@ -274,124 +275,74 @@ class Experiment:
                     # We're done, we associated all the features with cCREs.
                     break
 
+                feature = features[f_idx]
+                if parent_ccre_assignments is not None and feature.parent._id in parent_ccre_assignments:
+                    ccre_id = parent_ccre_assignments[feature.parent._id]
+                    ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                    features_with_associated_ccres[feature._id] = ccre_id
+                    f_idx += 1
+                    continue
+
                 if c_idx >= len(ccres):
                     # We got through all the existing cCREs so we have to create new pseudo-cCREs from
                     # all the remaining features.
                     for feature in features[f_idx:]:
-                        if feature.parent is not None:
-                            if feature.parent._id not in features_with_associated_ccres:
-                                ccre_id = ccre_ids.next_id()
-                                new_ccres.write(
-                                    feature_entry(
-                                        id_=ccre_id,
-                                        accession_id=accession_ids.incr(AccessionType.CCRE),
-                                        cell_line=feature.parent.cell_line,
-                                        chrom_name=feature.parent.chrom_name,
-                                        closest_gene_id=feature.parent.closest_gene_id,
-                                        closest_gene_distance=feature.parent.closest_gene_distance,
-                                        closest_gene_name=feature.parent.closest_gene_name,
-                                        closest_gene_ensembl_id=feature.parent.closest_gene_ensembl_id,
-                                        location=feature.parent.location,
-                                        genome_assembly=feature.parent.genome_assembly,
-                                        genome_assembly_patch=feature.parent.genome_assembly_patch,
-                                        misc=feature.parent.misc,
-                                        feature_type=DNAFeatureType.CCRE,
-                                        source_file_id=feature.parent.source_file_id,
-                                        experiment_accession_id=feature.parent.experiment_accession_id,
-                                    )
-                                )
-                                ccre_associations.write(ccre_associate_entry(feature.parent._id, ccre_id))
-                                features_with_associated_ccres[feature.parent._id] = ccre_id
-                            ccre_associations.write(
-                                ccre_associate_entry(feature._id, features_with_associated_ccres[feature.parent._id])
+                        ccre_id = ccre_ids.next_id()
+                        new_ccres.write(
+                            feature_entry(
+                                id_=ccre_id,
+                                accession_id=accession_ids.incr(AccessionType.CCRE),
+                                cell_line=feature.cell_line,
+                                chrom_name=feature.chrom_name,
+                                closest_gene_id=feature.closest_gene_id,
+                                closest_gene_distance=feature.closest_gene_distance,
+                                closest_gene_name=feature.closest_gene_name,
+                                closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
+                                location=feature.location,
+                                genome_assembly=feature.genome_assembly,
+                                genome_assembly_patch=feature.genome_assembly_patch,
+                                misc=feature.misc,
+                                feature_type=DNAFeatureType.CCRE,
+                                source_file_id=feature.source_file_id,
+                                experiment_accession_id=feature.experiment_accession_id,
                             )
-                        else:
-                            ccre_id = ccre_ids.next_id()
-                            new_ccres.write(
-                                feature_entry(
-                                    id_=ccre_id,
-                                    accession_id=accession_ids.incr(AccessionType.CCRE),
-                                    cell_line=feature.cell_line,
-                                    chrom_name=feature.chrom_name,
-                                    closest_gene_id=feature.closest_gene_id,
-                                    closest_gene_distance=feature.closest_gene_distance,
-                                    closest_gene_name=feature.closest_gene_name,
-                                    closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
-                                    location=feature.location,
-                                    genome_assembly=feature.genome_assembly,
-                                    genome_assembly_patch=feature.genome_assembly_patch,
-                                    misc=feature.misc,
-                                    feature_type=DNAFeatureType.CCRE,
-                                    source_file_id=feature.source_file_id,
-                                    experiment_accession_id=feature.experiment_accession_id,
-                                )
-                            )
-                            ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        )
+                        ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        features_with_associated_ccres[feature._id] = ccre_id
                     break
 
-                feature = features[f_idx]
                 ccre = ccres[c_idx]
 
                 match feature.ccre_comp(ccre):
                     case FeatureOverlap.BEFORE:
-                        if feature.parent is not None:
-                            if feature.parent._id not in features_with_associated_ccres:
-                                ccre_id = ccre_ids.next_id()
-                                new_ccres.write(
-                                    feature_entry(
-                                        id_=ccre_id,
-                                        accession_id=accession_ids.incr(AccessionType.CCRE),
-                                        cell_line=feature.parent.cell_line,
-                                        chrom_name=feature.parent.chrom_name,
-                                        closest_gene_id=feature.parent.closest_gene_id,
-                                        closest_gene_distance=feature.parent.closest_gene_distance,
-                                        closest_gene_name=feature.parent.closest_gene_name,
-                                        closest_gene_ensembl_id=feature.parent.closest_gene_ensembl_id,
-                                        location=feature.parent.location,
-                                        genome_assembly=feature.parent.genome_assembly,
-                                        genome_assembly_patch=feature.parent.genome_assembly_patch,
-                                        misc=feature.parent.misc,
-                                        feature_type=DNAFeatureType.CCRE,
-                                        source_file_id=feature.parent.source_file_id,
-                                        experiment_accession_id=feature.parent.experiment_accession_id,
-                                    )
-                                )
-                                ccre_associations.write(ccre_associate_entry(feature.parent._id, ccre_id))
-                                features_with_associated_ccres[feature.parent._id] = ccre_id
-                            ccre_associations.write(
-                                ccre_associate_entry(feature._id, features_with_associated_ccres[feature.parent._id])
+                        ccre_id = ccre_ids.next_id()
+                        new_ccres.write(
+                            feature_entry(
+                                id_=ccre_id,
+                                accession_id=accession_ids.incr(AccessionType.CCRE),
+                                cell_line=feature.cell_line,
+                                chrom_name=feature.chrom_name,
+                                closest_gene_id=feature.closest_gene_id,
+                                closest_gene_distance=feature.closest_gene_distance,
+                                closest_gene_name=feature.closest_gene_name,
+                                closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
+                                location=feature.location,
+                                genome_assembly=feature.genome_assembly,
+                                genome_assembly_patch=feature.genome_assembly_patch,
+                                misc=feature.misc,
+                                feature_type=DNAFeatureType.CCRE,
+                                source_file_id=feature.source_file_id,
+                                experiment_accession_id=feature.experiment_accession_id,
                             )
-                        else:
-                            ccre_id = ccre_ids.next_id()
-                            new_ccres.write(
-                                feature_entry(
-                                    id_=ccre_id,
-                                    accession_id=accession_ids.incr(AccessionType.CCRE),
-                                    cell_line=feature.cell_line,
-                                    chrom_name=feature.chrom_name,
-                                    closest_gene_id=feature.closest_gene_id,
-                                    closest_gene_distance=feature.closest_gene_distance,
-                                    closest_gene_name=feature.closest_gene_name,
-                                    closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
-                                    location=feature.location,
-                                    genome_assembly=feature.genome_assembly,
-                                    genome_assembly_patch=feature.genome_assembly_patch,
-                                    misc=feature.misc,
-                                    feature_type=DNAFeatureType.CCRE,
-                                    source_file_id=feature.source_file_id,
-                                    experiment_accession_id=feature.experiment_accession_id,
-                                )
-                            )
-                            ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        )
+                        ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        features_with_associated_ccres[feature._id] = ccre_id
                         f_idx += 1
                     case FeatureOverlap.AFTER:
                         c_idx += 1
                     case FeatureOverlap.OVERLAP:
-                        if feature.parent is not None and feature.parent._id not in features_with_associated_ccres:
-                            ccre_associations.write(ccre_associate_entry(feature.parent._id, ccre[0]))
-                            features_with_associated_ccres[feature.parent._id] = ccre[0]
-
                         ccre_associations.write(ccre_associate_entry(feature._id, ccre[0]))
+                        features_with_associated_ccres[feature._id] = ccre[0]
 
                         if c_idx < (len(ccres) - 1) and feature.ccre_comp(ccres[c_idx + 1]) == FeatureOverlap.OVERLAP:
                             c_idx += 1
@@ -400,6 +351,7 @@ class Experiment:
 
         bulk_feature_save(new_ccres)
         bulk_save_associations(ccre_associations)
+        return features_with_associated_ccres
 
     def save(self):
         with transaction.atomic():
@@ -408,13 +360,15 @@ class Experiment:
 
             with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
                 parents = None
+                parent_ccre_assignments = None
                 if self.parent_features is not None:
                     parent_file = self.metadata.tested_elements_parent_file
                     parents = self._save_features(self.parent_features, accession_ids, parent_file.id_)
+                    parent_ccre_assignments = self._save_ccres(list(parents.values()), accession_ids)
 
                 feature_file = self.metadata.tested_elements_file
                 features = self._save_features(self.features, accession_ids, feature_file.id_, parents)
-                self._save_ccres(list(features.values()), accession_ids)
+                self._save_ccres(list(features.values()), accession_ids, parent_ccre_assignments)
 
         return self
 

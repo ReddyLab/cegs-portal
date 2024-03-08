@@ -141,7 +141,7 @@ def feature_entry(
     feature_type,
     ids=None,
     ensembl_id="\\N",
-    name="\\N",
+    name=None,
     cell_line="\\N",
     closest_gene_id="\\N",
     closest_gene_distance="\\N",
@@ -159,6 +159,7 @@ def feature_entry(
     public="true",
 ):
     ids = "\\N" if ids is None else json.dumps(ids)
+    name = "\\N" if name is None else name
     misc = "\\N" if misc is None else json.dumps(misc)
     strand = "\\N" if strand is None else strand
     source_file_id = "\\N" if source_file_id is None else source_file_id
