@@ -72,6 +72,12 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
         result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
 
+    if options is not None and "effect_directions" in options.get("feature_properties", []):
+        result["effect_directions"] = feature_obj.effect_directions
+
+    if options is not None and "effect_targets" in options.get("feature_properties", []):
+        result["effect_targets"] = feature_obj.effect_targets
+
     if options is not None and options.get("json_format", None) == "genoverse":
         genoversify(result)
 

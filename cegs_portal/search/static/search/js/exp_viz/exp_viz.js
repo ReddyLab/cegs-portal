@@ -2,36 +2,44 @@ import {a, cc, e, g, rc, t} from "../dom.js";
 import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
-import {Legend} from "./obsLegend.js";
 import {GenomeRenderer} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 import {debounce} from "../utils.js";
-
-const STATE_ZOOMED = "state-zoomed";
-const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
-const STATE_SCALE = "state-scale";
-const STATE_SCALE_X = "state-scale-x";
-const STATE_SCALE_Y = "state-scale-y";
-const STATE_VIEWBOX = "state-viewbox";
-const STATE_FACETS = "state-facets";
-const STATE_CATEGORICAL_FACET_VALUES = "state-categorical-facets";
-const STATE_NUMERIC_FACET_VALUES = "state-numeric-facets";
-const STATE_COUNT_FILTER_VALUES = "state-count-filter";
-const STATE_COVERAGE_DATA = "state-coverage-data";
-const STATE_ALL_FILTERED = "state-all-filtered";
-const STATE_NUMERIC_FILTER_INTERVALS = "state-numeric-filter-intervals";
-const STATE_COUNT_FILTER_INTERVALS = "state-count-filter-intervals";
-const STATE_HIGHLIGHT_REGIONS = "state-highlight-regions";
-const STATE_SELECTED_EXPERIMENTS = "state-selected-experiments";
-const STATE_ITEM_COUNTS = "state-item-counts";
-const STATE_SOURCE_TYPE = "state-source-type";
-const STATE_ANALYSIS = "state-analysis";
-const STATE_COVERAGE_TYPE = "state-coverage-type";
-const STATE_LEGEND_INTERVALS = "state-legend-intervals";
-
-const COVERAGE_TYPE_COUNT = "coverage-type-count";
-const COVERAGE_TYPE_SIG = "coverage-type-sig";
-const COVERAGE_TYPE_EFFECT = "coverage-type-effect";
+import {render} from "./render.js";
+import {getHighlightRegions} from "./highlightRegions.js";
+import {mergeFilteredData} from "./coverageData.js";
+import {coverageValue, effectInterval, levelCountInterval, sigInterval} from "./covTypeUtils.js";
+import {
+    STATE_ZOOMED,
+    STATE_ZOOM_CHROMO_INDEX,
+    STATE_SCALE,
+    STATE_SCALE_X,
+    STATE_SCALE_Y,
+    STATE_VIEWBOX,
+    STATE_FACETS,
+    STATE_CATEGORICAL_FACET_VALUES,
+    STATE_NUMERIC_FACET_VALUES,
+    STATE_COUNT_FILTER_VALUES,
+    STATE_COVERAGE_DATA,
+    STATE_ALL_FILTERED,
+    STATE_NUMERIC_FILTER_INTERVALS,
+    STATE_COUNT_FILTER_INTERVALS,
+    STATE_HIGHLIGHT_REGIONS,
+    STATE_SELECTED_EXPERIMENT,
+    STATE_ITEM_COUNTS,
+    STATE_SOURCE_TYPE,
+    STATE_ANALYSIS,
+    STATE_COVERAGE_TYPE,
+    STATE_LEGEND_INTERVALS,
+} from "./consts.js";
+import {
+    numericFilterControls,
+    countFilterControls,
+    getFilterBody,
+    setFacetControls,
+    setCountControls,
+    setLegendIntervals,
+} from "./ui.js";
 
 function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType) {
     let coverageData = manifest.chromosomes;
@@ -71,7 +79,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
         [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
         [STATE_HIGHLIGHT_REGIONS]: {},
-        [STATE_SELECTED_EXPERIMENTS]: [exprAccessionID],
+        [STATE_SELECTED_EXPERIMENT]: exprAccessionID,
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
         [STATE_ANALYSIS]: analysisAccessionID,
@@ -111,439 +119,8 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
     return [genome, manifest];
 }
 
-function render(state, genomeRenderer) {
-    const viewBox = state.g(STATE_VIEWBOX);
-    const scale = state.g(STATE_SCALE);
-    const scaleX = state.g(STATE_SCALE_X);
-    const scaleY = state.g(STATE_SCALE_Y);
-    const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
-    let currentLevel = state.g(STATE_ALL_FILTERED);
-    let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-    let itemCounts = state.g(STATE_ITEM_COUNTS);
-    let legendIntervals = state.g(STATE_LEGEND_INTERVALS);
-
-    let sourceColors = sourceRenderColors(state);
-    let targetColors = targetRenderColors(state);
-
-    rc(
-        g("chrom-data"),
-        genomeRenderer.render(
-            currentLevel,
-            focusIndex,
-            sourceColors,
-            targetColors,
-            sourceRenderDataTransform(state),
-            targetRenderDataTransform(state),
-            tooltipDataSelectors,
-            sourceTooltipDataLabel(state),
-            targetTooltipDataLabel,
-            viewBox,
-            scale,
-            scaleX,
-            scaleY,
-            highlightRegions
-        )
-    );
-    rc(
-        g("chrom-data-legend"),
-        Legend(d3.scaleSequential(legendIntervals.source, sourceColors.color), {
-            title: sourceLegendTitle(state),
-        })
-    );
-    a(
-        g("chrom-data-legend"),
-        Legend(d3.scaleSequential(legendIntervals.target, targetColors.color), {
-            title: targetLegendTitle(state),
-        })
-    );
-    rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
-    rc(g("source-count"), t(`${state.g(STATE_SOURCE_TYPE)}s: ${itemCounts[1].toLocaleString()}`));
-    rc(g("target-count"), t(`Genes: ${itemCounts[2].toLocaleString()}`));
-}
-
-function categoricalFilterControls(facets, default_facets) {
-    return facets
-        .filter((f) => f.facet_type == "FacetType.CATEGORICAL")
-        .map((facet) => {
-            return e("fieldset", {name: "facetfield", class: "my-4"}, [
-                e("legend", {class: "font-bold"}, facet.name),
-                e(
-                    "div",
-                    {class: "flex flex-row flex-wrap gap-1"},
-                    Object.entries(facet.values).map((entry) => {
-                        return e("div", {class: "ml-1"}, [
-                            default_facets.includes(parseInt(entry[0]))
-                                ? e("input", {type: "checkbox", id: entry[0], name: facet.name, checked: "true"}, [])
-                                : e("input", {type: "checkbox", id: entry[0], name: facet.name}, []),
-                            e("label", {for: entry[0]}, entry[1]),
-                        ]);
-                    })
-                ),
-            ]);
-        });
-}
-
-function numericFilterControls(state, facets) {
-    const numericFacets = facets.filter((f) => f.facet_type == "FacetType.NUMERIC");
-    let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
-    let filterNodes = [];
-    let intervals = state.g(STATE_NUMERIC_FILTER_INTERVALS);
-
-    for (let i = 0; i < numericFacets.length; i++) {
-        let facet = numericFacets[i];
-        let sliderNode = sliderNodes[i];
-
-        let range;
-        let sliderLabel;
-
-        if (facet.name === "Effect Size") {
-            range = intervals.effect;
-            sliderLabel = facet.name;
-        } else if (facet.name === "Significance") {
-            range = [intervals.sig[0], intervals.sig[1]];
-            sliderLabel = "Significance (-log10)";
-        } else {
-            continue;
-        }
-
-        noUiSlider.create(sliderNode, {
-            start: [range[0], range[1]],
-            format: {
-                to: (n) => n.toPrecision(3),
-                from: (s) => Number.parseFloat(s),
-            },
-            connect: true,
-            range: {
-                min: range[0],
-                max: range[1],
-            },
-            pips: {
-                mode: "range",
-                density: 5,
-                format: {
-                    to: (n) => n.toPrecision(3),
-                    from: (s) => Number.parseFloat(s),
-                },
-            },
-        });
-
-        sliderNode.noUiSlider.on("start", function (values, handle) {
-            sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
-        });
-
-        sliderNode.noUiSlider.on("end", function (values, handle) {
-            sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
-        });
-
-        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", sliderLabel), sliderNode]));
-    }
-
-    sliderNodes.forEach((sliderNode) => {
-        sliderNode.noUiSlider.on("slide", function (values, handle) {
-            state.u(
-                STATE_NUMERIC_FACET_VALUES,
-                sliderNodes.map((n) => n.noUiSlider.get(true))
-            );
-        });
-    });
-
-    return filterNodes;
-}
-
-function countFilterControls(state) {
-    let sliderNodes = [e("div", {name: "facetslider"}, []), e("div", {name: "facetslider"}, [])];
-    let filterNodes = [];
-    let intervals = state.g(STATE_COUNT_FILTER_INTERVALS);
-
-    for (let i = 0; i < 2; i++) {
-        let sliderNode = sliderNodes[i];
-
-        let range;
-        let name;
-
-        if (i == 0) {
-            range = intervals.source;
-            name = `Number of ${state.g(STATE_SOURCE_TYPE)}s`;
-        } else if (i == 1) {
-            range = intervals.target;
-            name = "Number of Genes Assayed";
-        } else {
-            continue;
-        }
-
-        noUiSlider.create(sliderNode, {
-            start: [range[0], range[1]],
-            step: 1,
-            connect: true,
-            range: {
-                min: range[0],
-                max: range[1],
-            },
-            pips: {
-                mode: "range",
-                density: 5,
-            },
-        });
-
-        sliderNode.noUiSlider.on("start", function (values, handle) {
-            sliderNode.noUiSlider.updateOptions({tooltips: [true, true]});
-        });
-
-        sliderNode.noUiSlider.on("end", function (values, handle) {
-            sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
-        });
-
-        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", name), sliderNode]));
-    }
-
-    sliderNodes.forEach((sliderNode) => {
-        sliderNode.noUiSlider.on("slide", function (values, handle) {
-            state.u(
-                STATE_COUNT_FILTER_VALUES,
-                sliderNodes.map((n) => n.noUiSlider.get(true))
-            );
-        });
-    });
-
-    return filterNodes;
-}
-
-function getFilterBody(state, genome, chroms, filter_values) {
-    let filters = {
-        filters: filter_values,
-        chromosomes: genome.map((c) => c.chrom),
-    };
-    if (state.g(STATE_ZOOMED)) {
-        let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-        filters.zoom = chroms[zoomChromoIndex].chrom;
-    }
-
-    return filters;
-}
-
-function mergeFilteredData(current_data, response_data) {
-    let resp_obj = response_data.reduce((obj, chrom) => {
-        obj[chrom.chrom] = chrom;
-        return obj;
-    }, {});
-
-    return current_data.map((chrom) => {
-        return chrom.chrom in resp_obj ? resp_obj[chrom.chrom] : chrom;
-    });
-}
-
-function experimentsQuery(state) {
-    let selectedExperiments = state.g(STATE_SELECTED_EXPERIMENTS);
-    return selectedExperiments.map((e) => `exp=${e}`).join("&");
-}
-
-function valueInterval(selector) {
-    return (chroms, interval, chromoIndex) => {
-        if (chromoIndex) {
-            chroms = [chroms[chromoIndex]];
-        }
-        let max = Number.NEGATIVE_INFINITY;
-        let min = Number.POSITIVE_INFINITY;
-        for (const chrom of chroms) {
-            const values = chrom[interval].map(selector);
-            max = Math.max(max, Math.max(...values));
-            min = Math.min(min, Math.min(...values));
-        }
-
-        if (max == Number.NEGATIVE_INFINITY || min == Number.POSITIVE_INFINITY) {
-            return [0, 0];
-        }
-
-        return [min, max];
-    };
-}
-
-const levelCountInterval = valueInterval((d) => d.count);
-const sigInterval = valueInterval((d) => d.max_log10_sig);
-const effectInterval = valueInterval((d) => d.max_abs_effect);
-
-function coverageTypeFunctions(count, sig, effect) {
-    return (state) => {
-        const coverage_type = state.g(STATE_COVERAGE_TYPE);
-        if (coverage_type == COVERAGE_TYPE_COUNT) {
-            return count;
-        } else if (coverage_type == COVERAGE_TYPE_SIG) {
-            return sig;
-        } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-            return effect;
-        }
-    };
-}
-
-function coverageTypeDeferredFunctions(count, sig, effect) {
-    return (state) => {
-        const coverage_type = state.g(STATE_COVERAGE_TYPE);
-        if (coverage_type == COVERAGE_TYPE_COUNT) {
-            return count(state);
-        } else if (coverage_type == COVERAGE_TYPE_SIG) {
-            return sig(state);
-        } else if (coverage_type == COVERAGE_TYPE_EFFECT) {
-            return effect(state);
-        }
-    };
-}
-
-let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterval, effectInterval);
-
-let tooltipDataSelectors = [
-    (d) => d.count,
-    (d) => {
-        if (d.max_log10_sig >= 0.001) {
-            return d.max_log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
-        } else {
-            return d.max_log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
-        }
-    },
-    (d) => {
-        if (Math.abs(d.max_abs_effect) >= 0.001) {
-            return d.max_abs_effect.toFixed(3); // e.g., 12.34567890 -> 12.345
-        } else {
-            return d.max_abs_effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
-        }
-    },
-];
-
-function sourceTooltipDataLabel(state) {
-    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Greatest Effect Size"];
-}
-let targetTooltipDataLabel = ["Gene Count", "Largest Significance", "Greatest Effect Size"];
-
-let sourceLegendTitle = coverageTypeDeferredFunctions(
-    (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
-    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Significance`,
-    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Size`
-);
-
-let targetLegendTitle = coverageTypeFunctions(
-    "Number of Genes Assayed",
-    "Significance of Effect on Assayed Genes",
-    "Size of Effect on Assayed Genes"
-);
-
-let sourceRenderDataTransform = coverageTypeDeferredFunctions(
-    (state) => {
-        return (d) => {
-            let sourceCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).source;
-            let sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
-            return (d.count - sourceCountInterval[0]) / sourceCountRange;
-        };
-    },
-    (state) => (d) => {
-        let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
-        let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
-    },
-    (state) => (d) => {
-        let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
-        let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
-    }
-);
-
-let targetRenderDataTransform = coverageTypeDeferredFunctions(
-    (state) => {
-        return (d) => {
-            let targetCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).target;
-            let targetCountRange = targetCountInterval[1] - targetCountInterval[0];
-            return (d.count - targetCountInterval[0]) / targetCountRange;
-        };
-    },
-    (state) => (d) => {
-        let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
-        let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
-    },
-    (state) => (d) => {
-        let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
-        let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
-    }
-);
-
-let sourceRenderColors = coverageTypeFunctions(
-    {
-        color: d3.interpolateCool,
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(-260, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-    },
-    {
-        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
-    },
-    {
-        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
-    }
-);
-
-let targetRenderColors = coverageTypeFunctions(
-    {
-        color: d3.interpolateWarm,
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(-100, 0.75, 0.95), d3.cubehelix(80, 1.5, 0.95)),
-    },
-    {
-        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
-    },
-    {
-        color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
-        faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
-    }
-);
-
-function setFacetControls(state, categoricalFacetControls, defaultFacets, facets) {
-    cc(categoricalFacetControls);
-    categoricalFilterControls(facets, defaultFacets).forEach((element) => {
-        a(categoricalFacetControls, element);
-    });
-    let facetCheckboxes = categoricalFacetControls.querySelectorAll("input[type=checkbox]");
-    facetCheckboxes.forEach((checkbox) => {
-        checkbox.addEventListener("change", (_) => {
-            let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-                .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                .map((i) => Number(i.id));
-            state.u(STATE_CATEGORICAL_FACET_VALUES, checkedFacets);
-        });
-    });
-
-    let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
-    let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range64;
-    state.u(STATE_NUMERIC_FILTER_INTERVALS, {effect: effectSizeFilterInterval, sig: sigFilterInterval});
-}
-
-function setCountControls(state, coverageData) {
-    let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
-    let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
-    state.u(STATE_COUNT_FILTER_INTERVALS, {source: sourceCountInterval, target: targetCountInterval});
-    state.u(STATE_COUNT_FILTER_VALUES, [sourceCountInterval, targetCountInterval]);
-}
-
-function setLegendIntervals(state, coverageData) {
-    let legendInterval = getLegendIntervalFunc(state);
-    let sourceLegendInterval = legendInterval(coverageData, "source_intervals");
-    let targetLegendInterval = legendInterval(coverageData, "target_intervals");
-    state.u(STATE_LEGEND_INTERVALS, {source: sourceLegendInterval, target: targetLegendInterval});
-}
-
-function getHighlightRegions(regionUploadInput, regionReader) {
-    if (regionUploadInput.files.length != 1) {
-        return;
-    }
-    regionReader.readAsText(regionUploadInput.files[0]);
-}
-
-function coverageValue(selectedCoverageType) {
-    if (selectedCoverageType == "count") {
-        return COVERAGE_TYPE_COUNT;
-    } else if (selectedCoverageType == "sig") {
-        return COVERAGE_TYPE_SIG;
-    } else if (selectedCoverageType == "effect") {
-        return COVERAGE_TYPE_EFFECT;
-    }
+function experimentQuery(state) {
+    return `exp=${state.g(STATE_SELECTED_EXPERIMENT)}/${state.g(STATE_ANALYSIS)}`;
 }
 
 export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, csrfToken, sourceType, loggedIn) {
@@ -608,7 +185,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             state.g(STATE_NUMERIC_FACET_VALUES),
         ]);
 
-        postJson(`/search/experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
+        postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
             (response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
@@ -628,7 +205,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             // Send facet data to server to get filtered data and updated numeric facets
             let body = getFilterBody(state, genome, manifest.chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
 
-            postJson(`/search/experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
+            postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
@@ -640,7 +217,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                         [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
                         false
                     );
-                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
+                    state.u(STATE_ITEM_COUNTS, [
+                        response_json.reo_count,
+                        response_json.source_count,
+                        response_json.target_count,
+                    ]);
                 }
             );
         }, 300)
@@ -655,13 +236,17 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 state.g(STATE_NUMERIC_FACET_VALUES),
             ]);
 
-            postJson(`/search/experiment_coverage?${experimentsQuery(state)}`, JSON.stringify(body)).then(
+            postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
                         mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
                     );
-                    state.u(STATE_ITEM_COUNTS, response_json.item_counts);
+                    state.u(STATE_ITEM_COUNTS, [
+                        response_json.reo_count,
+                        response_json.source_count,
+                        response_json.target_count,
+                    ]);
                 }
             );
         }, 300)

@@ -1,4 +1,5 @@
 import json
+import re
 from typing import cast
 from urllib.parse import quote_plus
 
@@ -27,7 +28,40 @@ def check_json_response(response, feature):
     assert response_feature["name"] == feature.name
     assert response_feature["ref_genome"] == feature.ref_genome
     assert response_feature["ref_genome_patch"] == feature.ref_genome_patch
-    assert response_feature["type"] == feature.feature_type.value
+    assert response_feature["type"] == feature.get_feature_type_display()
+
+
+def check_tsv_response(response, feature):
+    assert response.status_code == 200
+    response_tsv = response.content.decode("utf-8")
+
+    match feature.strand:
+        case "+":
+            strand = r"\+"
+        case None:
+            strand = "."
+        case "-":
+            strand = "-"
+    gene_dist = feature.closest_gene_distance if feature.closest_gene_distance is not None else ""
+    name = feature.name if feature.name is not None else ""
+    line = f"{feature.chrom_name}\t{feature.location.lower}\t{feature.location.upper}\t{feature.chrom_name}:{feature.location.lower}-{feature.location.upper}:{strand}:{name}\t0\t{strand}\t{gene_dist}\t{feature.get_feature_type_display()}\t{feature.accession_id}\t{feature.experiment_accession_id}"
+    assert re.search(line, response_tsv) is not None
+
+
+def check_bed_response(response, feature):
+    assert response.status_code == 200
+    response_tsv = response.content.decode("utf-8")
+
+    match feature.strand:
+        case "+":
+            strand = r"\+"
+        case None:
+            strand = "."
+        case "-":
+            strand = "-"
+    name = feature.name if feature.name is not None else ""
+    line = f"{feature.chrom_name}\t{feature.location.lower}\t{feature.location.upper}\t{feature.chrom_name}:{feature.location.lower}-{feature.location.upper}:{strand}:{name}\t0\t{strand}"
+    assert re.search(line, response_tsv) is not None
 
 
 def test_get_feature_ensembl_json(client: Client, feature: DNAFeature):
@@ -123,7 +157,7 @@ def test_get_feature_accession_html(client: Client, feature: DNAFeature):
 
 
 def test_get_no_feature_accession_html(client: Client):
-    response = client.get("/search/feature/accession/DCPGENE00000000")
+    response = client.get("/search/feature/accession/DCPGENE0000000000")
 
     assert response.status_code == 404
 
@@ -280,6 +314,20 @@ def test_get_feature_loc_json(client: Client, feature: DNAFeature):
     check_json_response(response, feature)
 
 
+def test_get_feature_loc_tsv(client: Client, feature: DNAFeature):
+    response = client.get(
+        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=text/tab-separated-values"  # noqa: E501
+    )
+    check_tsv_response(response, feature)
+
+
+def test_get_feature_loc_bed(client: Client, feature: DNAFeature):
+    response = client.get(
+        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=text/tab-separated-values&tsv_format=bed6"  # noqa: E501
+    )
+    check_bed_response(response, feature)
+
+
 def test_get_feature_loc_html(client: Client, feature: DNAFeature):
     response = client.get(
         f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}"
@@ -401,14 +449,14 @@ def test_get_feature_loc_not_exact_json(client: Client, feature: DNAFeature):
 
 def test_get_feature_loc_feature_type_json(client: Client, feature: DNAFeature):
     response = client.get(
-        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={cast(DNAFeatureType, feature.feature_type).value}"  # noqa: E501
+        f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={feature.get_feature_type_display()}"  # noqa: E501
     )
 
     check_json_response(response, feature)
 
 
 def test_get_feature_loc_not_feature_type_json(client: Client, feature: DNAFeature):
-    not_feature_type = [f for f in DNAFeatureType if f.value != cast(DNAFeatureType, feature.feature_type).value][0]
+    not_feature_type = [f for f in DNAFeatureType if str(f) != feature.feature_type][0]
     response = client.get(
         f"/search/featureloc/{feature.chrom_name}/{feature.location.lower - 10}/{feature.location.upper + 10}?accept=application/json&feature_type={not_feature_type.value}"  # noqa: E501
     )

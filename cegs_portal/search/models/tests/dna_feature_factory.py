@@ -30,7 +30,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     strand = random.choice(["+", "-", None])
     ref_genome = "GRCh38"
     ref_genome_patch = Faker("numerify", text="##")
-    feature_type = random.choice(list(DNAFeatureType))
+    feature_type = str(random.choice(list(DNAFeatureType)))
     feature_subtype = Faker("text", max_nb_chars=50)
     ids = {"id_type": "id_value"}
     misc = {"other id": "id value"}
@@ -41,10 +41,22 @@ class DNAFeatureFactory(DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
+        # in DNAFeatureSearch#loc_search the "effect_directions" property adds
+        # an "effect_directions" annotation to DNAFeature objects
+        if "effect_directions" in kwargs:
+            effect_dirs = kwargs["effect_directions"]
+            del kwargs["effect_directions"]
+        else:
+            effect_dirs = None
+
         obj = model_class(*args, **kwargs)
         if "accession_id" not in kwargs:
-            obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^", upper=True)
+            obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^^^", upper=True)
             obj.save()
+
+        if effect_dirs is not None:
+            setattr(obj, "effect_directions", effect_dirs)
+
         return obj
 
     @factory.lazy_attribute

@@ -173,7 +173,7 @@ paths:
           name: search_type
         - schema:
             type: string
-            example: DCPGENE0000F00D
+            example: DCPGENE000000F00D
           in: query
           name: exp
           required: true

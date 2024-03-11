@@ -81,6 +81,7 @@
 
     .close-button {
         cursor: pointer;
+        display:inline-block;
     }
 
     #modal .scroll-bounds {
@@ -126,6 +127,50 @@
         0% {transform: scale(1);}
         100% {transform: scale(0.9);}
     }
+
+    .search-results-data-table td {
+        padding: 10px;
+        border-bottom: 1px solid lightgrey;
+        font-size: small;
+    }
+
+    .search-results-table-title  {
+        justify-content: left;
+        font-family: sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        color: rgb(107, 107, 107);
+    }
+
+    .table-column-hidden {
+        display: none;
+    }
+
+    #dna-feature-loading-spinner {
+        margin-left: 550px;
+        font-size: 75px;
+        color: rgb(107, 107, 107);
+    }
+
+    .search-results-text-small {
+        font-size: small;
+    }
+
+    .search-results-tsv-buttons {
+        border: 2px solid #807e7e;
+        background-color: #fff;
+        color: #525050;
+        padding: 1.5px 3px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 8pt;
+        margin: 4px 2px;
+        cursor: pointer;
+        -webkit-transition-duration: 0.4s;
+                transition-duration: 0.4s;
+    }
+
 </style>
 {% endblock %}
 {% block javascript %}
@@ -167,78 +212,183 @@
     <div class="p-2" id="genoverse"></div>
     {% endif %}
 
-    <div class="flex flex-row items-start gap-x-10 min-w-full">
-        <div class="flex flex-col gap-4 flex-none">
-            <div id="facets" class="container">
-                <div class="w-60">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
-                            <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+    <div class="min-w-full">
+        <div class="flex flex-column justify-center">
+            <ul
+                class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+                role="tablist"
+                data-te-nav-ref
+            >
+                <li role="presentation">
+                    <a
+                        href="#tabs-summary"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-summary-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-summary"
+                        data-te-nav-active
+                        role="tab"
+                        aria-controls="tabs-summary"
+                        aria-selected="true"
+                        >Effect Summary
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                            />
                         </svg>
-                        <div class="text-xl font-bold text-slate-500">Filter Facets</div>
-                    </div>
-                    <div class="title-separator"></div>
-                    {% for facet in facets.all %}
-                        <fieldset name="facetfield">
-                            <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
-                            data-te-collapse-init
-
-                            data-te-target="#facetCollapse{{ forloop.counter }}"
-                            aria-expanded="true"
-                            aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                            <div
-                                class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
-                                <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="h-6 w-6">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        <i class="bi bi-file-text"></i>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a
+                        href="#tabs-features"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-features-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-features"
+                        role="tab"
+                        aria-controls="tabs-features"
+                        aria-selected="false"
+                        >DNA Features <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 448 512"
+                            class="svg-icon ml-1"
+                        >
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
+                            />
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div
+            class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-summary"
+            role="tabpanel"
+            aria-labelledby="tabs-summary-tab"
+            data-te-tab-active
+        >
+            <div class="flex flex-row items-start gap-x-10 min-w-full">
+                <div class="flex flex-col gap-4 flex-none">
+                    <div id="facets" class="container">
+                        <div class="w-60">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
+                                    <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
+                                <div class="text-xl font-bold text-slate-500">Filter Facets</div>
                             </div>
-                            </legend>
-                            <div class="flex flex-row flex-wrap gap-1"
-                                id="facetCollapse{{ forloop.counter }}"
-                                data-te-collapse-item
-                                data-te-collapse-show
-                                aria-labelledby="facetHeader{{ forloop.counter }}">
-                                {% for value in facet.values.all %}
-                                <div>
-                                    <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
-                                    <label for="{{ value.id }}">{{ value.value }}</label>
-                                </div>
-                                {% endfor %}
+                            <div class="title-separator"></div>
+                            {% for facet in facets.all %}
+                                <fieldset name="facetfield">
+                                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
+                                    data-te-collapse-init
+
+                                    data-te-target="#facetCollapse{{ forloop.counter }}"
+                                    aria-expanded="true"
+                                    aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                                    <div
+                                        class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                        <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="h-6 w-6">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                    </legend>
+                                    <div class="flex flex-row flex-wrap gap-1"
+                                        id="facetCollapse{{ forloop.counter }}"
+                                        data-te-collapse-item
+                                        data-te-collapse-show
+                                        aria-labelledby="facetHeader{{ forloop.counter }}">
+                                        {% for value in facet.values.all %}
+                                        <div>
+                                            <input type="checkbox" id="{{ value.id }}" name="{{ facet.name }}"{% if value.id in facets_query %} checked="" {% endif %}></input>
+                                            <label for="{{ value.id }}">{{ value.value }}</label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </fieldset>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if logged_in %}
+                    <div class="container">
+                        <form name="dataDownloadForm">
+                            <div>
+                                <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
+                                <div class="text-sm">Includes all observations, filtered by selected facets</div>
                             </div>
-                        </fieldset>
-                    {% endfor %}
+                        </form>
+                        <div id="dataDownloadLink" class="mt-5"></div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    {% if feature_counts %}
+                    <div class="container" id="feature-counts">
+                    {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+                    </div>
+                    {% endif %}
+                    <div class="container basis-3/4" id="sig-reg-effects">
+                    {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+                    </div>
                 </div>
             </div>
-            {% if logged_in %}
-            <div class="container">
-                <form name="dataDownloadForm">
-                    <div>
-                        <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
-                        <div class="text-sm">Includes all observations, filtered by selected facets</div>
-                    </div>
-                </form>
-                <div id="dataDownloadLink" class="mt-5"></div>
-            </div>
-            {% endif %}
         </div>
-
-        <div class="flex flex-col gap-4">
-            {% if feature_counts %}
-            <div class="container" id="feature-counts">
-            {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
-            </div>
-            {% endif %}
-            <div class="container basis-3/4" id="sig-reg-effects">
-            {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+        <div
+            class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-features"
+            role="tabpanel"
+            aria-labelledby="tabs-features-tab"
+        >
+            <div class="flex flex-row items-start gap-x-10 min-w-full">
+                <div class="flex flex-col gap-4 flex-none">
+                    <div class="container">
+                        <a name="near_features"></a>
+                        <div class="search-results-table-title flex items-center justify-between relative">
+                            <div class="flex items-center justify-center flex-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
+                                    <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                                </svg>
+                                Filter DNA Features
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
+                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                            <div class="title-separator min-w-full"></div>
+                            <fieldset name="feature_type_field">
+                                <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
+                                </legend>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
+                                <div class="grid grid-cols-1 gap-0">
+                                    {% for feature_type in dna_feature_types %}
+                                        <div class="flex items-center">
+                                            <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}" class="mr-2">
+                                            <label for="{{ feature_type }}">{{ feature_type }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div class="basis-3/4 text-sm">
+                        <div id="features-table"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -250,16 +400,15 @@
         import { getJson } from "{% static 'search/js/files.js' %}";
         import { State } from "{% static 'search/js/state.js' %}";
         import { downloadRegionsSetup } from "{% static 'search/js/search_results/downloads.js' %}";
+        import { STATE_DHS_EFFECT, STATE_FACETS, STATE_REGION, STATE_FEATURE_TYPES } from "{% static 'search/js/search_results/consts.js' %}";
 
-        let searchURL = function(facets) {
-            let enabledFacets = facets.map(id => `facet=${id}`)
-                                  .join('&')
-            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`;
+        let searchURL = function(facets, feature_types) {
+            let enabledFacets = facets.map(id => `facet=${id}`).join('&');
+            let enabledFeatureTypes = feature_types.map(id => `feature_type=${id}`).join('&');
+
+            return `{% url 'search:results' %}?query={{ query }}${enabledFacets !== '' ? '&' + enabledFacets : ''}${enabledFeatureTypes !== '' ? '&' + enabledFeatureTypes : ''}`;
         }
 
-        const STATE_REGION = "region";
-        const STATE_FACETS = "facets"
-        const STATE_DHS_EFFECT = "dhs-effect-data"
         let state = new State({
             [STATE_REGION]: {
                 chr: "{{ region.chromo }}",
@@ -267,6 +416,7 @@
                 end: {{ region.range.upper }}
             },
             [STATE_FACETS]: [],
+            [STATE_FEATURE_TYPES]: [],
             [STATE_DHS_EFFECT]: null
         });
 
@@ -276,12 +426,20 @@
         }
 
         const facetCheckboxes = document.querySelectorAll("[name=facetfield] input[type=checkbox]");
+        const featureCheckboxes = document.querySelectorAll("[name=feature_type_field] input[type=checkbox]");
 
         const updateFacetState = function() {
             let checkedFacets = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
                                      .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
                                      .map(i => i.id);
             state.updateSharedState(STATE_FACETS, checkedFacets);
+        }
+
+        const updateFeatureState = function() {
+            let checkedFeatures = Array.from(featureCheckboxes)
+                                     .filter(i => i.checked)
+                                     .map(i => i.id);
+            state.updateSharedState(STATE_FEATURE_TYPES, checkedFeatures);
         }
 
         let queryParams = new URLSearchParams(window.location.search);
@@ -295,11 +453,26 @@
 
         updateFacetState();
 
+        let searchFeatures = queryParams.getAll("feature_type");
+        featureCheckboxes.forEach(checkbox => {
+            if (searchFeatures.length != 0) {
+                checkbox.checked = searchFeatures.includes(checkbox.id);
+            } else if (checkbox.id !== 'Exon' && checkbox.id !== 'Transcript') {
+                checkbox.checked = true;
+            }
+            checkbox.addEventListener("change", _ => {
+                updateFeatureState();
+            });
+        });
+
+        updateFeatureState();
+
         // Update the chromosome region at the top of the page
         state.addCallback(STATE_REGION, (s, key) => {
             let region = state.g(STATE_REGION);
 
             rc(g("loc-header"), t(`chr${region.chr}: ${region.start.toLocaleString()} - ${region.end.toLocaleString()}`));
+            rc(g("filter-loc-header"), t(`chr${region.chr}: ${region.start.toLocaleString()} - ${region.end.toLocaleString()}`));
         });
 
         let featureCountsElement = g("feature-counts");
@@ -316,16 +489,43 @@
                 htmx.ajax("GET", `/search/feature_counts?region=chr${region.chr}:${region.start}-${region.end}&assembly={{ assembly }}${enabledFacets !== '' ? '&' + enabledFacets : ''}`, {target:"#feature-counts", source: featureCountsElement})
             ])
         }
+        let updateFeatureTypeTable = () => {
+            let region = state.g(STATE_REGION);
+            let featureTypes = state.g(STATE_FEATURE_TYPES);
+            let url = `/search/v1/featureloc/chr${region.chr}/${region.start}/${region.end}`;
+
+            url += `?assembly={{ assembly }}`;
+
+            if (featureTypes.length > 0) {
+                url += `&feature_type=${featureTypes.join('&feature_type=')}`;
+            }
+
+            let form = document.getElementById('dna-feature-form');
+            if (form) {
+                form.setAttribute('hx-get', url);
+            }
+
+            htmx.ajax('GET', url, {target: '#features-table'});
+        }
 
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
+            updateFeatureTypeTable();
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
-            window.history.pushState({}, document.title, searchURL(s[key]));
+            let stateURL = searchURL(s[key], state.g(STATE_FEATURE_TYPES));
+            window.history.pushState({}, document.title, stateURL);
             updateDynamicIslands();
         });
+
+        state.addCallback(STATE_FEATURE_TYPES, (s, key) => {
+            let stateURL = searchURL(state.g(STATE_FACETS), s[key]);
+            window.history.pushState({}, document.title, stateURL);
+            updateFeatureTypeTable();
+        });
+
 
         {% if region and assembly %}
         // Show the browser

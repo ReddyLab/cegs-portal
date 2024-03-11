@@ -1,22 +1,20 @@
 import json
 import os.path
 from datetime import datetime, timezone
-from typing import IO, Any, Optional, TypeVar
+from typing import Any, Optional
 
 from cegs_portal.search.models import (
     AccessionIdLog,
     AccessionIds,
     AccessionType,
     Analysis,
-    Biosample,
-    CellLine,
     DNAFeatureSourceType,
     Experiment,
     ExperimentDataFileInfo,
     FacetValue,
-    TissueType,
 )
 
+from .biosample import ExperimentBiosample
 from .file import FileMetadata
 from .misc import get_delimiter
 
@@ -37,73 +35,24 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
 
 class ExperimentFileMetadata:
     file_metadata: FileMetadata
-    ref_genome: str
-    ref_genome_patch: str
-    significance_measure: str
+    genome_assembly: str
+    genome_assembly_patch: str
     p_val_threshold: float
 
-    def __init__(self, file_metadata: dict[str, str]):
-        self.file_metadata = FileMetadata(file_metadata)
-        self.ref_genome = file_metadata["ref_genome"]
-        self.ref_genome_patch = file_metadata.get("ref_genome_patch", None)
-        self.significance_measure = file_metadata["significance_measure"]
+    def __init__(self, file_metadata: dict[str, str], base_path: str):
+        self.file_metadata = FileMetadata(file_metadata, base_path)
+        self.genome_assembly = file_metadata["genome_assembly"]
+        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
         self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
 
     def db_save(self, experiment: Experiment, analysis: Analysis = None):
         data_file_info = ExperimentDataFileInfo(
-            ref_genome=self.ref_genome,
-            ref_genome_patch=self.ref_genome_patch,
-            significance_measure=self.significance_measure,
+            ref_genome=self.genome_assembly,
+            ref_genome_patch=self.genome_assembly_patch,
             p_value_threshold=self.p_val_threshold,
         )
         data_file_info.save()
         self.file_metadata.db_save(experiment, analysis, data_file_info)
-
-
-T = TypeVar("T", bound="ExperimentMetadata")
-
-
-class ExperimentBiosample:
-    cell_line: str
-    tissue_type: str
-    description: str
-    experiment: T
-
-    def __init__(self, bio_metadata: dict[str, str], experiment: T):
-        self.name = bio_metadata.get("name", None)
-        self.description = bio_metadata.get("description", None)
-        self.cell_line = bio_metadata["cell_line"]
-        self.tissue_type = bio_metadata["tissue_type"]
-        self.experiment = experiment
-
-    def db_save(self):
-        cell_line = CellLine.objects.filter(name=self.cell_line).first()
-        if cell_line is None:
-            with AccessionIds(message=f"{self.experiment.accession_id}: {self.experiment.name}"[:200]) as accession_ids:
-                tissue_type, tt_created = TissueType.objects.get_or_create(name=self.tissue_type)
-                if tt_created:
-                    tissue_type.accession_id = accession_ids.incr(AccessionType.TT)
-                    tissue_type.save()
-                cell_line = CellLine(
-                    name=self.cell_line,
-                    accession_id=accession_ids.incr(AccessionType.CL),
-                    tissue_type=tissue_type,
-                    tissue_type_name=self.tissue_type,
-                )
-                cell_line.save()
-        bios = Biosample.objects.filter(
-            cell_line=cell_line,
-            cell_line_name=cell_line.name,
-        ).first()
-        if bios is None:
-            with AccessionIds(message=f"{self.experiment.accession_id}: {self.experiment.name}"[:200]) as accession_ids:
-                bios = Biosample(
-                    cell_line=cell_line,
-                    cell_line_name=cell_line.name,
-                    accession_id=accession_ids.incr(AccessionType.BIOS),
-                )
-                bios.save()
-        return bios
 
 
 class AnalysisMetadata:
@@ -112,16 +61,21 @@ class AnalysisMetadata:
     filename: str
     description: str
     name: str
-    results: list[ExperimentFileMetadata] = []
+    results: ExperimentFileMetadata
+    misc_files: list[FileMetadata] = []
 
     def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = analysis_dict["experiment"]
         self.filename = analysis_filename
         self.name = analysis_dict["name"]
+        assert self.name != ""
 
-        for result in analysis_dict["results"]:
-            self.results.append(ExperimentFileMetadata(result))
+        base_path = os.path.dirname(analysis_filename)
+
+        self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
+
+        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict["misc_files"]]
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
@@ -134,8 +88,8 @@ class AnalysisMetadata:
             # Set the new analysis as default
             experiment.default_analysis = analysis
             experiment.save()
-        for result in self.results:
-            result.db_save(experiment, analysis)
+
+            self.results.db_save(experiment, analysis)
 
         return analysis
 
@@ -161,9 +115,10 @@ class AnalysisMetadata:
             data_file.close()
 
     @classmethod
-    def json_load(cls, file: IO):
-        analysis_data = json.load(file)
-        metadata = AnalysisMetadata(analysis_data, file.name)
+    def file_load(cls, filename):
+        with open(filename) as file:
+            analysis_data = json.load(file)
+            metadata = AnalysisMetadata(analysis_data, file.name)
         return metadata
 
 
@@ -176,19 +131,25 @@ class ExperimentMetadata:
     biosamples: list[ExperimentBiosample]
     file_metadata: list[FileMetadata]
     source_type: str
+    tested_elements_file: FileMetadata
+    tested_elements_parent_file: Optional[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
         self.description = experiment_dict.get("description", None)
         self.assay = experiment_dict.get("assay", None)
         self.name = experiment_dict["name"]
+        assert self.name != ""
         self.accession_id = experiment_dict["accession_id"]
         self.source_type = get_source_type(experiment_dict["source type"])
         self.filename = experiment_filename
-        self.file_metadata = []
-        self.file_metadata = []
-        self.biosamples = [ExperimentBiosample(sample, self) for sample in experiment_dict["biosamples"]]
-        for file in experiment_dict.get("files", []):
-            self.file_metadata.append(FileMetadata(file))
+        base_path = os.path.dirname(experiment_filename)
+        self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict["biosamples"]]
+        self.file_metadata = [FileMetadata(file, base_path, self.biosamples) for file in experiment_dict["files"]]
+
+        self.tested_elements_file = self.file_metadata[int(experiment_dict["tested_elements_file"])]
+
+        if (tested_elements_parent_file_idx := experiment_dict.get("tested_elements_parent_file")) is not None:
+            self.tested_elements_parent_file = self.file_metadata[int(tested_elements_parent_file_idx)]
 
     def db_save(self):
         experiment = Experiment(
@@ -214,7 +175,7 @@ class ExperimentMetadata:
         )
         accession_log.save()
         for biosample in self.biosamples:
-            bios = biosample.db_save()
+            bios = biosample.db_save(self)
             experiment.biosamples.add(bios)
             cell_line_facet = FacetValue.objects.get(value__iexact=biosample.cell_line)
             tissue_type_facet = FacetValue.objects.get(value__iexact=biosample.tissue_type)
@@ -232,16 +193,9 @@ class ExperimentMetadata:
 
         experiment.delete()
 
-    def metadata(self):
-        base_path = os.path.dirname(self.filename)
-        for metadata in self.file_metadata:
-            delimiter = get_delimiter(metadata.filename)
-            data_file = open(os.path.join(base_path, metadata.filename), "r", newline="")
-            yield data_file, metadata, delimiter
-            data_file.close()
-
     @classmethod
-    def json_load(cls, file: IO):
-        experiment_data = json.load(file)
-        metadata = ExperimentMetadata(experiment_data, file.name)
+    def file_load(cls, filename: str):
+        with open(filename) as file:
+            experiment_data = json.load(file)
+            metadata = ExperimentMetadata(experiment_data, file.name)
         return metadata

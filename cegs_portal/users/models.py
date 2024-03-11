@@ -22,7 +22,7 @@ class User(AbstractUser):
     first_name = None  # type: ignore
     last_name = None  # type: ignore
 
-    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=15), default=list)
+    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list)
     is_portal_admin = BooleanField(_("Is User a Portal Admin"), default=False)
 
     def get_full_name(self):
@@ -61,4 +61,4 @@ class User(AbstractUser):
 class GroupExtension(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
     description = CharField(_("Group Description"), max_length=1024, null=True)
-    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=15), default=list)
+    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list)

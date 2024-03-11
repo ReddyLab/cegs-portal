@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views.generic import View
 
 from cegs_portal.search.forms import SearchForm
+from cegs_portal.search.helpers.options import is_bed6
 from cegs_portal.search.json_templates.v1.feature_counts import (
     feature_counts as fc_json,
 )
@@ -17,6 +18,7 @@ from cegs_portal.search.json_templates.v1.search_results import (
 )
 from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
 from cegs_portal.search.models.utils import IdType
+from cegs_portal.search.tsv_templates.v1.search_results import sig_reos as sr
 from cegs_portal.search.view_models.v1 import Search
 from cegs_portal.search.view_models.v1.search import EXPERIMENT_SOURCES_TEXT
 from cegs_portal.search.views.custom_views import MultiResponseFormatView
@@ -25,7 +27,7 @@ from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
-ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8})(\s+|$)", re.IGNORECASE)
+ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8,10})(\s+|$)", re.IGNORECASE)
 ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)(\s+|$)", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)(\s+|$)", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)(\s+|$)", re.IGNORECASE)
@@ -158,11 +160,9 @@ def parse_source_target_data_html(reo_data):
     }
 
 
-def feature_redirect(feature, assembly_name):
+def feature_redirect(feature):
     id_type, feature_id = feature
     url = reverse("search:dna_features", args=[id_type, feature_id])
-    if assembly_name is not None:
-        url = f"{url}?assembly={assembly_name}"
     raise Http303("Specific feature Id", location=url)
 
 
@@ -235,7 +235,7 @@ class SearchView(MultiResponseFormatView):
 
         elif search_type == SearchType.ID:
             if len(query_terms) == 1:
-                feature_redirect(query_terms[0], assembly_name)
+                feature_redirect(query_terms[0])
 
             if self.request.user.is_anonymous:
                 features = Search.dnafeature_ids_search_public(query_terms, assembly_name)
@@ -279,6 +279,7 @@ class SearchView(MultiResponseFormatView):
             "feature_counts": feature_counts,
             "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
             "sig_reo_count_gene": DNAFeatureType.GENE.value,
+            "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
         }
 
 
@@ -416,22 +417,65 @@ class SignificantExperimentDataView(View):
         )
 
 
-class FeatureSignificantREOsView(View):
+class FeatureSignificantREOsView(MultiResponseFormatView):
     """
     Show significant REOs associated with one or more DNA Feature types in a given area.
     """
 
-    def get(self, request, *args, **kwargs):
-        assembly = get_assembly(request)
-        features = request.GET.getlist("feature_type", [])
-        facets = [int(facet) for facet in request.GET.getlist("facet", [])]
+    template = "search/v1/partials/_feature_sig_reg_effects.html"
+    tsv_renderer = sr
 
+    def request_options(self, request):
+        """
+        GET queries used:
+            assembly
+                * Should match a genome assembly that exists in the DB
+            facet (multiple)
+                * Should match a categorical facet value
+            feature_type (multiple)
+                * Should match a feature type (gene, transcript, etc.)
+            region
+                * genome location in chrom:lower-upper format
+            tsv_format (optional)
+                * bed6
+        """
+
+        options = super().request_options(request)
+        options["assembly"] = get_assembly(request)
+        options["features"] = request.GET.getlist("feature_type", [])
+        options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        options["tsv_format"] = request.GET.get("tsv_format", None)
         try:
             region = get_region(request)
             if region is None:
                 raise Http400("Must specify a region")
+            options["region"] = region
         except Http400 as error:
             raise BadRequest() from error
+        return options
+
+    def get(self, request, options, data):
+        return super().get(
+            request,
+            options,
+            {"sig_reg_effects": data, "region": request.GET["region"], "features": options["features"]},
+        )
+
+    def get_tsv(self, request, options, data):
+        region = options["region"]
+        if is_bed6(options):
+            filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.bed"
+        else:
+            filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.tsv"
+        return super().get_tsv(request, options, data, filename=filename)
+
+    def get_data(self, options):
+        region, assembly, features, facets = (
+            options["region"],
+            options["assembly"],
+            options["features"],
+            options["facets"],
+        )
 
         if self.request.user.is_anonymous:
             sig_reos = Search.feature_sig_reos(region, assembly, features, facets)
@@ -446,9 +490,4 @@ class FeatureSignificantREOsView(View):
                 UserType.LOGGED_IN,
                 private_experiments=self.request.user.all_experiments(),
             )
-
-        return render(
-            request,
-            "search/v1/partials/_feature_sig_reg_effects.html",
-            {"sig_reg_effects": sig_reos},
-        )
+        return sig_reos

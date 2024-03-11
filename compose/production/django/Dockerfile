@@ -3,17 +3,20 @@ ARG PYTHON_VERSION=3.11.2-slim-bullseye
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
 
-FROM ghcr.io/pyo3/maturin@sha256:8abfe13660da007d878fbadcf3b11eb6f49a677de6ccb8ad50b600af01fc6767 AS maturin
+FROM ghcr.io/pyo3/maturin@sha256:1c75eb0d2b92999b583b02f699acf4a2ad892c0bf679918d5941f65f9b1bf9a1 AS maturin
 
 WORKDIR /exp_viz
 
 COPY ./extensions/exp_viz .
 RUN maturin build -b pyo3 -i 3.11 --release
+RUN ls /exp_viz/target/wheels
 
 # Python build stage
 FROM python as python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
+
+RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -49,20 +52,22 @@ RUN adduser --system --ingroup root django
 RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list
 
 # Install required system dependencies
-RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recommends -y \
+RUN apt-get update
+RUN apt-get upgrade --no-install-recommends -y
+RUN apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
-  libgmp10 \
-  # cleaning up unused files
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+  libgmp10
+# cleaning up unused files
+RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+RUN rm -rf /var/lib/apt/lists/*
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
-COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels/
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.1.9-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl /wheels
+COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \

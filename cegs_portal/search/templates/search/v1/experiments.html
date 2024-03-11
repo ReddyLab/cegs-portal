@@ -1,16 +1,155 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet" />
+<!-- This CSS modifies the range slider look -->
+<style>
+    .noUi-horizontal {
+        height: 10px;
+    }
+
+    .noUi-horizontal .noUi-handle {
+        width: 20px;
+        height: 20px;
+    }
+
+    .noUi-handle {
+        border-radius: 10px;
+    }
+
+    .noUi-handle:before,
+    .noUi-handle:after {
+        display: none;
+    }
+
+    .noUi-connect {
+        background: rgba(1, 33, 105, 1);
+    }
+
+    .noUi-pips-horizontal {
+        transform: translate(6px);
+    }
+
+    select {
+        font-size: 0.9rem;
+        padding: 5px 5px;
+    }
+
+</style>
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'search/js/exp_viz/vizUtils.js' %}"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endblock %}
+
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
 <div>
     <div class="container">
-        <ul>
+        <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
+            </svg> Multi-Experiment Coverage Information
+        </div>
+        <div class="mt-5">The coverage data from the following experiments have been intersected based on their
+            <select name="views" id="feature-select">
+                <option value="sources">Tested Elements</option>
+                <option value="targets">Genes</option>
+                <option value="sources-targets" selected>Tested Elements and Genes</option>
+            </select></div>
+        <ul class="list-disc mt-5">
             {% for expr in experiments %}
-            <li>{{ expr.name }}</li>
+            <li>{{ expr.name }} <a class="link" href="{% url 'search:experiment' expr.accession_id %}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+            </svg></a></li>
             {% endfor %}
         </ul>
     </div>
 </div>
+<div class="min-w-full">
+    <div
+        id="coverage"
+    >
+        <div class="flex flex-row gap-x-10">
+            <div id="chrom-data-filters" class="basis-1/4">
+                <!-- content section container for facet side bar -->
+                <div class="facet-content-section container">
+                    <div class="text-slate-500">
+                        <span id="chrom-data-header" class="text-xl font-bold"></span
+                        ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
+                    </div>
+                    <div class="title-separator"></div>
+                    <div id="chrom-data-categorical-facets"></div>
+                    <div id="chrom-data-numeric-facets"></div>
+                    <div id="chrom-data-counts"></div>
+                </div>
+
+                <div class="facet-content-section container">
+                    <form name="regionUploadForm">
+                        <div>
+                            <label class="font-bold" for="regionFile">Highlight Regions</label>
+                            <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                        </div>
+                    </form>
+                    <div id="regionUploadInputReset"></div>
+                </div>
+
+                {% if logged_in %}
+                <div class="facet-content-section container">
+                    <form name="dataDownloadForm">
+                        <div>
+                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
+                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                        </div>
+                        <div class="mt-5">
+                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
+                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                        </div>
+                    </form>
+                    <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                    <div>
+                    * Data downloads take facet filtering, except for "Number of Tested Elements" and "Number of Genes Assayed", into account.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="basis-3/4 container">
+                <!-- content section container for ChromCov -->
+                <div class="flex flex-row gap-x-4 items-center">
+                    <div id="chrom-data-legend"></div>
+                    <div class="flex flex-col">
+                        <div id="reo-count"></div>
+                        <div id="source-count"></div>
+                        <div id="target-count"></div>
+                    </div>
+                    <div>
+                        <label for="covSelect">Choose a Coverage View:</label>
+                        <select name="views" id="covSelect">
+                            <option value="sig">Largest Significance</option>
+                            <option value="effect">Greatest Effect Size</option>
+                            <option value="count">Gene Count</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="chrom-data"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block inline_javascript %}
+{{ experiment_viz|json_script:"experiment_viz" }}
+<script type="module">
+    import {combined_viz} from "{% static 'search/js/exp_viz/combo_viz.js' %}";
+    combined_viz("{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
+</script>
 {% endblock %}

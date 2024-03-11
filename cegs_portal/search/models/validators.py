@@ -26,7 +26,7 @@ def validate_gene_ids(gene_ids):
 
 
 def validate_accession_id(value):
-    if value is not None and fullmatch("DCP[A-Z]{0,4}[0-9A-F]{8}", value) is None:
+    if value is not None and fullmatch("DCP[A-Z]{0,4}[0-9A-F]{8,10}", value) is None:
         raise ValidationError(
             f"""{value} is not of the form "DCPYYYYXXXXXXXX", where Ys are capital
             letters indicating the type of object, and X is a hexadecimal digit (0-9, A-F)"""

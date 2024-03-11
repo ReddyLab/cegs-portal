@@ -63,11 +63,11 @@ class Facets:
 
 
 def validate_expr(expr) -> bool:
-    return re.match(r"^DCPEXPR[A-F0-9]{8}$", expr) is not None
+    return re.match(r"^DCPEXPR[A-F0-9]{8,10}$", expr) is not None
 
 
 def validate_an(expr) -> bool:
-    return re.match(r"^DCPAN[A-F0-9]{8}$", expr) is not None
+    return re.match(r"^DCPAN[A-F0-9]{8,10}$", expr) is not None
 
 
 def gen_output_filename(experiments, analyses) -> str:
@@ -306,7 +306,7 @@ def retrieve_experiment_data(
         for i in inputs:
             i.append(NumericRange(*facets.effect_size_range))
     if facets.sig_range is not None:
-        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Significance')::numeric"
+        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> '-log10 Significance')::numeric"
         for i in inputs:
             i.append(NumericRange(*facets.sig_range))
 

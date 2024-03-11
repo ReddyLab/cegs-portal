@@ -129,6 +129,14 @@ class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
             {
                 "logged_in": not request.user.is_anonymous,
                 "experiments": data,
+                "experiment_viz": [
+                    {
+                        "accession_id": exp.accession_id,
+                        "source": exp.get_source_type_display(),
+                        "analysis_accession_id": exp.default_analysis.accession_id,
+                    }
+                    for exp in data.all()
+                ],
             },
         )
 

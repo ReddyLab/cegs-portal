@@ -1,7 +1,9 @@
 {% load humanize %}
+{% load custom_helpers %}
 
-<table class="data-table chrom-first-end-cap chrom-last-end-cap">
-    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+
+<div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-1">
             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
             <path
@@ -16,66 +18,91 @@
         </svg>
         Targeting Regulatory Effect Observations
     </div>
-    <div class="title-separator"></div>
-    <tr>
-        <th class="chrom-first-end-cap chrom-light-band">Tested Element(s)</th>
-        <th class="chrom-dark-band">Effect Size</th>
-        <th class="chrom-light-band">Direction</th>
-        <th class="chrom-light-band chrom-right-centromere">Significance</th>
-        <th class="chrom-light-band chrom-left-centromere">Experiment</th>
-        <th class="chrom-last-end-cap chrom-dark-band">REO Details</th>
-    </tr>
-    {% for regeffect in features %}
-    {% for re_source in regeffect.sources.all %}
-    <tr>
-        <td>
-            <a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}"
-                >{{ re_source.get_feature_type_display }} @ {{ re_source.chrom_name }}: {{ re_source.location.lower|intcomma }}-{{ re_source.location.upper|intcomma }}</a
-            >
-        </td>
-        {% if forloop.first %}
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-            <a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.accession_id }}</a>
-        </td>
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-            {{ regeffect.effect_size|stringformat:".3e" }}
-        </td>
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-            {{ regeffect.significance|stringformat:".3e" }}
-        </td>
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+    <div style="position: absolute; right: 0;">
+        <span class="text-lg">Download:</span>
+        <a href="{% url 'search:target_effects' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=original">
+            <button class="tsv-button" id="downloadButton">TSV</button>
+        </a>
+        <a href="{% url 'search:target_effects' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=bed6">
+            <button class="tsv-button" id="downloadButtonNew">BED6</button>
+        </a>
+    </div>
+</div>
+    <table class="data-table" hx-target="#target-table">
+        <tr>
+            <th class="chrom-first-end-cap chrom-light-band">Tested Element(s)</th>
+            <th class="chrom-dark-band">Effect Size (log2FC)</th>
+            <th class="chrom-light-band">Direction</th>
+            <th class="chrom-light-band chrom-right-centromere">Significance (p-value)</th>
+            <th class="chrom-light-band chrom-left-centromere">Experiment</th>
+            <th class="chrom-last-end-cap chrom-dark-band">REO Details</th>
+        </tr>
+        {% for regeffect in regeffects %}
+        {% for re_source in regeffect.sources.all %}
+        <tr>
+            <td>
+                <a href="{% url 'search:dna_features' 'accession' re_source.accession_id %}"
+                    >{{ re_source.get_feature_type_display }} @ {{ re_source.chrom_name }}: {{ re_source.location.lower|intcomma }}-{{ re_source.location.upper|intcomma }}</a
+                >
+            </td>
+            {% if forloop.first %}
+            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+                {{ regeffect.effect_size|stringformat:".3e" }}
+            </td>
+            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">{{ regeffect.direction }}</td>
+            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+                {{ regeffect.significance|stringformat:".3e" }}
+            </td>
+            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+                <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
+                    >{{ regeffect.experiment.name }}</a
+                >
+            </td>
+            <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
+                <a href="{% url 'search:reg_effect' regeffect.accession_id %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                    </svg>
+                </a>
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+            <td>-</td>
+            <td>{{ regeffect.effect_size }}</td>
+            <td>{{ regeffect.direction }}</td>
+            <td>{{ regeffect.significance }}</td>
+            <td>
+                <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
                 >{{ regeffect.experiment.name }}</a
-            >
-        </td>
-        <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-            <a href="{% url 'search:reg_effect' regeffect.accession_id %}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5.854 8.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707l-4.096 4.096z"/>
-              </svg>
-            </a>
-        </td>
-        {% endif %}
-    </tr>
-    {% empty %}
-    <tr>
-        <td>-</td>
-        <td>{{ regeffect.effect_size }}</td>
-        <td>{{ regeffect.direction }}</td>
-        <td>{{ regeffect.significance }}</td>
-        <td>
-            <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
-            >{{ regeffect.experiment.name }}</a
-            >
-        </td>
-        <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5.854 8.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707l-4.096 4.096z"/>
-            </svg>
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-    {% endfor %}
-</table>
+                >
+            </td>
+            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                </svg>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </table>
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if regeffects.has_previous %}
+                <a href="?page=1" hx-get="{% url 'search:target_effects' feature.accession_id %}?page=1" hx-target="#target-table">&laquo; first</a>
+                <a href="?page={{ regeffects.previous_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.previous_page_number }}" hx-target="#target-table">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ regeffects.number }} of {{ regeffects.paginator.num_pages }}
+            </span>
+
+            {% if regeffects.has_next %}
+                <a href="?page={{ regeffects.next_page_number }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.next_page_number }}" hx-target="#target-table">next</a>
+                <a href="?page={{ regeffects.paginator.num_pages }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.paginator.num_pages }}" hx-target="#target-table">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>

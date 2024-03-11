@@ -13,7 +13,9 @@ pytestmark = pytest.mark.django_db
 def test_sig_only_proximal_reg_effects_list_json(client: Client, proximal_non_targeting_reg_effects):
     source = proximal_non_targeting_reg_effects["source"]
     effects = sorted(proximal_non_targeting_reg_effects["effects"], key=lambda x: x.significance)
-    response = client.get(f"/search/regeffect/nontarget/{source.closest_gene.accession_id}?accept=application/json")
+    response = client.get(
+        f"/search/feature/accession/{source.closest_gene.accession_id}/nontargets?accept=application/json"
+    )
 
     assert response.status_code == 200
     json_content = json.loads(response.content)
@@ -32,7 +34,7 @@ def test_proximal_reg_effects_list_json(client: Client, proximal_non_targeting_r
     source = proximal_non_targeting_reg_effects["source"]
     effects = sorted(proximal_non_targeting_reg_effects["effects"], key=lambda x: x.significance)
     response = client.get(
-        f"/search/regeffect/nontarget/{source.closest_gene.accession_id}?sig_only=false&accept=application/json"
+        f"/search/feature/accession/{source.closest_gene.accession_id}/nontargets?sig_only=false&accept=application/json"
     )
 
     assert response.status_code == 200
@@ -43,7 +45,9 @@ def test_proximal_reg_effects_list_json(client: Client, proximal_non_targeting_r
 
 def test_get_proximal_reg_effects_with_anonymous_client(client: Client, private_proximal_non_targeting_reg_effects):
     source = private_proximal_non_targeting_reg_effects["source"]
-    response = client.get(f"/search/regeffect/nontarget/{source.closest_gene.accession_id}?accept=application/json")
+    response = client.get(
+        f"/search/feature/accession/{source.closest_gene.accession_id}/nontargets?accept=application/json"
+    )
     assert response.status_code == 302
 
 
@@ -52,7 +56,7 @@ def test_get_proximal_reg_effects_with_authenticated_client(
 ):
     source = private_proximal_non_targeting_reg_effects["source"]
     response = login_client.get(
-        f"/search/regeffect/nontarget/{source.closest_gene.accession_id}?accept=application/json"
+        f"/search/feature/accession/{source.closest_gene.accession_id}/nontargets?accept=application/json"
     )
     assert response.status_code == 403
 
@@ -63,7 +67,9 @@ def test_get_proximal_reg_effects_with_authenticated_authorized_client(
     source = private_proximal_non_targeting_reg_effects["source"]
     private_gene = source.closest_gene
     login_client.set_user_experiments([private_gene.experiment_accession])
-    response = login_client.get(f"/search/regeffect/nontarget/{private_gene.accession_id}?accept=application/json")
+    response = login_client.get(
+        f"/search/feature/accession/{private_gene.accession_id}/nontargets?accept=application/json"
+    )
     assert response.status_code == 200
 
 
@@ -74,20 +80,24 @@ def test_get_proximal_reg_effects_with_authenticated_authorized_group_client(
 
     group_login_client.set_group_experiments([cast(str, private_feature.experiment_accession_id)])
     response = group_login_client.get(
-        f"/search/regeffect/nontarget/{private_feature.accession_id}?accept=application/json"
+        f"/search/feature/accession/{private_feature.accession_id}/nontargets?accept=application/json"
     )
     assert response.status_code == 200
 
 
 def test_get_archived_proximal_reg_effects_with_anonymous_client(client: Client, archived_feature: DNAFeature):
-    response = client.get(f"/search/regeffect/nontarget/{archived_feature.accession_id}?accept=application/json")
+    response = client.get(
+        f"/search/feature/accession/{archived_feature.accession_id}/nontargets?accept=application/json"
+    )
     assert response.status_code == 403
 
 
 def test_get_archived_proximal_reg_effects_with_authenticated_client(
     login_client: SearchClient, archived_feature: DNAFeature
 ):
-    response = login_client.get(f"/search/regeffect/nontarget/{archived_feature.accession_id}?accept=application/json")
+    response = login_client.get(
+        f"/search/feature/accession/{archived_feature.accession_id}/nontargets?accept=application/json"
+    )
     assert response.status_code == 403
 
 
@@ -97,7 +107,9 @@ def test_get_archived_proximal_reg_effects_with_authenticated_authorized_client(
     assert archived_feature.experiment_accession_id is not None
 
     login_client.set_user_experiments([cast(str, archived_feature.experiment_accession)])
-    response = login_client.get(f"/search/regeffect/nontarget/{archived_feature.accession_id}?accept=application/json")
+    response = login_client.get(
+        f"/search/feature/accession/{archived_feature.accession_id}/nontargets?accept=application/json"
+    )
     assert response.status_code == 403
 
 
@@ -108,7 +120,7 @@ def test_get_archived_proximal_reg_effects_with_authenticated_authorized_group_c
 
     group_login_client.set_group_experiments([cast(str, archived_feature.experiment_accession_id)])
     response = group_login_client.get(
-        f"/search/regeffect/nontarget/{archived_feature.accession_id}?accept=application/json"
+        f"/search/feature/accession/{archived_feature.accession_id}/nontargets?accept=application/json"
     )
     assert response.status_code == 403
 
@@ -117,7 +129,7 @@ def test_proximal_reg_effects_list_page_json(client: Client, proximal_non_target
     source = proximal_non_targeting_reg_effects["source"]
     effects = sorted(proximal_non_targeting_reg_effects["effects"], key=lambda x: x.significance)
     response = client.get(
-        f"/search/regeffect/nontarget/{source.closest_gene.accession_id}?accept=application/json&page=1&per_page=1"
+        f"/search/feature/accession/{source.closest_gene.accession_id}/nontargets?accept=application/json&page=1&per_page=1"
     )
 
     assert response.status_code == 200
@@ -136,7 +148,7 @@ def test_proximal_reg_effects_list_page_json(client: Client, proximal_non_target
 
 
 def test_source_regeffect_html(client: Client, feature: DNAFeature):
-    response = client.get(f"/search/regeffect/nontarget/{feature.accession_id}")
+    response = client.get(f"/search/feature/accession/{feature.accession_id}/nontargets")
 
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here

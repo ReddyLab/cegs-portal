@@ -148,13 +148,13 @@ def reo_source_target():
     return {
         "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
         "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "reo_accession_id": "DCPREO00000001",
+        "reo_accession_id": "DCPREO0000000001",
         "effect_size": -1.2,
         "p_value": 0.005,
         "sig": 0.05,
-        "expr_accession_id": "DCPEXPR00000001",
+        "expr_accession_id": "DCPEXPR0000000001",
         "expr_name": "Test Name",
-        "analysis_accession_id": "DCPAN00000001",
+        "analysis_accession_id": "DCPAN0000000001",
     }
 
 
@@ -162,37 +162,37 @@ def reo_source_target():
 def reo_source_targets():
     return [
         {
-            "source_locs": '{"(chr6,\\"[31577822,31578136)\\",DCPDHS00000001)"}',
+            "source_locs": '{"(chr6,\\"[31577822,31578136)\\",DCPDHS0000000001)"}',
             "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-            "reo_accession_id": "DCPREO000339D6",
+            "reo_accession_id": "DCPREO00000339D6",
             "effect_size": 0.010958133,
             "p_value": 0.00000184,
             "sig": 0.000547435,
-            "expr_accession_id": "DCPEXPR00000002",
+            "expr_accession_id": "DCPEXPR0000000002",
             "expr_name": "Tyler scCERES Experiment 2021",
-            "analysis_accession_id": "DCPAN00000002",
+            "analysis_accession_id": "DCPAN0000000002",
         },
         {
-            "source_locs": '{"(chr6,\\"[32182864,32183339)\\",DCPDHS00000002)"}',
+            "source_locs": '{"(chr6,\\"[32182864,32183339)\\",DCPDHS0000000002)"}',
             "target_info": '{"(chr6,\\"[31830969,31846824)\\",SLC44A4,ENSG00000204385)"}',
-            "reo_accession_id": "DCPREO00033A96",
+            "reo_accession_id": "DCPREO0000033A96",
             "effect_size": -0.005418836,
             "p_value": 0.001948499,
             "sig": 0.004785014,
-            "expr_accession_id": "DCPEXPR00000002",
+            "expr_accession_id": "DCPEXPR0000000002",
             "expr_name": "Tyler scCERES Experiment 2021",
-            "analysis_accession_id": "DCPAN00000002",
+            "analysis_accession_id": "DCPAN0000000002",
         },
         {
-            "source_locs": '{"(chr13,\\"[40666345,40666366)\\",DCPDHS00000003)"}',
+            "source_locs": '{"(chr13,\\"[40666345,40666366)\\",DCPDHS0000000003)"}',
             "target_info": '{"(chr6,\\"[31834608,31839767)\\",SNHG32,ENSG00000204387)"}',
-            "reo_accession_id": "DCPREO004F45A1",
+            "reo_accession_id": "DCPREO00004F45A1",
             "effect_size": -1.2,
             "p_value": 0.005,
             "sig": 0.05,
-            "expr_accession_id": "DCPEXPR00000009",
+            "expr_accession_id": "DCPEXPR0000000009",
             "expr_name": "Test Name",
-            "analysis_accession_id": "DCPAN00000008",
+            "analysis_accession_id": "DCPAN0000000008",
         },
     ]
 
@@ -203,7 +203,7 @@ def search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Facet], 
         "location": ChromosomeLocation("chr1", "10000", "15000"),
         "assembly": "GRCh37",
         "features": feature_pages,
-        "sig_reg_effects": [(("DCPEXPR00000001", "DCPAN00000001"), reo_source_targets)],
+        "sig_reg_effects": [(("DCPEXPR0000000001", "DCPAN0000000001"), reo_source_targets)],
         "facets": facets,
     }
 
@@ -221,6 +221,18 @@ def features() -> Iterable[DNAFeature]:
 @pytest.fixture
 def feature() -> DNAFeature:
     return DNAFeatureFactory(ref_genome="GRCh38")
+
+
+@pytest.fixture
+def effect_dir_feature() -> DNAFeature:
+    return DNAFeatureFactory(
+        ref_genome="GRCh38",
+        effect_directions=[
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.ENRICHED.value,
+            EffectObservationDirectionType.NON_SIGNIFICANT.value,
+        ],
+    )
 
 
 @pytest.fixture
@@ -261,9 +273,10 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
 
 def _reg_effect(public=True, archived=False) -> RegulatoryEffectObservation:
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
-    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED)
+    direction = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     effect = RegEffectFactory(
         sources=(DNAFeatureFactory(), DNAFeatureFactory()),
+        targets=(DNAFeatureFactory(),),
         facet_values=(direction,),
         public=public,
         archived=archived,
@@ -523,15 +536,13 @@ def genoverse_dhs_features():
         feature_type=DNAFeatureType.GENE,
     )
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,))
-    _ = RegEffectFactory(sources=(f2,))
-    _ = RegEffectFactory(sources=(f3,))
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
-    g1 = DNAFeatureFactory(
-        ref_genome=ref_genome,
-        chrom_name=chrom,
-        feature_type=DNAFeatureType.GENE,
-    )
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f3,), facet_values=(non_sig,))
 
     return {
         "chrom": chrom,

@@ -10,7 +10,7 @@ class Accessioned(models.Model):
     class Meta:
         abstract = True
 
-    accession_id = models.CharField(max_length=15, validators=[validate_accession_id], unique=True)
+    accession_id = models.CharField(max_length=17, validators=[validate_accession_id], unique=True)
 
 
 class AccessionIdLog(models.Model):
@@ -37,7 +37,7 @@ class AccessionIdLog(models.Model):
     ]
     created_at = models.DateTimeField()
     accession_type = models.CharField(max_length=100, choices=ACCESSION_TYPE)
-    accession_id = models.CharField(max_length=15, validators=[validate_accession_id], unique=True)
+    accession_id = models.CharField(max_length=17, validators=[validate_accession_id], unique=True)
     message = models.CharField(max_length=200)
 
     def __str__(self):
@@ -85,7 +85,7 @@ class AccessionIds:
     def __exit__(self, exc_type, exc_val, exc_tb):
         now = datetime.now(timezone.utc)
         log_items = []
-        for (atype, accession_id) in self.id_dict.items():
+        for atype, accession_id in self.id_dict.items():
             if self.modified_dict[atype]:
                 log_items.append(
                     AccessionIdLog(

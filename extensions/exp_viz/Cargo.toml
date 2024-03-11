@@ -1,6 +1,6 @@
 [package]
 name = "exp_viz_extension"
-version = "0.1.9"
+version = "0.4.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,11 +10,12 @@ crate-type = ["cdylib"]
 
 [dependencies]
 bincode = "1.3.3"
-cov_viz_ds = { git = "https://github.com/ReddyLab/cov_viz_ds", rev = "21b6986606e141a312f352cd0101f370c6cc4964" }
-# cov_viz_ds = { path = "../../../cov_viz_ds" } # For working with a local copy during development
-exp_viz = { git = "https://github.com/ReddyLab/exp_viz", rev = "0398472ea572949d060bdf518b00f11a785a43e3" }
-# exp_viz = { path = "../../../exp_viz" }                        # For working with a local copy during development
-pyo3 = { version = "0.17.1", features = ["extension-module"] }
+cov_viz_ds = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "cf0cf3a27c27b12e2e79de2f00eeec826da62b8c" }
+# cov_viz_ds = { path = "../../../exp_cov_viz/cov_viz_ds" } # For working with a local copy during development
+exp_viz = { git = "https://github.com/ReddyLab/ccgr_portal_cov_viz", rev = "83b24032cd5cda8a69f7da1e1b1542f57d2b5c3b" }
+# exp_viz = { path = "../../../exp_cov_viz/exp_viz" }            # For working with a local copy during development
+pyo3 = { version = "0.20.0", features = ["extension-module"] }
+roaring = "0.10.2"
 rustc-hash = "1.1.0"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.82"

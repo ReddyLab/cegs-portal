@@ -94,6 +94,12 @@
     margin-bottom: 20px;
   }
 
+  .centered-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+  }
+
   h1 {
     font-family: sans-serif;
     font-size: 2rem;
@@ -103,6 +109,11 @@
     margin-left: 40px;
     display: flex;
     align-items: center;
+  }
+
+  a.link, a.link:visited {
+    color: #3490dc;
+    text-decoration: underline;
   }
 
   .data-table a,
@@ -231,6 +242,18 @@
   .search-button:hover {
     background-color: rgb(229 231 235) !important;
   }
+
+  .checkbox-divider:not(:last-child) {
+        border-right: 1px solid #000;
+        padding-right: 10px;
+        margin-right: 10px;
+  }
+
+  .htmx-indicator {
+        position: absolute;
+        margin-left: 8px;
+        margin-top: 10px;
+    }
 
   @media screen {
     div.search-wrapper label {

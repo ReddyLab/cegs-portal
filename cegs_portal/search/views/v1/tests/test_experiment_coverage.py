@@ -12,9 +12,9 @@ from cegs_portal.search.models import Experiment
 pytestmark = pytest.mark.django_db
 
 
-def mock_load_coverage(exp_acc_id, analysis_acc_id, chrom):
+def mock_load_coverage(acc_id, chrom):
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    return load_coverage_data_allow_threads(os.path.join(current_dir, "level2_1.bin"))
+    return load_coverage_data_allow_threads(os.path.join(current_dir, "level2_1.ecd"))
 
 
 def filter_nothing(zoom_chr=None):
@@ -34,7 +34,7 @@ def filter_everything():
 def test_coverage_filter_nothing_json(client: Client, monkeypatch: MonkeyPatch, experiment: Experiment):
     monkeypatch.setattr(exp_cov, "load_coverage", mock_load_coverage)
     response = client.post(
-        f"/search/experiment_coverage?exp={experiment.accession_id}&accept=application/json",
+        f"/search/experiment_coverage?exp={experiment.accession_id}/{experiment.default_analysis.accession_id}&accept=application/json",
         {"filters": filter_nothing(), "chromosomes": ["chr1"]},
         content_type="application/json",
     )
@@ -50,7 +50,7 @@ def test_coverage_filter_nothing_json(client: Client, monkeypatch: MonkeyPatch, 
 def test_coverage_filter_everything_json(client: Client, monkeypatch: MonkeyPatch, experiment: Experiment):
     monkeypatch.setattr(exp_cov, "load_coverage", mock_load_coverage)
     response = client.post(
-        f"/search/experiment_coverage?exp={experiment.accession_id}&accept=application/json",
+        f"/search/experiment_coverage?exp={experiment.accession_id}/{experiment.default_analysis.accession_id}&accept=application/json",
         {"filters": filter_everything(), "chromosomes": ["chr1"]},
         content_type="application/json",
     )

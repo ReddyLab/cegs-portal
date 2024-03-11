@@ -15,8 +15,12 @@
             Proximal Regulatory Effect Observations
         </div>
         <div style="position: absolute; right: 0;">
-            <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values">
-                <button class="tsv-button" id="downloadButton">Download TSV</button>
+            <span class="text-lg">Download:</span>
+            <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=original">
+                <button class="tsv-button" id="downloadButton">TSV</button>
+            </a>
+            <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=bed6">
+                <button class="tsv-button" id="downloadButtonNew">BED6</button>
             </a>
         </div>
     </div>
@@ -28,7 +32,7 @@
             <th class="chrom-light-band">Direction</th>
             <th class="chrom-light-band">Significance<br />(p-value)</th>
             <th class="chrom-light-band chrom-right-centromere">Distance from TSS (bp)</th>
-            <th class="chrom-light-band chrom-left-centromere"Tested Element Type</th>
+            <th class="chrom-light-band chrom-left-centromere">Tested Element Type</th>
             <th class="chrom-last-end-cap chrom-dark-band">Experiment</th>
         </tr>
         {% for reo in non_targeting_reos %}
@@ -37,9 +41,9 @@
             <td>
                 <span>{{ first_source.chrom_name }}: {{ first_source.location.lower|intcomma }} - {{ first_source.location.upper|add:"-1"|intcomma }}</span>
             </td>
-            <td>{{ reo.effect_size|format_float }}</td>
+            <td>{{ reo.effect_size|format_effect_size }}</td>
             <td>{{ reo.direction }}</td>
-            <td>{{ reo.significance|format_float }}</td>
+            <td>{{ reo.significance|format_pval }}</td>
             <td>{{ first_source.closest_gene_distance|intcomma }}</td>
             <td>
                 <div class="w-[100px]">

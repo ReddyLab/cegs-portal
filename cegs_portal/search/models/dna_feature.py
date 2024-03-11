@@ -15,6 +15,17 @@ from cegs_portal.search.models.file import File
 from cegs_portal.search.models.validators import validate_gene_ids
 
 
+class GrnaType(Enum):
+    POSITIVE_CONTROL = "Positive Control"
+    NEGATIVE_CONTROL = "Negative Control"
+    TARGETING = "Targeting"
+
+
+class PromoterType(Enum):
+    PROMOTER = "Promoter"
+    NON_PROMOTER = "Non-promoter"
+
+
 class DNAFeature(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -32,6 +43,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         CCRE_CATEGORIES = "cCRE Category"
         DHS_CCRE_OVERLAP_CATEGORIES = "cCRE Overlap"
         GRNA_TYPE = "gRNA Type"
+        PROMOTER = "Promoter Classification"
 
     FEATURE_TYPE = (
         (str(DNAFeatureType.GENE), DNAFeatureType.GENE.value),
@@ -54,6 +66,8 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     closest_gene_distance = models.IntegerField(null=True, blank=True)
     closest_gene_name = models.CharField(max_length=50, null=True, blank=True)
     closest_gene_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
+
+    associated_ccres = models.ManyToManyField("self", blank=True)
 
     # These values will be returned as 0-index, half-closed. This should be converted to
     # 1-index, closed for display purposes. 1,c is the default for genomic coordinates

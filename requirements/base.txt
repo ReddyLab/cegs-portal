@@ -1,21 +1,22 @@
 pytz==2021.1  # https://github.com/stub42/pytz
 python-slugify==5.0.2  # https://github.com/un33k/python-slugify
-Pillow==9.4.0  # https://github.com/python-pillow/Pillow
+Pillow==10.1.0  # https://github.com/python-pillow/Pillow
 argon2-cffi==20.1.0  # https://github.com/hynek/argon2_cffi
 brotli==1.0.9  # https://github.com/google/brotli
 whitenoise==6.3.0  # https://github.com/evansd/whitenoise
 redis==4.5.4  # https://github.com/andymccurdy/redis-py
 hiredis==2.2.2  # https://github.com/redis/hiredis-py
-uvicorn[standard]==0.20.0  # https://github.com/encode/uvicorn
+uvicorn[standard]==0.26.0  # https://github.com/encode/uvicorn
 channels==4.0.0  # https://github.com/django/channels
 daphne==4.0.0  # https://github.com/django/daphne
 requests==2.31.0  # https://docs.python-requests.org/en/master/
 maturin==0.14.8 # https://maturin.rs
 huey==2.4.5 # https://github.com/coleifer/huey/
+gunicorn==21.2.0  # https://github.com/benoitc/gunicorn
 
 # Django
 # ------------------------------------------------------------------------------
-django==4.2.3  # pyup: < 4.1  # https://www.djangoproject.com/
+django==4.2.7  # pyup: < 4.1  # https://www.djangoproject.com/
 django-environ==0.9.0  # https://github.com/joke2k/django-environ
 django-model-utils==4.2.0  # https://github.com/jazzband/django-model-utils
 django-allauth==0.52.0  # https://github.com/pennersr/django-allauth
