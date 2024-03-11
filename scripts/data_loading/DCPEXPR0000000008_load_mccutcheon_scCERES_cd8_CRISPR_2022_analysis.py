@@ -67,6 +67,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         }
 
         observations.append(ObservationRow(sources, targets, [direction], num_facets))
+
     results_file.close()
     return observations
 

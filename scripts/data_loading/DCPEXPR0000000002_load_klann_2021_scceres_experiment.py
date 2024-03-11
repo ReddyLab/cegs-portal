@@ -34,6 +34,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
                 feature_type=FeatureType.DHS,
             )
 
+    feature_tsv.close()
     return new_dhss.values(), None
 
 

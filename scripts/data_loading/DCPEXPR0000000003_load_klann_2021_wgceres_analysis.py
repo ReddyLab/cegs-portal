@@ -50,6 +50,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
 
         observations.append(ObservationRow(sources, [], [direction], facet_num_values))
 
+    results_file.close()
     return observations
 
 
