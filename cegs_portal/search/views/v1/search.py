@@ -4,6 +4,7 @@ from typing import Optional
 from urllib.parse import unquote_plus
 
 from django.core.exceptions import BadRequest
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import View
@@ -16,7 +17,11 @@ from cegs_portal.search.json_templates.v1.feature_counts import (
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
-from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
+from cegs_portal.search.models import (
+    ChromosomeLocation,
+    DNAFeatureType,
+    RegulatoryEffectObservation,
+)
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.tsv_templates.v1.search_results import sig_reos as sr
 from cegs_portal.search.view_models.v1 import Search
@@ -25,6 +30,7 @@ from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
 from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
+from cegs_portal.utils.pagination_types import Pageable
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8,10})(\s+|$)", re.IGNORECASE)
@@ -423,6 +429,7 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
     """
 
     template = "search/v1/partials/_feature_sig_reg_effects.html"
+    partial = "search/v1/partials/_feature_sig_reg_effects_table.html"
     tsv_renderer = sr
 
     def request_options(self, request):
@@ -442,6 +449,8 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
 
         options = super().request_options(request)
         options["assembly"] = get_assembly(request)
+        options["page"] = int(request.GET.get("page", 1))
+        options["per_page"] = int(request.GET.get("per_page", 20))
         options["features"] = request.GET.getlist("feature_type", [])
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["tsv_format"] = request.GET.get("tsv_format", None)
@@ -455,6 +464,17 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data):
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                self.partial,
+                {
+                    "sig_reg_effects": data,
+                    "region": request.GET["region"],
+                    "features": options["features"],
+                },
+            )
+
         return super().get(
             request,
             options,
@@ -469,7 +489,7 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
             filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.tsv"
         return super().get_tsv(request, options, data, filename=filename)
 
-    def get_data(self, options):
+    def get_data(self, options) -> Pageable[RegulatoryEffectObservation]:
         region, assembly, features, facets = (
             options["region"],
             options["assembly"],
@@ -490,4 +510,4 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
                 UserType.LOGGED_IN,
                 private_experiments=self.request.user.all_experiments(),
             )
-        return sig_reos
+        return Paginator(sig_reos, options["per_page"]).get_page(options["page"])
