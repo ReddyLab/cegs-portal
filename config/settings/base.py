@@ -1,6 +1,7 @@
 """
 Base settings to build other settings files upon.
 """
+
 from pathlib import Path
 
 import environ
@@ -297,3 +298,24 @@ HUEY = {
 # ------------------------------------------------------------------------------
 TESTING = False
 PROMETHEUS_EXPORT_MIGRATIONS = False
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = (
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+    "zip",
+    "gz",
+    "tgz",
+    "bz2",
+    "tbz",
+    "xz",
+    "br",
+    "swf",
+    "flv",
+    "woff",
+    "woff2",
+    "ecd",  # Experiment coverage data
+    "pd",  # Plot Data
+    "fd",  # Feature Data
+)
