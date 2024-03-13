@@ -27,7 +27,7 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
-from .types import FeatureType
+from .types import FeatureType, GrnaFacet, PromoterFacet
 
 GRNA_TYPE_FACET = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
@@ -43,9 +43,7 @@ FACET_VALUES = GRNA_TYPE_FACET_VALUES | PROMOTER_FACET_VALUES
 
 VALID_BOUNDS = {"[]", "()", "[)", "(]"}
 VALID_GENOME_ASSEMBLY = {"GRCh38", "GRCh37"}
-VALID_FEATURE_TYPES = {v.value for v in DNAFeatureType}
 VALID_STRANDS = {"+", "-"}
-VALID_FACETS = {facet_value for facet_value in FACET_VALUES}
 
 
 @dataclass
@@ -55,8 +53,8 @@ class FeatureRow:
     location: tuple[int, int, str]  # start, end, bounds ("[]", "()", "[)", "(]")
     genome_assembly: str  # ("GRCh38", "GRCh37")
     cell_line: str
-    feature_type: FeatureType  # ("cCRE", "DHS", "gRNA", "Chromatin Accessible Region")
-    facets: Optional[list[str]] = None  # list[("Positive Control", "Targeting", "Promoter", "Non-promoter")]
+    feature_type: FeatureType
+    facets: list[GrnaFacet | PromoterFacet] = field(default_factory=list)
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
     strand: Optional[str] = None  # Optional[("+", "-")]
@@ -71,12 +69,6 @@ class FeatureRow:
 
         if self.genome_assembly not in VALID_GENOME_ASSEMBLY:
             raise ValueError(f"Invalid genome assembly: '{self.genome_assembly}'")
-
-        if self.feature_type not in VALID_FEATURE_TYPES:
-            raise ValueError(f"Invalid feature type: '{self.feature_type}'")
-
-        if self.facets is not None and not all(facet in VALID_FACETS for facet in self.facets):
-            raise ValueError(f"Invalid facets: '{self.facets}'")
 
 
 class FeatureOverlap(Enum):
@@ -226,11 +218,8 @@ class Experiment:
                         experiment_accession_id=experiment_accession_id,
                     )
                 )
-                if feature.facets is not None:
-                    for facet in feature.facets:
-                        feature_facets.write(
-                            feature_facet_entry(feature_id=feature_id, facet_id=FACET_VALUES[facet].id)
-                        )
+                for facet in feature.facets:
+                    feature_facets.write(feature_facet_entry(feature_id=feature_id, facet_id=FACET_VALUES[facet].id))
 
         bulk_feature_save(feature_rows)
         bulk_feature_facet_save(feature_facets)
