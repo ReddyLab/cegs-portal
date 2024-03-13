@@ -44,7 +44,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_dhss[dhs_name] = FeatureRow(
                 name=dhs_name,
                 chrom_name=dhs_chrom_name,
-                location=(int(dhs_start), int(dhs_end), "[)"),
+                location=(dhs_start, dhs_end, "[)"),
                 genome_assembly=dhs_file.genome_assembly,
                 cell_line=dhs_cell_line,
                 feature_type=FeatureType.DHS,

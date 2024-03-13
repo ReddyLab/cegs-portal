@@ -81,7 +81,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_grnas[grna_id] = FeatureRow(
                 name=grna_id,
                 chrom_name=chrom_name,
-                location=(int(grna_start), int(grna_end), bounds),
+                location=(grna_start, grna_end, bounds),
                 strand=strand,
                 genome_assembly=grna_file.genome_assembly,
                 cell_line=grna_cell_line,
