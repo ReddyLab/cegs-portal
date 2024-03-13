@@ -3,6 +3,7 @@ import csv
 from utils.experiment import ExperimentMetadata
 
 from .load_experiment import Experiment, FeatureRow
+from .types import FeatureType, GrnaFacet
 
 # These gene names appear in the data and have a "version" ("".1") in a few instances.
 # We don't know why. It's safe to remove the version for processing though.
@@ -60,7 +61,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
                 location=(int(dhs_start), int(dhs_end), "[)"),
                 genome_assembly=dhs_file.genome_assembly,
                 cell_line=dhs_cell_line,
-                feature_type="DHS",
+                feature_type=FeatureType.DHS,
             )
 
         dhs_row = new_dhss[dhs_name]
@@ -80,12 +81,12 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_grnas[grna_id] = FeatureRow(
                 name=grna_id,
                 chrom_name=chrom_name,
-                location=(int(grna_start), int(grna_end), bounds),
+                location=(grna_start, grna_end, bounds),
                 strand=strand,
                 genome_assembly=grna_file.genome_assembly,
                 cell_line=grna_cell_line,
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 parent_name=dhs_row.name,
                 misc={"grna": grna_id},
             )

@@ -79,7 +79,7 @@ def reo_entry(
 
 def bulk_reo_save(
     effects: StringIO,
-    effect_directions: StringIO,
+    categorical_facets: StringIO,
     source_associations: StringIO,
     target_associations: Optional[StringIO] = None,
 ):
@@ -102,10 +102,10 @@ def bulk_reo_save(
         )
 
     with transaction.atomic(), connection.cursor() as cursor:
-        effect_directions.seek(0, SEEK_SET)
-        print("Adding effect directions to effects")
+        categorical_facets.seek(0, SEEK_SET)
+        print("Adding categorical facets to effects")
         cursor.copy_from(
-            effect_directions,
+            categorical_facets,
             "search_regulatoryeffectobservation_facet_values",
             columns=(
                 "regulatoryeffectobservation_id",
@@ -141,7 +141,7 @@ def feature_entry(
     feature_type,
     ids=None,
     ensembl_id="\\N",
-    name="\\N",
+    name=None,
     cell_line="\\N",
     closest_gene_id="\\N",
     closest_gene_distance="\\N",
@@ -149,7 +149,7 @@ def feature_entry(
     closest_gene_ensembl_id="\\N",
     genome_assembly_patch="0",
     feature_subtype="\\N",
-    strand="\\N",
+    strand=None,
     source_file_id=None,
     experiment_accession_id="\\N",
     parent_id=None,
@@ -159,7 +159,9 @@ def feature_entry(
     public="true",
 ):
     ids = "\\N" if ids is None else json.dumps(ids)
+    name = "\\N" if name is None else name
     misc = "\\N" if misc is None else json.dumps(misc)
+    strand = "\\N" if strand is None else strand
     source_file_id = "\\N" if source_file_id is None else source_file_id
     parent_id = "\\N" if parent_id is None else parent_id
     parent_accession_id = "\\N" if parent_accession_id is None else parent_accession_id
@@ -178,8 +180,8 @@ def target_entry(reo_id, target_id):
     return f"{reo_id}\t{target_id}\n"
 
 
-def direction_entry(reo_id, direction_id):
-    return f"{reo_id}\t{direction_id}\n"
+def cat_facet_entry(reo_id, facet_id):
+    return f"{reo_id}\t{facet_id}\n"
 
 
 def ccre_associate_entry(feature_id, ccre_id):
@@ -188,6 +190,7 @@ def ccre_associate_entry(feature_id, ccre_id):
 
 def bulk_feature_save(features: StringIO):
     features.seek(0, SEEK_SET)
+    print("Adding features")
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.copy_from(
             features,
@@ -224,7 +227,7 @@ def bulk_feature_save(features: StringIO):
 def bulk_feature_facet_save(facets):
     with transaction.atomic(), connection.cursor() as cursor:
         facets.seek(0, SEEK_SET)
-        print("Adding facets to gRNAs")
+        print("Adding facets to features")
         cursor.copy_from(
             facets,
             "search_dnafeature_facet_values",
@@ -237,6 +240,7 @@ def bulk_feature_facet_save(facets):
 
 def bulk_save_associations(associations):
     associations.seek(0, SEEK_SET)
+    print("Adding ccre associations to features")
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.copy_from(
             associations, "search_dnafeature_associated_ccres", columns=("from_dnafeature_id", "to_dnafeature_id")
