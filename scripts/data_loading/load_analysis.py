@@ -93,7 +93,6 @@ class Analysis:
             for reo_id, reo in zip(reo_ids, reos):
                 for source in reo.sources:
                     source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
-
                     if source_string not in source_cache:
                         source_cache[source_string] = DNAFeature.objects.filter(
                             experiment_accession_id=experiment_accession_id,

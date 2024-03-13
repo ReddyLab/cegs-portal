@@ -4,7 +4,7 @@ from utils.experiment import ExperimentMetadata
 
 from .DCPEXPR0000000004_utils import grna_loc
 from .load_experiment import Experiment, FeatureRow
-from .types import FeatureType, GrnaFacet, PromoterFacet
+from .types import FeatureType, GenomeAssembly, GrnaFacet, PromoterFacet, RangeBounds
 
 
 def get_features(experiment_metadata: ExperimentMetadata):
@@ -44,8 +44,8 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_dhss[dhs_name] = FeatureRow(
                 name=dhs_name,
                 chrom_name=dhs_chrom_name,
-                location=(dhs_start, dhs_end, "[)"),
-                genome_assembly=dhs_file.genome_assembly,
+                location=(dhs_start, dhs_end, RangeBounds.HALF_OPEN_RIGHT),
+                genome_assembly=GenomeAssembly(dhs_file.genome_assembly),
                 cell_line=dhs_cell_line,
                 feature_type=FeatureType.DHS,
             )
@@ -74,7 +74,7 @@ def get_features(experiment_metadata: ExperimentMetadata):
                 chrom_name=chrom_name,
                 location=(grna_start, grna_end, grna_bounds),
                 strand=grna_strand,
-                genome_assembly=grna_file.genome_assembly,
+                genome_assembly=GenomeAssembly(grna_file.genome_assembly),
                 cell_line=grna_cell_line,
                 feature_type=FeatureType.GRNA,
                 facets=categorical_facets,
