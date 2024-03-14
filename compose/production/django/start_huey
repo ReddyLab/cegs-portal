@@ -5,6 +5,6 @@ set -o pipefail
 set -o nounset
 
 
-python /app/manage.py collectstatic --noinput
+python /app/manage.py collectstatic --noinput -i "*.ecd" -i "*.fd"
 
 python /app/manage.py run_huey
