@@ -464,7 +464,7 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data):
-        if request.headers.get("HX-Request"):
+        if request.headers.get("HX-Target"):
             return render(
                 request,
                 self.partial,

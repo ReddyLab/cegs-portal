@@ -371,9 +371,9 @@
             id="tabs-effects"
             role="tabpanel"
             aria-labelledby="tabs-effects-tab"
-            data-te-tab-active
         >
-            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-trigger="load"></div>
+            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-trigger="load">
+            </div>
         </div>
         <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
