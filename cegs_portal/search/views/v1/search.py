@@ -17,11 +17,7 @@ from cegs_portal.search.json_templates.v1.feature_counts import (
 from cegs_portal.search.json_templates.v1.search_results import (
     search_results as sr_json,
 )
-from cegs_portal.search.models import (
-    ChromosomeLocation,
-    DNAFeatureType,
-    RegulatoryEffectObservation,
-)
+from cegs_portal.search.models import ChromosomeLocation, DNAFeatureType
 from cegs_portal.search.models.utils import IdType
 from cegs_portal.search.tsv_templates.v1.search_results import sig_reos as sr
 from cegs_portal.search.view_models.v1 import Search
@@ -30,7 +26,6 @@ from cegs_portal.search.views.custom_views import MultiResponseFormatView
 from cegs_portal.search.views.v1.search_types import FeatureCountResult, Loc
 from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http303, Http400
-from cegs_portal.utils.pagination_types import Pageable
 
 CHROMO_RE = re.compile(r"((chr\d?[123456789xym])\s*:\s*(\d[\d,]*)(\s*-\s*(\d[\d,]*))?)(\s+|$)", re.IGNORECASE)
 ACCESSION_RE = re.compile(r"(DCP[a-z]{1,4}[0-9a-f]{8,10})(\s+|$)", re.IGNORECASE)
@@ -487,7 +482,7 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
             filename = f"significant_reos_{region.chromo}_{region.range.lower}_{region.range.upper}.tsv"
         return super().get_tsv(request, options, data, filename=filename)
 
-    def get_data(self, options) -> Pageable[RegulatoryEffectObservation]:
+    def get_data(self, options):
         region, assembly, features, facets = (
             options["region"],
             options["assembly"],
