@@ -37,7 +37,7 @@
         <span class="step-links">
             {% if sig_reg_effects.has_previous %}
                 <a href="?page=1" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page=1" hx-target="#feature_sigreo-table">&laquo; first</a>
-                <a href="?page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{region}}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature_sigreo-table">previous</a>
+                <a href="?page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature_sigreo-table">previous</a>
             {% endif %}
 
             <span class="current">
@@ -45,8 +45,8 @@
             </span>
 
             {% if sig_reg_effects.has_next %}
-                <a href="?page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{region}}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature_sigreo-table">next</a>
-                <a href="?page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?region={{region}}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
+                <a href="?page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature_sigreo-table">next</a>
+                <a href="?page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
             {% endif %}
         </span>
     </div>
