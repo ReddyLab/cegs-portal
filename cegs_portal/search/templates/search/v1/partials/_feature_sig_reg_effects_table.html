@@ -16,7 +16,7 @@
     </div>
     {% if sig_reg_effects|length > 0 %}
     <table class="data-table">
-        <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+        <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Significance (p-value)</th><th>Raw p-value</th><th>Experiment</th></tr>
         {% for regeffect in sig_reg_effects %}
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         <tr class="{{ rowcolors }}">
