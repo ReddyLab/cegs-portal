@@ -3,7 +3,7 @@ import csv
 from utils.experiment import ExperimentMetadata
 
 from .load_experiment import Experiment, FeatureRow
-from .types import FeatureType
+from .types import FeatureType, GenomeAssembly, RangeBounds
 
 
 def get_features(experiment_metadata: ExperimentMetadata):
@@ -23,10 +23,9 @@ def get_features(experiment_metadata: ExperimentMetadata):
 
         if car_name not in new_cars:
             new_cars[car_name] = FeatureRow(
-                name=car_name,
                 chrom_name=chrom_name,
-                location=(car_start, car_end, "[)"),
-                genome_assembly=feature_file.genome_assembly,
+                location=(car_start, car_end, RangeBounds.HALF_OPEN_RIGHT),
+                genome_assembly=GenomeAssembly(feature_file.genome_assembly),
                 cell_line=feature_file.biosample.cell_line,
                 feature_type=FeatureType.CAR,
             )

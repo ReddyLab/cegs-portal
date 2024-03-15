@@ -27,7 +27,14 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
-from .types import FeatureType, GrnaFacet, PromoterFacet
+from .types import (
+    ChromosomeStrands,
+    FeatureType,
+    GenomeAssembly,
+    GrnaFacet,
+    PromoterFacet,
+    RangeBounds,
+)
 
 GRNA_TYPE_FACET = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
@@ -41,34 +48,19 @@ PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES[PromoterType.NON_PROMOTER.value]
 
 FACET_VALUES = GRNA_TYPE_FACET_VALUES | PROMOTER_FACET_VALUES
 
-VALID_BOUNDS = {"[]", "()", "[)", "(]"}
-VALID_GENOME_ASSEMBLY = {"GRCh38", "GRCh37"}
-VALID_STRANDS = {"+", "-"}
-
 
 @dataclass
 class FeatureRow:
     name: Optional[str]
     chrom_name: str
-    location: tuple[int, int, str]  # start, end, bounds ("[]", "()", "[)", "(]")
-    genome_assembly: str  # ("GRCh38", "GRCh37")
+    location: tuple[int, int, RangeBounds]  # start, end, bounds
+    genome_assembly: GenomeAssembly
     cell_line: str
     feature_type: FeatureType
     facets: list[GrnaFacet | PromoterFacet] = field(default_factory=list)
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
-    strand: Optional[str] = None  # Optional[("+", "-")]
-
-    def __post_init__(self):
-        if self.strand is not None and self.strand not in VALID_STRANDS:
-            raise ValueError(f"Invalid strand: '{self.strand}'")
-
-        _, _, bounds = self.location
-        if bounds not in VALID_BOUNDS:
-            raise ValueError(f"Invalid bounds for feature location: '{bounds}'")
-
-        if self.genome_assembly not in VALID_GENOME_ASSEMBLY:
-            raise ValueError(f"Invalid genome assembly: '{self.genome_assembly}'")
+    strand: Optional[ChromosomeStrands] = None
 
 
 class FeatureOverlap(Enum):
@@ -89,7 +81,7 @@ class CCREFeature:
     closest_gene_name: str
     closest_gene_ensembl_id: int
     source_file_id: int
-    genome_assembly: str
+    genome_assembly: GenomeAssembly
     experiment_accession_id: str
     feature_type: DNAFeatureType
     genome_assembly_patch: str = "0"
@@ -131,8 +123,7 @@ class CCREFeature:
 
 
 def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
-    if genome_assembly not in ["GRCh37", "GRCh38"]:
-        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+    assert GenomeAssembly(genome_assembly)
 
     return (
         DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)

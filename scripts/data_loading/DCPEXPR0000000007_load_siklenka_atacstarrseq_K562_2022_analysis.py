@@ -3,7 +3,7 @@ import csv
 from utils.experiment import AnalysisMetadata
 
 from .load_analysis import Analysis, ObservationRow, SourceInfo
-from .types import DirectionFacets, FeatureType, NumericFacets
+from .types import DirectionFacets, FeatureType, NumericFacets, RangeBounds
 
 
 def get_observations(analysis_metadata: AnalysisMetadata):
@@ -19,7 +19,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         car_start = int(line["start"])
         car_end = int(line["end"])
 
-        sources = [SourceInfo(chrom_name, car_start, car_end, "[)", None, FeatureType.CAR)]
+        sources = [SourceInfo(chrom_name, car_start, car_end, RangeBounds.HALF_OPEN_RIGHT, None, FeatureType.CAR)]
 
         effect_size_field = line["logFC"].strip()
         if effect_size_field == "":

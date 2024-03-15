@@ -3,7 +3,7 @@ import csv
 from utils.experiment import ExperimentMetadata
 
 from .load_experiment import Experiment, FeatureRow
-from .types import FeatureType
+from .types import FeatureType, GenomeAssembly, RangeBounds
 
 
 def get_features(experiment_metadata: ExperimentMetadata):
@@ -28,8 +28,8 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_dhss[dhs_name] = FeatureRow(
                 name=dhs_name,
                 chrom_name=chrom_name,
-                location=(dhs_start, dhs_end, "[)"),
-                genome_assembly=dhs_file.genome_assembly,
+                location=(dhs_start, dhs_end, RangeBounds.HALF_OPEN_RIGHT),
+                genome_assembly=GenomeAssembly(dhs_file.genome_assembly),
                 cell_line=dhs_cell_line,
                 feature_type=FeatureType.DHS,
             )

@@ -43,3 +43,20 @@ class DirectionFacets(StrEnum):
     ENRICHED = EffectObservationDirectionType.ENRICHED.value
     NON_SIGNIFICANT = EffectObservationDirectionType.NON_SIGNIFICANT.value
     BOTH = EffectObservationDirectionType.BOTH.value
+
+
+class GenomeAssembly(StrEnum):
+    GRCH38 = "GRCh38"
+    GRCH37 = "GRCh37"
+
+
+class RangeBounds(StrEnum):
+    OPEN = "()"
+    CLOSED = "[]"
+    HALF_OPEN_LEFT = "(]"
+    HALF_OPEN_RIGHT = "[)"
+
+
+class ChromosomeStrands(StrEnum):
+    POSITIVE = "+"
+    NEGATIVE = "-"

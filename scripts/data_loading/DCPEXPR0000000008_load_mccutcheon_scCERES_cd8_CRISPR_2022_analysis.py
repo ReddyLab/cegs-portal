@@ -4,7 +4,13 @@ from utils.experiment import AnalysisMetadata
 
 from .DCPEXPR0000000008_consts import DROP_GENE_NAMES, TRIM_GENE_NAMES
 from .load_analysis import Analysis, ObservationRow, SourceInfo
-from .types import DirectionFacets, FeatureType, NumericFacets
+from .types import (
+    ChromosomeStrands,
+    DirectionFacets,
+    FeatureType,
+    NumericFacets,
+    RangeBounds,
+)
 
 
 def gene_ensembl_mapping(genes_filename):
@@ -35,15 +41,15 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         if gene_name_map[target_gene] in DROP_GENE_NAMES:
             continue
 
-        strand = line["Strand"]
+        strand = ChromosomeStrands(line["Strand"])
         chrom_name = line["chr"]
         grna_start = int(line["start"])
         grna_end = int(line["end"])
 
-        if strand == "+":
-            bounds = "[)"
-        elif strand == "-":
-            bounds = "(]"
+        if strand == ChromosomeStrands.POSITIVE:
+            bounds = RangeBounds.HALF_OPEN_RIGHT
+        elif strand == ChromosomeStrands.NEGATIVE:
+            bounds = RangeBounds.HALF_OPEN_LEFT
 
         sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, strand, FeatureType.GRNA)]
 

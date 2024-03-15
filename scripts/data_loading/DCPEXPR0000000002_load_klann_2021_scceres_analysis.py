@@ -3,7 +3,7 @@ import csv
 from utils.experiment import AnalysisMetadata
 
 from .load_analysis import Analysis, ObservationRow, SourceInfo
-from .types import DirectionFacets, FeatureType, NumericFacets
+from .types import DirectionFacets, FeatureType, NumericFacets, RangeBounds
 
 
 def gene_ensembl_mapping(genes_filename):
@@ -30,7 +30,7 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         dhs_start = int(line["dhs_start"])
         dhs_end = int(line["dhs_end"])
 
-        sources = [SourceInfo(chrom_name, dhs_start, dhs_end, "[)", None, FeatureType.DHS)]
+        sources = [SourceInfo(chrom_name, dhs_start, dhs_end, RangeBounds.HALF_OPEN_RIGHT, None, FeatureType.DHS)]
 
         targets = [gene_name_map[line["gene_symbol"]]]
 
