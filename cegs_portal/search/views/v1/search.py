@@ -463,26 +463,20 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data):
-        sig_reos = data
-        sig_reos_paginator = Paginator(sig_reos, options["per_page"])
-        sig_reos_page = sig_reos_paginator.get_page(options["page"])
-        data = {
-            "sig_reg_effects": sig_reos_page,
-            "region": request.GET["region"],
-            "features": options["features"],
-        }
+        if "HX-Target" in request.headers and request.headers["HX-Target"] == "feature_sigreo-table":
+            sig_reos_paginator = Paginator(data, options["per_page"])
+            sig_reos_page = sig_reos_paginator.get_page(options["page"])
 
-        if request.headers.get("HX-Target"):
             return render(
                 request,
                 "search/v1/partials/_feature_sig_reg_effects_table.html",
-                data,
+                {"sig_reg_effects": sig_reos_page, "region": request.GET["region"], "features": options["features"]},
             )
 
         return super().get(
             request,
             options,
-            data,
+            {"sig_reg_effects": data, "region": request.GET["region"], "features": options["features"]},
         )
 
     def get_tsv(self, request, options, data):
