@@ -536,10 +536,24 @@
             htmx.ajax('GET', url, {target: '#features-table'});
         }
 
+        let updateAllEffectsTable = () => {
+            let region = state.g(STATE_REGION);
+            let url = `/search/feature_sigreo?region=chr${region.chr}:${region.start}-${region.end}`;
+
+
+            let table = document.getElementById('feature_sigreo-table');
+            if (table) {
+                table.setAttribute('hx-get', url);
+            }
+
+            htmx.ajax('GET', url, {target: '#feature_sigreo-table'});
+        }
+
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
             updateFeatureTypeTable();
+            updateAllEffectsTable();
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
