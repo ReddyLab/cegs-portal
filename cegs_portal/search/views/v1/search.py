@@ -4,6 +4,7 @@ from typing import Optional
 from urllib.parse import unquote_plus
 
 from django.core.exceptions import BadRequest
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import View
@@ -442,6 +443,8 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
 
         options = super().request_options(request)
         options["assembly"] = get_assembly(request)
+        options["page"] = int(request.GET.get("page", 1))
+        options["per_page"] = int(request.GET.get("per_page", 20))
         options["features"] = request.GET.getlist("feature_type", [])
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["tsv_format"] = request.GET.get("tsv_format", None)
@@ -455,6 +458,16 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data):
+        if "HX-Target" in request.headers and request.headers["HX-Target"] == "feature_sigreo-table":
+            sig_reos_paginator = Paginator(data, options["per_page"])
+            sig_reos_page = sig_reos_paginator.get_page(options["page"])
+
+            return render(
+                request,
+                "search/v1/partials/_feature_sig_reg_effects_table.html",
+                {"sig_reg_effects": sig_reos_page, "region": request.GET["region"], "features": options["features"]},
+            )
+
         return super().get(
             request,
             options,

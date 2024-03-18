@@ -146,7 +146,7 @@
         display: none;
     }
 
-    #dna-feature-loading-spinner {
+    #loading-spinner {
         margin-left: 550px;
         font-size: 75px;
         color: rgb(107, 107, 107);
@@ -238,6 +238,25 @@
                             />
                         </svg>
                         <i class="bi bi-file-text"></i>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a
+                        href="#tabs-details"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-effects-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-effects"
+                        role="tab"
+                        aria-controls="tabs-effects"
+                        aria-selected="false"
+                        >All Effects
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                            />
+                        </svg>
                     </a>
                 </li>
                 <li role="presentation">
@@ -348,6 +367,16 @@
             </div>
         </div>
         <div
+            class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-effects"
+            role="tabpanel"
+            aria-labelledby="tabs-effects-tab"
+        >
+            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-indicator="#loading-spinner" hx-trigger="load">
+            </div>
+
+        </div>
+        <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-features"
             role="tabpanel"
@@ -366,12 +395,12 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
-                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
-                                <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
                                 <div class="grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
@@ -508,10 +537,18 @@
             htmx.ajax('GET', url, {target: '#features-table'});
         }
 
+        let updateAllEffectsTable = () => {
+            let region = state.g(STATE_REGION);
+            let url = `/search/feature_sigreo?region=chr${region.chr}:${region.start}-${region.end}`;
+
+            htmx.ajax('GET', url, {target: '#feature_sigreo-table'});
+        }
+
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
             updateFeatureTypeTable();
+            updateAllEffectsTable();
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {
