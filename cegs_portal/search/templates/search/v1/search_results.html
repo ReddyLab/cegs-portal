@@ -146,7 +146,7 @@
         display: none;
     }
 
-    #dna-feature-loading-spinner {
+    #loading-spinner {
         margin-left: 550px;
         font-size: 75px;
         color: rgb(107, 107, 107);
@@ -372,8 +372,9 @@
             role="tabpanel"
             aria-labelledby="tabs-effects-tab"
         >
-            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-trigger="load">
+            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-indicator="#loading-spinner" hx-trigger="load">
             </div>
+
         </div>
         <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
@@ -394,12 +395,12 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
-                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
-                                <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
                                 <div class="grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
