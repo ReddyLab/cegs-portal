@@ -876,6 +876,12 @@ tr[data-href]:hover {
   color: black;
 }
 
+.profile-table a,
+    .profile-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+}
+
 .tsv-button {
   border: 2px solid #807e7e;
   background-color: #fff;
@@ -889,12 +895,6 @@ tr[data-href]:hover {
   cursor: pointer;
   -webkit-transition-duration: 0.4s;
           transition-duration: 0.4s;
-}
-
-.profile-table a,
-  .profile-table a:visited {
-  color: #3490dc;
-  text-decoration: none;
 }
 
 .tsv-button:hover {
