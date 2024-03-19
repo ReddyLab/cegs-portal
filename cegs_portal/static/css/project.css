@@ -891,6 +891,12 @@ tr[data-href]:hover {
           transition-duration: 0.4s;
 }
 
+.profile-table a,
+  .profile-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+}
+
 .tsv-button:hover {
   background-color: #808080;
   color: white;

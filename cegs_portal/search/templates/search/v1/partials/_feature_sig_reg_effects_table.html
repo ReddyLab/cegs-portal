@@ -15,43 +15,43 @@
         </div>
     </div>
     {% if sig_reg_effects|length > 0 %}
-    <table class="data-table">
-        <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
-        {% for regeffect in sig_reg_effects %}
-        {% cycle '' 'bg-gray-100' as rowcolors silent %}
-        <tr class="{{ rowcolors }}">
-            <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
-            <td>
-                <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} @ {{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
-                {% if regeffect.targets.exists %}
-                <div>Target Genes: {% for gene in regeffect.targets.all %}<a href="{% url 'search:dna_features' 'accession' gene.accession_id %}">{{ gene.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+        <table class="data-table">
+            <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+            {% for regeffect in sig_reg_effects %}
+            {% cycle '' 'bg-gray-100' as rowcolors silent %}
+            <tr class="{{ rowcolors }}">
+                <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
+                <td>
+                    <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} @ {{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    {% if regeffect.targets.exists %}
+                    <div>Target Genes: {% for gene in regeffect.targets.all %}<a href="{% url 'search:dna_features' 'accession' gene.accession_id %}">{{ gene.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    {% endif %}
+                </td>
+                <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.effect_size|format_effect_size }}</a></td>
+                <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.significance|format_pval }}</a></td>
+                <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.raw_p_value|format_pval }}</a></td>
+                <td><a href="{% url 'search:experiment' regeffect.experiment_accession_id %}">{{ regeffect.experiment.name }}</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="pagination">
+            <span class="step-links">
+                {% if sig_reg_effects.has_previous %}
+                    <a href="?page=1" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page=1" hx-target="#feature_sigreo-table">&laquo; first</a>
+                    <a href="?page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature_sigreo-table">previous</a>
                 {% endif %}
-            </td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.effect_size|format_effect_size }}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.significance|format_pval }}</a></td>
-            <td><a href="{% url 'search:reg_effect' regeffect.accession_id %}">{{ regeffect.raw_p_value|format_pval }}</a></td>
-            <td><a href="{% url 'search:experiment' regeffect.experiment_accession_id %}">{{ regeffect.experiment.name }}</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    <div class="pagination">
-        <span class="step-links">
-            {% if sig_reg_effects.has_previous %}
-                <a href="?page=1" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page=1" hx-target="#feature_sigreo-table">&laquo; first</a>
-                <a href="?page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature_sigreo-table">previous</a>
-            {% endif %}
 
-            <span class="current">
-                Page {{ sig_reg_effects.number }} of {{ sig_reg_effects.paginator.num_pages }}
+                <span class="current">
+                    Page {{ sig_reg_effects.number }} of {{ sig_reg_effects.paginator.num_pages }}
+                </span>
+
+                {% if sig_reg_effects.has_next %}
+                    <a href="?page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature_sigreo-table">next</a>
+                    <a href="?page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
+                {% endif %}
             </span>
-
-            {% if sig_reg_effects.has_next %}
-                <a href="?page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature_sigreo-table">next</a>
-                <a href="?page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?region={{ region }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
-            {% endif %}
-        </span>
-    </div>
-{% else %}
-    <div>No Relevant Regulatory Effect Observations Found</div>
-{% endif %}
+        </div>
+    {% else %}
+        <div>No Relevant Regulatory Effect Observations Found</div>
+    {% endif %}
 </div>
