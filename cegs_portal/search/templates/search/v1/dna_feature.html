@@ -202,14 +202,12 @@
             </div>
             {% endif %}
             {% if sources %}
-            <div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
-                {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
+            <div id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
 
             {% if targets %}
-            <div class="container min-w-full" id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
-                {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
+            <div id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
         </div>
