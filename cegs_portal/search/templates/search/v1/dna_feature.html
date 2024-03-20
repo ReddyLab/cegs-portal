@@ -258,10 +258,8 @@
                     <tr>
                         <th class="chrom-first-end-cap chrom-light-band">Accession ID</th>
                         <th class="chrom-dark-band">Type</th>
-                        <th class="chrom-light-band">Cell Line</th>
-                        <th class="chrom-light-band chrom-right-centromere">Location</th>
-                        <th class="chrom-light-band chrom-left-centromere">Strand</th>
-                        <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
+                        <th class="chrom-light-band chrom-right-centromere  ">Cell Line</th>
+                        <th class="chrom-last-end-cap chrom-left-centromere chrom-light-band">Location</th>
                     </tr>
             {% endif %}
 
@@ -275,10 +273,8 @@
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
                         <td>
                             <span>{{ close_feature.chrom_name }}</span>:
-                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span>
+                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}:{{ close_feature.strand|if_strand }}</span>
                         </td>
-                        <td>{{ close_feature.strand|default:"N/A" }}</td>
-                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}
@@ -368,10 +364,8 @@
                         <tr>
                             <th class="chrom-first-end-cap chrom-light-band">ENSEMBL ID</th>
                             <th class="chrom-dark-band">Type</th>
-                            <th class="chrom-light-band">Symbol</th>
-                            <th class="chrom-light-band chrom-right-centromere">Location</th>
-                            <th class="chrom-light-band chrom-left-centromere">Strand</th>
-                            <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
+                            <th class="chrom-light-band chrom-right-centromere">Symbol</th>
+                            <th class="chrom-last-end-cap chrom-light-band chrom-left-centromere">Location</th>
                         </tr>
             {% endif %}
             {% if feature.children.exists %}
@@ -383,10 +377,8 @@
                             <td>
                                 <span>{{ child.chrom_name }}</span>:
                                 <span
-                                    >{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}</span>
+                                    >{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}:{{ child.strand|if_strand }}</span>
                             </td>
-                            <td>{{ child.strand }}</td>
-                            <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
                         </tr>
                         {% endfor %}
             {% endif %}
