@@ -1838,12 +1838,19 @@ input[type="submit"], input[type="button"], button {
 .form-group .form-control {
   margin-bottom: 10px;
   border-radius: 5px;
-  width: 300px;
   margin-top: 5px;
+}
+
+.form-group label {
+  font-weight: bold;
 }
 
 .form-header-text {
   color: rgb(16, 13, 121)
+}
+
+.asteriskField {
+  color: red;
 }
 
 /* The navbar styles are copied from bootstrap.css (getbootstrap.com) and then modified */

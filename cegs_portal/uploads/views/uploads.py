@@ -1,17 +1,20 @@
+from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from psycopg2.extras import NumericRange
 
-from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
 from cegs_portal.uploads.forms import UploadFileForm
 
 
+@permission_required("search.add_experiment", raise_exception=True)
 def upload(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES["dhs_file"])
+            if (experiment_file := request.FILES.get("experiment_file")) is not None:
+                handle_experiment_file(request.POST["experiment_accession"], experiment_file)
+            if (analysis_file := request.FILES.get("analysis_file")) is not None:
+                handle_analysis_file(request.POST["experiment_accession"], analysis_file)
             return HttpResponseRedirect(reverse("uploads:upload_complete"))
     else:
         form = UploadFileForm()
@@ -22,21 +25,10 @@ def upload_complete(request):
     return render(request, "uploads/upload_complete.html", {})
 
 
-#  Don't actually use this right now
-def handle_uploaded_file(file):
-    for line in file:
-        cell_line, chrom, start, end, _name, _direction, _effect_size = line.decode("utf-8").split(", ")
+#  Don't use these right now
+def handle_experiment_file(expr_accession, file):
+    pass
 
-        # skip header
-        if cell_line == "cell_line":
-            continue
 
-        dhs = DNAFeature(
-            chrom_name=chrom,
-            location=NumericRange(int(start), int(end)),
-            cell_line=cell_line,
-        )
-        # dhs.save()
-
-        re = RegulatoryEffectObservation(sources=[dhs])
-        re.save()
+def handle_analysis_file(expr_accession, file):
+    pass

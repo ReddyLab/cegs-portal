@@ -37,14 +37,21 @@
 }
 
 .form-group .form-control {
-    margin-bottom: 10px;
-    border-radius: 5px;
-    width: 300px;
-    margin-top: 5px;
-  }
+  margin-bottom: 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.form-group label {
+  font-weight: bold;
+}
 
 .form-header-text {
   color: rgb(16, 13, 121)
+}
+
+.asteriskField {
+    color: red;
 }
 
 @layer components {
