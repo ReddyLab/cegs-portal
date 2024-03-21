@@ -717,6 +717,25 @@ a:hover {
   color: rgb(30 64 175 / var(--tw-text-opacity));
 }
 
+.form-header-text {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+@media (min-width: 768px) {
+  .form-header-text {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+.form-header-text {
+  color: rgb(16, 13, 121)
+}
+
 a:visited {
   color: inherit;
   text-decoration: none;
@@ -1846,10 +1865,6 @@ fieldset legend {
   font-weight: bold;
 }
 
-.form-header-text {
-  color: rgb(16, 13, 121)
-}
-
 .asteriskField {
   color: red;
 }
@@ -2720,11 +2735,6 @@ fieldset legend {
     --tw-space-y-reverse: 0;
     margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
-  }
-
-  .md\:text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
   }
 }
 

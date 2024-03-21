@@ -46,10 +46,6 @@ fieldset legend {
   font-weight: bold;
 }
 
-.form-header-text {
-  color: rgb(16, 13, 121)
-}
-
 .asteriskField {
     color: red;
 }
@@ -77,6 +73,11 @@ fieldset legend {
 
   a:hover {
     @apply text-blue-800;
+  }
+
+  .form-header-text {
+    @apply text-xl font-bold leading-tight tracking-tight md:text-2xl;
+    color: rgb(16, 13, 121)
   }
 
   a:visited {

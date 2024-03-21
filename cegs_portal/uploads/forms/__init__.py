@@ -22,7 +22,7 @@ class UploadFileForm(forms.Form):
         helper.attrs = {"enctype": "multipart/form-data"}
         helper.layout = Layout(
             Fieldset(
-                '<legend class="text-xl font-bold leading-tight tracking-tight md:text-2xl form-header-text">Upload Experiment and/or Analysis Metadata</legend>',
+                '<legend class="form-header-text">Upload Experiment and/or Analysis Metadata</legend>',
                 HTML('<div class="title-separator my-3.5"></div>'),
                 "experiment_accession",
                 Fieldset(
