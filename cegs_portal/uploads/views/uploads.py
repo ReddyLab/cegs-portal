@@ -18,7 +18,7 @@ def upload(request):
             return HttpResponseRedirect(reverse("uploads:upload_complete"))
     else:
         form = UploadFileForm()
-    return render(request, "uploads/upload.html", {"form": form})
+    return render(request, "uploads/upload.html", {"upload_form": form})
 
 
 def upload_complete(request):
