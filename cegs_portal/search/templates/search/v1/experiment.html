@@ -180,7 +180,7 @@
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500">
+                    <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -193,8 +193,9 @@
                 <div class="facet-content-section container">
                     <form name="regionUploadForm">
                         <div>
-                            <label class="font-bold" for="regionFile">Highlight Regions</label>
-                            <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                            <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
+                            <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
+                            <label for="regionUploadInput" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Upload File</label>
                         </div>
                     </form>
                     <div id="regionUploadInputReset"></div>
@@ -204,16 +205,18 @@
                 <div class="facet-content-section container">
                     <form name="dataDownloadForm">
                         <div>
-                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
-                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                            <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
+                            <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll" />
+                            <label for="dataDownloadAll" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Request Data</label>
                         </div>
                         <div class="mt-5">
-                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
-                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label class="font-bold flex justify-center" for="dataDlFile">Download Some Selected Data*</label>
+                            <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label for="dataDownloadInput" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Upload file</label>
                         </div>
                     </form>
                     <div id="dataDownloadLink" class="mt-5 mb-5"></div>
-                    <div>
+                    <div class="flex justify-center">
                     * Data downloads take facet filtering, except for "Number of {{ experiment.get_source_type_display }}s" and "Number of Genes Assayed", into account.
                     </div>
                 </div>
@@ -231,7 +234,7 @@
                     </div>
                     <div>
                         <label for="covSelect">Choose a Coverage View:</label>
-                        <select name="views" id="covSelect">
+                        <select class="search-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
                             <option value="sig">Largest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
@@ -252,7 +255,6 @@
             <table class="min-w-full">
                 <thead class="bg-white border-b">
                     <tr>
-
                         <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Description</th>
                         <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
                             {{ experiment.description }}
