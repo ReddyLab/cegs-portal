@@ -3,10 +3,6 @@
 
 {% block content %}
     <div class="bg-white rounded-lg shadow p-6 space-y-4 md:space-y-6 sm:p-8">
-        <fieldset class="form-group">
-            <legend class="text-xl font-bold leading-tight tracking-tight md:text-2xl form-header-text">Upload Experiment and/or Analysis Metadata</legend>
-            <div class="title-separator my-3.5"></div>
-            {% crispy form %}
-        </fieldset>
+        {% crispy form %}
     </div>
 {% endblock content %}

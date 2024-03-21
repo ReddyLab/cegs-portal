@@ -918,8 +918,9 @@ tr[data-href]:hover {
   margin-top: 10px;
 }
 
-input[type="text"], input[type="password"], input[type="email"] {
-  border-width: 2px;
+input[type="text"], input[type="password"], input[type="email"], input[type="url"] {
+  border-radius: 0.375rem;
+  border-width: 1px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
@@ -1841,7 +1842,7 @@ input[type="submit"], input[type="button"], button {
   margin-top: 5px;
 }
 
-.form-group label {
+fieldset legend {
   font-weight: bold;
 }
 
@@ -1851,6 +1852,15 @@ input[type="submit"], input[type="button"], button {
 
 .asteriskField {
   color: red;
+}
+
+.indent {
+  -webkit-margin-start: 20px;
+          margin-inline-start: 20px;
+}
+
+.inline_url_field div {
+  display: inline;
 }
 
 /* The navbar styles are copied from bootstrap.css (getbootstrap.com) and then modified */
@@ -2047,8 +2057,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-sm .offcanvas-top,
-.navbar-expand-sm .offcanvas-bottom {
+  .navbar-expand-sm .offcanvas-top, .navbar-expand-sm .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2129,7 +2138,7 @@ input[type="submit"], input[type="button"], button {
   }
 
   .navbar-expand-md .offcanvas-top,
-.navbar-expand-md .offcanvas-bottom {
+  .navbar-expand-md .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2209,8 +2218,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-lg .offcanvas-top,
-.navbar-expand-lg .offcanvas-bottom {
+  .navbar-expand-lg .offcanvas-top, .navbar-expand-lg .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2290,8 +2298,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xl .offcanvas-top,
-.navbar-expand-xl .offcanvas-bottom {
+  .navbar-expand-xl .offcanvas-top, .navbar-expand-xl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2371,8 +2378,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xxl .offcanvas-top,
-.navbar-expand-xxl .offcanvas-bottom {
+  .navbar-expand-xxl .offcanvas-top, .navbar-expand-xxl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
