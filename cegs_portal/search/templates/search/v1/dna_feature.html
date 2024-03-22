@@ -51,7 +51,6 @@
             <tr>
                 <th>DNA Feature Aliases</th>
                 <th>Location</th>
-                <th>Strand</th>
                 <th>Reference Genome</th>
                 <th>Feature Type</th>
             {% if feature.feature_subtype %}
@@ -63,10 +62,9 @@
                 <td>
                     <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
                         <span>{{ feature.chrom_name }}</span>:
-                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span>
+                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                     </a>
                 </td>
-                <td>{{ feature.strand }}</td>
                 <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
                 <td>{{ feature.get_feature_type_display }}</td>
                 {% if feature.feature_subtype %}

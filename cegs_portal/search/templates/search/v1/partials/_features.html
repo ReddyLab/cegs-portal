@@ -38,7 +38,7 @@
                     <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
                         <td>{{ feature.name|default:"N/A" }}</a></td>
                         <td>{{ feature.get_feature_type_display }}</td>
-                        <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}:{{ feature.strand|if_strand }}</span></td>
+                        <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower|intcomma }}-{{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span></td>
                         <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}?assembly={{ feature.ref_genome }}">{{ feature.closest_gene_ensembl_id }}</a>{% else %}{% endif %}</td>
                         <td class="table-column-hidden">{{ feature.parent.name }}</td>
                         <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">

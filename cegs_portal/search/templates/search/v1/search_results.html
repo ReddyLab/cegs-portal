@@ -345,9 +345,11 @@
                     <div class="container">
                         <form name="dataDownloadForm">
                             <div>
-                                <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
-                                <div class="text-sm">Includes all observations, filtered by selected facets</div>
+                                <label class="font-bold flex justify-center" for="dataDlAll">Download Region Data*</label>
+                                <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll"/>
+                                <label for="dataDownloadAll" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Download file</label>
                             </div>
+                            <div class="text-sm">Includes all observations, filtered by selected facets</div>
                         </form>
                         <div id="dataDownloadLink" class="mt-5"></div>
                     </div>
@@ -372,7 +374,7 @@
             role="tabpanel"
             aria-labelledby="tabs-effects-tab"
         >
-            <div class="container min-w-full" id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-indicator="#loading-spinner" hx-trigger="load">
+            <div id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-indicator="#loading-spinner" hx-trigger="load">
             </div>
 
         </div>
