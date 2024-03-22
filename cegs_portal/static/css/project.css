@@ -717,6 +717,25 @@ a:hover {
   color: rgb(30 64 175 / var(--tw-text-opacity));
 }
 
+.form-header-text {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+@media (min-width: 768px) {
+  .form-header-text {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+.form-header-text {
+  color: rgb(16, 13, 121)
+}
+
 a:visited {
   color: inherit;
   text-decoration: none;
@@ -918,8 +937,9 @@ tr[data-href]:hover {
   margin-top: 10px;
 }
 
-input[type="text"], input[type="password"], input[type="email"] {
-  border-width: 2px;
+input[type="text"], input[type="password"], input[type="email"], input[type="url"] {
+  border-radius: 0.375rem;
+  border-width: 1px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
@@ -1838,12 +1858,24 @@ input[type="submit"], input[type="button"], button {
 .form-group .form-control {
   margin-bottom: 10px;
   border-radius: 5px;
-  width: 300px;
   margin-top: 5px;
 }
 
-.form-header-text {
-  color: rgb(16, 13, 121)
+fieldset legend {
+  font-weight: bold;
+}
+
+.asteriskField {
+  color: red;
+}
+
+.indent {
+  -webkit-margin-start: 20px;
+          margin-inline-start: 20px;
+}
+
+.inline_url_field div {
+  display: inline;
 }
 
 /* The navbar styles are copied from bootstrap.css (getbootstrap.com) and then modified */
@@ -2040,8 +2072,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-sm .offcanvas-top,
-.navbar-expand-sm .offcanvas-bottom {
+  .navbar-expand-sm .offcanvas-top, .navbar-expand-sm .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2122,7 +2153,7 @@ input[type="submit"], input[type="button"], button {
   }
 
   .navbar-expand-md .offcanvas-top,
-.navbar-expand-md .offcanvas-bottom {
+  .navbar-expand-md .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2202,8 +2233,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-lg .offcanvas-top,
-.navbar-expand-lg .offcanvas-bottom {
+  .navbar-expand-lg .offcanvas-top, .navbar-expand-lg .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2283,8 +2313,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xl .offcanvas-top,
-.navbar-expand-xl .offcanvas-bottom {
+  .navbar-expand-xl .offcanvas-top, .navbar-expand-xl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2364,8 +2393,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xxl .offcanvas-top,
-.navbar-expand-xxl .offcanvas-bottom {
+  .navbar-expand-xxl .offcanvas-top, .navbar-expand-xxl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2707,11 +2735,6 @@ input[type="submit"], input[type="button"], button {
     --tw-space-y-reverse: 0;
     margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
-  }
-
-  .md\:text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
   }
 }
 

@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>DHS Search</title>
-        {% load static %}
-    </head>
-    <body>
-        <h2>Upload DNase I Hypersensitive Site Data</h2>
-        <form action="{% url 'uploads:upload' %}" enctype="multipart/form-data" method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="Upload">
-        </form>
-        <div><a href="{% url 'search:index' %}">Search</a></div>
-    </body>
-</html>
+{% extends "base.html" %}
+{% load static i18n crispy_forms_tags %}
+
+{% block content %}
+    <div class="bg-white rounded-lg shadow p-6 space-y-4 md:space-y-6 sm:p-8">
+        {% crispy upload_form %}
+    </div>
+{% endblock content %}
