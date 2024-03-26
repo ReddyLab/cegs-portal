@@ -34,7 +34,7 @@
                         <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                     </a>
                 {% endif %}
-                <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
+                <select class="global-button mt-3 border-2 p-2 text-sm" id="dropdown">
                     {% for assembly in all_assemblies %}
                         <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
                     {% endfor %}
@@ -62,7 +62,7 @@
                 <td>
                     <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
                         <span>{{ feature.chrom_name }}</span>:
-                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
+                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
                     </a>
                 </td>
                 <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
@@ -264,9 +264,7 @@
             {% if feature.closest_features.exists %}
                 {% for close_feature in feature.closest_features.all %}
                     <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
-                        <td>
-                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.get_feature_type_display }}</a>
-                        </td>
+                        <td>{{ close_feature.get_feature_type_display }}</td>
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
                         <td>
                             <span>{{ close_feature.chrom_name }}</span>:
@@ -325,7 +323,7 @@
                     <input type="text" name="dist" value="1000" />
                     <input
                         type="submit"
-                        class="search-button border-2 border-gray-300 h-10 text-sm"
+                        class="global-button border-2 border-gray-300 h-10 text-sm"
                         value="Find Features"
                     />
                     <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>

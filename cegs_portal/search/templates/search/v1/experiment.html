@@ -180,7 +180,7 @@
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500 flex justify-center">
+                    <div class="text-slate-500">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -195,7 +195,7 @@
                         <div>
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
                             <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
-                            <label for="regionUploadInput" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Upload File</label>
+                            <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
                         </div>
                     </form>
                     <div id="regionUploadInputReset"></div>
@@ -207,12 +207,12 @@
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
                             <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll" />
-                            <label for="dataDownloadAll" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Request Data</label>
+                            <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Request Data</label>
                         </div>
                         <div class="mt-5">
                             <label class="font-bold flex justify-center" for="dataDlFile">Download Some Selected Data*</label>
                             <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
-                            <label for="dataDownloadInput" class="flex justify-center search-button mt-3 border-2 p-2 text-sm">Upload file</label>
+                            <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
                         </div>
                     </form>
                     <div id="dataDownloadLink" class="mt-5 mb-5"></div>
@@ -234,7 +234,7 @@
                     </div>
                     <div>
                         <label for="covSelect">Choose a Coverage View:</label>
-                        <select class="search-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
+                        <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
                             <option value="sig">Largest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>

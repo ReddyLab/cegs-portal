@@ -26,7 +26,7 @@
             </svg>
             {{ loc.chr|intcomma }}: {{loc.start|intcomma}} - {{ loc.end|intcomma }}
         </h1>
-        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+        <select class="global-button border-2 p-2 h-10 text-sm" id="dropdown">
             {% for assembly in all_assemblies %}
                 <option value="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
             {% endfor %}
@@ -66,7 +66,7 @@
             <div class="title-separator min-w-full"></div>
             <input
                 type="submit"
-                class="search-button border-2 border-gray-300 h-10 text-sm"
+                class="global-button border-2 border-gray-300 h-10 text-sm"
                 value="Filter Features"
             />
             <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>

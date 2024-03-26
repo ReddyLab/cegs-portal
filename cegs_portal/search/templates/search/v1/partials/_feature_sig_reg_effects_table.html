@@ -1,6 +1,7 @@
 {% load humanize %}
 {% load custom_helpers %}
 
+{% if sig_reg_effects|length > 0 %}
 <div class="container min-w-full">
     <div class="flex max-w-full min-w-full justify-between items-center">
         <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
@@ -14,7 +15,6 @@
             </a>
         </div>
     </div>
-    {% if sig_reg_effects|length > 0 %}
         <table class="data-table">
             <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
             {% for regeffect in sig_reg_effects %}
@@ -51,7 +51,7 @@
                 {% endif %}
             </span>
         </div>
-    {% else %}
-        <div>No Relevant Regulatory Effect Observations Found</div>
-    {% endif %}
+{% else %}
+    <div>No Relevant Regulatory Effect Observations Found</div>
+{% endif %}
 </div>

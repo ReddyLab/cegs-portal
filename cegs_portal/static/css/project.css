@@ -902,13 +902,13 @@ tr[data-href]:hover {
   color: white;
 }
 
-.search-button {
+.global-button {
   margin-left: 5px;
   background-color: rgb(244, 245, 247) !important;
   margin-bottom: 10px;
 }
 
-.search-button:hover {
+.global-button:hover {
   background-color: rgb(229 231 235) !important;
 }
 
