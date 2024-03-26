@@ -3,8 +3,8 @@
 
     {% if features|length > 0 %}
     <div class="container min-w-full">
-            <div class="table-title search-results-table-title flex items-center justify-between relative">
-                <div class="flex items-center justify-center flex-1">
+            <div class="table-title table-container-header">
+                <div class="table-container-title">
                     <i class="bi bi-geo-alt-fill location-tab-icon mr-1"></i>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-2">
                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -70,7 +70,7 @@
     </div>
     {% else %}
         <div class="container min-w-full">
-            <div class="table-title flex items-center justify-center">
+            <div class="table-title table-container-header">
                 No DNA Features Found
             </div>
         </div>

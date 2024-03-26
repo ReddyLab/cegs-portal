@@ -194,7 +194,7 @@
 
             {% if not sources and not targets %}
             <div class="container min-w-full">
-                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                <div class="table-title table-container-header">
                     No Regulatory Effect Observations Found
                 </div>
             </div>
@@ -235,8 +235,8 @@
             {% if feature.closest_features.exists %}
             <div class="container min-w-full">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                <div class="table-title table-container-header">
+                    <div class="table-container-title">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1">
                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                         <path
@@ -294,8 +294,8 @@
         >
             <div class="container centered-container min-w-full">
                 <a name="near_features"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                <div class="table-title table-container-header">
+                    <div class="table-container-title">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                             <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
@@ -345,21 +345,23 @@
             <div class="mb-8 min-w-full">
                 <div class="container">
                     <a name="children-{{ feature.accession_id }}"></a>
-                    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="30"
-                            height="30"
-                            fill="currentColor"
-                            class="bi bi-diagram-3-fill svg-icon mr-2 w-7 h-7"
-                            viewBox="0 0 16 16"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"
-                            />
-                        </svg>
-                        {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
+                    <div class="table-title table-container-header">
+                        <div class="table-container-title">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="30"
+                                height="30"
+                                fill="currentColor"
+                                class="bi bi-diagram-3-fill svg-icon mr-2 w-7 h-7"
+                                viewBox="0 0 16 16"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"
+                                />
+                            </svg>
+                            {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
+                        </div>
                     </div>
                     <div class="title-separator"></div>
                     <table class="data-table">

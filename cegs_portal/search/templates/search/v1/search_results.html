@@ -293,8 +293,8 @@
             <div class="flex flex-row items-start gap-x-10 min-w-full">
                 <div class="flex flex-col gap-4 flex-none">
                     <div id="facets" class="container">
-                        <div class="search-results-table-title flex items-center justify-between relative">
-                            <div class="flex items-center justify-center flex-1">
+                        <div class="search-results-table-title table-container-header">
+                            <div class="table-container-title">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
                                     <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
@@ -347,11 +347,11 @@
                             <div>
                                 <label class="font-bold flex justify-center" for="dataDlAll">Download Region Data*</label>
                                 <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll"/>
-                                <label for="dataDownloadAll" class="flex justify-center app-button mt-3 border-2 p-2 text-sm">Download file</label>
+                                <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Download file</label>
                             </div>
-                            <div class="text-sm">Includes all observations, filtered by selected facets</div>
                         </form>
-                        <div id="dataDownloadLink" class="mt-5"></div>
+                        <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                        <div class="text-sm flex justify-center">Includes all observations, filtered by selected facets</div>
                     </div>
                     {% endif %}
                 </div>

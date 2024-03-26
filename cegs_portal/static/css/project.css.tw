@@ -130,6 +130,20 @@
     color: rgb(107, 107, 107);
   }
 
+  .table-container-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .table-container-header .table-container-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+
   .data-table {
     border-collapse: collapse;
     width: 100%;
