@@ -811,6 +811,39 @@ a.link, a.link:visited {
   color: rgb(107, 107, 107);
 }
 
+.table-container-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  position: relative;
+}
+
+.table-container-header .table-container-title {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+}
+
+.table-container-downloads {
+  position: absolute;
+  right: 0;
+}
+
 .data-table {
   border-collapse: collapse;
   width: 100%;
@@ -895,6 +928,12 @@ tr[data-href]:hover {
   color: black;
 }
 
+.profile-table a,
+    .profile-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
+}
+
 .tsv-button {
   border: 2px solid #807e7e;
   background-color: #fff;
@@ -915,13 +954,13 @@ tr[data-href]:hover {
   color: white;
 }
 
-.search-button {
+.global-button {
   margin-left: 5px;
   background-color: rgb(244, 245, 247) !important;
   margin-bottom: 10px;
 }
 
-.search-button:hover {
+.global-button:hover {
   background-color: rgb(229 231 235) !important;
 }
 

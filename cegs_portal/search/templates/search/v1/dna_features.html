@@ -26,7 +26,7 @@
             </svg>
             {{ loc.chr|intcomma }}: {{loc.start|intcomma}} - {{ loc.end|intcomma }}
         </h1>
-        <select class="search-button border-2 p-2 h-10 text-sm" id="dropdown">
+        <select class="global-button border-2 p-2 h-10 text-sm" id="dropdown">
             {% for assembly in all_assemblies %}
                 <option value="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
             {% endfor %}
@@ -40,8 +40,8 @@
     <div class="title-separator"></div>
     <div class="container centered-container min-w-full">
         <a name="near_features"></a>
-        <div class="table-title flex items-center justify-between relative">
-            <div class="flex items-center justify-center flex-1">
+        <div class="table-title table-container-header">
+            <div class="table-container-title">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
                     <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                 </svg>
@@ -66,7 +66,7 @@
             <div class="title-separator min-w-full"></div>
             <input
                 type="submit"
-                class="search-button border-2 border-gray-300 h-10 text-sm"
+                class="global-button border-2 border-gray-300 h-10 text-sm"
                 value="Filter Features"
             />
             <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>

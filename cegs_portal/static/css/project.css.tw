@@ -146,6 +146,25 @@ fieldset legend {
     color: rgb(107, 107, 107);
   }
 
+  .table-container-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .table-container-header .table-container-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .table-container-downloads {
+    position: absolute;
+    right: 0;
+  }
+
   .data-table {
     border-collapse: collapse;
     width: 100%;
@@ -230,6 +249,12 @@ fieldset legend {
     color: black;
   }
 
+  .profile-table a,
+    .profile-table a:visited {
+    color: #3490dc;
+    text-decoration: none;
+  }
+
   .tsv-button {
     border: 2px solid #807e7e;
     background-color: #fff;
@@ -249,13 +274,13 @@ fieldset legend {
     color: white;
   }
 
-  .search-button {
+  .global-button {
     margin-left: 5px;
     background-color: rgb(244, 245, 247) !important;
     margin-bottom: 10px;
   }
 
-  .search-button:hover {
+  .global-button:hover {
     background-color: rgb(229 231 235) !important;
   }
 
