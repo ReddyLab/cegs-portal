@@ -10,7 +10,7 @@
             </svg>
         </div>
         <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
-        <div class="justify-self-end">
+        <div class="table-container-downloads">
             <span class="text-lg">Download:</span>
             <a href="{% url 'search:feature_sigreo' %}?region={{ region }}{% for feature in features %}&feature_type={{ feature }}{% endfor %}&accept=text/tab-separated-values&tsv_format=original">
                 <button class="tsv-button" id="downloadButton">TSV</button>
