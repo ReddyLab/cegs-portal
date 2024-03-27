@@ -3,6 +3,8 @@ import os.path
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+import requests
+
 from cegs_portal.search.models import (
     AccessionIdLog,
     AccessionIds,
@@ -16,7 +18,8 @@ from cegs_portal.search.models import (
 
 from .biosample import ExperimentBiosample
 from .file import FileMetadata
-from .misc import get_delimiter
+
+MAX_METADATA_CONTENT_LENGTH = 65_536
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -39,7 +42,7 @@ class ExperimentFileMetadata:
     genome_assembly_patch: str
     p_val_threshold: float
 
-    def __init__(self, file_metadata: dict[str, str], base_path: str):
+    def __init__(self, file_metadata: dict[str, str], base_path: Optional[str] = None):
         self.file_metadata = FileMetadata(file_metadata, base_path)
         self.genome_assembly = file_metadata["genome_assembly"]
         self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
@@ -55,23 +58,63 @@ class ExperimentFileMetadata:
         self.file_metadata.db_save(experiment, analysis, data_file_info)
 
 
-class AnalysisMetadata:
+class Metadata:
+    @classmethod
+    def load(cls, file_url: str, experiment_accession_id: str):
+        if file_url.startswith("http://") or file_url.startswith("https://"):
+            return cls.http_load(file_url, experiment_accession_id)
+        elif file_url.startswith("s3://"):
+            return cls.s3_load(file_url, experiment_accession_id)
+        else:
+            return cls.file_load(file_url, experiment_accession_id)
+
+    @classmethod
+    def file_load(cls, file_path: str, experiment_accession_id: str):
+        with open(file_path) as file:
+            experiment_data = json.load(file)
+            metadata = cls(experiment_data, experiment_accession_id, file.name)
+        return metadata
+
+    @classmethod
+    def http_load(cls, file_url: str, experiment_accession_id: str):
+        with requests.get(file_url, stream=True) as response:
+            if (content_length := int(response.headers["content-length"])) > MAX_METADATA_CONTENT_LENGTH:
+                raise ValueError(
+                    f"Content Metadata {file_url} too long. Size: {content_length}, Max Size: {MAX_METADATA_CONTENT_LENGTH}"
+                )
+
+            data = response.json
+            metadata = cls(data, experiment_accession_id)
+        return metadata
+
+    @classmethod
+    def s3_load(cls, file_url: str, experiment_accession_id: str):
+        with open(file_url) as file:
+            data = json.load(file)
+            metadata = cls(data, experiment_accession_id)
+        return metadata
+
+
+class AnalysisMetadata(Metadata):
     accession_id: Optional[str] = None
     experiment_accession_id: str
     filename: str
     description: str
     name: str
+    source_type: str
     results: ExperimentFileMetadata
     misc_files: list[FileMetadata] = []
 
-    def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id, analysis_filename: Optional[str] = None):
         self.description = analysis_dict["description"]
-        self.experiment_accession_id = analysis_dict["experiment"]
+        self.experiment_accession_id = experiment_accession_id
         self.filename = analysis_filename
         self.name = analysis_dict["name"]
         assert self.name != ""
 
-        base_path = os.path.dirname(analysis_filename)
+        self.source_type = get_source_type(analysis_dict["source type"])
+
+        base_path = os.path.dirname(analysis_filename) if analysis_filename is not None else None
 
         self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
 
@@ -106,23 +149,8 @@ class AnalysisMetadata:
         analysis.delete()
         self.accession_id = None
 
-    def metadata(self):
-        base_path = os.path.dirname(self.filename)
-        for result in self.results:
-            delimiter = get_delimiter(result.file_metadata.filename)
-            data_file = open(os.path.join(base_path, result.file_metadata.filename), "r", newline="")
-            yield data_file, result, delimiter
-            data_file.close()
 
-    @classmethod
-    def file_load(cls, filename):
-        with open(filename) as file:
-            analysis_data = json.load(file)
-            metadata = AnalysisMetadata(analysis_data, file.name)
-        return metadata
-
-
-class ExperimentMetadata:
+class ExperimentMetadata(Metadata):
     description: str
     assay: str
     name: str
@@ -134,15 +162,15 @@ class ExperimentMetadata:
     tested_elements_file: FileMetadata
     tested_elements_parent_file: Optional[FileMetadata]
 
-    def __init__(self, experiment_dict: dict[str, Any], experiment_filename: str):
+    def __init__(self, experiment_dict: dict[str, Any], accession_id, experiment_filename: Optional[str] = None):
         self.description = experiment_dict.get("description", None)
         self.assay = experiment_dict.get("assay", None)
         self.name = experiment_dict["name"]
         assert self.name != ""
-        self.accession_id = experiment_dict["accession_id"]
+        self.accession_id = accession_id
         self.source_type = get_source_type(experiment_dict["source type"])
         self.filename = experiment_filename
-        base_path = os.path.dirname(experiment_filename)
+        base_path = os.path.dirname(experiment_filename) if experiment_filename is not None else None
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict["biosamples"]]
         self.file_metadata = [FileMetadata(file, base_path, self.biosamples) for file in experiment_dict["files"]]
 
@@ -192,10 +220,3 @@ class ExperimentMetadata:
             file.delete()
 
         experiment.delete()
-
-    @classmethod
-    def file_load(cls, filename: str):
-        with open(filename) as file:
-            experiment_data = json.load(file)
-            metadata = ExperimentMetadata(experiment_data, file.name)
-        return metadata

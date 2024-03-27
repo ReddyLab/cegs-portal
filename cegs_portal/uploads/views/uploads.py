@@ -2,7 +2,10 @@ from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from huey.contrib.djhuey import db_task
 
+# from cegs_portal.uploads.data_loading.analysis import load as an_load
+# from cegs_portal.uploads.data_loading.experiment import load as expr_load
 from cegs_portal.uploads.forms import UploadFileForm
 
 
@@ -26,9 +29,17 @@ def upload_complete(request):
 
 
 #  Don't use these right now
+@db_task
 def handle_experiment_file(expr_accession, file):
-    pass
+    print("****************************")
+    print(file)
+    print(file.size)
+    print("****************************")
 
 
+@db_task
 def handle_analysis_file(expr_accession, file):
-    pass
+    print("****************************")
+    print(file)
+    print(file.size)
+    print("****************************")

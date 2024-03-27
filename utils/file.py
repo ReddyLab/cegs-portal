@@ -17,10 +17,15 @@ class FileMetadata:
     biosample: Optional[ExperimentBiosample] = None
 
     def __init__(
-        self, file_metadata: Dict[str, str], base_path: str, biosamples: Optional[list[ExperimentBiosample]] = None
+        self,
+        file_metadata: Dict[str, str],
+        base_path: Optional[str] = None,
+        biosamples: Optional[list[ExperimentBiosample]] = None,
     ):
         self.description = file_metadata.get("description")
-        self.filename = os.path.join(base_path, file_metadata["file"])
+        self.filename = (
+            os.path.join(base_path, file_metadata["file"]) if base_path is not None else file_metadata["file"]
+        )
         self.genome_assembly = file_metadata["genome_assembly"]
         self.url = file_metadata.get("url")
         self.misc = file_metadata.get("misc")
