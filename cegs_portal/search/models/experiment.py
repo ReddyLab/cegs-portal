@@ -91,6 +91,7 @@ class ExperimentDataFileInfo(models.Model):
     # so there's no need to keep track of it.
     significance_measure = models.CharField(max_length=2048, null=True, blank=True)
     p_value_threshold = models.FloatField(default=0.05, blank=True)
+    p_value_adj_method = models.CharField(max_length=128, default="unknown")
 
     def __str__(self):
         if self.ref_genome_patch is not None and self.ref_genome_patch != "":
