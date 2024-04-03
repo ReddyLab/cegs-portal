@@ -36,7 +36,6 @@ def upload_complete(request):
     return render(request, "uploads/upload_complete.html", {})
 
 
-#  Don't use these right now
 @db_task()
 def handle_experiment_file(file, expr_accession):
     expr_load(file, expr_accession)
