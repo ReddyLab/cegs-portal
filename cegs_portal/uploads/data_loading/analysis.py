@@ -23,11 +23,6 @@ from .db import bulk_reo_save, cat_facet_entry, reo_entry, source_entry, target_
 from .experiment_metadata import AnalysisMetadata, InternetFile
 from .types import Facets, FeatureType
 
-DIR_FACET = Facet.objects.get(name="Direction")
-DIR_FACET_VALUES = {facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=DIR_FACET.id).all()}
-
-CATEGORICAL_FACET_VALUES = DIR_FACET_VALUES
-
 MIN_SIG = 1e-100
 
 
@@ -60,11 +55,6 @@ class ObservationRow:
     categorical_facets: list[str]
     numeric_facets: dict[str:float]
 
-    def __post_init__(self):
-        for facet, facet_value in self.categorical_facets:
-            if facet_value not in CATEGORICAL_FACET_VALUES:
-                raise ValueError(f"Invalid categorical facet: '{facet}'")
-
 
 class Analysis:
     metadata: AnalysisMetadata
@@ -73,6 +63,11 @@ class Analysis:
 
     def __init__(self, metadata: AnalysisMetadata):
         self.metadata = metadata
+
+        dir_facet = Facet.objects.get(name="Direction")
+        self.categorical_facet_values = {
+            facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=dir_facet.id).all()
+        }
 
     def load(self):
         source_type = self.metadata.source_type
@@ -97,6 +92,10 @@ class Analysis:
             adjust_p_value = float(line["adj_p_val"])
             effect_size = float(line["effect_size"])
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
+
+            for _, facet_value in categorical_facets:
+                if facet_value not in self.categorical_facet_values:
+                    raise ValueError(f"Invalid categorical facet value: '{facet_value}'")
 
             num_facets = {
                 Facets.EFFECT_SIZE: effect_size,
@@ -169,7 +168,7 @@ class Analysis:
                 )
 
                 for _, facet_value in reo.categorical_facets:
-                    facet_id = CATEGORICAL_FACET_VALUES[facet_value]
+                    facet_id = self.categorical_facet_values[facet_value]
                     cat_facets.write(cat_facet_entry(reo_id, facet_id))
 
         bulk_reo_save(effects, cat_facets, sources, targets)
