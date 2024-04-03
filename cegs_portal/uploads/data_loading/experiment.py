@@ -165,7 +165,9 @@ class Experiment:
                 line["parent_bounds"],
             )
 
-            if parent_chrom == parent_start == parent_end == parent_strand == parent_bounds == "":
+            if (parent_chrom == parent_start == parent_end == parent_strand == parent_bounds) and (
+                parent_chrom is None or parent_chrom == ""
+            ):
                 parent_row = None
             else:
                 parent_start, parent_end = int(parent_start), int(parent_end)
@@ -193,8 +195,16 @@ class Experiment:
             )
             element_name = f"{element_chrom}:{element_start}-{element_end}:{element_strand}"
 
-            categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
-            misc = {f.split("=") for f in line["misc"].split(";")} if line["misc"] != "" else {}
+            categorical_facets = (
+                [f.split("=") for f in line["facets"].split(";")]
+                if line["facets"] != "" and line["facets"] is not None
+                else []
+            )
+            misc = (
+                {f.split("=") for f in line["misc"].split(";")}
+                if line["misc"] != "" and line["misc"] is not None
+                else {}
+            )
 
             new_elements[element_name] = FeatureRow(
                 name=element_name,

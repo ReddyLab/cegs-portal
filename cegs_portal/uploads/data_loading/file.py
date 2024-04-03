@@ -23,7 +23,7 @@ class FileMetadata:
         biosamples: Optional[list[ExperimentBiosample]] = None,
     ):
         self.description = file_metadata.get("description")
-        self.filename = file_metadata["file_name"]
+        self.filename = file_metadata["filename"]
         self.file_location = file_metadata["file_location"]
         self.genome_assembly = file_metadata["genome_assembly"]
         self.url = file_metadata.get("url")

@@ -1,0 +1,11 @@
+chrom	start	end	strand	bounds	parent_chrom	parent_start	parent_end	parent_strand	parent_bounds	facets	misc
+chr1	540930	541007	.	[)
+chr1	843884	844109	.	[)
+chr1	915652	916435	.	[)
+chr1	993480	995423	.	[)
+chr1	1003309	1006333	.	[)
+chr1	1080444	1081290	.	[)
+chr1	1095060	1095136	.	[)
+chr1	1227795	1228090	.	[)
+chr1	1257910	1258167	.	[)
+chr1	1274162	1274475	.	[)

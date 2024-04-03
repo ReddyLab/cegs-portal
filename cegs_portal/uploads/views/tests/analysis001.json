@@ -1,0 +1,13 @@
+{
+    "name": "scCERES screen of 3200 DHS implicated in cell proliferation in K562 cells",
+    "description": "",
+    "source type": "DHS",
+    "results": {
+        "description": "Observed effects from perturbing DHSs.",
+        "filename": "observations.tsv",
+        "file_location": "cegs_portal/uploads/views/tests/observations.tsv",
+        "genome_assembly": "GRCh38",
+        "p_val_adj_method": "empirical p-values from NT gRNAs",
+        "p_val_threshold": 0.01
+    }
+}

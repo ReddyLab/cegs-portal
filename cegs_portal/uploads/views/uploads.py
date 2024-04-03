@@ -15,12 +15,13 @@ def upload(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             experiment_accession = request.POST["experiment_accession"]
-            if (experiment_url := request.POST["experiment_url"]) != "":
+
+            if (experiment_url := request.POST.get("experiment_url")) != "":
                 handle_experiment_file(experiment_url, experiment_accession)
             elif (experiment_file := request.FILES.get("experiment_file")) is not None:
                 handle_experiment_file(experiment_file, experiment_accession)
 
-            if (analysis_url := request.POST["analysis_url"]) != "":
+            if (analysis_url := request.POST.get("analysis_url")) != "":
                 handle_analysis_file(analysis_url, experiment_accession)
             elif (analysis_file := request.FILES.get("analysis_file")) is not None:
                 handle_analysis_file(analysis_file, experiment_accession)
