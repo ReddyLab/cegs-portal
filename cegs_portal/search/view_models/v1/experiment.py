@@ -86,3 +86,9 @@ class ExperimentSearch:
         queryset = Experiment.objects.filter(accession_id=expr_id)
         analysis_id = queryset.values_list("analyses__accession_id", flat=True).first()
         return analysis_id
+
+    @classmethod
+    def all_analysis_id_search(cls, expr_id: str):
+        queryset = Experiment.objects.filter(accession_id=expr_id)
+        analysis_id = queryset.values_list("analyses__accession_id", flat=True)
+        return analysis_id

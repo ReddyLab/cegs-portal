@@ -44,6 +44,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get(self, request, options, data, exp_id):
         analysis = ExperimentSearch.analysis_id_search(exp_id)
+        analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
 
         return super().get(
             request,
@@ -51,6 +52,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             {
                 "logged_in": not request.user.is_anonymous,
                 "analysis": analysis,
+                "analyses": analyses,
                 "experiment": data[0],
                 "exp_id": exp_id,
                 "other_experiments": {
