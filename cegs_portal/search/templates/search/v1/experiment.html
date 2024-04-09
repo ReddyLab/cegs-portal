@@ -44,6 +44,15 @@
         padding: 5px 5px;
     }
 
+    .analysis-button {
+        margin-left: 5px;
+        background-color: rgb(244, 245, 247) !important;
+    }
+
+    .analysis-button:hover {
+         background-color: rgb(229 231 235) !important;
+    }
+
 </style>
 {% endblock %}
 
@@ -67,6 +76,11 @@
                     <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
                         </svg> {{ experiment.name }}
+                    </div>
+                    <div class="text-1xl font-bold flex items-center justify-center" style="color: rgb(71 85 105); margin-bottom: 5px;">Select Data Set: <select class="analysis-button border-2 p-2 text-sm" id="dropdown">
+                        <option value="{% url 'search:experiment' experiment.accession_id %}">{{ analysis }}</option>
+                        <option value="{% url 'search:experiment' experiment.accession_id %}?analysis={{analysis}}">Analysis</option>
+                    </select>
                     </div>
                 </tr>
             </thead>
@@ -180,7 +194,7 @@
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500">
+                    <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -419,6 +433,11 @@
             style="color: rgb(100 116 139);"
         >
             Analysis <i class="bi bi-pie-chart-fill"></i>
+            <div class="text-sm font-bold" style="color: rgb(71 85 105);">Select Data Set: <select class="global-button border-2 p-2 text-sm" id="dropdown">
+                <option value="{% url 'search:experiment' experiment.accession_id %}">{{ analysis }}</option>
+                <option value="{% url 'search:experiment' experiment.accession_id %}?analysis={{analysis}}">Analysis</option>
+            </select>
+            </div>
             <div class="title-separator my-3.5"></div>
             <div class="flex flex-nowrap my-3.5">
                 <div id="volcano"></div>
@@ -431,6 +450,9 @@
 
 {% block inline_javascript %}
 <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const analysisId = urlParams.get('analysis');
+
     // setup API options
     const vegaVolcanoOptions = {
         config: {
@@ -472,7 +494,8 @@
             });
     };
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/vpdata.pd")
+    const fetchVPUrl = `http://localhost:8000/static/search/experiments/{{ experiment.accession_id }}/${analysisId || '{{ analysis }}'}/vpdata.pd`;
+    fetch(fetchVPUrl)
         .then((response) => {
             if (!response.ok && response.status == 404) {
                 return; // This is often okay and expected, not every analysis has this data
@@ -622,7 +645,8 @@
 
     // now you can use the API!
 
-    fetch("{% get_static_prefix %}search/experiments/{{ experiment.accession_id }}/qqplot.pd")
+    const fetchQQUrl = `http://localhost:8000/static/search/experiments/{{ experiment.accession_id }}/${analysisId || '{{ analysis }}'}/qqplot.pd`;
+    fetch(fetchQQUrl)
         .then((response) => {
                 if (!response.ok && response.status == 404) {
                     return; // This is often okay and expected, not every analysis has this data
@@ -734,6 +758,11 @@
                 .catch((err) => console.log(err));
         })
         .catch((err) => console.log(err));
+
+    var dropdown = document.getElementById("dropdown");
+        dropdown.addEventListener("change", function() {
+        window.location.href = this.value;
+    });
 </script>
 
 <script>
@@ -755,7 +784,8 @@
 
 <script type="module">
     import {exp_viz} from "{% static 'search/js/exp_viz/exp_viz.js' %}";
-    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", "{{ experiment.default_analysis.accession_id }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
+    exp_viz("{% get_static_prefix %}", "{{ experiment.accession_id }}", analysisId || "{{ analysis }}", "{{ csrf_token }}", "{{ experiment.get_source_type_display }}", "{{ logged_in }}" == "True");
 </script>
+
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

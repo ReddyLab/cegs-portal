@@ -31,13 +31,28 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
+    def request_options(self, request):
+        """
+        GET queries used:
+            exp (multiple)
+                * Should be a valid experiment accession ID
+        """
+        options = super().request_options(request)
+        options["analyses"] = request.GET.getlist("analysis", "vpdata.pd")
+
+        return options
+
     def get(self, request, options, data, exp_id):
+        analysis = ExperimentSearch.analysis_id_search(exp_id)
+
         return super().get(
             request,
             options,
             {
                 "logged_in": not request.user.is_anonymous,
+                "analysis": analysis,
                 "experiment": data[0],
+                "exp_id": exp_id,
                 "other_experiments": {
                     "id": "other_experiments",
                     "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
