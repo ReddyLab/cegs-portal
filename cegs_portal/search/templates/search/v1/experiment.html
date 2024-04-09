@@ -103,16 +103,16 @@
         >
             <li role="presentation">
                 <a
-                    href="#tabs-coverage"
+                    href="#tabs-overview"
                     class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
-                    id="tabs-coverage-tab"
+                    id="tabs-overview-tab"
                     data-te-toggle="pill"
-                    data-te-target="#tabs-coverage"
+                    data-te-target="#tabs-overview"
                     data-te-nav-active
                     role="tab"
-                    aria-controls="tabs-coverage"
+                    aria-controls="tabs-overview"
                     aria-selected="true"
-                    >Coverage <i class="bi bi-layers-half"></i
+                    >Overview <i class="bi bi-layers-half"></i
                 ></a>
             </li>
             <li role="presentation">
@@ -171,16 +171,16 @@
     </div>
     <div
         class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
-        id="tabs-coverage"
+        id="tabs-overview"
         role="tabpanel"
-        aria-labelledby="tabs-coverage-tab"
+        aria-labelledby="tabs-overview-tab"
         data-te-tab-active
     >
         <div class="flex flex-row gap-x-10">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500">
+                    <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -233,7 +233,7 @@
                         <div id="target-count"></div>
                     </div>
                     <div>
-                        <label for="covSelect">Choose a Coverage View:</label>
+                        <label for="covSelect">View:</label>
                         <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
                             <option value="sig">Largest Significance</option>
                             <option value="effect">Greatest Effect Size</option>

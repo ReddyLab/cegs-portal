@@ -222,7 +222,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     }
     let genomeName = manifests[0].genome.name;
 
-    rc(g("chrom-data-header"), t("Experiment Coverage"));
+    rc(g("chrom-data-header"), t("Experiment Overview"));
 
     const genomeRenderer = new GenomeRenderer(genome);
 
