@@ -133,7 +133,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     }
     let genomeName = manifest.genome.name;
 
-    rc(g("chrom-data-header"), t("Experiment Coverage"));
+    rc(g("chrom-data-header"), t("Experiment Overview"));
 
     const genomeRenderer = new GenomeRenderer(genome);
 
