@@ -2,7 +2,10 @@ from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from huey.contrib.djhuey import db_task
 
+from cegs_portal.uploads.data_loading.analysis import load as an_load
+from cegs_portal.uploads.data_loading.experiment import load as expr_load
 from cegs_portal.uploads.forms import UploadFileForm
 
 
@@ -11,10 +14,18 @@ def upload(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            if (experiment_file := request.FILES.get("experiment_file")) is not None:
-                handle_experiment_file(request.POST["experiment_accession"], experiment_file)
-            if (analysis_file := request.FILES.get("analysis_file")) is not None:
-                handle_analysis_file(request.POST["experiment_accession"], analysis_file)
+            experiment_accession = request.POST["experiment_accession"]
+
+            if (experiment_url := request.POST.get("experiment_url")) != "":
+                handle_experiment_file(experiment_url, experiment_accession)
+            elif (experiment_file := request.FILES.get("experiment_file")) is not None:
+                handle_experiment_file(experiment_file, experiment_accession)
+
+            if (analysis_url := request.POST.get("analysis_url")) != "":
+                handle_analysis_file(analysis_url, experiment_accession)
+            elif (analysis_file := request.FILES.get("analysis_file")) is not None:
+                handle_analysis_file(analysis_file, experiment_accession)
+
             return HttpResponseRedirect(reverse("uploads:upload_complete"))
     else:
         form = UploadFileForm()
@@ -25,10 +36,11 @@ def upload_complete(request):
     return render(request, "uploads/upload_complete.html", {})
 
 
-#  Don't use these right now
-def handle_experiment_file(expr_accession, file):
-    pass
+@db_task()
+def handle_experiment_file(file, expr_accession):
+    expr_load(file, expr_accession)
 
 
-def handle_analysis_file(expr_accession, file):
-    pass
+@db_task()
+def handle_analysis_file(file, expr_accession):
+    an_load(file, expr_accession)

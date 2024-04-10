@@ -1,6 +1,7 @@
 from typing import Optional
 
 import pytest
+from django.contrib.auth.models import Permission
 from django.db.models import Model
 from django.test import Client
 
@@ -13,6 +14,7 @@ class SearchClient:
         username: Optional[str] = None,
         password: Optional[str] = None,
         is_portal_admin: bool = False,
+        permissions: Optional[list[str]] = None,
     ):
         self.client = Client()
         self.username = username
@@ -25,6 +27,10 @@ class SearchClient:
             self.client.login(username=username, password=password)
         else:
             self.user = None
+
+        if permissions is not None and self.user is not None:
+            perm_objs = list(Permission.objects.filter(codename__in=permissions).all())
+            self.user.user_permissions.add(*perm_objs)
 
         if group_model is not None:
             assert user_model is not None

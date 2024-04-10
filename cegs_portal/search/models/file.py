@@ -10,6 +10,7 @@ class FileCategory(models.Model):
 
 class File(Faceted):
     filename = models.CharField(max_length=512)
+    location = models.CharField(max_length=2048)
     description = models.CharField(max_length=4096, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     experiment = models.ForeignKey(

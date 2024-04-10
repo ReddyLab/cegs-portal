@@ -20,7 +20,6 @@ def generated_features():
     return DNAFeature.objects.exclude(feature_type__in=[DNAFeatureType.CCRE, DNAFeatureType.GENE]).all()
 
 
-@pytest.mark.usefixtures("ccres", "gene", "cleanup_gen_features")
 def test_ccre_associations(experiment_metadata):
     # This has to happen hear because load_experiment does DB calls on load
     # which isn't allowed in the pytest suite outside of tests with a django_db mark
@@ -103,7 +102,6 @@ def test_ccre_associations(experiment_metadata):
     assert overlap_ccre_count == 3
 
 
-@pytest.mark.usefixtures("ccres", "gene", "cleanup_gen_features")
 def test_close_ccre_associations(experiment_metadata):
     # Make sure the algorithm works correctly for features that abut existing cCREs
     # Neither of these features should "overlap" so they should both result in
@@ -149,7 +147,6 @@ def test_close_ccre_associations(experiment_metadata):
             assert ccre.id not in old_ids
 
 
-@pytest.mark.usefixtures("ccres", "gene", "cleanup_gen_features")
 def test_parent_ccre_associations(experiment_metadata):
     # This has to happen hear because load_experiment does DB calls on load
     # which isn't allowed in the pytest suite outside of tests with a django_db mark
