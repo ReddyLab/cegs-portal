@@ -3,6 +3,7 @@ from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models.validators import validate_accession_id
+from cegs_portal.search.validators import validate_analysis_accession_id
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import (
@@ -35,24 +36,30 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         """
         GET queries used:
             exp (multiple)
-                * Should be a valid experiment accession ID
+                * Should be a valid accession accession ID
         """
         options = super().request_options(request)
-        options["analyses"] = request.GET.getlist("analysis", "vpdata.pd")
+        options["analysis"] = request.GET.get("analysis", None)
+        if options["analysis"] is not None:
+            validate_analysis_accession_id(options["analysis"])
 
         return options
 
     def get(self, request, options, data, exp_id):
-        analysis = ExperimentSearch.analysis_id_search(exp_id)
         analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
+
+        if options["analysis"] is not None:
+            analysis_selected = options["analysis"]
+        else:
+            analysis_selected = ExperimentSearch.default_analysis_id_search(exp_id)
 
         return super().get(
             request,
             options,
             {
                 "logged_in": not request.user.is_anonymous,
-                "analysis": analysis,
                 "analyses": analyses,
+                "analysis_selected": analysis_selected,
                 "experiment": data[0],
                 "exp_id": exp_id,
                 "other_experiments": {

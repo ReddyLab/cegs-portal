@@ -82,10 +82,10 @@ class ExperimentSearch:
         return FacetValue.objects.filter(id__in=experiment_facet_value_ids).select_related("facet")
 
     @classmethod
-    def analysis_id_search(cls, expr_id: str):
+    def default_analysis_id_search(cls, expr_id: str):
         queryset = Experiment.objects.filter(accession_id=expr_id)
-        analysis_id = queryset.values_list("analyses__accession_id", flat=True).first()
-        return analysis_id
+        default_analysis = queryset.values_list("default_analysis__accession_id", flat=True)
+        return default_analysis
 
     @classmethod
     def all_analysis_id_search(cls, expr_id: str):
