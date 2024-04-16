@@ -65,8 +65,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             options,
             {
                 "logged_in": not request.user.is_anonymous,
-                "analyses": analyses,
-                "analyses_list": analyses_list,
+                "analyses": analyses_list,
                 "analysis_selected": analysis_selected,
                 "experiment": data[0],
                 "other_experiments": {
