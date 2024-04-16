@@ -35,8 +35,8 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
     def request_options(self, request):
         """
         GET queries used:
-            exp (multiple)
-                * Should be a valid accession accession ID
+            analysis (single)
+                * Should be a valid analysis accession ID
         """
         options = super().request_options(request)
         options["analysis"] = request.GET.get("analysis", None)
@@ -47,11 +47,18 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get(self, request, options, data, exp_id):
         analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
+        analyses_list = []
 
         if options["analysis"] is not None:
             analysis_selected = options["analysis"]
         else:
             analysis_selected = ExperimentSearch.default_analysis_id_search(exp_id)
+
+        for analysis in analyses:
+            if analysis == options["analysis"]:
+                analyses_list.append(("selected", analysis))
+            else:
+                analyses_list.append(("", analysis))
 
         return super().get(
             request,
@@ -59,9 +66,9 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             {
                 "logged_in": not request.user.is_anonymous,
                 "analyses": analyses,
+                "analyses_list": analyses_list,
                 "analysis_selected": analysis_selected,
                 "experiment": data[0],
-                "exp_id": exp_id,
                 "other_experiments": {
                     "id": "other_experiments",
                     "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
