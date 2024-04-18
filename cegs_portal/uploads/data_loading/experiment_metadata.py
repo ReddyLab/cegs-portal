@@ -24,7 +24,7 @@ MAX_METADATA_CONTENT_LENGTH = 65_536
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
     match source_type_string.lower():
-        case "car":
+        case "chromatin accessible region":
             return DNAFeatureSourceType.CAR
         case "grna":
             return DNAFeatureSourceType.GRNA
@@ -84,6 +84,8 @@ class AnalysisMetadata(Metadata):
     genome_assembly_patch: str
     p_val_threshold: float
     p_val_adj_method: str
+    data_format: str
+    misc_files: list[FileMetadata]
 
     def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
         self.description = analysis_dict["description"]
@@ -97,7 +99,11 @@ class AnalysisMetadata(Metadata):
         self.p_val_threshold = analysis_dict["p_val_threshold"]
         self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
 
-        self.source_type = get_source_type(analysis_dict["source type"])
+        self.source_type = analysis_dict["source type"]
+        self.data_format = analysis_dict.get("data_format", "standard")
+        self.misc_files = (
+            [FileMetadata(file) for file in analysis_dict["misc_files"]] if "misc_files" in analysis_dict else []
+        )
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
@@ -136,14 +142,16 @@ class AnalysisMetadata(Metadata):
 
 
 class ExperimentMetadata(Metadata):
-    description: str
+    description: Optional[str]
     assay: str
     name: str
     accession_id: str
     biosamples: list[ExperimentBiosample]
     source_type: str
+    data_format: str
     parent_source_type: Optional[str]
     tested_elements_file: FileMetadata
+    misc_files: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], accession_id):
         self.description = experiment_dict.get("description", None)
@@ -151,12 +159,17 @@ class ExperimentMetadata(Metadata):
         self.name = experiment_dict["name"]
         assert self.name != ""
         self.accession_id = accession_id
-        self.source_type = get_source_type(experiment_dict["source type"])
+        self.source_type = experiment_dict["source type"]
+        self.data_format = experiment_dict.get("data_format", "standard")
         self.parent_source_type = (
-            get_source_type(experiment_dict["parent source type"]) if "parent source type" in experiment_dict else None
+            experiment_dict["parent source type"] if "parent source type" in experiment_dict else None
         )
+
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict["biosamples"]]
         self.tested_elements_file = FileMetadata(experiment_dict["tested_elements_file"], self.biosamples)
+        self.misc_files = (
+            [FileMetadata(file) for file in experiment_dict["misc_files"]] if "misc_files" in experiment_dict else []
+        )
 
     def db_save(self):
         experiment = Experiment(
@@ -164,7 +177,7 @@ class ExperimentMetadata(Metadata):
             accession_id=self.accession_id,
             description=self.description,
             experiment_type=self.assay,
-            source_type=self.source_type,
+            source_type=get_source_type(self.source_type),
         )
         experiment.save()
         assay_facet = FacetValue.objects.get(value=self.assay)
@@ -179,7 +192,7 @@ class ExperimentMetadata(Metadata):
             created_at=datetime.now(timezone.utc),
             accession_type=AccessionType.EXPERIMENT,
             accession_id=self.accession_id,
-            message=self.description[:200],
+            message=self.description[:200] if self.description is not None else "",
         )
         accession_log.save()
         for biosample in self.biosamples:

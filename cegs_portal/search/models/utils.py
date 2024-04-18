@@ -49,7 +49,7 @@ class AccessionType(Enum):
         if self == AccessionType.ANALYSIS:
             return "AN"
 
-        raise Exception("Invalid Accession type")
+        raise Exception(f"Invalid Accession type: {self}")
 
     @classmethod
     def from_feature_type(cls, feature_type):
@@ -69,7 +69,7 @@ class AccessionType(Enum):
             case DNAFeatureType.CAR.value:
                 return AccessionType.CAR
 
-        raise Exception("Invalid DNAFeatureType")
+        raise Exception(f"Invalid DNAFeatureType: {feature_type}")
 
 
 class AccessionId:

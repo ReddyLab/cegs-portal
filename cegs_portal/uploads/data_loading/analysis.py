@@ -2,6 +2,7 @@ import csv
 import math
 from dataclasses import dataclass
 from io import StringIO
+from os import SEEK_SET
 from typing import Optional
 
 from django.db import transaction
@@ -47,6 +48,9 @@ class SourceInfo:
     def __post_init__(self):
         DNAFeatureType(self.feature_type)
 
+        if self.strand == ".":
+            self.strand = None
+
 
 @dataclass
 class ObservationRow:
@@ -70,6 +74,13 @@ class Analysis:
         }
 
     def load(self):
+        match self.metadata.data_format:
+            case "standard":
+                return self._load_standard()
+            case "jesse-engreitz":
+                return self._load_jesse_engreitz()
+
+    def _load_standard(self):
         source_type = self.metadata.source_type
 
         results_file = self.metadata.results
@@ -106,6 +117,71 @@ class Analysis:
             observations.append(ObservationRow(sources, targets, categorical_facets, num_facets))
 
         results_tsv.close()
+        self.observations = observations
+        return self
+
+    def _load_jesse_engreitz(self):
+        source_type = self.metadata.source_type
+
+        results_file = self.metadata.results.file_metadata
+        results_tsv = InternetFile(results_file.file_location).file
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+        result_targets = {
+            f'{line["chrPerturbationTarget"]}:{line["startPerturbationTarget"]}-{line["endPerturbationTarget"]}'
+            for line in results_reader
+        }
+
+        parent_element_file = self.metadata.misc_files[1]
+        parent_element_tsv = InternetFile(parent_element_file.file_location).file
+        parent_reader = csv.DictReader(
+            parent_element_tsv, delimiter=parent_element_file.delimiter(), quoting=csv.QUOTE_NONE
+        )
+        parent_elements = {
+            line["OligoID"]: line["target"] for line in parent_reader if line["target"] in result_targets
+        }
+
+        element_file = self.metadata.misc_files[0]
+        element_tsv = InternetFile(element_file.file_location).file
+        element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
+        elements = {
+            parent_elements[e["OligoID"]]: (e["chr"], int(e["start"]), int(e["end"]))
+            for e in element_reader
+            if e["OligoID"] in parent_elements
+        }
+
+        results_tsv.seek(0, SEEK_SET)
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+        observations: list[ObservationRow] = []
+        for line in results_reader:
+            chrom_name, start, end, strand = (
+                line["chrPerturbationTarget"],
+                int(line["startPerturbationTarget"]),
+                int(line["endPerturbationTarget"]),
+                None,
+            )
+            parent_element = f"{chrom_name}:{start}-{end}"
+
+            guide_chrom, guide_start, guide_end = elements[parent_element]
+
+            sources = [SourceInfo(guide_chrom, guide_start, guide_end, "[)", strand, source_type)]
+
+            targets = [line["measuredEnsemblID"]]
+
+            raw_p_value = float(line["pValue"])
+            adjust_p_value = float(line["pValueAdjusted"])
+            effect_size = float(line["EffectSize"])
+
+            num_facets = {
+                Facets.EFFECT_SIZE: effect_size,
+                Facets.SIGNIFICANCE: adjust_p_value,
+                Facets.RAW_P_VALUE: raw_p_value,
+            }
+
+            observations.append(ObservationRow(sources, targets, [], num_facets))
+
+        results_tsv.close()
+        element_tsv.close()
+        parent_element_tsv.close()
         self.observations = observations
         return self
 

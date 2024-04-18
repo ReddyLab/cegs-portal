@@ -4,7 +4,6 @@ from psycopg2.extras import NumericRange
 from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import (
     DNAFeature,
-    DNAFeatureSourceType,
     DNAFeatureType,
     EffectObservationDirectionType,
     Experiment,
@@ -39,8 +38,8 @@ class MockExperimentMetadata:
             },
             "/",
         )
-        self.source_type = DNAFeatureSourceType.GRNA
-        self.parent_source_type = DNAFeatureSourceType.DHS
+        self.source_type = DNAFeatureType.GRNA.value
+        self.parent_source_type = DNAFeatureType.DHS.value
 
     def db_save(self):
         return self.experiment
