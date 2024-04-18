@@ -1,4 +1,5 @@
 import csv
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from io import StringIO
@@ -50,6 +51,10 @@ class FeatureRow:
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
     strand: Optional[ChromosomeStrands] = None
+
+    def __post_init__(self):
+        if self.strand == ".":
+            self.strand = None
 
 
 class FeatureOverlap(Enum):
@@ -144,7 +149,16 @@ class Experiment:
         self.facet_values = grna_type_facet_values | promoter_facet_values
 
     def load(self):
+        match self.metadata.data_format:
+            case "standard":
+                return self._load_standard()
+            case "jesse-engreitz":
+                return self._load_jesse_engreitz()
+
+    def _load_standard(self):
         source_type = self.metadata.source_type
+        parent_source_type = self.metadata.parent_source_type
+
         genome_assembly = self.metadata.tested_elements_file.genome_assembly
 
         new_elements: dict[str, FeatureRow] = {}
@@ -181,7 +195,7 @@ class Experiment:
                         strand=parent_strand,
                         genome_assembly=GenomeAssembly(genome_assembly),
                         cell_line=element_cell_line,
-                        feature_type=FeatureType(source_type),
+                        feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
                     )
 
                 parent_row = new_parent_elements[parent_name]
@@ -220,6 +234,90 @@ class Experiment:
             )
 
         element_tsv.close()
+        self.features = new_elements.values()
+        if len(new_parent_elements) > 0:
+            self.parent_features = new_parent_elements.values()
+        return self
+
+    def _load_jesse_engreitz(self):
+        source_type = self.metadata.source_type
+        parent_source_type = self.metadata.parent_source_type
+
+        genome_assembly = self.metadata.tested_elements_file.genome_assembly
+
+        new_elements: dict[str, FeatureRow] = {}
+        new_parent_elements: dict[str, FeatureRow] = {}
+
+        element_file = self.metadata.tested_elements_file
+        element_cell_line = element_file.biosample.cell_line
+        element_tsv = InternetFile(element_file.file_location).file
+        element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
+
+        parent_element_file = self.metadata.misc_files[0]
+        parent_element_tsv = InternetFile(parent_element_file.file_location).file
+        parent_reader = csv.DictReader(
+            parent_element_tsv, delimiter=parent_element_file.delimiter(), quoting=csv.QUOTE_NONE
+        )
+
+        results_file = self.metadata.misc_files[1]
+        results_tsv = InternetFile(results_file.file_location).file
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+        result_targets = {
+            f'{line["chrPerturbationTarget"]}:{line["startPerturbationTarget"]}-{line["endPerturbationTarget"]}'
+            for line in results_reader
+        }
+
+        for line in parent_reader:
+            parent_id, parent_string = line["OligoID"], line["target"]
+            parent_string.strip()
+            if parent_string not in result_targets:
+                continue
+
+            if (parent_info := re.match(r"(.+):(\d+)-(\d+)", parent_string)) is not None:
+                parent_chrom, parent_start, parent_end = (
+                    parent_info.group(1),
+                    int(parent_info.group(2)),
+                    int(parent_info.group(3)),
+                )
+            else:
+                continue
+
+            if parent_id not in new_parent_elements:
+                new_parent_elements[parent_id] = FeatureRow(
+                    name=parent_id,
+                    chrom_name=parent_chrom,
+                    location=(parent_start, parent_end, RangeBounds("[)")),
+                    strand=None,
+                    genome_assembly=GenomeAssembly(genome_assembly),
+                    cell_line=element_cell_line,
+                    feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
+                )
+
+        for line in element_reader:
+            parent_id = line["OligoID"]
+            if parent_id not in new_parent_elements:
+                continue
+
+            parent_row = new_parent_elements[parent_id]
+
+            element_chrom, element_start, element_end = (line["chr"], int(line["start"]), int(line["end"]))
+
+            element_name = f"{element_chrom}:{element_start}-{element_end}:{'-'}"
+
+            new_elements[element_name] = FeatureRow(
+                name=element_name,
+                chrom_name=element_chrom,
+                location=(element_start, element_end, RangeBounds("[)")),
+                strand=None,
+                genome_assembly=GenomeAssembly(genome_assembly),
+                cell_line=element_cell_line,
+                feature_type=FeatureType(source_type),
+                parent_name=parent_row.name if parent_row is not None else None,
+            )
+
+        element_tsv.close()
+        parent_element_tsv.close()
+        results_tsv.close()
         self.features = new_elements.values()
         if len(new_parent_elements) > 0:
             self.parent_features = new_parent_elements.values()
