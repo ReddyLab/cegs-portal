@@ -288,4 +288,5 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-    Analysis(metadata).load().save()
+    analysis = Analysis(metadata).load().save()
+    return analysis.accession_id

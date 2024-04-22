@@ -38,8 +38,5 @@ python manage.py shell -c "from scripts.data_loading.db import create_indexes; c
 ./scripts/data_loading/DCPEXPR0000000008_load_mccutcheon_scCERES_cd8_CRISPRa_2022.sh ${DATA_DIR}
 ./scripts/data_loading/DCPEXPR0000000009_load_mccutcheon_scCERES_cd8_CRISPRi_2022.sh ${DATA_DIR}
 
-python manage.py shell -c "from cegs_portal.get_expr_data.models import ReoSourcesTargets; ReoSourcesTargets.refresh_view()"
-python manage.py shell -c "from cegs_portal.get_expr_data.models import ReoSourcesTargetsSigOnly; ReoSourcesTargetsSigOnly.refresh_view()"
-
 echo "Started: ${START_TIME}"
 echo "Finished: $(date)"
