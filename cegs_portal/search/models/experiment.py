@@ -83,23 +83,6 @@ class ExperimentDataFile(models.Model):
         return f"{self.experiment.accession_id}: {self.filename}"
 
 
-class ExperimentDataFileInfo(models.Model):
-    ref_genome = models.CharField(max_length=20, blank=True)
-    ref_genome_patch = models.CharField(max_length=10, null=True, blank=True)
-
-    # significance_measure should probably be removed. This column in the input files will be standardized
-    # so there's no need to keep track of it.
-    significance_measure = models.CharField(max_length=2048, null=True, blank=True)
-    p_value_threshold = models.FloatField(default=0.05, blank=True)
-    p_value_adj_method = models.CharField(max_length=128, default="unknown")
-
-    def __str__(self):
-        if self.ref_genome_patch is not None and self.ref_genome_patch != "":
-            return f"ref genome: {self.ref_genome}.{self.ref_genome_patch}, p_val_threshold: {self.p_value_threshold}"
-
-        return f"ref genome: {self.ref_genome}, p_val_threshold: {self.p_value_threshold}"
-
-
 class Analysis(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -117,6 +100,10 @@ class Analysis(Accessioned, Faceted, AccessControlled):
         related_name="analyses",
     )
     when = DateRangeField(null=True, blank=True)
+    ref_genome = models.CharField(max_length=20, blank=True)
+    ref_genome_patch = models.CharField(max_length=10, null=True, blank=True)
+    p_value_threshold = models.FloatField(default=0.05, blank=True)
+    p_value_adj_method = models.CharField(max_length=128, default="unknown")
 
     def __str__(self):
         description = self.description

@@ -8,7 +8,6 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeature,
     Experiment,
-    ExperimentDataFileInfo,
     Facet,
     FacetValue,
     File,
@@ -104,7 +103,7 @@ class FileForm(forms.ModelForm):
                 self.instance.data_file_info.ref_genome_patch = ref_genome_patch
                 self.instance.data_file_info.save()
             else:
-                data_file_info = ExperimentDataFileInfo(
+                data_file_info = Analysis(
                     p_value_threshold=p_val_threshold,
                     significance_measure=significance_measure,
                 )

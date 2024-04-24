@@ -25,9 +25,7 @@ class File(Faceted):
     analysis = models.ForeignKey("Analysis", on_delete=models.CASCADE, related_name="files", null=True, blank=True)
     size = models.PositiveBigIntegerField(null=True, blank=True)
     category = models.ForeignKey(FileCategory, on_delete=models.SET_NULL, null=True, blank=True)
-    data_file_info = models.ForeignKey(
-        "ExperimentDataFileInfo", on_delete=models.SET_NULL, null=True, related_name="file"
-    )
+    data_file_info = models.ForeignKey("Analysis", on_delete=models.SET_NULL, null=True, related_name="file")
     misc = models.JSONField(null=True, blank=True)
 
     def __str__(self):

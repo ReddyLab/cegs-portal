@@ -13,7 +13,6 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeatureSourceType,
     Experiment,
-    ExperimentDataFileInfo,
     FacetValue,
 )
 
@@ -52,7 +51,7 @@ class ResultsFileMetadata:
         self.p_val_adj_method = file_metadata.get("p_val_adj_method", "unknown")
 
     def db_save(self, experiment: Experiment, analysis: Analysis = None):
-        data_file_info = ExperimentDataFileInfo(
+        data_file_info = Analysis(
             ref_genome=self.genome_assembly,
             ref_genome_patch=self.genome_assembly_patch,
             p_value_threshold=self.p_val_threshold,
