@@ -34,6 +34,7 @@ class ReoSourcesTargets(models.Model):
         db_table = "get_expr_data_reo_sources_targets"
         indexes = [
             models.Index(fields=["reo_accession"], name="idx_rstm_reo_accession"),
+            models.Index(fields=["reo_analysis"], name="idx_rstm_reo_analysis"),
             GistIndex(fields=["source_loc"], name="idx_rstm_source_loc"),
             GistIndex(fields=["target_loc"], name="idx_rstm_target_loc"),
             GinIndex(fields=["cat_facets"], name="idx_rstm_cat_facet"),
@@ -116,6 +117,7 @@ class ReoSourcesTargetsSigOnly(models.Model):
         db_table = "get_expr_data_reo_sources_targets_sig_only"
         indexes = [
             models.Index(fields=["reo_accession"], name="idx_rstsom_reo_accession"),
+            models.Index(fields=["reo_analysis"], name="idx_rstsom_reo_analysis"),
             GistIndex(fields=["source_loc"], name="idx_rstsom_source_loc"),
             GistIndex(fields=["target_loc"], name="idx_rstsom_target_loc"),
             GinIndex(fields=["cat_facets"], name="idx_rstsom_cat_facet"),

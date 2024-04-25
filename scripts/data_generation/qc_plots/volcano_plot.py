@@ -132,7 +132,7 @@ def parse_args():
         "--significance-threshold",
         type=float,
         default=0.05,
-        help="The maxium p-value considered for ",
+        help="The maximum p-value considered for ",
     )
     parser.add_argument("-c", "--control-column")
     parser.add_argument("--control-value", help="Required if --control-column is set")
