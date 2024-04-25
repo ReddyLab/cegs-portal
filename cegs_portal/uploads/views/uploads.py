@@ -1,10 +1,14 @@
+from functools import partial
+
 from django.contrib.auth.decorators import permission_required
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from huey.contrib.djhuey import db_task
 
 from cegs_portal.get_expr_data.models import ReoSourcesTargets, ReoSourcesTargetsSigOnly
+from cegs_portal.uploads.data_generation.experiment_coverage import gen_all_coverage
 from cegs_portal.uploads.data_loading.analysis import load as an_load
 from cegs_portal.uploads.data_loading.experiment import load as expr_load
 from cegs_portal.uploads.forms import UploadFileForm
@@ -47,3 +51,4 @@ def handle_analysis_file(file, expr_accession):
     analysis_accession = an_load(file, expr_accession)
     ReoSourcesTargets.load_analysis(analysis_accession)
     ReoSourcesTargetsSigOnly.load_analysis(analysis_accession)
+    transaction.on_commit(partial(gen_all_coverage, analysis_accession=analysis_accession))
