@@ -32,54 +32,45 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
 
-class ExperimentFileMetadata:
-    file_metadata: FileMetadata
-    genome_assembly: str
-    genome_assembly_patch: str
-    p_val_threshold: float
-
-    def __init__(self, file_metadata: dict[str, str], base_path: str):
-        self.file_metadata = FileMetadata(file_metadata, base_path)
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
-
-    def db_save(self, experiment: Experiment, analysis: Analysis = None):
-        data_file_info = Analysis(
-            ref_genome=self.genome_assembly,
-            ref_genome_patch=self.genome_assembly_patch,
-            p_value_threshold=self.p_val_threshold,
-        )
-        data_file_info.save()
-        self.file_metadata.db_save(experiment, analysis, data_file_info)
-
-
 class AnalysisMetadata:
     accession_id: Optional[str] = None
     experiment_accession_id: str
     filename: str
     description: str
     name: str
-    results: ExperimentFileMetadata
     misc_files: list[FileMetadata] = []
+    file_metadata: FileMetadata
+    genome_assembly: str
+    genome_assembly_patch: str
+    p_val_threshold: float
 
-    def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
+    def __init__(self, file_metadata: dict[str, str], analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = analysis_dict["experiment"]
         self.filename = analysis_filename
         self.name = analysis_dict["name"]
         assert self.name != ""
 
+        self.genome_assembly = file_metadata["genome_assembly"]
+        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
+        self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
+
         base_path = os.path.dirname(analysis_filename)
 
-        self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
-
+        self.file_metadata = FileMetadata(file_metadata, base_path)
         self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict.get("misc_files", [])]
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
         with AccessionIds(message=f"Analysis of {experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-            analysis = Analysis(description=self.description, experiment=experiment, name=self.name)
+            analysis = Analysis(
+                description=self.description,
+                experiment=experiment,
+                name=self.name,
+                ref_genome=self.genome_assembly,
+                ref_genome_patch=self.genome_assembly_patch,
+                p_value_threshold=self.p_val_threshold,
+            )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
             self.accession_id = analysis.accession_id
@@ -88,7 +79,7 @@ class AnalysisMetadata:
             experiment.default_analysis = analysis
             experiment.save()
 
-            self.results.db_save(experiment, analysis)
+            self.file_metadata.db_save(experiment, analysis)
 
         return analysis
 

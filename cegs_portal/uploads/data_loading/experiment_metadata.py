@@ -36,31 +36,6 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
 
-class ResultsFileMetadata:
-    file_metadata: FileMetadata
-    genome_assembly: str
-    genome_assembly_patch: str
-    p_val_threshold: float
-    p_val_adj_method: str
-
-    def __init__(self, file_metadata: dict[str, str]):
-        self.file_metadata = FileMetadata(file_metadata)
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata["p_val_threshold"]
-        self.p_val_adj_method = file_metadata.get("p_val_adj_method", "unknown")
-
-    def db_save(self, experiment: Experiment, analysis: Analysis = None):
-        data_file_info = Analysis(
-            ref_genome=self.genome_assembly,
-            ref_genome_patch=self.genome_assembly_patch,
-            p_value_threshold=self.p_val_threshold,
-            p_value_adj_method=self.p_val_adj_method,
-        )
-        data_file_info.save()
-        self.file_metadata.db_save(experiment, analysis, data_file_info)
-
-
 class InternetFile:
     def __init__(self, file: str | UploadedFile):
         if isinstance(file, str):
@@ -104,21 +79,38 @@ class AnalysisMetadata(Metadata):
     description: str
     name: str
     source_type: str
-    results: ResultsFileMetadata
+    file_metadata: FileMetadata
+    genome_assembly: str
+    genome_assembly_patch: str
+    p_val_threshold: float
+    p_val_adj_method: str
 
-    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id, file_metadata: dict[str, str]):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = experiment_accession_id
         self.name = analysis_dict["name"]
         assert self.name != ""
 
+        self.file_metadata = FileMetadata(file_metadata)
+        self.genome_assembly = file_metadata["genome_assembly"]
+        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
+        self.p_val_threshold = file_metadata["p_val_threshold"]
+        self.p_val_adj_method = file_metadata.get("p_val_adj_method", "unknown")
+
         self.source_type = get_source_type(analysis_dict["source type"])
-        self.results = ResultsFileMetadata(analysis_dict["results"])
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
         with AccessionIds(message=f"Analysis of {experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-            analysis = Analysis(description=self.description, experiment=experiment, name=self.name)
+            analysis = Analysis(
+                description=self.description,
+                experiment=experiment,
+                name=self.name,
+                ref_genome=self.genome_assembly,
+                ref_genome_patch=self.genome_assembly_patch,
+                p_value_threshold=self.p_val_threshold,
+                p_value_adj_method=self.p_val_adj_method,
+            )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
             self.accession_id = analysis.accession_id
@@ -127,7 +119,7 @@ class AnalysisMetadata(Metadata):
             experiment.default_analysis = analysis
             experiment.save()
 
-            self.results.db_save(experiment, analysis)
+            self.file_metadata.db_save(experiment, analysis)
 
         return analysis
 
