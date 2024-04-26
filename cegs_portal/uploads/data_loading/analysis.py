@@ -1,5 +1,6 @@
 import csv
 import math
+from collections import defaultdict
 from dataclasses import dataclass
 from io import StringIO
 from os import SEEK_SET
@@ -136,34 +137,51 @@ class Analysis:
         parent_reader = csv.DictReader(
             parent_element_tsv, delimiter=parent_element_file.delimiter(), quoting=csv.QUOTE_NONE
         )
-        parent_elements = {
-            line["OligoID"]: line["target"] for line in parent_reader if line["target"] in result_targets
-        }
+        parent_elements = defaultdict(set)
+        parent_oligos = set()
+        for line in parent_reader:
+            if line["target"] in result_targets:
+                parent_elements[line["target"]].add(line["OligoID"])
+                parent_oligos.add(line["OligoID"])
 
         element_file = self.metadata.misc_files[0]
         element_tsv = InternetFile(element_file.file_location).file
         element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
-        elements = {
-            parent_elements[e["OligoID"]]: (e["chr"], int(e["start"]), int(e["end"]))
-            for e in element_reader
-            if e["OligoID"] in parent_elements
-        }
+        elements = {}
+        for e in element_reader:
+            if e["OligoID"] not in parent_oligos:
+                continue
+
+            elements[e["OligoID"]] = (e["chr"], int(e["start"]), int(e["end"]), e["GuideSequence"])
+
+        guide_quant_file = self.metadata.misc_files[2]
+        quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
+        guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
+        chrom_strands = ["+", "-"]
+        guide_strands = {line[14]: line[5] for line in guide_quant_reader if line[5] in chrom_strands}
 
         results_tsv.seek(0, SEEK_SET)
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
         for line in results_reader:
-            chrom_name, start, end, strand = (
+            chrom_name, start, end = (
                 line["chrPerturbationTarget"],
                 int(line["startPerturbationTarget"]),
                 int(line["endPerturbationTarget"]),
-                None,
             )
             parent_element = f"{chrom_name}:{start}-{end}"
+            oligos = parent_elements[parent_element]
+            sources = []
 
-            guide_chrom, guide_start, guide_end = elements[parent_element]
+            for oligo in oligos:
+                guide_chrom, guide_start, guide_end, guide_seq = elements[oligo]
 
-            sources = [SourceInfo(guide_chrom, guide_start, guide_end, "[)", strand, source_type)]
+                # We previously filtered out guides invalid strands
+                # Here, we skip over those guides
+                if guide_seq in guide_strands:
+                    sources.append(
+                        SourceInfo(guide_chrom, guide_start, guide_end, "[)", guide_strands[guide_seq], source_type)
+                    )
 
             targets = [line["measuredEnsemblID"]]
 
@@ -177,7 +195,15 @@ class Analysis:
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
-            observations.append(ObservationRow(sources, targets, [], num_facets))
+            if adjust_p_value <= self.metadata.results.p_val_threshold:
+                if effect_size > 0:
+                    cat_facets = [("Direction", "Enriched Only")]
+                else:
+                    cat_facets = [("Direction", "Depleted Only")]
+            else:
+                cat_facets = [("Direction", "Non-significant")]
+
+            observations.append(ObservationRow(sources, targets, cat_facets, num_facets))
 
         results_tsv.close()
         element_tsv.close()
