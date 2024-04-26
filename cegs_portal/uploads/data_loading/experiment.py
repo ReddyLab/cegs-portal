@@ -247,6 +247,7 @@ class Experiment:
 
         new_elements: dict[str, FeatureRow] = {}
         new_parent_elements: dict[str, FeatureRow] = {}
+        oligo_to_parents = {}
 
         element_file = self.metadata.tested_elements_file
         element_cell_line = element_file.biosample.cell_line
@@ -267,8 +268,14 @@ class Experiment:
             for line in results_reader
         }
 
+        guide_quant_file = self.metadata.misc_files[2]
+        quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
+        guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
+        chrom_strands = ["+", "-"]
+        guide_strands = {line[14]: line[5] for line in guide_quant_reader if line[5] in chrom_strands}
+
         for line in parent_reader:
-            parent_id, parent_string = line["OligoID"], line["target"]
+            oligo_id, parent_string = line["OligoID"], line["target"]
             parent_string.strip()
             if parent_string not in result_targets:
                 continue
@@ -282,9 +289,11 @@ class Experiment:
             else:
                 continue
 
-            if parent_id not in new_parent_elements:
-                new_parent_elements[parent_id] = FeatureRow(
-                    name=parent_id,
+            oligo_to_parents[oligo_id] = parent_string
+
+            if parent_string not in new_parent_elements:
+                new_parent_elements[parent_string] = FeatureRow(
+                    name=parent_string,
                     chrom_name=parent_chrom,
                     location=(parent_start, parent_end, RangeBounds("[)")),
                     strand=None,
@@ -294,25 +303,34 @@ class Experiment:
                 )
 
         for line in element_reader:
-            parent_id = line["OligoID"]
-            if parent_id not in new_parent_elements:
+            oligo_id = line["OligoID"]
+            if oligo_id not in oligo_to_parents:
                 continue
 
-            parent_row = new_parent_elements[parent_id]
+            guide_seq = line["GuideSequence"]
+
+            # We previously filtered out guides invalid strands
+            # Here, we skip over those guides
+            if guide_seq not in guide_strands:
+                continue
+
+            parent_row = new_parent_elements[oligo_to_parents[oligo_id]]
 
             element_chrom, element_start, element_end = (line["chr"], int(line["start"]), int(line["end"]))
+            strand = guide_strands[guide_seq]
 
-            element_name = f"{element_chrom}:{element_start}-{element_end}:{'-'}"
+            element_name = f"{element_chrom}:{element_start}-{element_end}:{strand}"
 
             new_elements[element_name] = FeatureRow(
                 name=element_name,
                 chrom_name=element_chrom,
                 location=(element_start, element_end, RangeBounds("[)")),
-                strand=None,
+                strand=ChromosomeStrands(strand),
                 genome_assembly=GenomeAssembly(genome_assembly),
                 cell_line=element_cell_line,
                 feature_type=FeatureType(source_type),
                 parent_name=parent_row.name if parent_row is not None else None,
+                misc={"grna": guide_seq},
             )
 
         element_tsv.close()
