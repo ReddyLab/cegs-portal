@@ -79,23 +79,23 @@ class AnalysisMetadata(Metadata):
     description: str
     name: str
     source_type: str
-    file_metadata: FileMetadata
+    results: FileMetadata
     genome_assembly: str
     genome_assembly_patch: str
     p_val_threshold: float
     p_val_adj_method: str
 
-    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id, file_metadata: dict[str, str]):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id, results):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = experiment_accession_id
         self.name = analysis_dict["name"]
         assert self.name != ""
 
-        self.file_metadata = FileMetadata(file_metadata)
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata["p_val_threshold"]
-        self.p_val_adj_method = file_metadata.get("p_val_adj_method", "unknown")
+        self.results = FileMetadata(analysis_dict["results"])
+        self.genome_assembly = results["genome_assembly"]
+        self.genome_assembly_patch = results.get("genome_assembly_patch", None)
+        self.p_val_threshold = results["p_val_threshold"]
+        self.p_val_adj_method = results.get("p_val_adj_method", "unknown")
 
         self.source_type = get_source_type(analysis_dict["source type"])
 
@@ -119,7 +119,7 @@ class AnalysisMetadata(Metadata):
             experiment.default_analysis = analysis
             experiment.save()
 
-            self.file_metadata.db_save(experiment, analysis)
+            self.results.db_save(experiment, analysis)
 
         return analysis
 
