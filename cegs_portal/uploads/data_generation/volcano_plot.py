@@ -20,14 +20,18 @@ def gen_volcano_plot(analysis, analysis_dir):
     results = analysis.files.all()[0].data_file_info
     sig_threshold = results.p_value_threshold
 
-    reos = ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id)
+    reos = ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id).values(
+        "reo_facets", "target_gene_symbol", "cat_facets"
+    )
 
     out_filename = os.path.join(analysis_dir, "vpdata.pd")
     with open(out_filename, "wb") as out_file:
         for reo in reos:
             try:
-                p_val = float(reo.reo_facets["-log10 Significance"])
-                avg_log_fc = float(reo.reo_facets["Effect Size"])
+                reo_facets = reo["reo_facets"]
+                p_val = float(reo_facets["Significance"])
+                p_val_log_10 = float(reo_facets["-log10 Significance"])
+                avg_log_fc = float(reo_facets["Effect Size"])
 
                 # Skip non-significant, low fold-change data
                 # This is by far most of the data so this keeps the number of
@@ -35,9 +39,9 @@ def gen_volcano_plot(analysis, analysis_dir):
                 if p_val > sig_threshold and abs(avg_log_fc) < 1:
                     continue
 
-                symbol = reo.target_gene_symbol.encode("utf-8")
+                symbol = reo["target_gene_symbol"].encode("utf-8")
 
-                cat_facets = set(reo.cat_facets)
+                cat_facets = set(reo["cat_facets"])
                 if cat_facets & non_ctrl:
                     targeting_category = 0
                 elif cat_facets & ctrl:
@@ -57,7 +61,7 @@ def gen_volcano_plot(analysis, analysis_dir):
 
                 data = struct.pack(
                     f">ffBB{len(symbol)}s",
-                    p_val,
+                    p_val_log_10,
                     avg_log_fc,
                     targeting_category,
                     len(symbol),

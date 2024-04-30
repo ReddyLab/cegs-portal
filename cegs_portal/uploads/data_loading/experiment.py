@@ -272,7 +272,13 @@ class Experiment:
         quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
         guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
         chrom_strands = ["+", "-"]
-        guide_strands = {line[14]: line[5] for line in guide_quant_reader if line[5] in chrom_strands}
+        guide_strands = {}
+        guide_types = {}
+        for line in guide_quant_reader:
+            if line[5] not in chrom_strands:
+                continue
+            guide_strands[line[14]] = line[5]
+            guide_types[line[14]] = line[15]
 
         for line in parent_reader:
             oligo_id, parent_string = line["OligoID"], line["target"]
@@ -319,6 +325,13 @@ class Experiment:
             element_chrom, element_start, element_end = (line["chr"], int(line["start"]), int(line["end"]))
             strand = guide_strands[guide_seq]
 
+            if guide_types[guide_seq] == "targeting":
+                guide_type = GrnaFacet.TARGETING
+            elif guide_types[guide_seq] == "negative_control":
+                guide_type = GrnaFacet.NEGATIVE_CONTROL
+            else:
+                raise Exception(f"Guide Type: {guide_types[guide_seq]}")
+
             element_name = f"{element_chrom}:{element_start}-{element_end}:{strand}"
 
             new_elements[element_name] = FeatureRow(
@@ -329,6 +342,7 @@ class Experiment:
                 genome_assembly=GenomeAssembly(genome_assembly),
                 cell_line=element_cell_line,
                 feature_type=FeatureType(source_type),
+                facets=[guide_type],
                 parent_name=parent_row.name if parent_row is not None else None,
                 misc={"grna": guide_seq},
             )
