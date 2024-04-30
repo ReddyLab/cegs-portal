@@ -7,6 +7,7 @@ from django.contrib.staticfiles import finders
 from cegs_portal.search.models import Analysis
 
 from .experiment_coverage import gen_coverage, gen_coverage_manifest
+from .qq_plot import gen_qq_plot
 from .volcano_plot import gen_volcano_plot
 
 
@@ -39,6 +40,7 @@ def gen_all_coverage(analysis_accession):
 
     try:
         gen_volcano_plot(analysis, analysis_dir=analysis_dir)
+        gen_qq_plot(analysis, analysis_dir=analysis_dir)
 
         gen_coverage(analysis, analysis_dir=analysis_dir)
         gen_coverage_manifest(analysis, analysis_dir=analysis_dir)
