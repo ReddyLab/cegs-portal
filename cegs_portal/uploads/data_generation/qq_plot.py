@@ -20,10 +20,6 @@ def gen_qq_plot(analysis, analysis_dir):
     ctrl = {pos_ctrl_facet, neg_ctrl_facet}
     category_names = ["Targeting", "Controls"]
 
-    quantile_count = 10_000
-    quantile_step = 1 / quantile_count
-    percentiles = [x * quantile_step for x in range(1, 1 + quantile_count)]
-
     x_axis_label = b"-log10(Theoretical p-value quantiles)"
     y_axis_label = b"-log10(Observed p-value quantiles)"
 
@@ -55,6 +51,10 @@ def gen_qq_plot(analysis, analysis_dir):
             del qq_data[key]
 
     sample_size = min([len(x) for x in qq_data.values()])
+
+    quantile_count = min(10_000, sample_size)  # TODO: Ask if this is legit to do
+    quantile_step = 1 / quantile_count
+    percentiles = [x * quantile_step for x in range(1, 1 + quantile_count)]
 
     y_percentiles = [np.quantile(np.array(qq_data[category]), q=percentiles) for category in qq_data]
 
