@@ -20,8 +20,11 @@ def gen_volcano_plot(analysis, analysis_dir):
     results = analysis.files.all()[0].data_file_info
     sig_threshold = results.p_value_threshold
 
-    reos = ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id).values(
-        "reo_facets", "target_gene_symbol", "cat_facets"
+    reos = (
+        ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id)
+        .order_by("reo_accession")
+        .distinct("reo_accession")
+        .values("reo_facets", "target_gene_symbol", "cat_facets")
     )
 
     out_filename = os.path.join(analysis_dir, "vpdata.pd")

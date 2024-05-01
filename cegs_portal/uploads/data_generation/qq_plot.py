@@ -27,7 +27,12 @@ def gen_qq_plot(analysis, analysis_dir):
     x_axis_label = b"-log10(Theoretical p-value quantiles)"
     y_axis_label = b"-log10(Observed p-value quantiles)"
 
-    reos = ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id).values("cat_facets", "reo_facets")
+    reos = (
+        ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id)
+        .order_by("reo_accession")
+        .distinct("reo_accession")
+        .values("cat_facets", "reo_facets")
+    )
 
     qq_data = {0: [], 1: []}
     for reo in reos:
