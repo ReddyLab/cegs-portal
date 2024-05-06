@@ -158,7 +158,12 @@ class Analysis:
         quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
         guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
         chrom_strands = ["+", "-"]
-        guide_strands = {line[14]: line[5] for line in guide_quant_reader if line[5] in chrom_strands}
+        guide_strands = {}
+        for line in guide_quant_reader:
+            if line[5] in chrom_strands:
+                guide_strands[line[14]] = line[5]
+            else:
+                guide_strands[line[14]] = None
 
         results_tsv.seek(0, SEEK_SET)
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
