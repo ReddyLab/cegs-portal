@@ -275,9 +275,10 @@ class Experiment:
         guide_strands = {}
         guide_types = {}
         for line in guide_quant_reader:
-            if line[5] not in chrom_strands:
-                continue
-            guide_strands[line[14]] = line[5]
+            if line[5] in chrom_strands:
+                guide_strands[line[14]] = line[5]
+            else:
+                guide_strands[line[14]] = None
             guide_types[line[14]] = line[15]
 
         for line in parent_reader:
@@ -338,7 +339,7 @@ class Experiment:
                 name=element_name,
                 chrom_name=element_chrom,
                 location=(element_start, element_end, RangeBounds("[)")),
-                strand=ChromosomeStrands(strand),
+                strand=ChromosomeStrands(strand) if strand is not None else None,
                 genome_assembly=GenomeAssembly(genome_assembly),
                 cell_line=element_cell_line,
                 feature_type=FeatureType(source_type),
