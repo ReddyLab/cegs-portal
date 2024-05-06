@@ -158,7 +158,12 @@ class Analysis:
         quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
         guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
         chrom_strands = ["+", "-"]
-        guide_strands = {line[14]: line[5] for line in guide_quant_reader if line[5] in chrom_strands}
+        guide_strands = {}
+        for line in guide_quant_reader:
+            if line[5] in chrom_strands:
+                guide_strands[line[14]] = line[5]
+            else:
+                guide_strands[line[14]] = None
 
         results_tsv.seek(0, SEEK_SET)
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
@@ -183,10 +188,22 @@ class Analysis:
                         SourceInfo(guide_chrom, guide_start, guide_end, "[)", guide_strands[guide_seq], source_type)
                     )
 
+            if len(sources) == 0:
+                continue
+
             targets = [line["measuredEnsemblID"]]
 
             raw_p_value = float(line["pValue"])
             adjust_p_value = float(line["pValueAdjusted"])
+            # An explanation of the effect size values, from an email with Ben Doughty:
+            #
+            # For the effect size calculations, since we do a 6-bin sort, we don't actually compute a log2-fold change.
+            # Instead, we use the data to compute an effect size in "gene expression" space, which we normalize to the
+            # negative controls. The values are then scaled, so what an effect size of -0.2 means is that this guide
+            # decreased the expression of the target gene by 20%. An effect size of 0 would be no change in expression,
+            # and an effect size of +0.1 would mean a 10% increase in expression. The lowest we can go is -1 (which means
+            # total elimination of signal), and technically the effect size is unbounded in the positive direction,
+            # although we never see _super_ strong positive guides with CRISPRi.
             effect_size = float(line["EffectSize"])
 
             num_facets = {

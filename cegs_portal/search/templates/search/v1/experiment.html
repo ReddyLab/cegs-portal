@@ -473,7 +473,7 @@
             .height(400)
             .encode(
                 vl.y().fieldQ("0").title("-log10(p-value)"),
-                vl.x().fieldQ(1).title("log2(FC)"), //.scale({"domain":[0, 2], "clamp": true}),
+                vl.x().fieldQ(1).title("Effect Size"), //.scale({"domain":[0, 2], "clamp": true}),
                 vl
                     .color()
                     .fieldN(2)
@@ -525,7 +525,7 @@
                     return values;
                 })
                 .then((values) => {
-                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                    return plot(values, "Significant Observations with Effect Size > 1");
                 })
                 .catch((err) => console.log(err));
         })
