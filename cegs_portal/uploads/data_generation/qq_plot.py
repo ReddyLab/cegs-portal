@@ -52,7 +52,7 @@ def gen_qq_plot(analysis, analysis_dir):
 
     sample_size = min([len(x) for x in qq_data.values()])
 
-    quantile_count = min(10_000, sample_size)  # TODO: Ask if this is legit to do
+    quantile_count = min(10_000, sample_size)
     quantile_step = 1 / quantile_count
     percentiles = [x * quantile_step for x in range(1, 1 + quantile_count)]
 
