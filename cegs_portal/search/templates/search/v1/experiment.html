@@ -525,7 +525,7 @@
                     return values;
                 })
                 .then((values) => {
-                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                    return plot(values, "Significant Observations with Effect Size > 1");
                 })
                 .catch((err) => console.log(err));
         })
