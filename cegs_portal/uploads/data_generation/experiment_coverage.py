@@ -1,7 +1,11 @@
 import os
 from subprocess import run
 
-from cegs_portal.search.models import Analysis, FacetValue
+from cegs_portal.search.models import (
+    Analysis,
+    EffectObservationDirectionType,
+    FacetValue,
+)
 
 
 def gen_coverage(analysis: Analysis, analysis_dir: str, bin_size=2_000_000, chrom_name=None):
@@ -21,7 +25,13 @@ def gen_coverage(analysis: Analysis, analysis_dir: str, bin_size=2_000_000, chro
 
 def gen_coverage_manifest(analysis: Analysis, analysis_dir: str):
     default_facet_ids = (
-        FacetValue.objects.filter(value__in=["Depleted Only", "Enriched Only", "Mixed"])
+        FacetValue.objects.filter(
+            value__in=[
+                EffectObservationDirectionType.DEPLETED.value,
+                EffectObservationDirectionType.ENRICHED.value,
+                EffectObservationDirectionType.BOTH.value,
+            ]
+        )
         .all()
         .values_list("id", flat=True)
     )

@@ -14,6 +14,7 @@ from cegs_portal.search.models import (
     AccessionType,
     DNAFeature,
     DNAFeatureType,
+    EffectObservationDirectionType,
     Experiment,
     Facet,
     FacetValue,
@@ -214,11 +215,26 @@ class Analysis:
 
             if adjust_p_value <= self.metadata.results.p_val_threshold:
                 if effect_size > 0:
-                    cat_facets = [("Direction", "Enriched Only")]
+                    cat_facets = [
+                        (
+                            RegulatoryEffectObservation.Facet.DIRECTION.value,
+                            EffectObservationDirectionType.ENRICHED.value,
+                        )
+                    ]
                 else:
-                    cat_facets = [("Direction", "Depleted Only")]
+                    cat_facets = [
+                        (
+                            RegulatoryEffectObservation.Facet.DIRECTION.value,
+                            EffectObservationDirectionType.DEPLETED.value,
+                        )
+                    ]
             else:
-                cat_facets = [("Direction", "Non-significant")]
+                cat_facets = [
+                    (
+                        RegulatoryEffectObservation.Facet.DIRECTION.value,
+                        EffectObservationDirectionType.NON_SIGNIFICANT.value,
+                    )
+                ]
 
             observations.append(ObservationRow(sources, targets, cat_facets, num_facets))
 

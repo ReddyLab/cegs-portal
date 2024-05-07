@@ -2,18 +2,26 @@ import os
 import struct
 
 from cegs_portal.get_expr_data.models import ReoSourcesTargets
-from cegs_portal.search.models import Facet, FacetValue
+from cegs_portal.search.models import (
+    DNAFeature,
+    Facet,
+    FacetValue,
+    GrnaType,
+    RegulatoryEffectObservation,
+)
 
 
 def gen_volcano_plot(analysis, analysis_dir):
-    ctrl_facet = Facet.objects.get(name="gRNA Type")
-    targeting_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Targeting").values_list("id", flat=True)[0]
-    pos_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Positive Control").values_list("id", flat=True)[
-        0
-    ]
-    neg_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Negative Control").values_list("id", flat=True)[
-        0
-    ]
+    ctrl_facet = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
+    targeting_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.TARGETING.value).values_list(
+        "id", flat=True
+    )[0]
+    pos_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.POSITIVE_CONTROL.value).values_list(
+        "id", flat=True
+    )[0]
+    neg_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.NEGATIVE_CONTROL.value).values_list(
+        "id", flat=True
+    )[0]
     non_ctrl = {targeting_facet}
     ctrl = {pos_ctrl_facet, neg_ctrl_facet}
 
@@ -32,9 +40,9 @@ def gen_volcano_plot(analysis, analysis_dir):
         for reo in reos:
             try:
                 reo_facets = reo["reo_facets"]
-                p_val = float(reo_facets["Significance"])
-                p_val_log_10 = float(reo_facets["-log10 Significance"])
-                avg_log_fc = float(reo_facets["Effect Size"])
+                p_val = float(reo_facets[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
+                p_val_log_10 = float(reo_facets[RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value])
+                avg_log_fc = float(reo_facets[RegulatoryEffectObservation.Facet.EFFECT_SIZE.value])
 
                 # Skip non-significant, low fold-change data
                 # This is by far most of the data so this keeps the number of
