@@ -3,13 +3,7 @@ from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker as F
 
-from cegs_portal.search.models import (
-    Biosample,
-    CellLine,
-    Experiment,
-    ExperimentDataFileInfo,
-    TissueType,
-)
+from cegs_portal.search.models import Biosample, CellLine, Experiment, TissueType
 from cegs_portal.search.models.tests.analysis_factory import AnalysisFactory
 
 
@@ -102,13 +96,3 @@ class ExperimentFactory(DjangoModelFactory):
             return
 
         self.default_analysis = self.analyses.first()
-
-
-class ExperimentDataFileInfoFactory(DjangoModelFactory):
-    class Meta:
-        model = ExperimentDataFileInfo
-
-    ref_genome = "GRCh38"  # The default ref genome when searching
-    ref_genome_patch = "0"
-    significance_measure = Faker("text", max_nb_chars=2048)
-    p_value_threshold = 0.05
