@@ -100,7 +100,7 @@ class Analysis(Accessioned, Faceted, AccessControlled):
         related_name="analyses",
     )
     when = DateRangeField(null=True, blank=True)
-    genome_assembly = models.CharField(max_length=20, blank=True)
+    genome_assembly = models.CharField(max_length=20)
     genome_assembly_patch = models.CharField(max_length=10, null=True, blank=True)
     p_value_threshold = models.FloatField(default=0.05)
     p_value_adj_method = models.CharField(max_length=128, default="unknown")

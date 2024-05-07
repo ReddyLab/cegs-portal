@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="analysis",
             name="genome_assembly",
-            field=models.CharField(blank=True, max_length=20),
+            field=models.CharField(max_length=20),
         ),
         migrations.AddField(
             model_name="analysis",
