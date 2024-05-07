@@ -102,7 +102,7 @@ class Analysis:
             targets = [line["gene_ensembl_id"]]
 
             raw_p_value = float(line["raw_p_val"])
-            adjust_p_value = float(line["adj_p_val"])
+            adjusted_p_value = float(line["adj_p_val"])
             effect_size = float(line["effect_size"])
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
 
@@ -112,7 +112,7 @@ class Analysis:
 
             num_facets = {
                 Facets.EFFECT_SIZE: effect_size,
-                Facets.SIGNIFICANCE: adjust_p_value,
+                Facets.SIGNIFICANCE: adjusted_p_value,
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
@@ -195,7 +195,7 @@ class Analysis:
             targets = [line["measuredEnsemblID"]]
 
             raw_p_value = float(line["pValue"])
-            adjust_p_value = float(line["pValueAdjusted"])
+            adjusted_p_value = float(line["pValueAdjusted"])
             # An explanation of the effect size values, from an email with Ben Doughty:
             #
             # For the effect size calculations, since we do a 6-bin sort, we don't actually compute a log2-fold change.
@@ -209,11 +209,11 @@ class Analysis:
 
             num_facets = {
                 Facets.EFFECT_SIZE: effect_size,
-                Facets.SIGNIFICANCE: adjust_p_value,
+                Facets.SIGNIFICANCE: adjusted_p_value,
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
-            if adjust_p_value <= self.metadata.results.p_val_threshold:
+            if adjusted_p_value <= self.metadata.results.p_val_threshold:
                 if effect_size > 0:
                     cat_facets = [
                         (
