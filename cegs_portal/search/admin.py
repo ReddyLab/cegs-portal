@@ -16,7 +16,7 @@ from cegs_portal.search.models import (
 )
 
 
-def validate_ref_genome(value):
+def validate_genome_assembly(value):
     if value != "" and not re.match(r"GRCh\d+(\.\d+)?", value):
         raise ValidationError(
             "%(ref)s is not a valid genome. Must be in the form of 'GRChXX' or 'GRChXX.Y' where Y is a patch level.",
@@ -150,7 +150,7 @@ class AnalysisForm(forms.ModelForm):
     verbose_name_plural = "Analyses"
     p_val_threshold = forms.FloatField(max_value=1.0, min_value=0.0, step_size=0.01, required=False)
     significance_measure = forms.CharField(max_length=2048, required=False)
-    ref_genome = forms.CharField(max_length=10, validators=[validate_ref_genome], required=False)
+    genome_assembly = forms.CharField(max_length=10, validators=[validate_genome_assembly], required=False)
 
     widgets = {
         "significance_measure": forms.Textarea(attrs={"rows": 6, "columns": 90}),

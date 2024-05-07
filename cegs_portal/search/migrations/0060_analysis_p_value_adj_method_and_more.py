@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("search", "0059_experimentdatafileinfo_p_value_adj_method_and_more"),
+        ("get_expr_data", "0018_auto_20231114_1447"),
     ]
 
     operations = [
@@ -23,12 +24,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="analysis",
-            name="ref_genome",
+            name="genome_assembly",
             field=models.CharField(blank=True, max_length=20),
         ),
         migrations.AddField(
             model_name="analysis",
-            name="ref_genome_patch",
+            name="genome_assembly_patch",
             field=models.CharField(blank=True, max_length=10, null=True),
         ),
         migrations.AlterField(

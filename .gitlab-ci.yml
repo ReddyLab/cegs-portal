@@ -69,7 +69,6 @@ build-prod:
   before_script:
     - cd /app
     - python manage.py collectstatic -i "*.ecd" -i "*.fd"
-    - python manage.py migrate
   script:
     - pytest --create-db
   retry:

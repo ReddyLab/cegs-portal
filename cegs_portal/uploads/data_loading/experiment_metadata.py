@@ -85,17 +85,17 @@ class AnalysisMetadata(Metadata):
     p_val_threshold: float
     p_val_adj_method: str
 
-    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id, results):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = experiment_accession_id
         self.name = analysis_dict["name"]
         assert self.name != ""
 
         self.results = FileMetadata(analysis_dict["results"])
-        self.genome_assembly = results["genome_assembly"]
-        self.genome_assembly_patch = results.get("genome_assembly_patch", None)
-        self.p_val_threshold = results["p_val_threshold"]
-        self.p_val_adj_method = results.get("p_val_adj_method", "unknown")
+        self.genome_assembly = analysis_dict["genome_assembly"]
+        self.genome_assembly_patch = analysis_dict.get("genome_assembly_patch", None)
+        self.p_val_threshold = analysis_dict["p_val_threshold"]
+        self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
 
         self.source_type = get_source_type(analysis_dict["source type"])
 
@@ -106,8 +106,8 @@ class AnalysisMetadata(Metadata):
                 description=self.description,
                 experiment=experiment,
                 name=self.name,
-                ref_genome=self.genome_assembly,
-                ref_genome_patch=self.genome_assembly_patch,
+                genome_assembly=self.genome_assembly,
+                genome_assembly_patch=self.genome_assembly_patch,
                 p_value_threshold=self.p_val_threshold,
                 p_value_adj_method=self.p_val_adj_method,
             )
@@ -131,8 +131,6 @@ class AnalysisMetadata(Metadata):
         if self.accession_id is not None:
             analysis = Analysis.objects.get(accession_id=self.accession_id)
 
-        for file in analysis.files.all():
-            file.data_file_info.delete()
         analysis.delete()
         self.accession_id = None
 
@@ -196,9 +194,6 @@ class ExperimentMetadata(Metadata):
     def db_del(self):
         experiment = Experiment.objects.get(accession_id=self.accession_id)
         for file in experiment.files.all():
-            if file.data_file_info is not None:
-                for data in file.data_file_info.all():
-                    data.delete()
             file.delete()
 
         experiment.delete()

@@ -70,47 +70,17 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
 @pytest.fixture
 def experiment_list_data():
     e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e1),
-        _file(
-            experiment=e1,
-        ),
-    )
+    _ = (_file(experiment=e1), _file(experiment=e1))
     e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e2),
-        _file(
-            experiment=e2,
-        ),
-    )
+    _ = (_file(experiment=e2), _file(experiment=e2))
     e3 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e3),
-        _file(
-            experiment=e3,
-        ),
-    )
+    _ = (_file(experiment=e3), _file(experiment=e3))
     e4 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e4),
-        _file(
-            experiment=e4,
-        ),
-    )
+    _ = (_file(experiment=e4), _file(experiment=e4))
     e5 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e5),
-        _file(
-            experiment=e5,
-        ),
-    )
+    _ = (_file(experiment=e5), _file(experiment=e5))
     e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
-    _ = (
-        _file(experiment=e6),
-        _file(
-            experiment=e6,
-        ),
-    )
+    _ = (_file(experiment=e6), _file(experiment=e6))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
     f1 = FacetValueFactory()
     f2 = FacetValueFactory()

@@ -67,8 +67,8 @@ class AnalysisMetadata:
                 description=self.description,
                 experiment=experiment,
                 name=self.name,
-                ref_genome=self.genome_assembly,
-                ref_genome_patch=self.genome_assembly_patch,
+                genome_assembly=self.genome_assembly,
+                genome_assembly_patch=self.genome_assembly_patch,
                 p_value_threshold=self.p_val_threshold,
             )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
@@ -91,8 +91,6 @@ class AnalysisMetadata:
         if self.accession_id is not None:
             analysis = Analysis.objects.get(accession_id=self.accession_id)
 
-        for file in analysis.files.all():
-            file.data_file_info.delete()
         analysis.delete()
         self.accession_id = None
 
@@ -176,9 +174,6 @@ class ExperimentMetadata:
     def db_del(self):
         experiment = Experiment.objects.get(accession_id=self.accession_id)
         for file in experiment.files.all():
-            if file.data_file_info is not None:
-                for data in file.data_file_info.all():
-                    data.delete()
             file.delete()
 
         experiment.delete()
