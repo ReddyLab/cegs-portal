@@ -69,42 +69,42 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
 
 @pytest.fixture
 def experiment_list_data():
-    e1 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e1),
         _file(
             experiment=e1,
         ),
     )
-    e2 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e2),
         _file(
             experiment=e2,
         ),
     )
-    e3 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e3 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e3),
         _file(
             experiment=e3,
         ),
     )
-    e4 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e4 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e4),
         _file(
             experiment=e4,
         ),
     )
-    e5 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e5 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e5),
         _file(
             experiment=e5,
         ),
     )
-    e6 = ExperimentFactory(biosamples=(BiosampleFactory()))
+    e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (
         _file(experiment=e6),
         _file(
