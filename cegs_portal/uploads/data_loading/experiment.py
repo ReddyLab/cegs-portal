@@ -240,6 +240,20 @@ class Experiment:
         return self
 
     def _load_jesse_engreitz(self):
+        # The experiment data requires 4 files from the ENCODE data set:
+        # 1) element quantifications aka results_file
+        # 2) elements reference (guides) aka element_file
+        # 3) elements reference (DHS peaks) aka parent_element_file
+        # 4) a guide quantifications file aka guide_quant_file
+        #
+        # Loading the files requires compiling data from all four files. The element quantifications (1) file
+        # Tells us which peaks DHS peaks from the elements reference (3) to include. The elements reference (3)
+        # includes all the oligo ids for a given DHS peak which we can use to get the guids from elements references (2).
+        # Unfortunately, elements reference (2) doesn't have the strand information! For this we need one of the guide
+        # quantification files. We can match the guide in (2) to the guide information in (4) via the guide sequence.
+        #
+        # Once we have all the guide and DHS peak information we can add the guides and dhs peaks they are children of to the DB
+
         source_type = self.metadata.source_type
         parent_source_type = self.metadata.parent_source_type
 
@@ -263,11 +277,19 @@ class Experiment:
         results_file = self.metadata.misc_files[1]
         results_tsv = InternetFile(results_file.file_location).file
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+
+        #
+        # Figure out which DHS peaks to include for this experiment
+        #
         result_targets = {
             f'{line["chrPerturbationTarget"]}:{line["startPerturbationTarget"]}-{line["endPerturbationTarget"]}'
             for line in results_reader
         }
 
+        #
+        # Read guide strand and type information from the guide quantification file.
+        # The type information is used for the GrnaType facet
+        #
         guide_quant_file = self.metadata.misc_files[2]
         quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
         guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
@@ -281,6 +303,9 @@ class Experiment:
                 guide_strands[line[14]] = None
             guide_types[line[14]] = line[15]
 
+        #
+        # Build parent (DHS Peak) features and create the oligo->peak mapping
+        #
         for line in parent_reader:
             oligo_id, parent_string = line["OligoID"], line["target"]
             parent_string.strip()
@@ -309,6 +334,9 @@ class Experiment:
                     feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
                 )
 
+        #
+        # Build the guide features
+        #
         for line in element_reader:
             oligo_id = line["OligoID"]
             if oligo_id not in oligo_to_parents:
@@ -316,8 +344,10 @@ class Experiment:
 
             guide_seq = line["GuideSequence"]
 
+            #
             # We previously filtered out guides invalid strands
             # Here, we skip over those guides
+            #
             if guide_seq not in guide_strands:
                 continue
 
@@ -351,6 +381,7 @@ class Experiment:
         element_tsv.close()
         parent_element_tsv.close()
         results_tsv.close()
+        quide_quant_tsv.close()
         self.features = new_elements.values()
         if len(new_parent_elements) > 0:
             self.parent_features = new_parent_elements.values()
