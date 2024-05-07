@@ -71,7 +71,7 @@ build-prod:
     - python manage.py collectstatic -i "*.ecd" -i "*.fd"
     - python manage.py migrate
   script:
-    - pytest
+    - pytest --create-db
   retry:
     max: 2
     when: runner_system_failure
