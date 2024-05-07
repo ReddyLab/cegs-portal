@@ -4,6 +4,34 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def unmigrate_file_data(apps, schema_editor):
+    Analysis = apps.get_model("search", "Analysis")
+    ExperimentDataFileInfo = apps.get_model("search", "ExperimentDataFileInfo")
+
+    for analysis in Analysis.objects.all():
+        file = analysis.files.first()
+        file.data_file_info = ExperimentDataFileInfo(
+            ref_genome=analysis.genome_assembly,
+            ref_genome_patch=analysis.genome_assembly_patch,
+            p_value_threshold=analysis.p_value_threshold,
+            p_value_adj_method=analysis.p_value_adj_method,
+        )
+        file.data_file_info.save()
+        file.save()
+
+
+def migrate_file_data(apps, schema_editor):
+    ExperimentDataFileInfo = apps.get_model("search", "ExperimentDataFileInfo")
+
+    for file_info in ExperimentDataFileInfo.objects.all():
+        analysis = file_info.file.first().analysis
+        analysis.genome_assembly = file_info.ref_genome
+        analysis.genome_assembly_patch = file_info.ref_genome_patch
+        analysis.p_value_threshold = file_info.p_value_threshold
+        analysis.p_value_adj_method = file_info.p_value_adj_method
+        analysis.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,7 +53,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="analysis",
             name="genome_assembly",
-            field=models.CharField(max_length=20),
+            field=models.CharField(max_length=20, default="GRCh38"),
         ),
         migrations.AddField(
             model_name="analysis",
@@ -37,6 +65,7 @@ class Migration(migrations.Migration):
             name="associated_ccres",
             field=models.ManyToManyField(blank=True, to="search.dnafeature"),
         ),
+        migrations.RunPython(migrate_file_data, unmigrate_file_data),
         migrations.RemoveField(
             model_name="file",
             name="data_file_info",
