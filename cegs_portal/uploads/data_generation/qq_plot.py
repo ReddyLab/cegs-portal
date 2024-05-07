@@ -4,18 +4,26 @@ import struct
 import numpy as np
 
 from cegs_portal.get_expr_data.models import ReoSourcesTargets
-from cegs_portal.search.models import Facet, FacetValue
+from cegs_portal.search.models import (
+    DNAFeature,
+    Facet,
+    FacetValue,
+    GrnaType,
+    RegulatoryEffectObservation,
+)
 
 
 def gen_qq_plot(analysis, analysis_dir):
-    ctrl_facet = Facet.objects.get(name="gRNA Type")
-    targeting_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Targeting").values_list("id", flat=True)[0]
-    pos_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Positive Control").values_list("id", flat=True)[
-        0
-    ]
-    neg_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value="Negative Control").values_list("id", flat=True)[
-        0
-    ]
+    ctrl_facet = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
+    targeting_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.TARGETING.value).values_list(
+        "id", flat=True
+    )[0]
+    pos_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.POSITIVE_CONTROL.value).values_list(
+        "id", flat=True
+    )[0]
+    neg_ctrl_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.NEGATIVE_CONTROL.value).values_list(
+        "id", flat=True
+    )[0]
     non_ctrl = {targeting_facet}
     ctrl = {pos_ctrl_facet, neg_ctrl_facet}
     category_names = ["Targeting", "Controls"]
@@ -32,7 +40,7 @@ def gen_qq_plot(analysis, analysis_dir):
 
     qq_data = {0: [], 1: []}
     for reo in reos:
-        p_val_log_10 = float(reo["reo_facets"]["-log10 Significance"])
+        p_val_log_10 = float(reo["reo_facets"][RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value])
 
         cat_facets = set(reo["cat_facets"])
         if cat_facets & non_ctrl:
