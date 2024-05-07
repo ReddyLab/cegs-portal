@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
             name="associated_ccres",
             field=models.ManyToManyField(blank=True, to="search.dnafeature"),
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
             model_name="file",
             name="data_file_info",
             field=models.ForeignKey(
