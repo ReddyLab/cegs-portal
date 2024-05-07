@@ -123,8 +123,26 @@ class Analysis:
         return self
 
     def _load_jesse_engreitz(self):
+        # The analysis data requires 4 files from the ENCODE data set:
+        # 1) element quantifications aka results_file
+        # 2) elements reference (guides) aka element_file
+        # 3) elements reference (DHS peaks) aka parent_element_file
+        # 4) a guide quantifications file aka guide_quant_file
+        #
+        # Loading the files requires compiling data from all four files. The element quantifications (1) file
+        # Tells us which peaks DHS peaks from the elements reference (3) to include. The elements reference (3)
+        # includes all the oligo ids for a given DHS peak which we can use to get the guids from elements references (2).
+        # Unfortunately, elements reference (2) doesn't have the strand information! For this we need one of the guide
+        # quantification files. We can match the guide in (2) to the guide information in (4) via the guide sequence.
+        #
+        # Once we have all the guide information we can match the guide (source) to the observation and target information
+        # which are in the element quantifications (1) file.
+
         source_type = self.metadata.source_type
 
+        #
+        # Much like when loading the experiment we have to use the results file to figure out which DHS peaks to include
+        #
         results_file = self.metadata.results.file_metadata
         results_tsv = InternetFile(results_file.file_location).file
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
@@ -133,6 +151,9 @@ class Analysis:
             for line in results_reader
         }
 
+        #
+        # Match DHS Peaks to oligo ids and create a set of all oligo ids
+        #
         parent_element_file = self.metadata.misc_files[1]
         parent_element_tsv = InternetFile(parent_element_file.file_location).file
         parent_reader = csv.DictReader(
@@ -145,6 +166,9 @@ class Analysis:
                 parent_elements[line["target"]].add(line["OligoID"])
                 parent_oligos.add(line["OligoID"])
 
+        #
+        # Get all guides associated with DHS peaks
+        #
         element_file = self.metadata.misc_files[0]
         element_tsv = InternetFile(element_file.file_location).file
         element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
@@ -155,6 +179,9 @@ class Analysis:
 
             elements[e["OligoID"]] = (e["chr"], int(e["start"]), int(e["end"]), e["GuideSequence"])
 
+        #
+        # Get strands for guides
+        #
         guide_quant_file = self.metadata.misc_files[2]
         quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
         guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
@@ -166,6 +193,9 @@ class Analysis:
             else:
                 guide_strands[line[14]] = None
 
+        #
+        # Go back through the results, matching guides to observations using the parent_elements dictionary
+        #
         results_tsv.seek(0, SEEK_SET)
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
@@ -241,6 +271,7 @@ class Analysis:
         results_tsv.close()
         element_tsv.close()
         parent_element_tsv.close()
+        quide_quant_tsv.close()
         self.observations = observations
         return self
 
