@@ -143,7 +143,7 @@ class Analysis:
         #
         # Much like when loading the experiment we have to use the results file to figure out which DHS peaks to include
         #
-        results_file = self.metadata.results.file_metadata
+        results_file = self.metadata.results
         results_tsv = InternetFile(results_file.file_location).file
         results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         result_targets = {
@@ -243,7 +243,7 @@ class Analysis:
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
-            if adjusted_p_value <= self.metadata.results.p_val_threshold:
+            if adjusted_p_value <= self.metadata.p_val_threshold:
                 if effect_size > 0:
                     cat_facets = [
                         (

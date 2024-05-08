@@ -61,7 +61,7 @@ class ReoSourcesTargets(models.Model):
     target_loc = IntegerRangeField(null=True, blank=True)
     target_gene_symbol = models.CharField(max_length=50, null=True, blank=True)
     target_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
-    ref_genome = models.CharField(max_length=20)
+    genome_assembly = models.CharField(max_length=20)
     cat_facets = ArrayField(models.BigIntegerField())
 
     @classmethod
@@ -72,7 +72,7 @@ class ReoSourcesTargets(models.Model):
                     (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
                     source_id, source_accession, source_chrom, source_loc,
                     target_id, target_accession, target_chrom, target_loc,
-                    target_gene_symbol, target_ensembl_id, ref_genome, cat_facets) SELECT
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
                     sr.id AS reo_id,
                     sr.archived as archived,
                     sr.public as public,
@@ -90,7 +90,7 @@ class ReoSourcesTargets(models.Model):
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -102,9 +102,8 @@ class ReoSourcesTargets(models.Model):
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
                 WHERE sr.analysis_accession_id = %s
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome""",
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
                 [analysis_accession],
             )
 
@@ -144,7 +143,7 @@ class ReoSourcesTargetsSigOnly(models.Model):
     target_loc = IntegerRangeField(null=True, blank=True)
     target_gene_symbol = models.CharField(max_length=50, null=True, blank=True)
     target_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
-    ref_genome = models.CharField(max_length=20)
+    genome_assembly = models.CharField(max_length=20)
     cat_facets = ArrayField(models.BigIntegerField())
 
     @classmethod
@@ -155,7 +154,7 @@ class ReoSourcesTargetsSigOnly(models.Model):
                     (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
                     source_id, source_accession, source_chrom, source_loc,
                     target_id, target_accession, target_chrom, target_loc,
-                    target_gene_symbol, target_ensembl_id, ref_genome, cat_facets) SELECT
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
                     sr.id AS reo_id,
                     sr.archived as archived,
                     sr.public as public,
@@ -173,7 +172,7 @@ class ReoSourcesTargetsSigOnly(models.Model):
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -185,9 +184,8 @@ class ReoSourcesTargetsSigOnly(models.Model):
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
                 WHERE sr.analysis_accession_id = %s AND srfv.facetvalue_id != (SELECT id FROM search_facetvalue where value = 'Non-significant')
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome""",
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
                 [analysis_accession],
             )
 

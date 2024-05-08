@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("get_expr_data", "0019_reosourcestargetssigonlymodel_reosourcestargetsmodel"),
+        ("get_expr_data", "0020_reosourcestargetssigonlymodel_reosourcestargetsmodel"),
     ]
 
     operations = [

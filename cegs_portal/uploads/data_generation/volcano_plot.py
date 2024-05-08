@@ -25,8 +25,7 @@ def gen_volcano_plot(analysis, analysis_dir):
     non_ctrl = {targeting_facet}
     ctrl = {pos_ctrl_facet, neg_ctrl_facet}
 
-    results = analysis.files.all()[0].data_file_info
-    sig_threshold = results.p_value_threshold
+    sig_threshold = analysis.p_value_threshold
 
     reos = (
         ReoSourcesTargets.objects.filter(reo_analysis=analysis.accession_id)
