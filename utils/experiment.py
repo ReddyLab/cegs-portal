@@ -98,8 +98,8 @@ class AnalysisMetadata:
     def metadata(self):
         base_path = os.path.dirname(self.filename)
         for result in self.results:
-            delimiter = get_delimiter(result.file_metadata.filename)
-            data_file = open(os.path.join(base_path, result.file_metadata.filename), "r", newline="")
+            delimiter = get_delimiter(result.filename)
+            data_file = open(os.path.join(base_path, result.filename), "r", newline="")
             yield data_file, result, delimiter
             data_file.close()
 

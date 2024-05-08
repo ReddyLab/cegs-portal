@@ -1,4 +1,5 @@
 import csv
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from io import StringIO
@@ -50,6 +51,10 @@ class FeatureRow:
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
     strand: Optional[ChromosomeStrands] = None
+
+    def __post_init__(self):
+        if self.strand == ".":
+            self.strand = None
 
 
 class FeatureOverlap(Enum):
@@ -144,7 +149,16 @@ class Experiment:
         self.facet_values = grna_type_facet_values | promoter_facet_values
 
     def load(self):
+        match self.metadata.data_format:
+            case "standard":
+                return self._load_standard()
+            case "jesse-engreitz":
+                return self._load_jesse_engreitz()
+
+    def _load_standard(self):
         source_type = self.metadata.source_type
+        parent_source_type = self.metadata.parent_source_type
+
         genome_assembly = self.metadata.tested_elements_file.genome_assembly
 
         new_elements: dict[str, FeatureRow] = {}
@@ -181,7 +195,7 @@ class Experiment:
                         strand=parent_strand,
                         genome_assembly=GenomeAssembly(genome_assembly),
                         cell_line=element_cell_line,
-                        feature_type=FeatureType(source_type),
+                        feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
                     )
 
                 parent_row = new_parent_elements[parent_name]
@@ -220,6 +234,154 @@ class Experiment:
             )
 
         element_tsv.close()
+        self.features = new_elements.values()
+        if len(new_parent_elements) > 0:
+            self.parent_features = new_parent_elements.values()
+        return self
+
+    def _load_jesse_engreitz(self):
+        # The experiment data requires 4 files from the ENCODE data set:
+        # 1) element quantifications aka results_file
+        # 2) elements reference (guides) aka element_file
+        # 3) elements reference (DHS peaks) aka parent_element_file
+        # 4) a guide quantifications file aka guide_quant_file
+        #
+        # Loading the files requires compiling data from all four files. The element quantifications (1) file
+        # Tells us which peaks DHS peaks from the elements reference (3) to include. The elements reference (3)
+        # includes all the oligo ids for a given DHS peak which we can use to get the guids from elements references (2).
+        # Unfortunately, elements reference (2) doesn't have the strand information! For this we need one of the guide
+        # quantification files. We can match the guide in (2) to the guide information in (4) via the guide sequence.
+        #
+        # Once we have all the guide and DHS peak information we can add the guides and dhs peaks they are children of to the DB
+
+        source_type = self.metadata.source_type
+        parent_source_type = self.metadata.parent_source_type
+
+        genome_assembly = self.metadata.tested_elements_file.genome_assembly
+
+        new_elements: dict[str, FeatureRow] = {}
+        new_parent_elements: dict[str, FeatureRow] = {}
+        oligo_to_parents = {}
+
+        element_file = self.metadata.tested_elements_file
+        element_cell_line = element_file.biosample.cell_line
+        element_tsv = InternetFile(element_file.file_location).file
+        element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
+
+        parent_element_file = self.metadata.misc_files[0]
+        parent_element_tsv = InternetFile(parent_element_file.file_location).file
+        parent_reader = csv.DictReader(
+            parent_element_tsv, delimiter=parent_element_file.delimiter(), quoting=csv.QUOTE_NONE
+        )
+
+        results_file = self.metadata.misc_files[1]
+        results_tsv = InternetFile(results_file.file_location).file
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+
+        #
+        # Figure out which DHS peaks to include for this experiment
+        #
+        result_targets = {
+            f'{line["chrPerturbationTarget"]}:{line["startPerturbationTarget"]}-{line["endPerturbationTarget"]}'
+            for line in results_reader
+        }
+
+        #
+        # Read guide strand and type information from the guide quantification file.
+        # The type information is used for the GrnaType facet
+        #
+        guide_quant_file = self.metadata.misc_files[2]
+        quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
+        guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
+        chrom_strands = ["+", "-"]
+        guide_strands = {}
+        guide_types = {}
+        for line in guide_quant_reader:
+            if line[5] in chrom_strands:
+                guide_strands[line[14]] = line[5]
+            else:
+                guide_strands[line[14]] = None
+            guide_types[line[14]] = line[15]
+
+        #
+        # Build parent (DHS Peak) features and create the oligo->peak mapping
+        #
+        for line in parent_reader:
+            oligo_id, parent_string = line["OligoID"], line["target"]
+            parent_string.strip()
+            if parent_string not in result_targets:
+                continue
+
+            if (parent_info := re.match(r"(.+):(\d+)-(\d+)", parent_string)) is not None:
+                parent_chrom, parent_start, parent_end = (
+                    parent_info.group(1),
+                    int(parent_info.group(2)),
+                    int(parent_info.group(3)),
+                )
+            else:
+                continue
+
+            oligo_to_parents[oligo_id] = parent_string
+
+            if parent_string not in new_parent_elements:
+                new_parent_elements[parent_string] = FeatureRow(
+                    name=parent_string,
+                    chrom_name=parent_chrom,
+                    location=(parent_start, parent_end, RangeBounds("[)")),
+                    strand=None,
+                    genome_assembly=GenomeAssembly(genome_assembly),
+                    cell_line=element_cell_line,
+                    feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
+                )
+
+        #
+        # Build the guide features
+        #
+        for line in element_reader:
+            oligo_id = line["OligoID"]
+            if oligo_id not in oligo_to_parents:
+                continue
+
+            guide_seq = line["GuideSequence"]
+
+            #
+            # We previously filtered out guides invalid strands
+            # Here, we skip over those guides
+            #
+            if guide_seq not in guide_strands:
+                continue
+
+            parent_row = new_parent_elements[oligo_to_parents[oligo_id]]
+
+            element_chrom, element_start, element_end = (line["chr"], int(line["start"]), int(line["end"]))
+            strand = guide_strands[guide_seq]
+
+            if guide_types[guide_seq] == "targeting":
+                guide_type = GrnaFacet.TARGETING
+            elif guide_types[guide_seq] == "negative_control":
+                guide_type = GrnaFacet.NEGATIVE_CONTROL
+            else:
+                raise Exception(f"Guide Type: {guide_types[guide_seq]}")
+
+            element_name = f"{element_chrom}:{element_start}-{element_end}:{strand}"
+
+            new_elements[element_name] = FeatureRow(
+                name=element_name,
+                chrom_name=element_chrom,
+                location=(element_start, element_end, RangeBounds("[)")),
+                strand=ChromosomeStrands(strand) if strand is not None else None,
+                genome_assembly=GenomeAssembly(genome_assembly),
+                cell_line=element_cell_line,
+                feature_type=FeatureType(source_type),
+                facets=[guide_type],
+                parent_name=parent_row.name if parent_row is not None else None,
+                misc={"grna": guide_seq},
+            )
+
+        element_tsv.close()
+        parent_element_tsv.close()
+        results_tsv.close()
+        quide_quant_tsv.close()
         self.features = new_elements.values()
         if len(new_parent_elements) > 0:
             self.parent_features = new_parent_elements.values()

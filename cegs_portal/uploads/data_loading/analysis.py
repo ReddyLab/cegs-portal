@@ -1,7 +1,9 @@
 import csv
 import math
+from collections import defaultdict
 from dataclasses import dataclass
 from io import StringIO
+from os import SEEK_SET
 from typing import Optional
 
 from django.db import transaction
@@ -12,6 +14,7 @@ from cegs_portal.search.models import (
     AccessionType,
     DNAFeature,
     DNAFeatureType,
+    EffectObservationDirectionType,
     Experiment,
     Facet,
     FacetValue,
@@ -47,6 +50,12 @@ class SourceInfo:
     def __post_init__(self):
         DNAFeatureType(self.feature_type)
 
+        if self.strand == ".":
+            self.strand = None
+
+    def __str__(self):
+        return f"{self.chrom}:{self.start}-{self.end}:{self.strand} {self.bounds} {self.feature_type}"
+
 
 @dataclass
 class ObservationRow:
@@ -70,6 +79,13 @@ class Analysis:
         }
 
     def load(self):
+        match self.metadata.data_format:
+            case "standard":
+                return self._load_standard()
+            case "jesse-engreitz":
+                return self._load_jesse_engreitz()
+
+    def _load_standard(self):
         source_type = self.metadata.source_type
 
         results_file = self.metadata.results
@@ -89,7 +105,7 @@ class Analysis:
             targets = [line["gene_ensembl_id"]]
 
             raw_p_value = float(line["raw_p_val"])
-            adjust_p_value = float(line["adj_p_val"])
+            adjusted_p_value = float(line["adj_p_val"])
             effect_size = float(line["effect_size"])
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
 
@@ -99,13 +115,166 @@ class Analysis:
 
             num_facets = {
                 Facets.EFFECT_SIZE: effect_size,
-                Facets.SIGNIFICANCE: adjust_p_value,
+                Facets.SIGNIFICANCE: adjusted_p_value,
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
             observations.append(ObservationRow(sources, targets, categorical_facets, num_facets))
 
         results_tsv.close()
+        self.observations = observations
+        return self
+
+    def _load_jesse_engreitz(self):
+        # The analysis data requires 4 files from the ENCODE data set:
+        # 1) element quantifications aka results_file
+        # 2) elements reference (guides) aka element_file
+        # 3) elements reference (DHS peaks) aka parent_element_file
+        # 4) a guide quantifications file aka guide_quant_file
+        #
+        # Loading the files requires compiling data from all four files. The element quantifications (1) file
+        # Tells us which peaks DHS peaks from the elements reference (3) to include. The elements reference (3)
+        # includes all the oligo ids for a given DHS peak which we can use to get the guids from elements references (2).
+        # Unfortunately, elements reference (2) doesn't have the strand information! For this we need one of the guide
+        # quantification files. We can match the guide in (2) to the guide information in (4) via the guide sequence.
+        #
+        # Once we have all the guide information we can match the guide (source) to the observation and target information
+        # which are in the element quantifications (1) file.
+
+        source_type = self.metadata.source_type
+
+        #
+        # Much like when loading the experiment we have to use the results file to figure out which DHS peaks to include
+        #
+        results_file = self.metadata.results
+        results_tsv = InternetFile(results_file.file_location).file
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+        result_targets = {
+            f'{line["chrPerturbationTarget"]}:{line["startPerturbationTarget"]}-{line["endPerturbationTarget"]}'
+            for line in results_reader
+        }
+
+        #
+        # Match DHS Peaks to oligo ids and create a set of all oligo ids
+        #
+        parent_element_file = self.metadata.misc_files[1]
+        parent_element_tsv = InternetFile(parent_element_file.file_location).file
+        parent_reader = csv.DictReader(
+            parent_element_tsv, delimiter=parent_element_file.delimiter(), quoting=csv.QUOTE_NONE
+        )
+        parent_elements = defaultdict(set)
+        parent_oligos = set()
+        for line in parent_reader:
+            if line["target"] in result_targets:
+                parent_elements[line["target"]].add(line["OligoID"])
+                parent_oligos.add(line["OligoID"])
+
+        #
+        # Get all guides associated with DHS peaks
+        #
+        element_file = self.metadata.misc_files[0]
+        element_tsv = InternetFile(element_file.file_location).file
+        element_reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
+        elements = {}
+        for e in element_reader:
+            if e["OligoID"] not in parent_oligos:
+                continue
+
+            elements[e["OligoID"]] = (e["chr"], int(e["start"]), int(e["end"]), e["GuideSequence"])
+
+        #
+        # Get strands for guides
+        #
+        guide_quant_file = self.metadata.misc_files[2]
+        quide_quant_tsv = InternetFile(guide_quant_file.file_location).file
+        guide_quant_reader = csv.reader(quide_quant_tsv, delimiter=guide_quant_file.delimiter(), quoting=csv.QUOTE_NONE)
+        chrom_strands = ["+", "-"]
+        guide_strands = {}
+        for line in guide_quant_reader:
+            if line[5] in chrom_strands:
+                guide_strands[line[14]] = line[5]
+            else:
+                guide_strands[line[14]] = None
+
+        #
+        # Go back through the results, matching guides to observations using the parent_elements dictionary
+        #
+        results_tsv.seek(0, SEEK_SET)
+        results_reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
+        observations: list[ObservationRow] = []
+        for line in results_reader:
+            chrom_name, start, end = (
+                line["chrPerturbationTarget"],
+                int(line["startPerturbationTarget"]),
+                int(line["endPerturbationTarget"]),
+            )
+            parent_element = f"{chrom_name}:{start}-{end}"
+            oligos = parent_elements[parent_element]
+            sources = []
+
+            for oligo in oligos:
+                guide_chrom, guide_start, guide_end, guide_seq = elements[oligo]
+
+                # We previously filtered out guides invalid strands
+                # Here, we skip over those guides
+                if guide_seq in guide_strands:
+                    sources.append(
+                        SourceInfo(guide_chrom, guide_start, guide_end, "[)", guide_strands[guide_seq], source_type)
+                    )
+
+            if len(sources) == 0:
+                continue
+
+            targets = [line["measuredEnsemblID"]]
+
+            raw_p_value = float(line["pValue"])
+            adjusted_p_value = float(line["pValueAdjusted"])
+            # An explanation of the effect size values, from an email with Ben Doughty:
+            #
+            # For the effect size calculations, since we do a 6-bin sort, we don't actually compute a log2-fold change.
+            # Instead, we use the data to compute an effect size in "gene expression" space, which we normalize to the
+            # negative controls. The values are then scaled, so what an effect size of -0.2 means is that this guide
+            # decreased the expression of the target gene by 20%. An effect size of 0 would be no change in expression,
+            # and an effect size of +0.1 would mean a 10% increase in expression. The lowest we can go is -1 (which means
+            # total elimination of signal), and technically the effect size is unbounded in the positive direction,
+            # although we never see _super_ strong positive guides with CRISPRi.
+            effect_size = float(line["EffectSize"])
+
+            num_facets = {
+                Facets.EFFECT_SIZE: effect_size,
+                Facets.SIGNIFICANCE: adjusted_p_value,
+                Facets.RAW_P_VALUE: raw_p_value,
+            }
+
+            if adjusted_p_value <= self.metadata.p_val_threshold:
+                if effect_size > 0:
+                    cat_facets = [
+                        (
+                            RegulatoryEffectObservation.Facet.DIRECTION.value,
+                            EffectObservationDirectionType.ENRICHED.value,
+                        )
+                    ]
+                else:
+                    cat_facets = [
+                        (
+                            RegulatoryEffectObservation.Facet.DIRECTION.value,
+                            EffectObservationDirectionType.DEPLETED.value,
+                        )
+                    ]
+            else:
+                cat_facets = [
+                    (
+                        RegulatoryEffectObservation.Facet.DIRECTION.value,
+                        EffectObservationDirectionType.NON_SIGNIFICANT.value,
+                    )
+                ]
+
+            observations.append(ObservationRow(sources, targets, cat_facets, num_facets))
+
+        results_tsv.close()
+        element_tsv.close()
+        parent_element_tsv.close()
+        quide_quant_tsv.close()
         self.observations = observations
         return self
 
@@ -186,4 +355,5 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-    Analysis(metadata).load().save()
+    analysis = Analysis(metadata).load().save()
+    return analysis.accession_id

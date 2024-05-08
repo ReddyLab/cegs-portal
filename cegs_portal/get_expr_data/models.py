@@ -1,8 +1,13 @@
 import os.path
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField, IntegerRangeField
+from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.files.storage import default_storage
 from django.db import connection, models
+from django.db.models.expressions import RawSQL
+
+from cegs_portal.search.models.validators import validate_accession_id
 
 EXPR_DATA_DIR = "expr_data_dir"
 
@@ -24,110 +29,165 @@ class ExperimentData(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-# This is a non-managed table because it's really a "Materialized View" (See
-# https://www.postgresql.org/docs/current/sql-creatematerializedview.html)
-#
-# This model class isn't used, but the materialized view itself is, when getting experiment data
-# for a set of regions. See `retrieve_experiment_data` in cegs_portal/get_expr_data/view_models.py.
-# The materialized view is a necessary query optimization. Otherwise getting the experiment data is
-# Extremely slow.
-# You can see the data definition in cegs_portal/get_expr_data/migrations/0010_auto_20230504_1329.py
 class ReoSourcesTargets(models.Model):
     class Meta:
-        managed = False
-        db_table = "reo_sources_targets"
+        db_table = "get_expr_data_reo_sources_targets"
+        indexes = [
+            models.Index(fields=["reo_accession"], name="idx_rstm_reo_accession"),
+            models.Index(fields=["reo_analysis"], name="idx_rstm_reo_analysis"),
+            GistIndex(fields=["source_loc"], name="idx_rstm_source_loc"),
+            GistIndex(fields=["target_loc"], name="idx_rstm_target_loc"),
+            GinIndex(fields=["cat_facets"], name="idx_rstm_cat_facet"),
+            models.Index(
+                RawSQL("((reo_facets->>'Raw p value')::numeric)", []),
+                name="idx_rstm_pval_asc",
+            ),
+        ]
+
+    reo_id = models.BigIntegerField()
+    archived = models.BooleanField(default=False)
+    public = models.BooleanField(default=True)
+    reo_accession = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_experiment = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_analysis = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_facets = models.JSONField(null=True, blank=True)
+    source_id = models.BigIntegerField()
+    source_accession = models.CharField(max_length=17, validators=[validate_accession_id])
+    source_chrom = models.CharField(max_length=10)
+    source_loc = IntegerRangeField()
+    target_id = models.BigIntegerField(null=True, blank=True)
+    target_accession = models.CharField(max_length=17, validators=[validate_accession_id], null=True, blank=True)
+    target_chrom = models.CharField(max_length=10, null=True, blank=True)
+    target_loc = IntegerRangeField(null=True, blank=True)
+    target_gene_symbol = models.CharField(max_length=50, null=True, blank=True)
+    target_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
+    genome_assembly = models.CharField(max_length=20)
+    cat_facets = ArrayField(models.BigIntegerField())
 
     @classmethod
-    def refresh_view(cls):
+    def load_analysis(cls, analysis_accession):
         with connection.cursor() as cursor:
-            # Drop indices because refreshing the view may take a long time if they already exist
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_reo_accession")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_source_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_target_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_cat_facet")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets.idx_rst_pval_asc")
-
-            cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets")
-
-            # Add indices back
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rst_reo_accession ON reo_sources_targets (reo_accession)")
             cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_rst_source_loc ON reo_sources_targets USING GIST (source_loc)"
+                """INSERT INTO get_expr_data_reo_sources_targets
+                    (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
+                    source_id, source_accession, source_chrom, source_loc,
+                    target_id, target_accession, target_chrom, target_loc,
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
+                    sr.id AS reo_id,
+                    sr.archived as archived,
+                    sr.public as public,
+                    sr.accession_id AS reo_accession,
+                    sr.experiment_accession_id AS reo_experiment,
+                    sr.analysis_accession_id AS reo_analysis,
+                    sr.facet_num_values AS reo_facets,
+                    sds.id AS source_id,
+                    sds.accession_id AS source_accession,
+                    sds.chrom_name AS source_chrom,
+                    sds.location AS source_loc,
+                    sdt.id AS target_id,
+                    sdt.accession_id AS target_accession,
+                    sdt.chrom_name AS target_chrom,
+                    sdt.location AS target_loc,
+                    sdt.name AS target_gene_symbol,
+                    sdt.ensembl_id AS target_ensembl_id,
+                    sa.genome_assembly AS genome_assembly,
+                    array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
+                FROM search_regulatoryeffectobservation AS sr
+                LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
+                LEFT JOIN search_regulatoryeffectobservation_sources AS srs ON sr.id = srs.regulatoryeffectobservation_id
+                LEFT JOIN search_regulatoryeffectobservation_targets AS srt ON sr.id = srt.regulatoryeffectobservation_id
+                LEFT JOIN search_dnafeature AS sds ON sds.id = srs.dnafeature_id
+                LEFT JOIN search_dnafeature_facet_values as sdsfv on sds.id = sdsfv.dnafeature_id
+                LEFT JOIN search_dnafeature AS sdt ON sdt.id = srt.dnafeature_id
+                LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
+                LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
+                LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
+                WHERE sr.analysis_accession_id = %s
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
+                [analysis_accession],
             )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_rst_target_loc ON reo_sources_targets USING GIST (target_loc)"
-            )
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_rst_cat_facet ON reo_sources_targets USING GIN (cat_facets)")
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rst_pval_asc
-                       ON reo_sources_targets (((reo_facets->>'Raw p value')::numeric) ASC)"""
-            )
 
-            cursor.execute("ANALYZE reo_sources_targets")
-
-    @classmethod
-    def view_contents(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM reo_sources_targets")
-            return cursor.fetchall()
+    def __str__(self):
+        return f"{self.reo_analysis}: {self.source_accession} -> {self.target_accession}: {self.reo_facets}"
 
 
-# This is a non-managed table because it's really a "Materialized View" (See
-# https://www.postgresql.org/docs/current/sql-creatematerializedview.html)
-#
-# This model class isn't used, but the materialized view itself is, when getting experiment data
-# for a set of regions. See `sig_reo_loc_search` in cegs_portal/search/view_models/v1/search.py.
-# The materialized view is a necessary query optimization. Otherwise getting the experiment data is
-# Extremely slow.
-#
-# This table is basically the same as ReoSourcesTargets, but it only contains significant observations.
-# Without non-significant observations the table is orders of magnitude smaller and thus much faster to
-# query.
-#
-# You can see the data definition in cegs_portal/get_expr_data/migrations/0011_auto_20230516_1123.py
 class ReoSourcesTargetsSigOnly(models.Model):
     class Meta:
-        managed = False
-        db_table = "reo_sources_targets_sig_only"
+        db_table = "get_expr_data_reo_sources_targets_sig_only"
+        indexes = [
+            models.Index(fields=["reo_accession"], name="idx_rstsom_reo_accession"),
+            models.Index(fields=["reo_analysis"], name="idx_rstsom_reo_analysis"),
+            GistIndex(fields=["source_loc"], name="idx_rstsom_source_loc"),
+            GistIndex(fields=["target_loc"], name="idx_rstsom_target_loc"),
+            GinIndex(fields=["cat_facets"], name="idx_rstsom_cat_facet"),
+            models.Index(
+                RawSQL("((reo_facets->>'Raw p value')::numeric)", []),
+                name="idx_rstsom_pval_asc",
+            ),
+        ]
+
+    reo_id = models.BigIntegerField()
+    archived = models.BooleanField(default=False)
+    public = models.BooleanField(default=True)
+    reo_accession = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_experiment = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_analysis = models.CharField(max_length=17, validators=[validate_accession_id])
+    reo_facets = models.JSONField(null=True, blank=True)
+    source_id = models.BigIntegerField()
+    source_accession = models.CharField(max_length=17, validators=[validate_accession_id])
+    source_chrom = models.CharField(max_length=10)
+    source_loc = IntegerRangeField()
+    target_id = models.BigIntegerField(null=True, blank=True)
+    target_accession = models.CharField(max_length=17, validators=[validate_accession_id], null=True, blank=True)
+    target_chrom = models.CharField(max_length=10, null=True, blank=True)
+    target_loc = IntegerRangeField(null=True, blank=True)
+    target_gene_symbol = models.CharField(max_length=50, null=True, blank=True)
+    target_ensembl_id = models.CharField(max_length=50, null=True, blank=True)
+    genome_assembly = models.CharField(max_length=20)
+    cat_facets = ArrayField(models.BigIntegerField())
 
     @classmethod
-    def refresh_view(cls):
+    def load_analysis(cls, analysis_accession):
         with connection.cursor() as cursor:
-            # Drop indices because refreshing the view may take a long time if they already exist
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_reo_accession")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_source_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_target_loc")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_cat_facet")
-            cursor.execute("DROP INDEX IF EXISTS reo_sources_targets_sig_only.idx_rstso_pval_asc")
+            cursor.execute(
+                """INSERT INTO get_expr_data_reo_sources_targets_sig_only
+                    (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
+                    source_id, source_accession, source_chrom, source_loc,
+                    target_id, target_accession, target_chrom, target_loc,
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
+                    sr.id AS reo_id,
+                    sr.archived as archived,
+                    sr.public as public,
+                    sr.accession_id AS reo_accession,
+                    sr.experiment_accession_id AS reo_experiment,
+                    sr.analysis_accession_id AS reo_analysis,
+                    sr.facet_num_values AS reo_facets,
+                    sds.id AS source_id,
+                    sds.accession_id AS source_accession,
+                    sds.chrom_name AS source_chrom,
+                    sds.location AS source_loc,
+                    sdt.id AS target_id,
+                    sdt.accession_id AS target_accession,
+                    sdt.chrom_name AS target_chrom,
+                    sdt.location AS target_loc,
+                    sdt.name AS target_gene_symbol,
+                    sdt.ensembl_id AS target_ensembl_id,
+                    sa.genome_assembly AS genome_assembly,
+                    array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
+                FROM search_regulatoryeffectobservation AS sr
+                LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
+                LEFT JOIN search_regulatoryeffectobservation_sources AS srs ON sr.id = srs.regulatoryeffectobservation_id
+                LEFT JOIN search_regulatoryeffectobservation_targets AS srt ON sr.id = srt.regulatoryeffectobservation_id
+                LEFT JOIN search_dnafeature AS sds ON sds.id = srs.dnafeature_id
+                LEFT JOIN search_dnafeature_facet_values as sdsfv on sds.id = sdsfv.dnafeature_id
+                LEFT JOIN search_dnafeature AS sdt ON sdt.id = srt.dnafeature_id
+                LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
+                LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
+                LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
+                WHERE sr.analysis_accession_id = %s AND srfv.facetvalue_id != (SELECT id FROM search_facetvalue where value = 'Non-significant')
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
+                [analysis_accession],
+            )
 
-            cursor.execute("REFRESH MATERIALIZED VIEW reo_sources_targets_sig_only")
-
-            # Add indices back
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_reo_accession
-                       ON reo_sources_targets_sig_only (reo_accession)"""
-            )
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_source_loc
-                       ON reo_sources_targets_sig_only USING GIST (source_loc)"""
-            )
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_target_loc
-                       ON reo_sources_targets_sig_only USING GIST (target_loc)"""
-            )
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_cat_facet
-                       ON reo_sources_targets_sig_only USING GIN (cat_facets)"""
-            )
-            cursor.execute(
-                """CREATE INDEX IF NOT EXISTS idx_rstso_pval_asc
-                       ON reo_sources_targets_sig_only (((reo_facets->>'Raw p value')::numeric) ASC)"""
-            )
-
-            cursor.execute("ANALYZE reo_sources_targets_sig_only")
-
-    @classmethod
-    def view_contents(cls):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM reo_sources_targets_sig_only")
-            return cursor.fetchall()
+    def __str__(self):
+        return f"{self.reo_analysis}: {self.source_accession} -> {self.target_accession}: {self.reo_facets}"
