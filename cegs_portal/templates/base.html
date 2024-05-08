@@ -25,7 +25,7 @@
       <div class="min-h-screen flex flex-col">
           <div class="flex-none mb-10">
               <nav
-                  class="flex items-center justify-between flex-wrap bg-dark py-4"
+                  class="flex items-center justify-between flex-wrap bg-dark py-4" style="border-bottom: 4px solid rgba(41, 120, 177, 242);">
               >
                   <div
                       class="flex justify-between lg:w-auto w-full lg:border-b-0 pl-6 pr-2 border-solid border-b-2 border-gray-300 pb-5 lg:pb-0"
@@ -138,13 +138,28 @@
               </nav>
           </div>
 
-            <div class="grow flex flex-col items-center px-10">
+            <div class="grow flex flex-col items-center">
                 {% block content %}
                 <p>Use this document as a way to quick start any new project.</p>
                 {% endblock content %}
             </div>
 
-            <footer class="mt-10 bg-dark p-4 text-white flex-none">© Duke University</footer>
+            <footer class="mt-10 bg-dark p-4 text-white flex-none" style="border-top: 4px solid rgba(41, 120, 177, 242);">
+                <div class="flex justify-around items-center">
+                    <div class="flex flex-col">
+                        <div class="text-2xl mt-3"><i class="bi bi-envelope-at"></i> Contact CCGR</div>
+                        <div class="text-2xl mt-3"><i class="bi bi-patch-question"></i> About Us</div>
+                        <div class="text-2xl mt-3"><i class="bi bi-newspaper"></i> Terms & Conditions</div>
+                    </div>
+                    <div class="flex flex-col" style="margin-left: 500px;">
+                        <img class="mb-4 mt-5" style="margin-left: 120px; margin-top: 100px;" src="{% static 'CCGRLogo-condensed.png' %}" width="400" />
+                        <img class="mb-4" src="{% static 'duke_university_wordmark_white.png' %}" width="400" />
+                    </div>
+                </div>
+                <div class="text-center">© Duke University</div>
+            </footer>
+
+
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
         <!-- Script tags with only code, no src (defer by default)  -->
