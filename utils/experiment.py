@@ -38,11 +38,12 @@ class AnalysisMetadata:
     filename: str
     description: str
     name: str
-    misc_files: list[FileMetadata] = []
-    file_metadata: FileMetadata
+    source_type: str
+    results: FileMetadata
     genome_assembly: str
     genome_assembly_patch: str
     p_val_threshold: float
+    p_val_adj_method: str
 
     def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
