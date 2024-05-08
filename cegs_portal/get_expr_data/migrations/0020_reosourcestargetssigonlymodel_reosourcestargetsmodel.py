@@ -25,7 +25,7 @@ REO_SOURCES_TARGETS = """CREATE MATERIALIZED VIEW reo_sources_targets AS
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -37,8 +37,7 @@ REO_SOURCES_TARGETS = """CREATE MATERIALIZED VIEW reo_sources_targets AS
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly
                 """
 
 REO_SOURCES_TARGETS_SIG_ONLY = """CREATE MATERIALIZED VIEW reo_sources_targets_sig_only AS
@@ -59,7 +58,7 @@ REO_SOURCES_TARGETS_SIG_ONLY = """CREATE MATERIALIZED VIEW reo_sources_targets_s
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -71,9 +70,8 @@ REO_SOURCES_TARGETS_SIG_ONLY = """CREATE MATERIALIZED VIEW reo_sources_targets_s
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
                 WHERE srfv.facetvalue_id != (SELECT id FROM search_facetvalue where value = 'Non-significant')
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly
                 """
 
 
@@ -86,7 +84,7 @@ def load_analyses(apps, schema_editor):
                     (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
                     source_id, source_accession, source_chrom, source_loc,
                     target_id, target_accession, target_chrom, target_loc,
-                    target_gene_symbol, target_ensembl_id, ref_genome, cat_facets) SELECT
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
                     sr.id AS reo_id,
                     sr.archived as archived,
                     sr.public as public,
@@ -104,7 +102,7 @@ def load_analyses(apps, schema_editor):
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -116,9 +114,8 @@ def load_analyses(apps, schema_editor):
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
                 WHERE sr.analysis_accession_id = %s
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome""",
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
                 [analysis.accession_id],
             )
             cursor.execute(
@@ -126,7 +123,7 @@ def load_analyses(apps, schema_editor):
                     (reo_id, archived, public, reo_accession, reo_experiment, reo_analysis, reo_facets,
                     source_id, source_accession, source_chrom, source_loc,
                     target_id, target_accession, target_chrom, target_loc,
-                    target_gene_symbol, target_ensembl_id, ref_genome, cat_facets) SELECT
+                    target_gene_symbol, target_ensembl_id, genome_assembly, cat_facets) SELECT
                     sr.id AS reo_id,
                     sr.archived as archived,
                     sr.public as public,
@@ -144,7 +141,7 @@ def load_analyses(apps, schema_editor):
                     sdt.location AS target_loc,
                     sdt.name AS target_gene_symbol,
                     sdt.ensembl_id AS target_ensembl_id,
-                    sedfi.ref_genome AS ref_genome,
+                    sa.genome_assembly AS genome_assembly,
                     array_remove(ARRAY_AGG(DISTINCT(srfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdsfv.facetvalue_id)) || ARRAY_AGG(DISTINCT(sdtfv.facetvalue_id)), NULL) AS cat_facets
                 FROM search_regulatoryeffectobservation AS sr
                 LEFT JOIN search_regulatoryeffectobservation_facet_values as srfv on sr.id = srfv.regulatoryeffectobservation_id
@@ -156,9 +153,8 @@ def load_analyses(apps, schema_editor):
                 LEFT JOIN search_dnafeature_facet_values as sdtfv on sdt.id = sdtfv.dnafeature_id
                 LEFT JOIN search_analysis AS sa ON sr.analysis_accession_id = sa.accession_id
                 LEFT JOIN search_file AS sf ON sa.id = sf.analysis_id
-                LEFT JOIN search_experimentdatafileinfo AS sedfi ON sf.data_file_info_id = sedfi.id
                 WHERE sr.analysis_accession_id = %s AND srfv.facetvalue_id != (SELECT id FROM search_facetvalue where value = 'Non-significant')
-                GROUP BY sr.id, sds.id, sdt.id, sedfi.ref_genome""",
+                GROUP BY sr.id, sds.id, sdt.id, sa.genome_assembly""",
                 [analysis.accession_id],
             )
 
@@ -170,7 +166,7 @@ def unloadload_analyses(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("get_expr_data", "0018_auto_20231114_1447"),
+        ("get_expr_data", "0019_auto_20240507_1423"),
     ]
 
     operations = [
@@ -223,7 +219,7 @@ class Migration(migrations.Migration):
                 ("target_loc", django.contrib.postgres.fields.ranges.IntegerRangeField(blank=True, null=True)),
                 ("target_gene_symbol", models.CharField(blank=True, max_length=50, null=True)),
                 ("target_ensembl_id", models.CharField(blank=True, max_length=50, null=True)),
-                ("ref_genome", models.CharField(max_length=20)),
+                ("genome_assembly", models.CharField(max_length=20)),
                 (
                     "cat_facets",
                     django.contrib.postgres.fields.ArrayField(base_field=models.BigIntegerField(), size=None),
@@ -292,7 +288,7 @@ class Migration(migrations.Migration):
                 ("target_loc", django.contrib.postgres.fields.ranges.IntegerRangeField(blank=True, null=True)),
                 ("target_gene_symbol", models.CharField(blank=True, max_length=50, null=True)),
                 ("target_ensembl_id", models.CharField(blank=True, max_length=50, null=True)),
-                ("ref_genome", models.CharField(max_length=20)),
+                ("genome_assembly", models.CharField(max_length=20)),
                 (
                     "cat_facets",
                     django.contrib.postgres.fields.ArrayField(base_field=models.BigIntegerField(), size=None),
