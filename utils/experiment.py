@@ -38,27 +38,27 @@ class AnalysisMetadata:
     filename: str
     description: str
     name: str
-    misc_files: list[FileMetadata] = []
-    file_metadata: FileMetadata
+    source_type: str
+    results: FileMetadata
     genome_assembly: str
     genome_assembly_patch: str
     p_val_threshold: float
+    p_val_adj_method: str
 
-    def __init__(self, file_metadata: dict[str, str], analysis_dict: dict[str, Any], analysis_filename: str):
+    def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
         self.experiment_accession_id = analysis_dict["experiment"]
         self.filename = analysis_filename
         self.name = analysis_dict["name"]
         assert self.name != ""
 
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
+        self.results = FileMetadata(analysis_dict["results"])
+        self.genome_assembly = analysis_dict["genome_assembly"]
+        self.genome_assembly_patch = analysis_dict.get("genome_assembly_patch", None)
+        self.p_val_threshold = analysis_dict["p_val_threshold"]
+        self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
 
-        base_path = os.path.dirname(analysis_filename)
-
-        self.file_metadata = FileMetadata(file_metadata, base_path)
-        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict.get("misc_files", [])]
+        self.source_type = get_source_type(analysis_dict["source type"])
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
@@ -70,6 +70,7 @@ class AnalysisMetadata:
                 genome_assembly=self.genome_assembly,
                 genome_assembly_patch=self.genome_assembly_patch,
                 p_value_threshold=self.p_val_threshold,
+                p_value_adj_method=self.p_val_adj_method,
             )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
@@ -79,7 +80,7 @@ class AnalysisMetadata:
             experiment.default_analysis = analysis
             experiment.save()
 
-            self.file_metadata.db_save(experiment, analysis)
+            self.results.db_save(experiment, analysis)
 
         return analysis
 
