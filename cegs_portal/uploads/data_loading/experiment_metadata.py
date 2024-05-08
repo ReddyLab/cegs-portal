@@ -13,7 +13,6 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeatureSourceType,
     Experiment,
-    ExperimentDataFileInfo,
     FacetValue,
 )
 
@@ -35,31 +34,6 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             return DNAFeatureSourceType.CCRE
         case _:
             raise Exception(f"Bad source feature string: {source_type_string}")
-
-
-class ResultsFileMetadata:
-    file_metadata: FileMetadata
-    genome_assembly: str
-    genome_assembly_patch: str
-    p_val_threshold: float
-    p_val_adj_method: str
-
-    def __init__(self, file_metadata: dict[str, str]):
-        self.file_metadata = FileMetadata(file_metadata)
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata["p_val_threshold"]
-        self.p_val_adj_method = file_metadata.get("p_val_adj_method", "unknown")
-
-    def db_save(self, experiment: Experiment, analysis: Analysis = None):
-        data_file_info = ExperimentDataFileInfo(
-            ref_genome=self.genome_assembly,
-            ref_genome_patch=self.genome_assembly_patch,
-            p_value_threshold=self.p_val_threshold,
-            p_value_adj_method=self.p_val_adj_method,
-        )
-        data_file_info.save()
-        self.file_metadata.db_save(experiment, analysis, data_file_info)
 
 
 class InternetFile:
@@ -105,7 +79,11 @@ class AnalysisMetadata(Metadata):
     description: str
     name: str
     source_type: str
-    results: ResultsFileMetadata
+    results: FileMetadata
+    genome_assembly: str
+    genome_assembly_patch: str
+    p_val_threshold: float
+    p_val_adj_method: str
 
     def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
         self.description = analysis_dict["description"]
@@ -113,13 +91,26 @@ class AnalysisMetadata(Metadata):
         self.name = analysis_dict["name"]
         assert self.name != ""
 
+        self.results = FileMetadata(analysis_dict["results"])
+        self.genome_assembly = analysis_dict["genome_assembly"]
+        self.genome_assembly_patch = analysis_dict.get("genome_assembly_patch", None)
+        self.p_val_threshold = analysis_dict["p_val_threshold"]
+        self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
+
         self.source_type = get_source_type(analysis_dict["source type"])
-        self.results = ResultsFileMetadata(analysis_dict["results"])
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
         with AccessionIds(message=f"Analysis of {experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-            analysis = Analysis(description=self.description, experiment=experiment, name=self.name)
+            analysis = Analysis(
+                description=self.description,
+                experiment=experiment,
+                name=self.name,
+                genome_assembly=self.genome_assembly,
+                genome_assembly_patch=self.genome_assembly_patch,
+                p_value_threshold=self.p_val_threshold,
+                p_value_adj_method=self.p_val_adj_method,
+            )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
             self.accession_id = analysis.accession_id
@@ -140,8 +131,6 @@ class AnalysisMetadata(Metadata):
         if self.accession_id is not None:
             analysis = Analysis.objects.get(accession_id=self.accession_id)
 
-        for file in analysis.files.all():
-            file.data_file_info.delete()
         analysis.delete()
         self.accession_id = None
 
@@ -205,9 +194,6 @@ class ExperimentMetadata(Metadata):
     def db_del(self):
         experiment = Experiment.objects.get(accession_id=self.accession_id)
         for file in experiment.files.all():
-            if file.data_file_info is not None:
-                for data in file.data_file_info.all():
-                    data.delete()
             file.delete()
 
         experiment.delete()

@@ -47,9 +47,4 @@ def file(file_obj: File):
         "category": file_obj.category,
     }
 
-    if file_obj.data_file_info is not None:
-        result["assembly"] = f"{file_obj.data_file_info.ref_genome}.{file_obj.data_file_info.ref_genome_patch or '0'}"
-        result["p_val_threshold"] = file_obj.data_file_info.p_value_threshold
-        result["significance_measure"] = file_obj.data_file_info.significance_measure
-
     return result

@@ -29,11 +29,10 @@ class FileMetadata:
         if biosample_index is not None and biosamples is not None:
             self.biosample = biosamples[biosample_index]
 
-    def db_save(self, experiment=None, analysis=None, experiment_data_file=None):
+    def db_save(self, experiment=None, analysis=None):
         source_file = File(
             description=self.description,
             experiment=experiment,
-            data_file_info=experiment_data_file,
             analysis=analysis,
             filename=os.path.basename(self.filename),
             misc=self.misc,

@@ -311,7 +311,7 @@ def retrieve_experiment_data(
             i.append(NumericRange(*facets.sig_range))
 
     if assembly is not None:
-        where = f"{where} AND ref_genome = %s"
+        where = f"{where} AND genome_assembly = %s"
         for i in inputs:
             i.append(assembly)
 
@@ -375,7 +375,7 @@ def sig_reo_loc_search(
     ]
 
     if assembly is not None:
-        where = f"{where} AND ref_genome = %s"
+        where = f"{where} AND genome_assembly = %s"
         inputs.append(assembly)
 
     inputs.append(count)

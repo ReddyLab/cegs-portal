@@ -25,7 +25,7 @@ class FileMetadata:
         self.description = file_metadata.get("description")
         self.filename = file_metadata["filename"]
         self.file_location = file_metadata["file_location"]
-        self.genome_assembly = file_metadata["genome_assembly"]
+        self.genome_assembly = file_metadata.get("genome_assembly", None)
         self.url = file_metadata.get("url")
         self.misc = file_metadata.get("misc")
 
@@ -33,11 +33,10 @@ class FileMetadata:
             biosample_index = file_metadata.get("biosample", 0)
             self.biosample = biosamples[biosample_index]
 
-    def db_save(self, experiment=None, analysis=None, experiment_data_file=None):
+    def db_save(self, experiment=None, analysis=None):
         source_file = File(
             description=self.description,
             experiment=experiment,
-            data_file_info=experiment_data_file,
             analysis=analysis,
             filename=self.filename,
             location=self.file_location,

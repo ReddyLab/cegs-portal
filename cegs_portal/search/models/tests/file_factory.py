@@ -13,7 +13,6 @@ class FileFactory(DjangoModelFactory):
     url = Faker("uri")
     size = 1_000_000
     category = None
-    data_file_info = None
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):

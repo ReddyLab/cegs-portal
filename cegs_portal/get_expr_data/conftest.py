@@ -15,10 +15,7 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
-from cegs_portal.search.models.tests.experiment_factory import (
-    ExperimentDataFileInfoFactory,
-    ExperimentFactory,
-)
+from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
 from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
     FacetValueFactory,
@@ -42,8 +39,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     nonsig_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
     experiment = ExperimentFactory(accession_id="DCPEXPR0000000002")
     analysis = experiment.analyses.first()
-    experiment_file_info = ExperimentDataFileInfoFactory()
-    _analysis_file = FileFactory(analysis=analysis, data_file_info=experiment_file_info)  # noqa: F841
+    _analysis_file = FileFactory(analysis=analysis)  # noqa: F841
 
     sources = (
         DNAFeatureFactory(

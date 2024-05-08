@@ -72,7 +72,7 @@ class Analysis:
     def load(self):
         source_type = self.metadata.source_type
 
-        results_file = self.metadata.results.file_metadata
+        results_file = self.metadata.results
         results_tsv = InternetFile(results_file.file_location).file
         reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
@@ -116,7 +116,7 @@ class Analysis:
         analysis_accession_id = self.accession_id
         experiment_accession_id = self.metadata.experiment_accession_id
         experiment_id = Experiment.objects.filter(accession_id=experiment_accession_id).values_list("id", flat=True)[0]
-        genome_assembly = self.metadata.results.genome_assembly
+        genome_assembly = self.metadata.genome_assembly
         sources = StringIO()
         targets = StringIO()
         effects = StringIO()

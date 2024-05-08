@@ -16,6 +16,10 @@ class AnalysisFactory(DjangoModelFactory):
     name = Faker("text", max_nb_chars=512)
     description = Faker("text", max_nb_chars=4096)
     experiment = SubFactory("cegs_portal.search.models.tests.experiment_factory.ExperimentFactory")
+    genome_assembly = "GRCh38"  # The default ref genome when searching
+    genome_assembly_patch = "0"
+    p_value_threshold = 0.05
+    p_value_adj_method = "unknown"
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
