@@ -40,13 +40,13 @@ class FileForm(forms.ModelForm):
             "filename",
             "description",
             "url",
+            "location",
             "experiment",
+            "analysis",
             "size",
             "category",
         )
-        widgets = {
-            "description": forms.Textarea(attrs={"rows": 6, "columns": 90}),
-        }
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
 
 
 class FileAdmin(admin.ModelAdmin):
@@ -148,18 +148,15 @@ class AnalysisFacetValueInlineAdmin(admin.StackedInline):
 
 class AnalysisForm(forms.ModelForm):
     verbose_name_plural = "Analyses"
-    p_val_threshold = forms.FloatField(max_value=1.0, min_value=0.0, step_size=0.01, required=False)
-    significance_measure = forms.CharField(max_length=2048, required=False)
-    genome_assembly = forms.CharField(max_length=10, validators=[validate_genome_assembly], required=False)
-
-    widgets = {
-        "significance_measure": forms.Textarea(attrs={"rows": 6, "columns": 90}),
-    }
+    p_value_threshold = forms.FloatField(max_value=1.0, min_value=0.0, step_size=0.01)
+    p_value_adj_method = forms.CharField(max_length=128, empty_value="unknown")
+    genome_assembly = forms.CharField(max_length=20, validators=[validate_genome_assembly])
+    genome_assembly_patch = forms.CharField(max_length=10, required=False)
 
 
 class AnalysisAdmin(admin.ModelAdmin):
     form = AnalysisForm
-    inlines = [AnalysisFacetValueInlineAdmin, PipelineInlineForm]
+    inlines = [AnalysisFacetValueInlineAdmin]
     list_display = (
         "accession_id",
         "description",
@@ -170,6 +167,10 @@ class AnalysisAdmin(admin.ModelAdmin):
         "archived",
         "accession_id",
         "description",
+        "genome_assembly",
+        "genome_assembly_patch",
+        "p_value_threshold",
+        "p_value_adj_method",
         "when",
     ]
     search_fields = ["experiment__accession_id", "experiment__name"]
@@ -177,9 +178,10 @@ class AnalysisAdmin(admin.ModelAdmin):
     # TODO: This is definitely a cause of n+1 queries
     @admin.display(description="Experiment")
     def experiment_info(self, obj):
-        exper = obj.experiment
+        expr = obj.experiment
+        desc = expr.description[:15] if expr.description is not None else None
 
-        return f"{exper.accession_id}: {exper.description[:15]}..."
+        return f"{expr.accession_id}: {expr.name}{' - ' + desc if desc is not None else ''}..."
 
     @admin.display(description="Description")
     def description(self, obj):
