@@ -53,6 +53,9 @@ class SourceInfo:
         if self.strand == ".":
             self.strand = None
 
+    def __str__(self):
+        return f"{self.chrom}:{self.start}-{self.end}:{self.strand} {self.bounds} {self.feature_type}"
+
 
 @dataclass
 class ObservationRow:
