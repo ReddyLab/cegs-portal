@@ -186,7 +186,7 @@
                 {{ gene_form }}
                 <input type="submit" value="Search" class=" button self-end" />
             </div></form>
-            <div class="search-examples">Ex: "chr8:79263597-79294735","ENSG00000206503", "HLA-A"</div>
+            <div class="search-examples">Ex: "chr6:29941260-29949572","ENSG00000206503", "HLA-A"</div>
         </div>
     </div>
     <!-- <div class="myDiv"> -->
@@ -207,8 +207,8 @@
                             />
                         </svg>
                     </div>
-                    <div class="card-header">Discover gene regulatory  effects near your favorite gene</div>
-                    <p>Enter your favorite gene below. Search by appropriate gene symbol. </p>
+                    <div class="card-header">Discover regulatory effects for your favorite gene</div>
+                    <p> Search by gene symbol. </p>
                     <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
                         {{ gene_form }}
                         <input
@@ -228,36 +228,47 @@
                                 <path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
                             </svg>
                         </div>
-                    <div class="card-header">Summarize results in a specific genomic region</div>
-                    <p>We gather our data to present the key findings from your location of interest in the genome. Enter your genomic region below.</div>
+                        <div class="card-header">Show results for a genomic region</div>
+                        <p> Search by region. </p>
+                    </div>
                 <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
                     {{ location_form }}
                     <input
                         type="submit"
                         class="button self-end"
-                        value="Summarize"
+                        value="Show"
                     />
                 </form>
             </div>
-                <div class="search-container">
-                    <a href="{% url 'search:experiments' %}" class="content-container-link">
-                        <div class="flex flex-col items-center">
-                        <div class="flex flex-row">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5 card-header"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                                <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-image">
-                                <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                <path
-                                    d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
-                                />
-                            </svg>
-                        </div>
-                        <div class="card-header">List all gene regulatory effects in a genomic region</div>
-                        <p>All significant regulatory are effects listed under the “All effects” tab</p>
-                        </div>
-                    </a>
-                </div>
+
+                <a href="{% url 'search:results' %}?query=chr6:28000000-30000000#tabs-effects" class="content-container-link">
+                    <div class="search-container">
+                    <div class="flex flex-col items-center">
+                    <div class="flex flex-row">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-image">
+                            <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                            />
+                        </svg>
+                    </div>
+                    <div class="card-header">List regulatory effects in a genomic region</div>
+                    <p> Search by region. </p>
+                    <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
+                        {{ location_form }}
+                        <input
+                            type="submit"
+                            class="button self-end"
+                            value="List"
+                        />
+                    </form>
+                    </div>
+                    </div>
+                </a>
+
         </div>
         <div class="flex flex-row" style="margin-bottom: -130px;">
         <div class="search-container">
@@ -275,11 +286,11 @@
                     </svg>
                 </div>
                 <div class="card-header">List Experiments</div>
-                <p>Filter by assays, experiment source type, cell line, tissue type</div>
+                <p>Filter by assays, cell line, tissue type.</div>
             </a>
         </div>
             <div class="search-container">
-                <a href="{% url 'search:experiments' %}" class="content-container-link">
+                <a href="{% url 'search:experiments' %}s?exp=DCPEXPR00000002&exp=DCPEXPR00000004&exp=DCPEXPR00000007" class="content-container-link">
                     <div class="flex flex-col items-center">
                     <div class="flex flex-row">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image card-header">
@@ -301,7 +312,7 @@
                 </a>
             </div>
             <div class="search-container">
-                <a href="{% url 'search:experiments' %}" class="content-container-link">
+                <a href="{% url 'search:experiments' %}/DCPEXPR00000004" class="content-container-link">
                     <div class="flex flex-col items-center">
                     <div class="flex flex-row">
                         <i class="bi bi-layers-half" style="font-size: 5em; margin-bottom: -5px;"></i>

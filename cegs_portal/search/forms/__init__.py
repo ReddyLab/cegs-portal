@@ -10,4 +10,4 @@ class SearchGeneForm(forms.Form):
 
 
 class SearchLocationForm(forms.Form):
-    query = forms.CharField(label="Search", initial="chr8:79263597-79294735")
+    query = forms.CharField(label="Search", initial="chr11:33858576 - 33892076")
