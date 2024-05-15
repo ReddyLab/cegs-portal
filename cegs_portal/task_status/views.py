@@ -1,9 +1,11 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 
 from cegs_portal.search.views.custom_views import MultiResponseFormatView
 
-from .json_templates.task_status import task_statuses
+from .json_templates.task_status import task_status, task_statuses
+from .view_models import get_status
 
 
 def get_bool_param(value):
@@ -14,8 +16,29 @@ def get_bool_param(value):
 
 
 class TaskStatusView(UserPassesTestMixin, MultiResponseFormatView):
-    json_renderer = task_statuses
+    json_renderer = task_status
     template = "task_status/task_status.html"
+
+    def test_func(self):
+        if self.request.user.is_anonymous:
+            return False
+
+        return True
+
+    def get(self, request, options, data, task_id):
+        return super().get(request, options, {"task": data})
+
+    def get_data(self, options, task_id):
+        task = get_status(task_id)
+        if task is None or task.user != self.request.user:
+            raise PermissionDenied(f"User does not have permission for task {task_id}")
+
+        return task
+
+
+class TaskStatusListView(UserPassesTestMixin, MultiResponseFormatView):
+    json_renderer = task_statuses
+    template = "task_status/task_status_list.html"
 
     def test_func(self):
         if self.request.user.is_anonymous:
@@ -29,9 +52,10 @@ class TaskStatusView(UserPassesTestMixin, MultiResponseFormatView):
     def request_options(self, request):
         """
         GET queries used:
-            paginate - only used for JSON data, HTML is always paginated
             page - which page to show
                 * int
+            per_page - how many items to show per page
+            paginate - only used for JSON data, HTML is always paginated
         """
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))

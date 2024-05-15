@@ -22,7 +22,7 @@ def task_statuses(
     if options is not None and options.get("paginate"):
         task_objs = cast(Pageable[TaskStatus], task_objs)
         return {
-            "object_list": [task(a, options) for a in task_objs.object_list],
+            "object_list": [task_status(a, options) for a in task_objs.object_list],
             "page": task_objs.number,
             "has_next_page": task_objs.has_next(),
             "has_prev_page": task_objs.has_previous(),
@@ -30,10 +30,10 @@ def task_statuses(
         }
     else:
         task_objs = cast(Iterable[TaskStatus], task_objs)
-        return [task(a, options) for a in task_objs]
+        return [task_status(a, options) for a in task_objs]
 
 
-def task(task_obj: TaskStatus, options: Optional[dict[str, Any]] = None) -> TaskJson:
+def task_status(task_obj: TaskStatus, options: Optional[dict[str, Any]] = None) -> TaskJson:
     result = {
         "id": task_obj.id,
         "status": task_obj.status,

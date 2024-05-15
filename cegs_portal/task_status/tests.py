@@ -1,10 +1,14 @@
 import json
+import uuid
 
 import pytest
 
 from cegs_portal.conftest import SearchClient
 from cegs_portal.task_status.decorators import handle_error
-from cegs_portal.task_status.json_templates.task_status import task_statuses
+from cegs_portal.task_status.json_templates.task_status import (
+    task_status,
+    task_statuses,
+)
 from cegs_portal.task_status.models import TaskStatus
 
 pytestmark = pytest.mark.django_db
@@ -41,7 +45,7 @@ def test_task_status_handle_error(task: TaskStatus):
     assert task.error_message == "Bad Value"
 
 
-def test_task_status_json(task: TaskStatus):
+def test_task_status_list_json(task: TaskStatus):
     assert task_statuses([task]) == [
         {
             "id": task.id,
@@ -52,6 +56,17 @@ def test_task_status_json(task: TaskStatus):
             "modified": task.modified.isoformat(),
         }
     ]
+
+
+def test_task_status_json(task: TaskStatus):
+    assert task_status(task) == {
+        "id": task.id,
+        "status": task.status,
+        "description": task.description,
+        "error_message": None,
+        "created": task.created.isoformat(),
+        "modified": task.modified.isoformat(),
+    }
 
 
 def test_task_list_view(task: TaskStatus, login_client: SearchClient):
@@ -80,6 +95,24 @@ def test_task_list_view(task: TaskStatus, login_client: SearchClient):
     }
 
 
+def test_task_view(task: TaskStatus, login_client: SearchClient):
+    task.user = login_client.user
+    task.save()
+
+    response = login_client.get(f"/task_status/task/{task.id}?accept=application/json")
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+    assert json_content == {
+        "id": str(task.id),
+        "status": task.status,
+        "description": task.description,
+        "error_message": None,
+        "created": task.created.isoformat(),
+        "modified": task.modified.isoformat(),
+    }
+
+
 def test_no_task_list_view(task: TaskStatus, login_client: SearchClient):
     response = login_client.get(f"/task_status/{login_client.username}?accept=application/json")
     assert response.status_code == 200
@@ -92,3 +125,8 @@ def test_no_task_list_view(task: TaskStatus, login_client: SearchClient):
         "has_prev_page": False,
         "num_pages": 1,
     }
+
+
+def test_no_task_view(task: TaskStatus, login_client: SearchClient):
+    response = login_client.get(f"/task_status/task/{uuid.uuid4()}?accept=application/json")
+    assert response.status_code == 403
