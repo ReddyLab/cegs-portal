@@ -9,6 +9,8 @@ from cegs_portal.search.models.dna_feature_type import DNAFeatureSourceType
 from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
 
+from .signals import update_analysis_access, update_experiment_access
+
 
 class TissueType(Accessioned):
     name = models.CharField(max_length=100)
@@ -66,6 +68,11 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
+    def save(self, *args, **kwargs):
+        created = self.pk is None
+        super(Experiment, self).save(*args, **kwargs)
+        update_experiment_access(self, created)
+
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
@@ -104,6 +111,11 @@ class Analysis(Accessioned, Faceted, AccessControlled):
     genome_assembly_patch = models.CharField(max_length=10, null=True, blank=True)
     p_value_threshold = models.FloatField(default=0.05)
     p_value_adj_method = models.CharField(max_length=128, default="unknown")
+
+    def save(self, *args, **kwargs):
+        created = self.pk is None
+        super(Analysis, self).save(*args, **kwargs)
+        update_analysis_access(self, created)
 
     def __str__(self):
         description = self.description
