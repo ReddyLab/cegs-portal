@@ -48,29 +48,33 @@
     </div>
     <div class="container min-w-full">
         <table class="profile-table">
-            <tr>
-                <th>DNA Feature Aliases</th>
-                <th>Location</th>
-                <th>Reference Genome</th>
-                <th>Feature Type</th>
-            {% if feature.feature_subtype %}
-                <th>Feature Subtype</th>
-            {% endif %}
-            </tr>
-            <tr>
-                <td>{{ feature.name|default:feature.accession_id }}</td>
-                <td>
-                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                        <span>{{ feature.chrom_name }}</span>:
-                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
-                    </a>
-                </td>
-                <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
-                <td>{{ feature.get_feature_type_display }}</td>
+            <thead>
+                <tr>
+                    <th>DNA Feature Aliases</th>
+                    <th>Location</th>
+                    <th>Reference Genome</th>
+                    <th>Feature Type</th>
                 {% if feature.feature_subtype %}
-                <td>{{ feature.feature_subtype|remove_underscores }}</td>
+                    <th>Feature Subtype</th>
                 {% endif %}
-            </tr>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ feature.name|default:feature.accession_id }}</td>
+                    <td>
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span>{{ feature.chrom_name }}</span>:
+                            <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
+                        </a>
+                    </td>
+                    <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ feature.get_feature_type_display }}</td>
+                    {% if feature.feature_subtype %}
+                    <td>{{ feature.feature_subtype|remove_underscores }}</td>
+                    {% endif %}
+                </tr>
+            </tbody>
         </table>
     </div>
 

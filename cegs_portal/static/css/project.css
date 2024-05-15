@@ -912,11 +912,11 @@ tr[data-href]:hover {
   padding: 8px;
 }
 
-.profile-table tr:nth-child(even) {
+.profile-table tbody tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-.profile-table tr:hover {
+.profile-table tbody tr:hover {
   background-color: #ddd;
 }
 

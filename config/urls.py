@@ -24,6 +24,7 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
         path("search/", include("cegs_portal.search.urls")),
         path("exp_data/", include("cegs_portal.get_expr_data.urls")),
         path("uploads/", include("cegs_portal.uploads.urls")),
+        path("task_status/", include("cegs_portal.task_status.urls")),
         path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("images/favicons/favicon.ico"))),
         path("", include("django_prometheus.urls")),
     ],

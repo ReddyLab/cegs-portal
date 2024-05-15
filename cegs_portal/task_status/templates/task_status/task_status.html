@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block content %}
+    <div class="bg-white rounded-lg shadow p-6 space-y-4 md:space-y-6 sm:p-8">
+        <table class="profile-table">
+            <thead>
+                <tr><th>ID</th><th>Status</th><th>Description</th><th>Created</th><th>Modified</th></tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr><td>{{ task.id }}</td><td>{{ task.get_status_display }}</td><td>{{ task.description }}</td><td>{{ task.created }}</td><td>{{ task.modified }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if tasks.paginator %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if tasks.has_previous %}
+                    <a href="?page=1&per_page={{ per_page }}">« first</a>
+                    <a href="?page={{ tasks.previous_page_number }}&per_page={{ per_page }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
+                </span>
+
+                {% if tasks.has_next %}
+                    <a href="?page={{ tasks.next_page_number }}&per_page={{ per_page }}">next</a>
+                    <a href="?page={{ tasks.paginator.num_pages }}&per_page={{ per_page }}">last »</a>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+{% endblock content %}
