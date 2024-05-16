@@ -176,6 +176,7 @@ class SearchView(MultiResponseFormatView):
         options["search_query"] = request.GET.get("query", "")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["feature_page"] = int(request.GET.get("feature_page", 1))
+        options["tab-params"] = request.GET.get("tab", None)
         return options
 
     def get(self, request, options, data, *args, **kwargs):
@@ -266,6 +267,21 @@ class SearchView(MultiResponseFormatView):
 
         facets = Search.experiment_facet_search()
 
+        if options["tab-params"] == "tab-effects":
+            tab_effects_selected = True
+        else:
+            tab_effects_selected = False
+
+        if options["tab-params"] is None or options["tab-params"] == "tab-summary":
+            tab_summary_selected = True
+        else:
+            tab_summary_selected = False
+
+        if options["tab-params"] == "tab-features":
+            tab_features_selected = True
+        else:
+            tab_features_selected = False
+
         return {
             "location": location,
             "region": location,
@@ -281,6 +297,9 @@ class SearchView(MultiResponseFormatView):
             "sig_reo_count_source": EXPERIMENT_SOURCES_TEXT,
             "sig_reo_count_gene": DNAFeatureType.GENE.value,
             "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
+            "tab_effects_selected": tab_effects_selected,
+            "tab_summary_selected": tab_summary_selected,
+            "tab_features_selected": tab_features_selected,
         }
 
 
