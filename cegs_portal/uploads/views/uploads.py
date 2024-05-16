@@ -66,11 +66,8 @@ def handle_upload(experiment_file, analysis_file, experiment_accession, task_sta
     task_status.start()
 
     if experiment_file is not None:
-        try:
-            expr_load(experiment_file, experiment_accession)
-        except Exception as e:
-            task_status.error(str(e))
-            raise
+        expr_load_error = handle_error(expr_load, task_status)
+        expr_load_error(experiment_file, experiment_accession)
 
         transaction.on_commit(
             handle_error(
@@ -79,11 +76,8 @@ def handle_upload(experiment_file, analysis_file, experiment_accession, task_sta
         )
 
     if analysis_file is not None:
-        try:
-            analysis_accession = an_load(analysis_file, experiment_accession)
-        except Exception as e:
-            task_status.error(str(e))
-            raise
+        an_load_error = handle_error(an_load, task_status)
+        analysis_accession = an_load_error(analysis_file, experiment_accession)
 
         ReoSourcesTargets.load_analysis(analysis_accession)
         ReoSourcesTargetsSigOnly.load_analysis(analysis_accession)
