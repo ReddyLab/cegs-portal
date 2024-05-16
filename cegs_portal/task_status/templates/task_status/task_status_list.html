@@ -9,7 +9,11 @@
             </thead>
             <tbody>
                 {% for task in tasks %}
-                <tr><td>{{ task.id }}</td><td>{{ task.get_status_display }}</td><td>{{ task.description }}</td><td>{{ task.created }}</td><td>{{ task.modified }}</td></tr>
+                <tr><td><a class="link" href="{% url 'task_status:task_status' task.id %}">{{ task.id }}</a></td><td>{% if task.status == "E" %}
+                    <span class="text-red-600">{{ task.get_status_display }}</span>
+                    {% else %}
+                    {{ task.get_status_display }}
+                    {% endif %}</td><td>{{ task.description }}</td><td>{{ task.created }}</td><td>{{ task.modified }}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
