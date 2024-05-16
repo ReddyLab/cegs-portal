@@ -25,7 +25,6 @@ def upload(request):
         form = UploadFileForm(request.POST, request.FILES)
 
         if form.is_valid():
-            print("VALID FORM")
             json_response = request.headers.get("accept") == JSON_MIME or request.POST.get("accept") == JSON_MIME
             experiment_accession = request.POST["experiment_accession"]
             experiment_data = None
