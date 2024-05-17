@@ -16,12 +16,12 @@
         background-color: rgb(255, 255, 255);
         border-radius: 10px;
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.25);
-        width: 600px;
+        width: 450px;
         background-color: #e3f2fd;
         margin: 5px;
         border: 1px solid #fff;
         color: rgba(41, 120, 177, 242);
-        height: 300px;
+        height: 200px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -66,9 +66,36 @@
         background-color: rgb(5, 26, 69);
     }
 
+    .card-form {
+        display: flex;
+        align-items: center;
+    }
+
+    .card-form input[type="text"] {
+        width: 300px;
+        padding: 5px 12px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 1px solid #d3d3d3;
+        color: black;
+    }
+
+    .card-form input[type="submit"] {
+        background-color: rgb(16, 52, 122);
+        padding: 5px 12px;
+        margin-left: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .card-form input[type="submit"]:hover {
+        background-color: rgb(5, 26, 69);
+    }
+
     .search-header {
         font-family: sans-serif;
-        font-size: 2rem;
+        font-size: 1.75rem;
         color: #b3650c;
         text-shadow: 2px 2px #e3f2fd;
         text-align: center;
@@ -88,13 +115,14 @@
 
     .svg-image {
         fill: currentColor;
-        height: 3em;
+        height: 2em;
     }
 
     .card-header{
-        font-size: 24px;
+        font-size: 18px;
         font-weight: bold;
         text-align: center;
+        margin-top: 5px;
     }
 
     .content-container-link:hover {
@@ -102,31 +130,28 @@
         color: inherit;
     }
 
-    .image-banner-container {
+    #masthead {
         background: #ffffff;
-        -webkit-box-shadow: 0px 1px 3px 2px 4px rgba(41, 120, 177, 242);
-        box-shadow: 0px 1px 3px 2px rgba(41, 120, 177, 242);
-        padding: 20px 30px;
+        -webkit-box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
+        box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
+        padding: 15px 15px;
+        margin-top: -10px;
         margin-bottom: 20px;
-        width: 150%;
-        margin-top: -222px;
+        width: calc(100% + 5rem); /* The container padding is 2.5rem on each side */
+        display: flex;
+        justify-content: center;
     }
-
-    .scale_down_element {
-        transform: scale(0.67);
-    }
-
 </style>
 {% endblock %}
 
 {% block title %}Home{% endblock %}
 
-{% block home_content %}
-    <div class="image-banner-container flex justify-center">
-        <img class="mb-4" src="{% static 'landing_page_ccgr_logo.png' %}" />
+{% block content %}
+    <div id="masthead">
+        <img width="632" height="82" src="{% static 'landing_page_ccgr_logo.png' %}" />
     </div>
 
-    <div class="mt-10 mb-10">
+    <div class="mt-5 mb-5">
         <div class="search-header"><i class="bi bi-binoculars"></i> Explore CCGR Assays</div>
         <div class="mb-8 text-center">
             <div class="search-examples-text">Enter chromosome ranges, Ensembl IDs, or gene names</div>
@@ -138,7 +163,7 @@
         </div>
     </div>
 
-    <div class="flex flex-row">
+    <div class="flex flex-row flex-wrap justify-center">
         <div class="search-container">
             <div class="flex flex-col items-center">
                 <div class="flex flex-row">
@@ -157,7 +182,7 @@
                 </div>
                 <div class="card-header">Discover regulatory effects for your favorite gene</div>
                 <p class="text-base">Search by gene symbol.</p>
-                <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
+                <form action="{% url 'search:results' %}" method="get" class="card-form text-white mt-2">
                     {{ gene_form }}
                     <input
                     type="submit"
@@ -166,10 +191,11 @@
                 </form>
             </div>
         </div>
+
         <div class="search-container">
                 <div class="flex flex-col items-center">
                     <div class="flex flex-row">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
                             <path d="M168 80c-13.3 0-24 10.7-24 24V408c0 8.4-1.4 16.5-4.1 24H440c13.3 0 24-10.7 24-24V104c0-13.3-10.7-24-24-24H168zM72 480c-39.8 0-72-32.2-72-72V112C0 98.7 10.7 88 24 88s24 10.7 24 24V408c0 13.3 10.7 24 24 24s24-10.7 24-24V104c0-39.8 32.2-72 72-72H440c39.8 0 72 32.2 72 72V408c0 39.8-32.2 72-72 72H72zM176 136c0-13.3 10.7-24 24-24h96c13.3 0 24 10.7 24 24v80c0 13.3-10.7 24-24 24H200c-13.3 0-24-10.7-24-24V136zm200-24h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zM200 272H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/>
                         </svg>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-image"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -179,7 +205,7 @@
                     <div class="card-header">Show results for a genomic region</div>
                     <p class="text-base">Search by region.</p>
                 </div>
-            <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
+            <form action="{% url 'search:results' %}" method="get" class="card-form text-white mt-2">
                 {{ location_form }}
                 <input
                     type="submit"
@@ -188,6 +214,7 @@
                 />
             </form>
         </div>
+
         <div class="search-container">
             <div class="flex flex-col items-center">
                 <div class="flex flex-row">
@@ -203,7 +230,7 @@
                 </div>
                 <div class="card-header">List regulatory effects in a genomic region</div>
                 <p class="text-base">Search by region.</p>
-                <form action="{% url 'search:results' %}" method="get" class="search-form search-tab text-white">
+                <form action="{% url 'search:results' %}" method="get" class="card-form text-white mt-2">
                     {{ location_form }}
                     <input type="hidden" name="tab" value="tab-effects">
                     <input
@@ -214,10 +241,9 @@
                 </form>
             </div>
         </div>
-    </div>
-    <div class="flex flex-row -mb-32">
-        <div class="search-container">
-            <a href="{% url 'search:experiments' %}" class="content-container-link">
+
+        <a href="{% url 'search:experiments' %}" class="content-container-link">
+            <div class="search-container">
                 <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5 card-header"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -231,11 +257,12 @@
                     </svg>
                 </div>
                 <div class="card-header">List Experiments</div>
-                <p class="text-base">Filter by assays, cell line, tissue type.</div>
-            </a>
-        </div>
-        <div class="search-container">
-            <a href="{% url 'search:experiments' %}s?exp=DCPEXPR00000002&exp=DCPEXPR00000004&exp=DCPEXPR00000007" class="content-container-link">
+                <p class="text-base text-center">Filter by assays, cell line, tissue type.</div>
+            </div>
+        </a>
+
+        <a href="{% url 'search:experiments' %}s?exp=DCPEXPR0000000002&exp=DCPEXPR0000000004&exp=DCPEXPR0000000007" class="content-container-link">
+            <div class="search-container">
                 <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image card-header">
@@ -252,27 +279,27 @@
                     </svg>
                 </div>
                 <div class="card-header">Compare results between experiments</div>
-                <p class="text-base">Select and analyze multiple experiments of your choice</p>
+                <p class="text-base text-center">Select and analyze multiple experiments of your choice</p>
                 </div>
-            </a>
-        </div>
-        <div class="search-container">
-            <a href="{% url 'search:experiments' %}/DCPEXPR00000004" class="content-container-link">
-                <div class="flex flex-col items-center">
-                <div class="flex flex-row">
-                    <i class="bi bi-layers-half text-8xl -mb-1.5"></i>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image">
-                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                        <path
-                            d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
-                        />
-                    </svg>
-                </div>
-                <div class="card-header">View the genomic coverage of an experiment</div>
-                <p class="text-base">Get an interactive view of data coverage on the genome</p>
-                </div>
-            </a>
-        </div>
-    </div>
+            </div>
+        </a>
 
+        <a href="{% url 'search:experiments' %}/DCPEXPR00000004" class="content-container-link">
+            <div class="search-container">
+                    <div class="flex flex-col items-center">
+                    <div class="flex flex-row">
+                        <i class="bi bi-layers-half text-5xl"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                            d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
+                            />
+                        </svg>
+                    </div>
+                    <div class="card-header">View an experiment's genomic coverage</div>
+                    <p class="text-base text-center">Get an interactive view of data coverage on the genome</p>
+                </div>
+            </div>
+        </a>
+    </div>
 {% endblock %}
