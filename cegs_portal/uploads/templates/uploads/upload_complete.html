@@ -3,7 +3,8 @@
 
 {% block content %}
 <div class="bg-white rounded-lg shadow p-6 space-y-4 md:space-y-6 sm:p-8">
-    <div class="form-header-text">Experiment data upload complete</div>
+    <div class="form-header-text">Experiment data upload underway!</div>
+    <div><a class="link" href="{% url 'task_status:task_status' task_status.id %}">Check the upload status</a></div>
     <div><a class="link" href="{% url 'uploads:upload' %}">Upload More Data</a></div>
 </div>
 {% endblock %}

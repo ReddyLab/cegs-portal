@@ -912,11 +912,11 @@ tr[data-href]:hover {
   padding: 8px;
 }
 
-.profile-table tr:nth-child(even) {
+.profile-table tbody tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-.profile-table tr:hover {
+.profile-table tbody tr:hover {
   background-color: #ddd;
 }
 
@@ -1775,6 +1775,11 @@ input[type="submit"], input[type="button"], button {
 .text-primary-600 {
   --tw-text-opacity: 1;
   color: rgb(48 97 175 / var(--tw-text-opacity));
+}
+
+.text-red-600 {
+  --tw-text-opacity: 1;
+  color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
 .text-red-700 {
