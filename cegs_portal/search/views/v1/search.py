@@ -267,20 +267,15 @@ class SearchView(MultiResponseFormatView):
 
         facets = Search.experiment_facet_search()
 
-        if options["tab-params"] == "tab-effects":
-            tab_effects_selected = True
-        else:
-            tab_effects_selected = False
-
-        if options["tab-params"] is None or options["tab-params"] == "tab-summary":
-            tab_summary_selected = True
-        else:
-            tab_summary_selected = False
-
-        if options["tab-params"] == "tab-features":
-            tab_features_selected = True
-        else:
-            tab_features_selected = False
+        match options["selected-tab"]:
+            case "tab-summary":
+                tab_summary_selected, tab_effects_selected, tab_features_selected = True, False, False
+            case "tab-effects":
+                tab_summary_selected, tab_effects_selected, tab_features_selected = False, True, False
+            case "tab-features":
+                tab_summary_selected, tab_effects_selected, tab_features_selected = False, False, True
+            case _:
+                tab_summary_selected, tab_effects_selected, tab_features_selected = True, False, False
 
         return {
             "location": location,
