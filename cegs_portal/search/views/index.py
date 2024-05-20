@@ -10,5 +10,5 @@ def index(request):
     return render(
         request,
         "search/index.html",
-        {"form": form, "gene_form": gene_form, "location_form": location_form, "page": {"title": "Home"}},
+        {"form": form, "gene_form": gene_form, "location_form": location_form},
     )
