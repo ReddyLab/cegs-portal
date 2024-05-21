@@ -255,8 +255,8 @@ def get_metadata(args: argparse.Namespace) -> list[Metadata]:
         metadata = [
             Metadata(
                 accession_id=args.accession,
-                experiment_path=args.experiment_file,
-                analysis_path=args.analysis_file,
+                experiment_path=args.ef,
+                analysis_path=args.af,
             )
         ]
     return metadata
@@ -284,8 +284,8 @@ def get_args():
 
     if getattr(ns, "file", None) is not None and (
         getattr(ns, "accession", None) is not None
-        or getattr(ns, "experiment_file", None) is not None
-        or getattr(ns, "analysis_file", None) is not None
+        or getattr(ns, "ef", None) is not None
+        or getattr(ns, "af", None) is not None
     ):
         parser.error("Bulk (-f) and Single (-a, --ef, --af) Uploads are mututally exclusive")
 
