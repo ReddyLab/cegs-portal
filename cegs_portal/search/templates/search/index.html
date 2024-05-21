@@ -12,11 +12,11 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 10px;
+        padding: 5px;
         background-color: rgb(255, 255, 255);
         border-radius: 10px;
         box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.25);
-        width: 450px;
+        width: 409px;
         background-color: #e3f2fd;
         margin: 5px;
         border: 1px solid #fff;
@@ -42,11 +42,12 @@
     .search-form {
         display: flex;
         align-items: center;
+        font-size: 14px;
     }
 
     .search-form input[type="text"] {
         width: 400px;
-        padding: 8px 16px;
+        padding: 4px 12px;
         box-sizing: border-box;
         border-radius: 10px;
         border: 1px solid #d3d3d3;
@@ -55,7 +56,7 @@
 
     .search-form input[type="submit"] {
         background-color: rgb(16, 52, 122);
-        padding: 8px 16px;
+        padding: 4px 12px;
         margin-left: 10px;
         border-radius: 10px;
         border: none;
@@ -69,6 +70,7 @@
     .card-form {
         display: flex;
         align-items: center;
+        font-size: 14px;
     }
 
     .card-form input[type="text"] {
@@ -83,7 +85,7 @@
     .card-form input[type="submit"] {
         background-color: rgb(16, 52, 122);
         padding: 5px 12px;
-        margin-left: 10px;
+        margin-left: 5px;
         border-radius: 10px;
         border: none;
         cursor: pointer;
@@ -95,7 +97,7 @@
 
     .search-header {
         font-family: sans-serif;
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         color: #b3650c;
         text-shadow: 2px 2px #e3f2fd;
         text-align: center;
@@ -119,7 +121,7 @@
     }
 
     .card-header{
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
         text-align: center;
         margin-top: 5px;
@@ -135,11 +137,15 @@
         -webkit-box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
         box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
         padding: 15px 15px;
-        margin-top: -10px;
+        margin-top: -30px;
         margin-bottom: 20px;
         width: calc(100% + 5rem); /* The container padding is 2.5rem on each side */
         display: flex;
         justify-content: center;
+    }
+
+    #card-container {
+        width: min(calc(100% + 5rem), 1380px)
     }
 </style>
 {% endblock %}
@@ -163,7 +169,7 @@
         </div>
     </div>
 
-    <div class="flex flex-row flex-wrap justify-center">
+    <div class="flex flex-row flex-wrap justify-center" id="card-container">
         <div class="search-container">
             <div class="flex flex-col items-center">
                 <div class="flex flex-row">
