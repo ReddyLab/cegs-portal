@@ -105,6 +105,10 @@ class UploadSession:
                 "experiment_accession": metadatum.accession_id,
             }
             files = {}
+
+            #
+            # Add the experiment and analysis metadata to the request as appropriate
+            #
             if metadatum.experiment_metadata_file is not None:
                 if isinstance(metadatum.experiment_metadata_file, str):
                     files["experiment_file"] = open(metadatum.experiment_metadata_file, encoding="utf-8")
@@ -121,6 +125,9 @@ class UploadSession:
                 if isinstance(metadatum.analysis_metadata_url, str):
                     data["analysis_url"] = metadatum.analysis_metadata_url
 
+            #
+            # Upload the metadata
+            #
             upload = self.session.post(
                 self.upload_url,
                 data=data,
@@ -137,6 +144,9 @@ class UploadSession:
             if (file := files.get("analysis_file")) is not None:
                 file.close()
 
+            #
+            # Check the status until the upload is finished or errors out
+            #
             statuses = set()
             while True:
                 status_result = self.session.get(f"{self.status_url}{task_status_id}", params={"accept": JSON_MIME})
@@ -186,7 +196,7 @@ def next_accession(accession: str) -> str:
 
 # TSV of metadata:
 #
-# Accession ID  experiment metadata analysis metadata
+# Accession ID\texperiment metadata\tanalysis metadata
 #
 # If an accession id is not set, use the previous accession id + 1
 # Skip blank lines
@@ -199,17 +209,22 @@ def read_metadata_list(metadata_file: str) -> list[Metadata]:
     with open(metadata_file, encoding="utf-8") as metadata_tsv:
         reader = csv.reader(metadata_tsv, delimiter="\t")
         for row in reader:
+            # Skip if the row doesn't have the right number of columns
             try:
                 accession, experiment_path, analysis_path = row
             except ValueError:
                 continue
 
+            # skip if the row is blank, minus the tabs
             if accession == experiment_path == analysis_path == "":
                 continue
 
+            # skip if the row is commented out
             if accession.startswith("#"):
                 continue
 
+            # If the row doesn't define an accession ID figure out what
+            # it should be
             if accession in ["", None]:
                 assert prev_accession is not None
                 accession = next_accession(prev_accession)
