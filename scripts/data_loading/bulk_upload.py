@@ -82,6 +82,11 @@ class UploadSession:
         self._check_response_status(r)
         self.csrf_token = r.cookies["csrftoken"]
 
+    def _get_upload_csrf(self):
+        r = self.session.get(self.upload_url)
+        self._check_response_status(r)
+        self.csrf_token = r.cookies["csrftoken"]
+
     def login(self, username, password):
         self._get_login_csrf()
         login = self.session.post(
@@ -94,10 +99,10 @@ class UploadSession:
             headers={"Referer": self.login_url},
         )
         self._check_response_status(login)
-        self.csrf_token = login.cookies["csrftoken"]
 
     def upload(self, metadata: list[Metadata]):
         for metadatum in metadata:
+            self._get_upload_csrf()
             print(f"Uploading {metadatum}")
             data = {
                 "csrfmiddlewaretoken": self.csrf_token,
