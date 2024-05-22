@@ -57,7 +57,6 @@ class UploadSession:
     login_url: URLString
     upload_url: URLString
     status_url: URLString
-    csrf_token: CSRFToken
 
     def __init__(self, hostname):
         self.hostname = hostname
@@ -77,22 +76,22 @@ class UploadSession:
         if not response.ok:
             raise RuntimeError(f"Bad Response Code: {response.status_code} ({response.request.method} {response.url})")
 
-    def _get_login_csrf(self):
+    def _get_login_csrf(self) -> CSRFToken:
         r = self.session.get(self.login_url)
         self._check_response_status(r)
-        self.csrf_token = r.cookies["csrftoken"]
+        return r.cookies["csrftoken"]
 
-    def _get_upload_csrf(self):
+    def _get_upload_csrf(self) -> CSRFToken:
         r = self.session.get(self.upload_url)
         self._check_response_status(r)
-        self.csrf_token = r.cookies["csrftoken"]
+        return r.cookies["csrftoken"]
 
     def login(self, username, password):
-        self._get_login_csrf()
+        csrf_token = self._get_login_csrf()
         login = self.session.post(
             self.login_url,
             data={
-                "csrfmiddlewaretoken": self.csrf_token,
+                "csrfmiddlewaretoken": csrf_token,
                 "login": username,
                 "password": password,
             },
@@ -102,10 +101,10 @@ class UploadSession:
 
     def upload(self, metadata: list[Metadata]):
         for metadatum in metadata:
-            self._get_upload_csrf()
+            csrf_token = self._get_upload_csrf()
             print(f"Uploading {metadatum}")
             data = {
-                "csrfmiddlewaretoken": self.csrf_token,
+                "csrfmiddlewaretoken": csrf_token,
                 "accept": JSON_MIME,
                 "experiment_accession": metadatum.accession_id,
             }
@@ -177,9 +176,7 @@ class UploadSession:
                     case "F" | "E":
                         break
                     case _:
-                        pass
-
-                time.sleep(3)
+                        time.sleep(3)
 
 
 def full_hostname(hostname: str) -> URLString:
