@@ -1,7 +1,7 @@
 {% load custom_helpers %}
 
 <table class="data-table no-hover">
-    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
     {% for regeffects in sig_reg_effects %}
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         {% for regeffect in regeffects %}

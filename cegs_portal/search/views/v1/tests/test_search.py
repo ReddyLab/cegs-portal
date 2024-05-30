@@ -585,7 +585,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
 
 
 <table class="data-table no-hover">
-    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
 
 
 
