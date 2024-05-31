@@ -41,8 +41,8 @@
 <div class="pagination">
     <span class="step-links">
         {% if sig_reg_effects.has_previous %}
-            <a href="?{{ content_query }}&page=1" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page=1" hx-target="#feature-sig-reg-effects">&laquo; first</a>
-            <a href="?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature-sig-reg-effects">previous</a>
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&page=1" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page=1" hx-target="#feature-sig-reg-effects">&laquo; first</a>
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature-sig-reg-effects">previous</a>
         {% endif %}
 
         <span class="current">
@@ -50,8 +50,8 @@
         </span>
 
         {% if sig_reg_effects.has_next %}
-            <a href="?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature-sig-reg-effects">next</a>
-            <a href="?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature-sig-reg-effects">last &raquo;</a>
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature-sig-reg-effects">next</a>
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature-sig-reg-effects">last &raquo;</a>
         {% endif %}
     </span>
 </div>
