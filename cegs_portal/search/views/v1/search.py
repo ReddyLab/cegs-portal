@@ -437,7 +437,7 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
     Show significant REOs associated with one or more DNA Feature types in a given area.
     """
 
-    template = "search/v1/partials/_feature_sig_reg_effects.html"
+    template = "search/v1/partials/_feature_sig_reg_effects_modal.html"
     tsv_renderer = sr
 
     def request_options(self, request):
@@ -472,20 +472,30 @@ class FeatureSignificantREOsView(MultiResponseFormatView):
         return options
 
     def get(self, request, options, data):
-        if "HX-Target" in request.headers and request.headers["HX-Target"] == "feature_sigreo-table":
-            sig_reos_paginator = Paginator(data, options["per_page"])
-            sig_reos_page = sig_reos_paginator.get_page(options["page"])
+        sig_reos_paginator = Paginator(data, options["per_page"])
+        sig_reos_page = sig_reos_paginator.get_page(options["page"])
 
+        features = "".join(f"&feature_type={feature}" for feature in options["features"])
+        facets = "".join(f"&facet={facet}" for facet in options["facets"])
+        content_query = f"region={request.GET['region']}&assembly={options['assembly']}{features}{facets}"
+        if "HX-Target" in request.headers and request.headers["HX-Target"] == "feature_sigreo-table":
             return render(
                 request,
                 "search/v1/partials/_feature_sig_reg_effects_table.html",
-                {"sig_reg_effects": sig_reos_page, "region": request.GET["region"], "features": options["features"]},
+                {"sig_reg_effects": sig_reos_page, "content_query": content_query},
+            )
+
+        if "HX-Target" in request.headers and request.headers["HX-Target"] == "feature-sig-reg-effects":
+            return render(
+                request,
+                "search/v1/partials/_feature_sig_reg_effects_content.html",
+                {"sig_reg_effects": sig_reos_page, "content_query": content_query},
             )
 
         return super().get(
             request,
             options,
-            {"sig_reg_effects": data, "region": request.GET["region"], "features": options["features"]},
+            {"sig_reg_effects": sig_reos_page, "content_query": content_query},
         )
 
     def get_tsv(self, request, options, data):
