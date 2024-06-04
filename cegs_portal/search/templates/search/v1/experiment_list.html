@@ -110,7 +110,6 @@
                 <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
                 <div id="selected-experiment-list"></div>
             </div>
-            {% switch "multi_expr_page" %}
             <div class="container" id="view-experiments">
                 <div class="flex justify-center items-center">
                     <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
@@ -118,7 +117,6 @@
                 <div class="title-separator"></div>
                 <div class="italic flex justify-center" id="experiments-link">Please select at least one experiment.</div>
             </div>
-            {% endswitch %}
             {% if logged_in %}
             <div class="container">
                 <div class="flex justify-center items-center">
