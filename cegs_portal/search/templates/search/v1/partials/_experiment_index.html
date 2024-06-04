@@ -1,0 +1,130 @@
+{% load static i18n %}
+{% block css %}
+<style>
+    .exp-list-content-container-link:hover .container {
+        transform: scale(1.02);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .exp-list-content-container-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        margin-right: 1rem;
+    }
+
+    .accession-id {
+        color: #6e7e98;
+        margin-top: 0.6rem;
+    }
+
+    .exp-name {
+        color: #3490dc;
+        font-weight: bold;
+    }
+
+    .expr-list-link {
+        color: #3490dc;
+        font-style: normal;
+    }
+
+    .expr-list-link:visited {
+        color: #3490dc;
+        font-style: normal;
+    }
+
+    .cell-lines {
+        font-style: italic;
+        color: #718096;
+        margin-top: 0.5rem;
+    }
+
+    a.exp-list-content-container-link:hover {
+        color: inherit;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="modal">
+<div class="modal-underlay" onclick="closeModal()"></div>
+<div class="container modal-content">
+    <div class="close-button" onclick="closeModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+    </svg>
+    </div>
+    <div class="scroll-area">
+    <div class="flex gap-x-10 items-start">
+        <div class="flex flex-col basis-1/4">
+            <div class="container">
+                <div class="flex justify-center items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
+                        <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                    </svg>
+                    <div class="text-xl font-bold text-slate-500">Experiment Filters</div>
+                </div>
+                <div id="categorical-facets">
+                    {% for facet, values in facets.items %}
+                    <fieldset class="my-4" name="facetfield">
+                        <legend class="font-bold">{{ facet }}</legend>
+                        <div class="flex flex-row flex-wrap gap-1">
+                            {% for value in values %}
+                                <div class="ml-1">
+                                    <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
+                                    <label for="{{ value.id }}">{{ value.value }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="experiment-list" class="basis-3/4">
+            {% for experiment in experiments %}
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
+                <div class="container items-center">
+                    <div class="flex justify-between">
+                        <div class="exp-name">{{ experiment.name }}</div>
+                        <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+                    </div>
+                    <div>{{ experiment.description }}</div>
+                    <div class="flex justify-between">
+                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                        <div class="accession-id">{{ experiment.accession_id }}</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block inline_javascript %}
+<script type="module">
+    import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
+</script>
+<script>
+    function closeModal() {
+        let modal = document.getElementById("modal");
+        modal.classList.add("closing") // Kicks off an animation on the modal dialog
+        modal.addEventListener("animationend", (event) => {
+            modal.remove(); // remove the dialog from the DOM once the animation is over
+        })
+    }
+</script>
+{% endblock %}
