@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load waffle_tags %}
 {% load static i18n %}
 
 {% block css %}
@@ -14,7 +15,7 @@
 <!-- This CSS modifies the range slider look -->
 <style>
       /***** MODAL DIALOG ****/
-      #modal {
+      #exp-modal {
         /* Underlay covers entire screen. */
         position: fixed;
         top: 0px;
@@ -35,7 +36,7 @@
         animation-timing-function: ease;
     }
 
-    #modal > .modal-underlay {
+    #exp-modal > .exp-modal-underlay {
         /* underlay takes up the entire viewport. This is only
         required if you want to click to dismiss the popup */
         position: absolute;
@@ -46,13 +47,13 @@
         right: 0px;
     }
 
-    #modal > .modal-content {
+    #exp-modal > .exp-modal-content {
         /* Position visible dialog near the top of the window */
         margin-top: 10vh;
 
         /* Sizing for visible dialog */
-        width: 80%;
-        max-height: 80%;
+        width: 85%;
+        max-height: 85%;
 
         /* Display properties for visible dialog*/
         border: solid 1px #999;
@@ -71,24 +72,40 @@
         display:inline-block;
     }
 
-    #modal .scroll-bounds {
+    .exp-modal-button {
+        margin-left: 5px;
+        background-color: white !important;
+        margin-bottom: 10px;
+        color: rgb(71 85 105)
+    }
+
+    .exp-modal-button:hover {
+        background-color: rgb(219, 220, 222) !important;
+    }
+
+    #exp-modal .scroll-bounds {
         margin-bottom: 20px;
     }
 
-    #modal .scroll-area {
-        overflow-y: auto;
-        max-height: 95%;
-        margin-bottom: 20px
+    #exp-modal .scroll-area {
+        overflow-y: scroll;
+        max-height: 80%;
+        margin-bottom: 20px;
+        margin-top: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 20px;
+
     }
 
-    #modal.closing {
+    #exp-modal.closing {
         /* Animate when closing */
         animation-name: fadeOut;
         animation-duration: 150ms;
         animation-timing-function: ease;
     }
 
-    #modal.closing > .modal-content {
+    #exp-modal.closing > .exp-modal-content {
         /* Animate when closing */
         animation-name: zoomOut;
         animation-duration: 150ms;
@@ -155,6 +172,55 @@
          background-color: rgb(229 231 235) !important;
     }
 
+    .exp-list-content-container-link:hover .container {
+        transform: scale(1.02);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .exp-list-content-container-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        margin-right: 1rem;
+    }
+
+    .accession-id {
+        color: #6e7e98;
+        margin-top: 0.6rem;
+    }
+
+    .exp-name {
+        color: #3490dc;
+        font-weight: bold;
+    }
+
+    .expr-list-link {
+        color: #3490dc;
+        font-style: normal;
+    }
+
+    .expr-list-link:visited {
+        color: #3490dc;
+        font-style: normal;
+    }
+
+    .cell-lines {
+        font-style: italic;
+        color: #718096;
+        margin-top: 0.5rem;
+    }
+
+    a.exp-list-content-container-link:hover {
+        color: inherit;
+    }
+
 </style>
 {% endblock %}
 
@@ -171,7 +237,7 @@
 
 {% block content %}
 <div class="flex flex-column justify-center min-w-full" style="position: relative;">
-    <div class="global-button mt-3 border-2 p-2" style="font-weight: bold; color: rgb(71 85 105); position: absolute; left: 0; margin-top: 45px; margin-left: -20px;" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
+    <div class="exp-modal-button mt-3 border-2 p-2" style="font-weight: bold; position: absolute; left: 0; margin-top: 45px; margin-left: -25px;" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
         <div class="flex flex-column items-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
             <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>
@@ -903,7 +969,7 @@
 
 <script>
     function closeModal() {
-        let modal = document.getElementById("modal");
+        let modal = document.getElementById("exp-modal");
         modal.classList.add("closing") // Kicks off an animation on the modal dialog
         modal.addEventListener("animationend", (event) => {
             modal.remove(); // remove the dialog from the DOM once the animation is over
