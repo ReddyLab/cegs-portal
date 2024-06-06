@@ -15,7 +15,7 @@
 <!-- This CSS modifies the range slider look -->
 <style>
       /***** MODAL DIALOG ****/
-      #exp-modal {
+    #exp-modal {
         /* Underlay covers entire screen. */
         position: fixed;
         top: 0px;
@@ -81,6 +81,7 @@
 
     .exp-modal-button:hover {
         background-color: rgb(219, 220, 222) !important;
+        border-color: white;
     }
 
     #exp-modal .scroll-bounds {
@@ -172,55 +173,6 @@
          background-color: rgb(229 231 235) !important;
     }
 
-    .exp-list-content-container-link:hover .container {
-        transform: scale(1.02);
-        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
-    }
-
-    .exp-list-content-container-link {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .icon-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 3rem;
-        height: 3rem;
-        margin-right: 1rem;
-    }
-
-    .accession-id {
-        color: #6e7e98;
-        margin-top: 0.6rem;
-    }
-
-    .exp-name {
-        color: #3490dc;
-        font-weight: bold;
-    }
-
-    .expr-list-link {
-        color: #3490dc;
-        font-style: normal;
-    }
-
-    .expr-list-link:visited {
-        color: #3490dc;
-        font-style: normal;
-    }
-
-    .cell-lines {
-        font-style: italic;
-        color: #718096;
-        margin-top: 0.5rem;
-    }
-
-    a.exp-list-content-container-link:hover {
-        color: inherit;
-    }
-
 </style>
 {% endblock %}
 
@@ -237,13 +189,13 @@
 
 {% block content %}
 <div class="flex flex-column justify-center min-w-full" style="position: relative;">
-    <div class="exp-modal-button mt-3 border-2 p-2" style="font-weight: bold; position: absolute; left: 0; margin-top: 45px; margin-left: -25px;" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
+    <button class="exp-modal-button mt-3 border-2 p-2" style="font-weight: bold; position: absolute; left: 0; margin-top: 45px; margin-left: -25px;" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
         <div class="flex flex-column items-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-            <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>
+            <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
             </svg>Change Experiment
         </div>
-    </div>
+    </button>
     <div id="modal-container">
     </div>
     </div>
