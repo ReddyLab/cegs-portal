@@ -73,14 +73,17 @@
     }
 
     .exp-modal-button {
-        margin-left: 5px;
         background-color: white !important;
+        color: rgb(71 85 105);
+        font-weight: bold;
+        position: absolute; left: 0;
         margin-bottom: 10px;
-        color: rgb(71 85 105)
+        margin-top: 45px;
+        margin-left: -20px;
     }
 
     .exp-modal-button:hover {
-        background-color: rgb(219, 220, 222) !important;
+        background-color: rgb(229 231 235) !important;
         border-color: white;
     }
 
@@ -188,8 +191,8 @@
 {% block title %}Experiment{% endblock %}
 
 {% block content %}
-<div class="flex flex-column justify-center min-w-full" style="position: relative;">
-    <button class="exp-modal-button mt-3 border-2 p-2" style="font-weight: bold; position: absolute; left: 0; margin-top: 45px; margin-left: -25px;" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
+<div class="flex flex-column justify-center min-w-full relative">
+    <button class="exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
         <div class="flex flex-column items-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
             <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
@@ -221,19 +224,19 @@
             <tbody>
                 <tr class="bg-gray-100 border-b">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.experiment_type }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.cell_lines|join:", " }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.tissue_types|join:", " }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.assemblies|join:", " }}
                     </td>
                 </tr>
@@ -330,7 +333,7 @@
                 <div class="facet-content-section container">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
-                        ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
+                        ><span class="bi bi-layers-half ml-2"></span>
                     </div>
                     <div class="title-separator"></div>
                     <div id="chrom-data-categorical-facets"></div>
