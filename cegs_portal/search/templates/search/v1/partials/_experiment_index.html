@@ -1,6 +1,5 @@
 {% load static i18n %}
 
-{% block content %}
 <div id="exp-modal">
 <div class="exp-modal-underlay" onclick="closeModal()"></div>
 <div class="container exp-modal-content">
@@ -58,34 +57,11 @@
 </div>
 </div>
 
-{% endblock %}
-
 {% block inline_javascript %}
 <script type="module">
     import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
-</script>
-<script>
-    function closeModal() {
-        let modal = document.getElementById("exp-modal");
-        modal.classList.add("closing") // Kicks off an animation on the modal dialog
-        modal.addEventListener("animationend", (event) => {
-            modal.remove(); // remove the dialog from the DOM once the animation is over
-        })
-    }
-</script>
-<script type="module">
-    import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
-    import { addDragListeners, addDropListeners, addSelectListeners } from "{% static 'search/js/experiment_list/drag_drop.js' %}";
+    import { addSelectListeners } from "{% static 'search/js/experiment_list/drag_drop.js' %}";
     facetFilterSetup();
-    addDropListeners();
-    addDragListeners();
     addSelectListeners();
 </script>
-
-{% if logged_in %}
-<script type="module">
-    import { downloadDataSetup } from "{% static 'search/js/experiment_list/download_data.js' %}";
-    downloadDataSetup("{{ csrf_token }}");
-</script>
-{% endif %}
 {% endblock %}
