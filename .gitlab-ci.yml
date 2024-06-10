@@ -68,10 +68,9 @@ build-prod:
       alias: postgres
   before_script:
     - cd /app
-    - python manage.py collectstatic
-    - python manage.py migrate
+    - python manage.py collectstatic -i "*.ecd" -i "*.fd"
   script:
-    - pytest
+    - pytest --create-db
   retry:
     max: 2
     when: runner_system_failure

@@ -49,7 +49,7 @@ def facets():
     _ = FacetValueFactory(facet=promoter_facet, value=PromoterType.NON_PROMOTER.value)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def ccres():
     _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(100, 200))
     _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(300, 400))
@@ -57,8 +57,18 @@ def ccres():
     _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(700, 800))
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def gene():
     _ = DNAFeatureFactory(
         feature_type=DNAFeatureType.GENE, chrom_name="chr1", location=NumericRange(1000, 2000), strand="+"
     )
+
+
+@pytest.fixture(autouse=True)
+def cleanup_gen_features():
+    yield
+    for feature in DNAFeature.objects.exclude(feature_type__in=[DNAFeatureType.CCRE, DNAFeatureType.GENE]).all():
+        feature.delete()
+
+    for ccre in DNAFeature.objects.filter(feature_type=DNAFeatureType.CCRE, misc__pseudo=True).all():
+        ccre.delete()

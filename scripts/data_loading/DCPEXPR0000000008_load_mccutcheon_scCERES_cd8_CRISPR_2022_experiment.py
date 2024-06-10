@@ -3,6 +3,13 @@ import csv
 from utils.experiment import ExperimentMetadata
 
 from .load_experiment import Experiment, FeatureRow
+from .types import (
+    ChromosomeStrands,
+    FeatureType,
+    GenomeAssembly,
+    GrnaFacet,
+    RangeBounds,
+)
 
 # These gene names appear in the data and have a "version" ("".1") in a few instances.
 # We don't know why. It's safe to remove the version for processing though.
@@ -57,35 +64,35 @@ def get_features(experiment_metadata: ExperimentMetadata):
             new_dhss[dhs_name] = FeatureRow(
                 name=dhs_name,
                 chrom_name=dhs_chrom_name,
-                location=(int(dhs_start), int(dhs_end), "[)"),
-                genome_assembly=dhs_file.genome_assembly,
+                location=(int(dhs_start), int(dhs_end), RangeBounds.HALF_OPEN_RIGHT),
+                genome_assembly=GenomeAssembly(dhs_file.genome_assembly),
                 cell_line=dhs_cell_line,
-                feature_type="DHS",
+                feature_type=FeatureType.DHS,
             )
 
         dhs_row = new_dhss[dhs_name]
 
         grna_id = line["grna"]
         if grna_id not in new_grnas:
-            strand = line["Strand"]
+            strand = ChromosomeStrands(line["Strand"])
             chrom_name = line["chr"]
             grna_start = int(line["start"])
             grna_end = int(line["end"])
 
-            if strand == "+":
-                bounds = "[)"
-            elif strand == "-":
-                bounds = "(]"
+            if strand == ChromosomeStrands.POSITIVE:
+                bounds = RangeBounds.HALF_OPEN_RIGHT
+            elif strand == ChromosomeStrands.NEGATIVE:
+                bounds = RangeBounds.HALF_OPEN_LEFT
 
             new_grnas[grna_id] = FeatureRow(
                 name=grna_id,
                 chrom_name=chrom_name,
-                location=(int(grna_start), int(grna_end), bounds),
+                location=(grna_start, grna_end, bounds),
                 strand=strand,
-                genome_assembly=grna_file.genome_assembly,
+                genome_assembly=GenomeAssembly(grna_file.genome_assembly),
                 cell_line=grna_cell_line,
-                feature_type="gRNA",
-                facets=["Targeting"],
+                feature_type=FeatureType.GRNA,
+                facets=[GrnaFacet.TARGETING],
                 parent_name=dhs_row.name,
                 misc={"grna": grna_id},
             )

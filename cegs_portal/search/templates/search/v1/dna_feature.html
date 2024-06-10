@@ -34,7 +34,7 @@
                         <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
                     </a>
                 {% endif %}
-                <select class="search-button mt-3 border-2 p-2 text-sm" id="dropdown">
+                <select class="global-button mt-3 border-2 p-2 text-sm" id="dropdown">
                     {% for assembly in all_assemblies %}
                         <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
                     {% endfor %}
@@ -48,31 +48,33 @@
     </div>
     <div class="container min-w-full">
         <table class="profile-table">
-            <tr>
-                <th>DNA Feature Aliases</th>
-                <th>Location</th>
-                <th>Strand</th>
-                <th>Reference Genome</th>
-                <th>Feature Type</th>
-            {% if feature.feature_subtype %}
-                <th>Feature Subtype</th>
-            {% endif %}
-            </tr>
-            <tr>
-                <td>{{ feature.name|default:feature.accession_id }}</td>
-                <td>
-                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                        <span>{{ feature.chrom_name }}</span>:
-                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}</span>
-                    </a>
-                </td>
-                <td>{{ feature.strand }}</td>
-                <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
-                <td>{{ feature.get_feature_type_display }}</td>
+            <thead>
+                <tr>
+                    <th>DNA Feature Aliases</th>
+                    <th>Location</th>
+                    <th>Reference Genome</th>
+                    <th>Feature Type</th>
                 {% if feature.feature_subtype %}
-                <td>{{ feature.feature_subtype|remove_underscores }}</td>
+                    <th>Feature Subtype</th>
                 {% endif %}
-            </tr>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ feature.name|default:feature.accession_id }}</td>
+                    <td>
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span>{{ feature.chrom_name }}</span>:
+                            <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
+                        </a>
+                    </td>
+                    <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ feature.get_feature_type_display }}</td>
+                    {% if feature.feature_subtype %}
+                    <td>{{ feature.feature_subtype|remove_underscores }}</td>
+                    {% endif %}
+                </tr>
+            </tbody>
         </table>
     </div>
 
@@ -196,20 +198,18 @@
 
             {% if not sources and not targets %}
             <div class="container min-w-full">
-                <div class="table-title" style="display: flex; align-items: center; justify-content: center">
+                <div class="table-title">
                     No Regulatory Effect Observations Found
                 </div>
             </div>
             {% endif %}
             {% if sources %}
-            <div class="container min-w-full" id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
-                {% include "search/v1/partials/_reg_effect.html" with regeffects=regeffects feature=feature %}
+            <div id="reg-table" hx-get="{% url 'search:source_effects' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
 
             {% if targets %}
-            <div class="container min-w-full" id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
-                {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
+            <div id="target-table" hx-get="{% url 'search:target_effects' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
         </div>
@@ -223,8 +223,7 @@
             aria-labelledby="tabs-nearest-reo-tab"
         >
             {% if reos %}
-            <div class="mb-8" id="non-target-table">
-                {% include "search/v1/partials/_non_targeting_reo.html" with feature=feature non_targeting_reos=reos %}
+            <div class="mb-8" id="non-target-table" hx-get="{% url 'search:non_target_reo' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
         </div>
@@ -240,8 +239,8 @@
             {% if feature.closest_features.exists %}
             <div class="container min-w-full">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                <div class="table-title table-container-header">
+                    <div class="table-container-title">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1">
                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                         <path
@@ -259,29 +258,29 @@
                 <div class="title-separator"></div>
                 <table class="data-table">
                     <tr>
-                        <th class="chrom-first-end-cap chrom-light-band">Accession ID</th>
-                        <th class="chrom-dark-band">Type</th>
-                        <th class="chrom-light-band">Cell Line</th>
-                        <th class="chrom-light-band chrom-right-centromere">Location</th>
-                        <th class="chrom-light-band chrom-left-centromere">Strand</th>
-                        <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
+                        <th class="chrom-first-end-cap chrom-dark-band">Type</th>
+                        <th class="chrom-light-band chrom-right-centromere  ">Cell Line</th>
+                        <th class="chrom-left-centromere chrom-light-band">Location</th>
+                        <th class="chrom-last-end-cap chrom-light-band">Feature Details</th>
                     </tr>
             {% endif %}
 
             {% if feature.closest_features.exists %}
                 {% for close_feature in feature.closest_features.all %}
                     <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
-                        <td>
-                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">{{ close_feature.accession_id }}</a>
-                        </td>
                         <td>{{ close_feature.get_feature_type_display }}</td>
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
                         <td>
                             <span>{{ close_feature.chrom_name }}</span>:
-                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}</span>
+                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}:{{ close_feature.strand|if_strand }}</span>
                         </td>
-                        <td>{{ close_feature.strand|default:"N/A" }}</td>
-                        <td>{{ close_feature.ref_genome }}.{{ close_feature.ref_genome_patch|default:"0" }}</td>
+                        <td>
+                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                            </svg>
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% endif %}
@@ -299,8 +298,8 @@
         >
             <div class="container centered-container min-w-full">
                 <a name="near_features"></a>
-                <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+                <div class="table-title table-container-header">
+                    <div class="table-container-title">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                             <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
@@ -328,7 +327,7 @@
                     <input type="text" name="dist" value="1000" />
                     <input
                         type="submit"
-                        class="search-button border-2 border-gray-300 h-10 text-sm"
+                        class="global-button border-2 border-gray-300 h-10 text-sm"
                         value="Find Features"
                     />
                     <i class='fas fa-spinner fa-spin htmx-indicator' id="spinner"></i>
@@ -350,31 +349,31 @@
             <div class="mb-8 min-w-full">
                 <div class="container">
                     <a name="children-{{ feature.accession_id }}"></a>
-                    <div class="table-title" style="display: flex; align-items: center; justify-content: center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="30"
-                            height="30"
-                            fill="currentColor"
-                            class="bi bi-diagram-3-fill svg-icon ml-2 w-7 h-7"
-                            viewBox="0 0 16 16"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"
-                            />
-                        </svg>
-                        {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
+                    <div class="table-title table-container-header">
+                        <div class="table-container-title">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="30"
+                                height="30"
+                                fill="currentColor"
+                                class="bi bi-diagram-3-fill svg-icon mr-2 w-7 h-7"
+                                viewBox="0 0 16 16"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1z"
+                                />
+                            </svg>
+                            {{ feature.children.first.get_feature_type_display|upper|add:"S" }}
+                        </div>
                     </div>
                     <div class="title-separator"></div>
                     <table class="data-table">
                         <tr>
                             <th class="chrom-first-end-cap chrom-light-band">ENSEMBL ID</th>
                             <th class="chrom-dark-band">Type</th>
-                            <th class="chrom-light-band">Symbol</th>
-                            <th class="chrom-light-band chrom-right-centromere">Location</th>
-                            <th class="chrom-light-band chrom-left-centromere">Strand</th>
-                            <th class="chrom-last-end-cap chrom-dark-band">Reference Genome</th>
+                            <th class="chrom-light-band chrom-right-centromere">Symbol</th>
+                            <th class="chrom-last-end-cap chrom-light-band chrom-left-centromere">Location</th>
                         </tr>
             {% endif %}
             {% if feature.children.exists %}
@@ -386,10 +385,8 @@
                             <td>
                                 <span>{{ child.chrom_name }}</span>:
                                 <span
-                                    >{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}</span>
+                                    >{{ child.location.lower|intcomma }} - {{ child.location.upper|add:"-1"|intcomma }}:{{ child.strand|if_strand }}</span>
                             </td>
-                            <td>{{ child.strand }}</td>
-                            <td>{{ child.ref_genome }}.{{ child.ref_genome_patch|default:"0" }}</td>
                         </tr>
                         {% endfor %}
             {% endif %}

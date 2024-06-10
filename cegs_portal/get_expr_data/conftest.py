@@ -15,10 +15,7 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
-from cegs_portal.search.models.tests.experiment_factory import (
-    ExperimentDataFileInfoFactory,
-    ExperimentFactory,
-)
+from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
 from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
     FacetValueFactory,
@@ -42,8 +39,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     nonsig_facet = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
     experiment = ExperimentFactory(accession_id="DCPEXPR0000000002")
     analysis = experiment.analyses.first()
-    experiment_file_info = ExperimentDataFileInfoFactory()
-    _analysis_file = FileFactory(analysis=analysis, data_file_info=experiment_file_info)  # noqa: F841
+    _analysis_file = FileFactory(analysis=analysis)  # noqa: F841
 
     sources = (
         DNAFeatureFactory(
@@ -70,6 +66,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
     )
     for source in sources:
         source.save()
+
     effect_source = RegEffectFactory(
         sources=sources,
         public=public,
@@ -78,31 +75,6 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         experiment_accession=experiment,
         analysis=analysis,
         facet_values=[enriched_facet],
-    )
-
-    effect_target = RegEffectFactory(
-        targets=(
-            DNAFeatureFactory(
-                chrom_name="chr1",
-                name="LNLC-1",
-                ensembl_id="ENSG01124619313",
-                location=NumericRange(35_000, 40_000),
-                experiment_accession=None,
-                feature_type=DNAFeatureType.GENE,
-            ),
-        ),
-        facet_num_values={
-            RegulatoryEffectObservation.Facet.EFFECT_SIZE.value: 2.0760384670056446,
-            RegulatoryEffectObservation.Facet.RAW_P_VALUE.value: 7.19229500470051e-06,
-            RegulatoryEffectObservation.Facet.SIGNIFICANCE.value: 0.057767530629869,
-            RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value: 1.2383161967,
-        },
-        public=public,
-        archived=archived,
-        experiment=experiment,
-        experiment_accession=experiment,
-        analysis=analysis,
-        facet_values=[depleted_facet],
     )
 
     effect_both = RegEffectFactory(
@@ -137,10 +109,10 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         analysis=analysis,
         facet_values=[nonsig_facet],
     )
-    ReoSourcesTargets.refresh_view()
-    ReoSourcesTargetsSigOnly.refresh_view()
+    ReoSourcesTargets.load_analysis(analysis.accession_id)
+    ReoSourcesTargetsSigOnly.load_analysis(analysis.accession_id)
 
-    return (effect_source, effect_target, effect_both, enriched_facet, depleted_facet, nonsig_facet, experiment)
+    return (effect_source, effect_both, enriched_facet, depleted_facet, nonsig_facet, experiment)
 
 
 @pytest.fixture

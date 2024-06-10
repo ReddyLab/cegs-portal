@@ -8,7 +8,6 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeature,
     Experiment,
-    ExperimentDataFileInfo,
     Facet,
     FacetValue,
     File,
@@ -17,7 +16,7 @@ from cegs_portal.search.models import (
 )
 
 
-def validate_ref_genome(value):
+def validate_genome_assembly(value):
     if value != "" and not re.match(r"GRCh\d+(\.\d+)?", value):
         raise ValidationError(
             "%(ref)s is not a valid genome. Must be in the form of 'GRChXX' or 'GRChXX.Y' where Y is a patch level.",
@@ -35,84 +34,19 @@ admin.site.register(DNAFeature, DNAFeatureAdmin)
 
 
 class FileForm(forms.ModelForm):
-    p_val_threshold = forms.FloatField(max_value=1.0, min_value=0.0, step_size=0.01, required=False)
-    significance_measure = forms.CharField(max_length=2048, required=False)
-    ref_genome = forms.CharField(max_length=10, validators=[validate_ref_genome], required=False)
-
     class Meta:
         model = File
         fields = (
             "filename",
             "description",
             "url",
+            "location",
             "experiment",
+            "analysis",
             "size",
             "category",
-            "p_val_threshold",
-            "significance_measure",
-            "ref_genome",
         )
-        widgets = {
-            "description": forms.Textarea(attrs={"rows": 6, "columns": 90}),
-            "significance_measure": forms.Textarea(attrs={"rows": 6, "columns": 90}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        data_file_info = self.instance.data_file_info
-        if data_file_info is not None:
-            self.fields["p_val_threshold"].initial = data_file_info.p_value_threshold
-            self.fields["significance_measure"].initial = data_file_info.significance_measure
-            ref_genome = data_file_info.ref_genome
-            ref_genome_patch = data_file_info.ref_genome_patch
-            if ref_genome != "":
-                if ref_genome_patch is not None and ref_genome_patch != "":
-                    self.fields["ref_genome"].initial = f"{ref_genome}.{ref_genome_patch}"
-                else:
-                    self.fields["ref_genome"].initial = data_file_info.ref_genome
-
-    def clean(self):
-        p_val_threshold = self.cleaned_data["p_val_threshold"]
-        significance_measure = self.cleaned_data["significance_measure"]
-        ref_genome_full = self.cleaned_data["ref_genome"]
-        if not (
-            all(((p_val_threshold == "" or p_val_threshold is None), significance_measure == "", ref_genome_full == ""))
-            or all((p_val_threshold != "", significance_measure != "", ref_genome_full != ""))
-        ):
-            raise ValidationError(
-                "Must specify either all of (p val threshold, significance measure, ref genome) or none of them"
-            )
-        return super().clean()
-
-    def save(self, commit=True):
-        p_val_threshold = self.cleaned_data["p_val_threshold"]
-        significance_measure = self.cleaned_data["significance_measure"]
-        ref_genome_full = self.cleaned_data["ref_genome"]
-        ref_genome_parts = ref_genome_full.split(".")
-        ref_genome = ref_genome_parts[0]
-        ref_genome_patch = "" if len(ref_genome_parts) == 1 else ref_genome_parts[1]
-
-        if (p_val_threshold == "" or p_val_threshold is None) and significance_measure == "" and ref_genome_full == "":
-            if self.instance.data_file_info is not None:
-                self.instance.data_file_info.delete()
-                self.instance.data_file_info = None
-        else:
-            if self.instance.data_file_info is not None:
-                self.instance.data_file_info.p_value_threshold = p_val_threshold
-                self.instance.data_file_info.significance_measure = significance_measure
-                self.instance.data_file_info.ref_genome = ref_genome
-                self.instance.data_file_info.ref_genome_patch = ref_genome_patch
-                self.instance.data_file_info.save()
-            else:
-                data_file_info = ExperimentDataFileInfo(
-                    p_value_threshold=p_val_threshold,
-                    significance_measure=significance_measure,
-                )
-                data_file_info.ref_genome = ref_genome
-                data_file_info.ref_genome_patch = ref_genome_patch
-                data_file_info.save()
-                self.instance.data_file_info = data_file_info
-        return super().save(commit)
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
 
 
 class FileAdmin(admin.ModelAdmin):
@@ -214,11 +148,15 @@ class AnalysisFacetValueInlineAdmin(admin.StackedInline):
 
 class AnalysisForm(forms.ModelForm):
     verbose_name_plural = "Analyses"
+    p_value_threshold = forms.FloatField(max_value=1.0, min_value=0.0, step_size=0.01)
+    p_value_adj_method = forms.CharField(max_length=128, empty_value="unknown")
+    genome_assembly = forms.CharField(max_length=20, validators=[validate_genome_assembly])
+    genome_assembly_patch = forms.CharField(max_length=10, required=False)
 
 
 class AnalysisAdmin(admin.ModelAdmin):
     form = AnalysisForm
-    inlines = [AnalysisFacetValueInlineAdmin, PipelineInlineForm]
+    inlines = [AnalysisFacetValueInlineAdmin]
     list_display = (
         "accession_id",
         "description",
@@ -229,6 +167,10 @@ class AnalysisAdmin(admin.ModelAdmin):
         "archived",
         "accession_id",
         "description",
+        "genome_assembly",
+        "genome_assembly_patch",
+        "p_value_threshold",
+        "p_value_adj_method",
         "when",
     ]
     search_fields = ["experiment__accession_id", "experiment__name"]
@@ -236,9 +178,10 @@ class AnalysisAdmin(admin.ModelAdmin):
     # TODO: This is definitely a cause of n+1 queries
     @admin.display(description="Experiment")
     def experiment_info(self, obj):
-        exper = obj.experiment
+        expr = obj.experiment
+        desc = expr.description[:15] if expr.description is not None else None
 
-        return f"{exper.accession_id}: {exper.description[:15]}..."
+        return f"{expr.accession_id}: {expr.name}{' - ' + desc if desc is not None else ''}..."
 
     @admin.display(description="Description")
     def description(self, obj):

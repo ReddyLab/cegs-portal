@@ -1,7 +1,20 @@
 ARG PYTHON_VERSION=3.11.2-slim-bullseye
+ARG RUST_VERSION=1.77-bullseye
 
 # define an alias for the specfic python version used in this file.
 FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
+
+# Build the rust applications for generating coverage information
+FROM image-mirror-prod-registry.cloud.duke.edu/library/rust:${RUST_VERSION} as rust
+
+WORKDIR /build
+RUN git clone https://github.com/ReddyLab/ccgr_portal_cov_viz.git
+WORKDIR /build/ccgr_portal_cov_viz/cov_viz
+RUN cargo build -r
+
+WORKDIR /build/ccgr_portal_cov_viz/cov_viz_manifest
+RUN cargo build -r
+
 
 FROM ghcr.io/pyo3/maturin@sha256:1c75eb0d2b92999b583b02f699acf4a2ad892c0bf679918d5941f65f9b1bf9a1 AS maturin
 
@@ -68,6 +81,10 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # copy application code to WORKDIR
 COPY --chown=django:root . ${APP_HOME}
+
+# copy rust apps to bin dir
+COPY --chown=django:root --from=rust /build/ccgr_portal_cov_viz/cov_viz/target/release/cov_viz  /usr/local/bin/cov_viz
+COPY --chown=django:root --from=rust /build/ccgr_portal_cov_viz/cov_viz_manifest/target/release/cov_viz_manifest  /usr/local/bin/cov_viz_manifest
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage

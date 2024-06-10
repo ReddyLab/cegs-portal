@@ -3,6 +3,7 @@ from django.http import Http404
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models.validators import validate_accession_id
+from cegs_portal.search.validators import validate_analysis_accession_id
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.search.view_models.v1 import ExperimentSearch
 from cegs_portal.search.views.custom_views import (
@@ -31,12 +32,41 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         except ObjectNotFoundError as e:
             raise Http404(str(e))
 
+    def request_options(self, request):
+        """
+        GET queries used:
+            analysis (single)
+                * Should be a valid analysis accession ID
+        """
+        options = super().request_options(request)
+        options["analysis"] = request.GET.get("analysis", None)
+        if options["analysis"] is not None:
+            validate_analysis_accession_id(options["analysis"])
+
+        return options
+
     def get(self, request, options, data, exp_id):
+        analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
+        analyses_list = []
+
+        if options["analysis"] is not None:
+            analysis_selected = options["analysis"]
+        else:
+            analysis_selected = ExperimentSearch.default_analysis_id_search(exp_id)
+
+        for analysis in analyses:
+            if analysis == options["analysis"]:
+                analyses_list.append(("selected", analysis))
+            else:
+                analyses_list.append(("", analysis))
+
         return super().get(
             request,
             options,
             {
                 "logged_in": not request.user.is_anonymous,
+                "analyses": analyses_list,
+                "analysis_selected": analysis_selected,
                 "experiment": data[0],
                 "other_experiments": {
                     "id": "other_experiments",

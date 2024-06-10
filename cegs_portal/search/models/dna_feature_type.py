@@ -54,7 +54,7 @@ class DNAFeatureType(Enum):
 
 
 class DNAFeatureSourceType(models.TextChoices):
-    CCRE = "CCRE", "cCRE"
-    DHS = "DHS", "DHS"
-    GRNA = "GRNA", "gRNA"
-    CAR = "CAR", "CAR"
+    CCRE = "CCRE", DNAFeatureType.CCRE.value
+    DHS = "DHS", DNAFeatureType.DHS.value
+    GRNA = "GRNA", DNAFeatureType.GRNA.value
+    CAR = "CAR", DNAFeatureType.CAR.value

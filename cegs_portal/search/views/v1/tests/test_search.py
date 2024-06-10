@@ -570,13 +570,13 @@ def test_parse_target_info_html():
 
 
 def test_sigdata(reg_effects, login_client: SearchClient):
-    effect_source, effect_target, _, _, _, _, experiment = reg_effects
+    effect_source, _, _, _, _, experiment = reg_effects
 
     response = login_client.get("/search/sigdata?region=chr1:1-100000")
     assert response.status_code == 200
 
     sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
-    target = effect_target.targets.all()[0]
+
     stripped_response = re.sub(
         r"^ +$", "", response.content.decode("utf-8"), flags=re.MULTILINE
     )  # strip out spaces in blank lines
@@ -585,7 +585,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
 
 
 <table class="data-table no-hover">
-    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+    <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
 
 
 
@@ -598,20 +598,7 @@ def test_sigdata(reg_effects, login_client: SearchClient):
             <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.significance:.6f}</a></td>
             <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.raw_p_value:.6f}</a></td>
 
-            <td rowspan="2"><a href="/search/experiment/{experiment.accession_id}">{experiment.name}</a></td>
-
-        </tr>
-
-        <tr class="">
-            <td>
-                <div>Tested Element Location: </div>
-
-                <div>Target Genes: <a href="/search/feature/ensembl/{target.ensembl_id}">{target.name}</a></div>
-
-            </td>
-            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.effect_size:.3f}</a></td>
-            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.significance:.6f}</a></td>
-            <td><a href="/search/regeffect/{effect_target.accession_id}">{effect_target.raw_p_value:.6f}</a></td>
+            <td rowspan="1"><a href="/search/experiment/{experiment.accession_id}">{experiment.name}</a></td>
 
         </tr>
 
@@ -649,13 +636,12 @@ def test_sigdata_backwards_region(login_client: SearchClient):
 
 
 def test_feature_sigreo(reg_effects, login_client: SearchClient):
-    effect_source, effect_target, effect_both, _, _, _, experiment = reg_effects
+    effect_source, effect_both, _, _, _, experiment = reg_effects
 
     response = login_client.get("/search/feature_sigreo?region=chr1:1-100000")
     assert response.status_code == 200
 
     sig_sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
-    sig_targets = list(effect_target.targets.all())
 
     nonsig_sources = sorted(effect_both.sources.all(), key=lambda x: x.accession_id)
     nonsig_targets = list(effect_both.targets.all())
@@ -671,8 +657,6 @@ def test_feature_sigreo(reg_effects, login_client: SearchClient):
             )
             is not None
         )
-    for target in sig_targets:
-        assert re.search(target.name, response_html, flags=re.MULTILINE) is not None
 
     for source in nonsig_sources:
         assert (
@@ -688,7 +672,7 @@ def test_feature_sigreo(reg_effects, login_client: SearchClient):
 
 
 def test_feature_sigreo_tsv(reg_effects, login_client: SearchClient):
-    effect_source, _, _, _, _, _, _ = reg_effects
+    effect_source, _, _, _, _, _ = reg_effects
 
     response = login_client.get("/search/feature_sigreo?region=chr1:1-100000&accept=text/tab-separated-values")
     assert response.status_code == 200
@@ -711,7 +695,7 @@ def test_feature_sigreo_tsv(reg_effects, login_client: SearchClient):
 
 
 def test_feature_sigreo_bed6(reg_effects, login_client: SearchClient):
-    effect_source, _, _, _, _, _, _ = reg_effects
+    effect_source, _, _, _, _, _ = reg_effects
 
     response = login_client.get(
         "/search/feature_sigreo?region=chr1:1-100000&accept=text/tab-separated-values&tsv_format=bed6"

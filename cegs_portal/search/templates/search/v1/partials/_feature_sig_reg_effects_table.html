@@ -1,32 +1,26 @@
 {% load humanize %}
 {% load custom_helpers %}
-<div id="modal">
-<div class="modal-underlay" onclick="closeModal()"></div>
-<div class="container modal-content" id="feature-sig-reg-effects">
+
+<div class="container min-w-full">
+{% if sig_reg_effects|length > 0 %}
     <div class="flex max-w-full min-w-full justify-between items-center">
-        <div class="close-button justify-self-start" onclick="closeModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-            </svg>
-        </div>
         <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
         <div class="justify-self-end">
             <span class="text-lg">Download:</span>
-            <a href="{% url 'search:feature_sigreo' %}?region={{ region }}{% for feature in features %}&feature_type={{ feature }}{% endfor %}&accept=text/tab-separated-values&tsv_format=original">
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">
                 <button class="tsv-button" id="downloadButton">TSV</button>
             </a>
-            <a href="{% url 'search:feature_sigreo' %}?region={{ region }}{% for feature in features %}&feature_type={{ feature }}{% endfor %}&accept=text/tab-separated-values&tsv_format=bed6">
+            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=bed6">
                 <button class="tsv-button" id="downloadButtonNew">BED6</button>
             </a>
         </div>
     </div>
-    {% if sig_reg_effects|length > 0 %}
-    <div class="scroll-area">
     <table class="data-table">
-        <tr><th>Enahncer/Gene</th><th>Effect Size</th><th>Significance</th><th>Raw p-value</th><th>Experiment</th></tr>
+        <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
         {% for regeffect in sig_reg_effects %}
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         <tr class="{{ rowcolors }}">
+            <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
             <td>
                 <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} @ {{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% if regeffect.targets.exists %}
@@ -40,9 +34,24 @@
         </tr>
         {% endfor %}
     </table>
+    <div class="pagination">
+        <span class="step-links">
+            {% if sig_reg_effects.has_previous %}
+                <a href="?{{ content_query }}&page=1" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page=1" hx-target="#feature_sigreo-table">&laquo; first</a>
+                <a href="?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.previous_page_number }}" hx-target="#feature_sigreo-table">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ sig_reg_effects.number }} of {{ sig_reg_effects.paginator.num_pages }}
+            </span>
+
+            {% if sig_reg_effects.has_next %}
+                <a href="?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.next_page_number }}" hx-target="#feature_sigreo-table">next</a>
+                <a href="?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
+            {% endif %}
+        </span>
     </div>
 {% else %}
     <div>No Relevant Regulatory Effect Observations Found</div>
 {% endif %}
-</div>
 </div>

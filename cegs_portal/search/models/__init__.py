@@ -8,7 +8,6 @@ from .experiment import (
     CellLine,
     Experiment,
     ExperimentDataFile,
-    ExperimentDataFileInfo,
     Pipeline,
     TissueType,
 )

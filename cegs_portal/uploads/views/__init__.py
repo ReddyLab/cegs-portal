@@ -1,1 +1,1 @@
-from .uploads import upload, upload_complete
+from .uploads import upload

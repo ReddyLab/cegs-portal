@@ -10,7 +10,6 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeatureSourceType,
     Experiment,
-    ExperimentDataFileInfo,
     FacetValue,
 )
 
@@ -33,36 +32,18 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
 
-class ExperimentFileMetadata:
-    file_metadata: FileMetadata
-    genome_assembly: str
-    genome_assembly_patch: str
-    p_val_threshold: float
-
-    def __init__(self, file_metadata: dict[str, str], base_path: str):
-        self.file_metadata = FileMetadata(file_metadata, base_path)
-        self.genome_assembly = file_metadata["genome_assembly"]
-        self.genome_assembly_patch = file_metadata.get("genome_assembly_patch", None)
-        self.p_val_threshold = file_metadata.get("p_val_threshold", 0.05)
-
-    def db_save(self, experiment: Experiment, analysis: Analysis = None):
-        data_file_info = ExperimentDataFileInfo(
-            ref_genome=self.genome_assembly,
-            ref_genome_patch=self.genome_assembly_patch,
-            p_value_threshold=self.p_val_threshold,
-        )
-        data_file_info.save()
-        self.file_metadata.db_save(experiment, analysis, data_file_info)
-
-
 class AnalysisMetadata:
     accession_id: Optional[str] = None
     experiment_accession_id: str
     filename: str
     description: str
     name: str
-    results: ExperimentFileMetadata
-    misc_files: list[FileMetadata] = []
+    source_type: str
+    results: FileMetadata
+    genome_assembly: str
+    genome_assembly_patch: str
+    p_val_threshold: float
+    p_val_adj_method: str
 
     def __init__(self, analysis_dict: dict[str, Any], analysis_filename: str):
         self.description = analysis_dict["description"]
@@ -71,16 +52,26 @@ class AnalysisMetadata:
         self.name = analysis_dict["name"]
         assert self.name != ""
 
-        base_path = os.path.dirname(analysis_filename)
+        self.results = FileMetadata(analysis_dict["results"])
+        self.genome_assembly = analysis_dict["genome_assembly"]
+        self.genome_assembly_patch = analysis_dict.get("genome_assembly_patch", None)
+        self.p_val_threshold = analysis_dict["p_val_threshold"]
+        self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
 
-        self.results = ExperimentFileMetadata(analysis_dict["results"], base_path)
-
-        self.misc_files = [FileMetadata(file, base_path) for file in analysis_dict["misc_files"]]
+        self.source_type = get_source_type(analysis_dict["source type"])
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
         with AccessionIds(message=f"Analysis of {experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
-            analysis = Analysis(description=self.description, experiment=experiment, name=self.name)
+            analysis = Analysis(
+                description=self.description,
+                experiment=experiment,
+                name=self.name,
+                genome_assembly=self.genome_assembly,
+                genome_assembly_patch=self.genome_assembly_patch,
+                p_value_threshold=self.p_val_threshold,
+                p_value_adj_method=self.p_val_adj_method,
+            )
             analysis.accession_id = accession_ids.incr(AccessionType.ANALYSIS)
             analysis.save()
             self.accession_id = analysis.accession_id
@@ -101,16 +92,14 @@ class AnalysisMetadata:
         if self.accession_id is not None:
             analysis = Analysis.objects.get(accession_id=self.accession_id)
 
-        for file in analysis.files.all():
-            file.data_file_info.delete()
         analysis.delete()
         self.accession_id = None
 
     def metadata(self):
         base_path = os.path.dirname(self.filename)
         for result in self.results:
-            delimiter = get_delimiter(result.file_metadata.filename)
-            data_file = open(os.path.join(base_path, result.file_metadata.filename), "r", newline="")
+            delimiter = get_delimiter(result.filename)
+            data_file = open(os.path.join(base_path, result.filename), "r", newline="")
             yield data_file, result, delimiter
             data_file.close()
 
@@ -186,9 +175,6 @@ class ExperimentMetadata:
     def db_del(self):
         experiment = Experiment.objects.get(accession_id=self.accession_id)
         for file in experiment.files.all():
-            if file.data_file_info is not None:
-                for data in file.data_file_info.all():
-                    data.delete()
             file.delete()
 
         experiment.delete()

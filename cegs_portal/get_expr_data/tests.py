@@ -104,7 +104,7 @@ def test_retrieve_both_experiment_data():
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], Facets(), ReoDataSource.BOTH
     )
 
-    assert len(result) == 3
+    assert len(result) == 2
 
 
 @pytest.mark.usefixtures("private_reg_effects")
@@ -127,7 +127,7 @@ def test_retrieve_private_experiment_data_with_expr():
         ReoDataSource.BOTH,
     )
 
-    assert len(result) == 3
+    assert len(result) == 2
 
 
 @pytest.mark.usefixtures("reg_effects")
@@ -145,14 +145,14 @@ def test_retrieve_target_experiment_data():
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], Facets(), ReoDataSource.TARGETS
     )
 
-    assert len(result) == 2
+    assert len(result) == 1
 
 
 @pytest.mark.parametrize(
     "cat_facets,effect_size,sig,result_count",
     [
         ([], (-10, 0), (None, None), 2),
-        ([], (0, 10), (None, None), 1),
+        ([], (0, 10), (None, None), 0),
         ([], (None, None), (4.3979400087, 100.0), 0),
         ([], (None, None), (2.3010299957, 100.0), 2),
         ([], (-10, 0), (2.3010299957, 100.0), 2),
@@ -172,48 +172,48 @@ def test_retrieve_num_facet_experiment_data(cat_facets, effect_size, sig, result
 
 
 def test_retrieve_cat_facet_experiment_data(reg_effects):
-    _, _, _, x, y, z, _ = reg_effects
+    _, _, enriched, depleted, nonsig, _ = reg_effects
     facets = Facets(categorical_facets=[])
-    result = retrieve_experiment_data(
-        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
-    )
-
-    assert len(result) == 3
-
-    facets = Facets(categorical_facets=[x.id])
-    result = retrieve_experiment_data(
-        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
-    )
-
-    assert len(result) == 1
-
-    facets = Facets(categorical_facets=[y.id])
-    result = retrieve_experiment_data(
-        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
-    )
-
-    assert len(result) == 1
-
-    facets = Facets(categorical_facets=[z.id])
-    result = retrieve_experiment_data(
-        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
-    )
-
-    assert len(result) == 1
-
-    facets = Facets(categorical_facets=[y.id, z.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
     )
 
     assert len(result) == 2
 
-    facets = Facets(categorical_facets=[x.id, y.id, z.id])
+    facets = Facets(categorical_facets=[enriched.id])
     result = retrieve_experiment_data(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
     )
 
-    assert len(result) == 3
+    assert len(result) == 1
+
+    facets = Facets(categorical_facets=[depleted.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 0
+
+    facets = Facets(categorical_facets=[nonsig.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(categorical_facets=[depleted.id, nonsig.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 1
+
+    facets = Facets(categorical_facets=[enriched.id, depleted.id, nonsig.id])
+    result = retrieve_experiment_data(
+        [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], facets, ReoDataSource.BOTH
+    )
+
+    assert len(result) == 2
 
 
 @pytest.mark.usefixtures("reg_effects")
@@ -231,26 +231,17 @@ def test_retrieve_facet_target_experiment_data():
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], Facets(), ReoDataSource.TARGETS
     )
 
-    assert len(result) == 2
+    assert len(result) == 1
 
 
 def test_list_experiment_data(reg_effects):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], ["DCPEXPR0000000002"], [], ReoDataSource.BOTH
     )
 
     assert results == [
-        {
-            "source locs": [],
-            "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000719229500470051,
-            "adj p-val": 0.057767530629869,
-            "effect size": 2.0760384670056446,
-            "expr id": "DCPEXPR0000000002",
-            "analysis id": analysis_accession_id,
-        },
         {
             "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
             "targets": [],
@@ -273,22 +264,13 @@ def test_list_experiment_data(reg_effects):
 
 
 def test_list_analysis_data(reg_effects):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     results = output_experiment_data_list(
         [], [("chr1", 1, 1_000_000), ("chr2", 1, 1_000_000)], [], [analysis_accession_id], ReoDataSource.BOTH
     )
 
     assert results == [
-        {
-            "source locs": [],
-            "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-            "p-val": 0.00000719229500470051,
-            "adj p-val": 0.057767530629869,
-            "effect size": 2.0760384670056446,
-            "expr id": "DCPEXPR0000000002",
-            "analysis id": analysis_accession_id,
-        },
         {
             "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
             "targets": [],
@@ -311,7 +293,7 @@ def test_list_analysis_data(reg_effects):
 
 
 def test_location_experiment_data(reg_effects, login_client: SearchClient):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR0000000002&datasource=both")
     assert response.status_code == 200
@@ -319,15 +301,6 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
     json_content = json.loads(response.content)
     assert json_content == {
         "experiment data": [
-            {
-                "source locs": [],
-                "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000719229500470051,
-                "adj p-val": 0.057767530629869,
-                "effect size": 2.0760384670056446,
-                "expr id": "DCPEXPR0000000002",
-                "analysis id": analysis_accession_id,
-            },
             {
                 "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
                 "targets": [],
@@ -351,7 +324,7 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
 
 
 def test_location_analysis_data(reg_effects, login_client: SearchClient):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     response = login_client.get(f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both")
     assert response.status_code == 200
@@ -359,15 +332,6 @@ def test_location_analysis_data(reg_effects, login_client: SearchClient):
     json_content = json.loads(response.content)
     assert json_content == {
         "experiment data": [
-            {
-                "source locs": [],
-                "targets": [{"gene sym": "LNLC-1", "gene id": "ENSG01124619313"}],
-                "p-val": 0.00000719229500470051,
-                "adj p-val": 0.057767530629869,
-                "effect size": 2.0760384670056446,
-                "expr id": "DCPEXPR0000000002",
-                "analysis id": analysis_accession_id,
-            },
             {
                 "source locs": ["chr1:10-1000", "chr1:20000-111000", "chr2:22222-33333"],
                 "targets": [],
@@ -415,7 +379,7 @@ def test_location_experiment_data_backwards_region(login_client: SearchClient):
 
 
 def test_write_experiment_data(reg_effects):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
@@ -433,14 +397,13 @@ def test_write_experiment_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
     )
 
 
 def test_write_analysis_data(reg_effects):
-    _, _, _, _, _, _, experiment = reg_effects
+    _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
     experiment_data = list(
         retrieve_experiment_data(
@@ -458,7 +421,6 @@ def test_write_analysis_data(reg_effects):
     assert (
         output_file.getvalue()
         == f"Source Locs\tTarget Info\tp-value\tAdjusted p-value\tEffect Size\tExpr Accession Id\tAnalysis Accession Id\n"  # noqa: E501
-        f"\tLNLC-1:ENSG01124619313\t0.00000719229500470051\t0.057767530629869\t2.0760384670056444\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:10-1000,chr1:20000-111000,chr2:22222-33333\t\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
         f"chr1:11-1001,chr2:22223-33334\tXUEQ-1:ENSG01124619313\t0.00000319229500470051\t0.000427767530629869\t-0.0660384670056446\tDCPEXPR0000000002\t{analysis_accession_id}\n"  # noqa: E501
     )
@@ -548,15 +510,15 @@ def test_download_experiment_data_invalid_filename(login_client: SearchClient):
 def test_sig_reo_loc_search():
     result = sig_reo_loc_search(("chr1", 1, 1000000))
 
-    assert len(result[0][1]) == 2
+    assert len(result[0][1]) == 1
 
 
 def test_private_sig_reo_loc_search(private_reg_effects):
-    _, _, _, _, _, _, experiment = private_reg_effects
+    _, _, _, _, _, experiment = private_reg_effects
     result = sig_reo_loc_search(("chr1", 1, 1000000))
 
     assert len(result) == 0
 
     result = sig_reo_loc_search(("chr1", 1, 1000000), experiments=[experiment.accession_id])
 
-    assert len(result[0][1]) == 2
+    assert len(result[0][1]) == 1

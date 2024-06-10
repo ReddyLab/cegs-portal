@@ -20,4 +20,4 @@ exp_cov:
 	./scripts/data_generation/gen_experiment_coverage_viz.sh
 
 cs:
-	python manage.py collectstatic --clear
+	python manage.py collectstatic --clear -i "*.ecd" -i "*.fd"

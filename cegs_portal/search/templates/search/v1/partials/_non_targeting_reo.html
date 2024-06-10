@@ -4,8 +4,8 @@
 
 <div class="container min-w-full">
     <a name="non-targeting-reos-{{ feature.accession_id }}"></a>
-    <div class="table-title" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-        <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1;">
+    <div class="table-title table-container-header">
+        <div class="table-container-title">
             <i class="bi bi-geo-alt-fill location-tab-icon"></i>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon mr-1">
                 <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -14,7 +14,7 @@
                 /></svg>
             Proximal Regulatory Effect Observations
         </div>
-        <div style="position: absolute; right: 0;">
+        <div class="table-container-downloads">
             <span class="text-lg">Download:</span>
             <a href="{% url 'search:non_target_reo' feature.accession_id %}?accept=text/tab-separated-values&tsv_format=original">
                 <button class="tsv-button" id="downloadButton">TSV</button>
@@ -30,7 +30,7 @@
             <th class="chrom-light-band chrom-first-end-cap">Location</th>
             <th class="chrom-dark-band">Effect Size (log2FC)</th>
             <th class="chrom-light-band">Direction</th>
-            <th class="chrom-light-band">Significance<br />(p-value)</th>
+            <th class="chrom-light-band">Corrected<br />p-value</th>
             <th class="chrom-light-band chrom-right-centromere">Distance from TSS (bp)</th>
             <th class="chrom-light-band chrom-left-centromere">Tested Element Type</th>
             <th class="chrom-last-end-cap chrom-dark-band">Experiment</th>

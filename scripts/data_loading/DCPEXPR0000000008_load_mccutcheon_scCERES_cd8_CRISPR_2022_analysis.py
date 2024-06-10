@@ -4,12 +4,19 @@ from utils.experiment import AnalysisMetadata
 
 from .DCPEXPR0000000008_consts import DROP_GENE_NAMES, TRIM_GENE_NAMES
 from .load_analysis import Analysis, ObservationRow, SourceInfo
+from .types import (
+    ChromosomeStrands,
+    DirectionFacets,
+    FeatureType,
+    NumericFacets,
+    RangeBounds,
+)
 
 
-def gene_ensembl_mapping(features_file):
+def gene_ensembl_mapping(genes_filename):
     gene_name_map = {}
-    with open(features_file, newline="") as facet_file:
-        reader = csv.reader(facet_file, delimiter="\t")
+    with open(genes_filename, newline="") as genes_file:
+        reader = csv.reader(genes_file, delimiter="\t")
         for row in reader:
             if row[2] != "Gene Expression":
                 continue
@@ -34,34 +41,39 @@ def get_observations(analysis_metadata: AnalysisMetadata):
         if gene_name_map[target_gene] in DROP_GENE_NAMES:
             continue
 
-        strand = line["Strand"]
+        strand = ChromosomeStrands(line["Strand"])
         chrom_name = line["chr"]
         grna_start = int(line["start"])
         grna_end = int(line["end"])
 
-        if strand == "+":
-            bounds = "[)"
-        elif strand == "-":
-            bounds = "(]"
+        if strand == ChromosomeStrands.POSITIVE:
+            bounds = RangeBounds.HALF_OPEN_RIGHT
+        elif strand == ChromosomeStrands.NEGATIVE:
+            bounds = RangeBounds.HALF_OPEN_LEFT
 
-        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, "gRNA")]
+        sources = [SourceInfo(chrom_name, grna_start, grna_end, bounds, strand, FeatureType.GRNA)]
 
         targets = [gene_name_map[target_gene]]
 
         significance = float(line["p_val_adj"])
         effect_size = float(line["avg_log2FC"])
         if significance >= 0.01:
-            direction = "Non-significant"
+            direction = DirectionFacets.NON_SIGNIFICANT
         elif effect_size > 0:
-            direction = "Enriched Only"
+            direction = DirectionFacets.ENRICHED
         elif effect_size < 0:
-            direction = "Depleted Only"
+            direction = DirectionFacets.DEPLETED
         else:
-            direction = "Non-significant"
+            direction = DirectionFacets.NON_SIGNIFICANT
 
-        observations.append(
-            ObservationRow(sources, targets, direction, effect_size, float(line["p_val"]), significance)
-        )
+        num_facets = {
+            NumericFacets.EFFECT_SIZE: effect_size,
+            NumericFacets.SIGNIFICANCE: significance,
+            NumericFacets.RAW_P_VALUE: float(line["p_val"]),
+        }
+
+        observations.append(ObservationRow(sources, targets, [direction], num_facets))
+
     results_file.close()
     return observations
 

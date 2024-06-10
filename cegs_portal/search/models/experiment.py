@@ -9,6 +9,8 @@ from cegs_portal.search.models.dna_feature_type import DNAFeatureSourceType
 from cegs_portal.search.models.facets import Faceted
 from cegs_portal.search.models.file import File
 
+from .signals import update_analysis_access, update_experiment_access
+
 
 class TissueType(Accessioned):
     name = models.CharField(max_length=100)
@@ -66,6 +68,11 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
+    def save(self, *args, **kwargs):
+        created = self.pk is None
+        super(Experiment, self).save(*args, **kwargs)
+        update_experiment_access(self, created)
+
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
@@ -81,22 +88,6 @@ class ExperimentDataFile(models.Model):
 
     def __str__(self):
         return f"{self.experiment.accession_id}: {self.filename}"
-
-
-class ExperimentDataFileInfo(models.Model):
-    ref_genome = models.CharField(max_length=20, blank=True)
-    ref_genome_patch = models.CharField(max_length=10, null=True, blank=True)
-
-    # significance_measure should probably be removed. This column in the input files will be standardized
-    # so there's no need to keep track of it.
-    significance_measure = models.CharField(max_length=2048, null=True, blank=True)
-    p_value_threshold = models.FloatField(default=0.05, blank=True)
-
-    def __str__(self):
-        if self.ref_genome_patch is not None and self.ref_genome_patch != "":
-            return f"ref genome: {self.ref_genome}.{self.ref_genome_patch}, p_val_threshold: {self.p_value_threshold}"
-
-        return f"ref genome: {self.ref_genome}, p_val_threshold: {self.p_value_threshold}"
 
 
 class Analysis(Accessioned, Faceted, AccessControlled):
@@ -116,6 +107,15 @@ class Analysis(Accessioned, Faceted, AccessControlled):
         related_name="analyses",
     )
     when = DateRangeField(null=True, blank=True)
+    genome_assembly = models.CharField(max_length=20)
+    genome_assembly_patch = models.CharField(max_length=10, null=True, blank=True)
+    p_value_threshold = models.FloatField(default=0.05)
+    p_value_adj_method = models.CharField(max_length=128, default="unknown")
+
+    def save(self, *args, **kwargs):
+        created = self.pk is None
+        super(Analysis, self).save(*args, **kwargs)
+        update_analysis_access(self, created)
 
     def __str__(self):
         description = self.description

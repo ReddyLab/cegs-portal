@@ -27,6 +27,14 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
+from .types import (
+    ChromosomeStrands,
+    FeatureType,
+    GenomeAssembly,
+    GrnaFacet,
+    PromoterFacet,
+    RangeBounds,
+)
 
 GRNA_TYPE_FACET = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
 GRNA_TYPE_FACET_VALUES = {facet.value: facet for facet in FacetValue.objects.filter(facet_id=GRNA_TYPE_FACET.id).all()}
@@ -40,42 +48,19 @@ PROMOTER_NON_PROMOTER = PROMOTER_FACET_VALUES[PromoterType.NON_PROMOTER.value]
 
 FACET_VALUES = GRNA_TYPE_FACET_VALUES | PROMOTER_FACET_VALUES
 
-VALID_BOUNDS = {"[]", "()", "[)", "(]"}
-VALID_GENOME_ASSEMBLY = {"GRCh38", "GRCh37"}
-VALID_FEATURE_TYPES = {v.value for v in DNAFeatureType}
-VALID_STRANDS = {"+", "-"}
-VALID_FACETS = {facet_value for facet_value in FACET_VALUES}
-
 
 @dataclass
 class FeatureRow:
     name: Optional[str]
     chrom_name: str
-    location: tuple[int, int, str]  # start, end, bounds ("[]", "()", "[)", "(]")
-    genome_assembly: str  # ("GRCh38", "GRCh37")
+    location: tuple[int, int, RangeBounds]  # start, end, bounds
+    genome_assembly: GenomeAssembly
     cell_line: str
-    feature_type: str  # ("cCRE", "DHS", "gRNA", "Chromatin Accessible Region")
-    facets: Optional[list[str]] = None  # list[("Positive Control", "Targeting", "Promoter", "Non-promoter")]
+    feature_type: FeatureType
+    facets: list[GrnaFacet | PromoterFacet] = field(default_factory=list)
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
-    strand: Optional[str] = None  # Optional[("+", "-")]
-
-    def __post_init__(self):
-        if self.strand is not None and self.strand not in VALID_STRANDS:
-            raise ValueError(f"Invalid strand: '{self.strand}'")
-
-        _, _, bounds = self.location
-        if bounds not in VALID_BOUNDS:
-            raise ValueError(f"Invalid bounds for feature location: '{bounds}'")
-
-        if self.genome_assembly not in VALID_GENOME_ASSEMBLY:
-            raise ValueError(f"Invalid genome assembly: '{self.genome_assembly}'")
-
-        if self.feature_type not in VALID_FEATURE_TYPES:
-            raise ValueError(f"Invalid feature type: '{self.feature_type}'")
-
-        if self.facets is not None and not all(facet in VALID_FACETS for facet in self.facets):
-            raise ValueError(f"Invalid facets: '{self.facets}'")
+    strand: Optional[ChromosomeStrands] = None
 
 
 class FeatureOverlap(Enum):
@@ -96,7 +81,7 @@ class CCREFeature:
     closest_gene_name: str
     closest_gene_ensembl_id: int
     source_file_id: int
-    genome_assembly: str
+    genome_assembly: GenomeAssembly
     experiment_accession_id: str
     feature_type: DNAFeatureType
     genome_assembly_patch: str = "0"
@@ -118,18 +103,6 @@ class CCREFeature:
 
         return False
 
-    def ccre_assoc_id(self) -> int:
-        if self.parent is not None:
-            return self.parent._id
-
-        return self._id
-
-    def ccre_assoc_loc(self) -> NumericRange:
-        if self.parent is not None:
-            return self.parent.location
-
-        return self.location
-
     def ccre_comp(self, ccre) -> FeatureOverlap:
         _, ccre_chrom_name, ccre_loc = ccre
         if self.chrom_name < ccre_chrom_name:
@@ -150,8 +123,7 @@ class CCREFeature:
 
 
 def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
-    if genome_assembly not in ["GRCh37", "GRCh38"]:
-        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+    assert GenomeAssembly(genome_assembly)
 
     return (
         DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)
@@ -219,10 +191,12 @@ class Experiment:
                 feature_rows.write(
                     feature_entry(
                         id_=feature_id,
+                        name=feature.name,
                         accession_id=accession_id,
                         cell_line=feature.cell_line,
                         chrom_name=feature.chrom_name,
                         location=feature_location,
+                        strand=feature.strand,
                         closest_gene_id=closest_gene["id"],
                         closest_gene_distance=distance,
                         closest_gene_name=gene_name,
@@ -235,21 +209,19 @@ class Experiment:
                         experiment_accession_id=experiment_accession_id,
                     )
                 )
-                if feature.facets is not None:
-                    for facet in feature.facets:
-                        feature_facets.write(
-                            feature_facet_entry(feature_id=feature_id, facet_id=FACET_VALUES[facet].id)
-                        )
+                for facet in feature.facets:
+                    feature_facets.write(feature_facet_entry(feature_id=feature_id, facet_id=FACET_VALUES[facet].id))
 
         bulk_feature_save(feature_rows)
         bulk_feature_facet_save(feature_facets)
         return db_ids
 
-    def _save_ccres(self, features: list[CCREFeature], accession_ids):
+    def _save_ccres(self, features: list[CCREFeature], accession_ids, parent_ccre_assignments: dict[int:int] = None):
         features.sort()
         ccres = get_ccres(self.metadata.tested_elements_file.genome_assembly)
         new_ccres = StringIO()
         ccre_associations = StringIO()
+        features_with_associated_ccres: dict[int:int] = {}
 
         f_idx = 0  # features list index
         c_idx = 0  # ccre list index
@@ -283,6 +255,14 @@ class Experiment:
                     # We're done, we associated all the features with cCREs.
                     break
 
+                feature = features[f_idx]
+                if parent_ccre_assignments is not None and feature.parent._id in parent_ccre_assignments:
+                    ccre_id = parent_ccre_assignments[feature.parent._id]
+                    ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                    features_with_associated_ccres[feature._id] = ccre_id
+                    f_idx += 1
+                    continue
+
                 if c_idx >= len(ccres):
                     # We got through all the existing cCREs so we have to create new pseudo-cCREs from
                     # all the remaining features.
@@ -298,7 +278,7 @@ class Experiment:
                                 closest_gene_distance=feature.closest_gene_distance,
                                 closest_gene_name=feature.closest_gene_name,
                                 closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
-                                location=feature.ccre_assoc_loc(),
+                                location=feature.location,
                                 genome_assembly=feature.genome_assembly,
                                 genome_assembly_patch=feature.genome_assembly_patch,
                                 misc=feature.misc,
@@ -307,10 +287,10 @@ class Experiment:
                                 experiment_accession_id=feature.experiment_accession_id,
                             )
                         )
-                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre_id))
+                        ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        features_with_associated_ccres[feature._id] = ccre_id
                     break
 
-                feature = features[f_idx]
                 ccre = ccres[c_idx]
 
                 match feature.ccre_comp(ccre):
@@ -326,7 +306,7 @@ class Experiment:
                                 closest_gene_distance=feature.closest_gene_distance,
                                 closest_gene_name=feature.closest_gene_name,
                                 closest_gene_ensembl_id=feature.closest_gene_ensembl_id,
-                                location=feature.ccre_assoc_loc(),
+                                location=feature.location,
                                 genome_assembly=feature.genome_assembly,
                                 genome_assembly_patch=feature.genome_assembly_patch,
                                 misc=feature.misc,
@@ -335,12 +315,14 @@ class Experiment:
                                 experiment_accession_id=feature.experiment_accession_id,
                             )
                         )
-                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre_id))
+                        ccre_associations.write(ccre_associate_entry(feature._id, ccre_id))
+                        features_with_associated_ccres[feature._id] = ccre_id
                         f_idx += 1
                     case FeatureOverlap.AFTER:
                         c_idx += 1
                     case FeatureOverlap.OVERLAP:
-                        ccre_associations.write(ccre_associate_entry(feature.ccre_assoc_id(), ccre[0]))
+                        ccre_associations.write(ccre_associate_entry(feature._id, ccre[0]))
+                        features_with_associated_ccres[feature._id] = ccre[0]
 
                         if c_idx < (len(ccres) - 1) and feature.ccre_comp(ccres[c_idx + 1]) == FeatureOverlap.OVERLAP:
                             c_idx += 1
@@ -349,6 +331,7 @@ class Experiment:
 
         bulk_feature_save(new_ccres)
         bulk_save_associations(ccre_associations)
+        return features_with_associated_ccres
 
     def save(self):
         with transaction.atomic():
@@ -357,13 +340,15 @@ class Experiment:
 
             with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
                 parents = None
+                parent_ccre_assignments = None
                 if self.parent_features is not None:
                     parent_file = self.metadata.tested_elements_parent_file
                     parents = self._save_features(self.parent_features, accession_ids, parent_file.id_)
+                    parent_ccre_assignments = self._save_ccres(list(parents.values()), accession_ids)
 
                 feature_file = self.metadata.tested_elements_file
                 features = self._save_features(self.features, accession_ids, feature_file.id_, parents)
-                self._save_ccres(list(features.values()), accession_ids)
+                self._save_ccres(list(features.values()), accession_ids, parent_ccre_assignments)
 
         return self
 

@@ -90,7 +90,7 @@
 
     #modal .scroll-area {
         overflow-y: auto;
-        max-height: 95%;
+        height: calc(100% - 90px);
         margin-bottom: 20px
     }
 
@@ -146,7 +146,7 @@
         display: none;
     }
 
-    #dna-feature-loading-spinner {
+    #loading-spinner {
         margin-left: 550px;
         font-size: 75px;
         color: rgb(107, 107, 107);
@@ -226,10 +226,10 @@
                         id="tabs-summary-tab"
                         data-te-toggle="pill"
                         data-te-target="#tabs-summary"
-                        data-te-nav-active
+                        {% if tab_summary_selected %}data-te-nav-active{% endif %}
                         role="tab"
                         aria-controls="tabs-summary"
-                        aria-selected="true"
+                        aria-selected="{{tab_summary_selected}}"
                         >Effect Summary
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
                             <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -242,14 +242,35 @@
                 </li>
                 <li role="presentation">
                     <a
+                        href="#tabs-effects"
+                        class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
+                        id="tabs-effects-tab"
+                        data-te-toggle="pill"
+                        data-te-target="#tabs-effects"
+                        {% if tab_effects_selected %}data-te-nav-active{% endif %}
+                        role="tab"
+                        aria-controls="tabs-effects"
+                        aria-selected="{{tab_effects_selected}}"
+                        >All Effects
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon ml-1">
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M0 256L28.5 28c2-16 15.6-28 31.8-28H228.9c15 0 27.1 12.1 27.1 27.1c0 3.2-.6 6.5-1.7 9.5L208 160H347.3c20.2 0 36.7 16.4 36.7 36.7c0 7.4-2.2 14.6-6.4 20.7l-192.2 281c-5.9 8.6-15.6 13.7-25.9 13.7h-2.9c-15.7 0-28.5-12.8-28.5-28.5c0-2.3 .3-4.6 .9-6.9L176 288H32c-17.7 0-32-14.3-32-32z"
+                            />
+                        </svg>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a
                         href="#tabs-features"
                         class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline flex items-center"
                         id="tabs-features-tab"
                         data-te-toggle="pill"
                         data-te-target="#tabs-features"
+                        {% if tab_features_selected %}data-te-nav-active{% endif %}
                         role="tab"
                         aria-controls="tabs-features"
-                        aria-selected="false"
+                        aria-selected="{{tab_features_selected}}"
                         >DNA Features <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 448 512"
@@ -269,18 +290,19 @@
             id="tabs-summary"
             role="tabpanel"
             aria-labelledby="tabs-summary-tab"
-            data-te-tab-active
+            {% if tab_summary_selected %}data-te-tab-active{% endif %}
         >
             <div class="flex flex-row items-start gap-x-10 min-w-full">
                 <div class="flex flex-col gap-4 flex-none">
                     <div id="facets" class="container">
-                        <div class="w-60">
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
+                        <div class="search-results-table-title table-container-header">
+                            <div class="table-container-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2">
                                     <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
-                                <div class="text-xl font-bold text-slate-500">Filter Facets</div>
+                                Filter Facets
                             </div>
+                        </div>
                             <div class="title-separator"></div>
                             {% for facet in facets.all %}
                                 <fieldset name="facetfield">
@@ -320,17 +342,18 @@
                                     </div>
                                 </fieldset>
                             {% endfor %}
-                        </div>
                     </div>
                     {% if logged_in %}
                     <div class="container">
                         <form name="dataDownloadForm">
                             <div>
-                                <div class="my-1"><input id="dataDownloadAll" type="button" name="dataDlAll" value="Download Region Data" /></div>
-                                <div class="text-sm">Includes all observations, filtered by selected facets</div>
+                                <label class="font-bold flex justify-center" for="dataDlAll">Download Region Data*</label>
+                                <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll"/>
+                                <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Download file</label>
                             </div>
                         </form>
-                        <div id="dataDownloadLink" class="mt-5"></div>
+                        <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                        <div class="text-sm flex justify-center">Includes all observations, filtered by selected facets</div>
                     </div>
                     {% endif %}
                 </div>
@@ -348,10 +371,22 @@
             </div>
         </div>
         <div
+            class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+            id="tabs-effects"
+            role="tabpanel"
+            aria-labelledby="tabs-effects-tab"
+            {% if tab_effects_selected %}data-te-tab-active{% endif %}
+        >
+            <div id="feature_sigreo-table" hx-get="{% url 'search:feature_sigreo'%}?region={{region.chromo}}:{{region.range.lower}}-{{region.range.upper}}" hx-indicator="#loading-spinner" hx-trigger="load">
+            </div>
+
+        </div>
+        <div
             class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
             id="tabs-features"
             role="tabpanel"
             aria-labelledby="tabs-features-tab"
+            {% if tab_features_selected %}data-te-tab-active{% endif %}
         >
             <div class="flex flex-row items-start gap-x-10 min-w-full">
                 <div class="flex flex-col gap-4 flex-none">
@@ -366,12 +401,12 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
-                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#dna-feature-loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
+                        <form id="dna-feature-form" hx-get="{% url 'search:dna_feature_loc' region.chromo region.range.lower region.range.upper %}" hx-trigger="submit" hx-indicator="#loading-spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
                             <div class="title-separator min-w-full"></div>
                             <fieldset name="feature_type_field">
                                 <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                                 </legend>
-                                <i class='fas fa-spinner fa-spin htmx-indicator' id="dna-feature-loading-spinner"></i>
+                                <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
                                 <div class="grid grid-cols-1 gap-0">
                                     {% for feature_type in dna_feature_types %}
                                         <div class="flex items-center">
@@ -508,10 +543,18 @@
             htmx.ajax('GET', url, {target: '#features-table'});
         }
 
+        let updateAllEffectsTable = () => {
+            let region = state.g(STATE_REGION);
+            let url = `/search/feature_sigreo?region=chr${region.chr}:${region.start}-${region.end}`;
+
+            htmx.ajax('GET', url, {target: '#feature_sigreo-table'});
+        }
+
         // Update the signficant effects table
         state.addCallback(STATE_REGION, (s, key) => {
             updateDynamicIslands();
             updateFeatureTypeTable();
+            updateAllEffectsTable();
         });
 
         state.addCallback(STATE_FACETS, (s, key) => {

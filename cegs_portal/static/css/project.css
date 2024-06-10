@@ -717,6 +717,25 @@ a:hover {
   color: rgb(30 64 175 / var(--tw-text-opacity));
 }
 
+.form-header-text {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+@media (min-width: 768px) {
+  .form-header-text {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+.form-header-text {
+  color: rgb(16, 13, 121)
+}
+
 a:visited {
   color: inherit;
   text-decoration: none;
@@ -792,6 +811,39 @@ a.link, a.link:visited {
   color: rgb(107, 107, 107);
 }
 
+.table-container-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  position: relative;
+}
+
+.table-container-header .table-container-title {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+}
+
+.table-container-downloads {
+  position: absolute;
+  right: 0;
+}
+
 .data-table {
   border-collapse: collapse;
   width: 100%;
@@ -860,11 +912,11 @@ tr[data-href]:hover {
   padding: 8px;
 }
 
-.profile-table tr:nth-child(even) {
+.profile-table tbody tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-.profile-table tr:hover {
+.profile-table tbody tr:hover {
   background-color: #ddd;
 }
 
@@ -874,6 +926,12 @@ tr[data-href]:hover {
   text-align: left;
   background-color: #f2f2f2;
   color: black;
+}
+
+.profile-table a,
+    .profile-table a:visited {
+  color: #3490dc;
+  text-decoration: none;
 }
 
 .tsv-button {
@@ -896,13 +954,13 @@ tr[data-href]:hover {
   color: white;
 }
 
-.search-button {
+.global-button {
   margin-left: 5px;
   background-color: rgb(244, 245, 247) !important;
   margin-bottom: 10px;
 }
 
-.search-button:hover {
+.global-button:hover {
   background-color: rgb(229 231 235) !important;
 }
 
@@ -918,8 +976,9 @@ tr[data-href]:hover {
   margin-top: 10px;
 }
 
-input[type="text"], input[type="password"], input[type="email"] {
-  border-width: 2px;
+input[type="text"], input[type="password"], input[type="email"], input[type="url"] {
+  border-radius: 0.375rem;
+  border-width: 1px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-color: rgba(1, 33, 105, 1);
@@ -980,11 +1039,6 @@ input[type="submit"], input[type="button"], button {
   margin-right: auto;
 }
 
-.my-1 {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -1005,6 +1059,14 @@ input[type="submit"], input[type="button"], button {
   margin-bottom: 1rem;
 }
 
+.mb-0 {
+  margin-bottom: 0px;
+}
+
+.mb-0\.5 {
+  margin-bottom: 0.125rem;
+}
+
 .mb-10 {
   margin-bottom: 2.5rem;
 }
@@ -1015,10 +1077,6 @@ input[type="submit"], input[type="button"], button {
 
 .mb-3\.5 {
   margin-bottom: 0.875rem;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
 }
 
 .mb-5 {
@@ -1065,8 +1123,12 @@ input[type="submit"], input[type="button"], button {
   margin-top: 0.375rem;
 }
 
-.mt-10 {
-  margin-top: 2.5rem;
+.mt-14 {
+  margin-top: 3.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
 .mt-3 {
@@ -1153,10 +1215,6 @@ input[type="submit"], input[type="button"], button {
 
 .w-6 {
   width: 1.5rem;
-}
-
-.w-60 {
-  width: 15rem;
 }
 
 .w-7 {
@@ -1367,10 +1425,6 @@ input[type="submit"], input[type="button"], button {
   -webkit-column-gap: 1rem;
      -moz-column-gap: 1rem;
           column-gap: 1rem;
-}
-
-.gap-y-8 {
-  row-gap: 2rem;
 }
 
 .space-y-4 > :not([hidden]) ~ :not([hidden]) {
@@ -1636,6 +1690,16 @@ input[type="submit"], input[type="button"], button {
   line-height: 2rem;
 }
 
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
@@ -1717,6 +1781,11 @@ input[type="submit"], input[type="button"], button {
 .text-primary-600 {
   --tw-text-opacity: 1;
   color: rgb(48 97 175 / var(--tw-text-opacity));
+}
+
+.text-red-600 {
+  --tw-text-opacity: 1;
+  color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
 .text-red-700 {
@@ -1838,12 +1907,24 @@ input[type="submit"], input[type="button"], button {
 .form-group .form-control {
   margin-bottom: 10px;
   border-radius: 5px;
-  width: 300px;
   margin-top: 5px;
 }
 
-.form-header-text {
-  color: rgb(16, 13, 121)
+fieldset legend {
+  font-weight: bold;
+}
+
+.asteriskField {
+  color: red;
+}
+
+.indent {
+  -webkit-margin-start: 20px;
+          margin-inline-start: 20px;
+}
+
+.inline_url_field div {
+  display: inline;
 }
 
 /* The navbar styles are copied from bootstrap.css (getbootstrap.com) and then modified */
@@ -2040,8 +2121,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-sm .offcanvas-top,
-.navbar-expand-sm .offcanvas-bottom {
+  .navbar-expand-sm .offcanvas-top, .navbar-expand-sm .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2122,7 +2202,7 @@ input[type="submit"], input[type="button"], button {
   }
 
   .navbar-expand-md .offcanvas-top,
-.navbar-expand-md .offcanvas-bottom {
+  .navbar-expand-md .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2202,8 +2282,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-lg .offcanvas-top,
-.navbar-expand-lg .offcanvas-bottom {
+  .navbar-expand-lg .offcanvas-top, .navbar-expand-lg .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2283,8 +2362,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xl .offcanvas-top,
-.navbar-expand-xl .offcanvas-bottom {
+  .navbar-expand-xl .offcanvas-top, .navbar-expand-xl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2364,8 +2442,7 @@ input[type="submit"], input[type="button"], button {
             transform: none;
   }
 
-  .navbar-expand-xxl .offcanvas-top,
-.navbar-expand-xxl .offcanvas-bottom {
+  .navbar-expand-xxl .offcanvas-top, .navbar-expand-xxl .offcanvas-bottom {
     height: auto;
     border-top: 0;
     border-bottom: 0;
@@ -2707,11 +2784,6 @@ input[type="submit"], input[type="button"], button {
     --tw-space-y-reverse: 0;
     margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
-  }
-
-  .md\:text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
   }
 }
 
