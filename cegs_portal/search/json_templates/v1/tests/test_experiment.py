@@ -19,7 +19,7 @@ def test_experiments_json(experiment_list_data: tuple[Any, Any]):
             {
                 "accession_id": e.accession_id,
                 "name": e.name,
-                "description": e.description,
+                "description": e.description if e.description is not None else "",
                 "biosamples": [b_json(b) for b in e.biosamples.all()],
             }
             for e in experiments_obj
@@ -39,7 +39,7 @@ def test_experiment_json(experiment: Experiment):
     assert exp_json(experiment) == {
         "accession_id": experiment.accession_id,
         "name": experiment.name,
-        "description": experiment.description,
+        "description": experiment.description if experiment.description is not None else "",
         "assay": experiment.experiment_type,
         "biosamples": [b_json(b) for b in experiment.biosamples.all()],
         "files": [f_json(file) for file in experiment.files.all()],
