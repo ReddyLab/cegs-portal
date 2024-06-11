@@ -181,7 +181,6 @@ class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
 class ExperimentListView(MultiResponseFormatView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
-    table_partial = "search/v1/partials/_experiment_index.html"
 
     def request_options(self, request):
         """
@@ -211,9 +210,8 @@ class ExperimentListView(MultiResponseFormatView):
         if request.headers.get("HX-Target"):
             return render(
                 request,
-                self.table_partial,
+                "search/v1/partials/_experiment_index.html",
                 {
-                    "logged_in": not request.user.is_anonymous,
                     "experiments": experiment_objects,
                     "experiment_ids": [expr.accession_id for expr in experiment_objects],
                     "facets": facets,
