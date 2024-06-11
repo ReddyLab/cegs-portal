@@ -21,7 +21,7 @@ def test_experiment_list_json(client: Client, experiment_list_data: tuple[Any, A
     for json_expr, expr in zip(json_content["experiments"], experiments):
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
-        assert json_expr["description"] == expr.description
+        assert json_expr["description"] == (expr.description if expr.description is not None else "")
 
 
 def test_experiment_list_facet_json(client: Client, experiment_list_data: tuple[Any, Any]):
@@ -102,7 +102,7 @@ def test_experiment_json(client: Client, experiment: Experiment):
 
     assert json_content["accession_id"] == experiment.accession_id
     assert json_content["name"] == experiment.name
-    assert json_content["description"] == experiment.description
+    assert json_content["description"] == (experiment.description if experiment.description is not None else "")
 
 
 def test_experiment_html(client: Client, experiment: Experiment):

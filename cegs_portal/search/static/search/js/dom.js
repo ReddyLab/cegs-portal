@@ -13,6 +13,8 @@ function e(name) {
         children = arguments[2];
     }
 
+    console.assert(children != null, "An element cannot have 'null' children");
+
     let element = document.createElement(name);
     for (const key in attributes) {
         element.setAttribute(key, attributes[key]);

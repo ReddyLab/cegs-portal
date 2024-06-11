@@ -10,7 +10,7 @@ def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, A
             {
                 "accession_id": e.accession_id,
                 "name": e.name,
-                "description": e.description,
+                "description": e.description if e.description is not None else "",
                 "biosamples": [biosample(b) for b in e.biosamples.all()],
             }
             for e in experiments_obj
@@ -22,7 +22,7 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
     result = {
         "accession_id": experiment_obj.accession_id,
         "name": experiment_obj.name,
-        "description": experiment_obj.description,
+        "description": experiment_obj.description if experiment_obj.description is not None else "",
         "assay": experiment_obj.experiment_type,
         "biosamples": [biosample(b) for b in experiment_obj.biosamples.all()],
         "files": [file(f) for f in experiment_obj.files.all()],
