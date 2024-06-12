@@ -293,7 +293,7 @@
             {% if tab_summary_selected %}data-te-tab-active{% endif %}
         >
             <div class="flex flex-row items-start gap-x-10 min-w-full">
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 basis-1/4">
                     <div id="facets" class="container">
                         <div class="search-results-table-title table-container-header">
                             <div class="table-container-title">
@@ -358,7 +358,7 @@
                     {% endif %}
                 </div>
 
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 basis-3/4">
                     {% if feature_counts %}
                     <div class="container" id="feature-counts">
                     {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
