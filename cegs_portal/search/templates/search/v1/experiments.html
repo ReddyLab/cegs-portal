@@ -38,6 +38,15 @@
         padding: 5px 5px;
     }
 
+    .intersect-button {
+        margin-left: 5px;
+        background-color: rgb(244, 245, 247) !important;
+    }
+
+    .intersect-button:hover {
+        background-color: rgb(229 231 235) !important;
+    }
+
 </style>
 {% endblock %}
 
@@ -58,19 +67,35 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
             </svg> Multi-Experiment Coverage Information
         </div>
-        <div class="mt-5">The coverage data from the following experiments have been intersected based on their
-            <select name="views" id="feature-select">
-                <option value="sources">Tested Elements</option>
-                <option value="targets">Genes</option>
-                <option value="sources-targets" selected>Tested Elements and Genes</option>
-            </select></div>
-        <ul class="list-disc mt-5">
-            {% for expr in experiments %}
-            <li>{{ expr.name }} <a class="link" href="{% url 'search:experiment' expr.accession_id %}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
-            </svg></a></li>
-            {% endfor %}
-        </ul>
+            <div>
+                <table class="min-w-full">
+                    <thead class="bg-white border-b">
+                        <tr>
+                            <div class="mt-5 italic bg-gray-100 border-b">*The coverage data from the following experiments have been intersected based on their
+                                <select class="intersect-button border-2 p-2 h-10 text-sm" name="views" id="feature-select">
+                                    <option value="sources">Tested Elements</option>
+                                    <option value="targets">Genes</option>
+                                    <option value="sources-targets" selected>Tested Elements and Genes</option>
+                                </select>
+                            </div>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expr in experiments %}
+                        <tr class="{% cycle 'bg-white border-b' 'bg-gray-100 border-b' %}">
+                            <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ expr.name }}</td>
+                            <td class="text-sm text-gray-900 font-light px-6 py-2 whitespace-nowrap">
+                                <a class="link" href="{% url 'search:experiment' expr.accession_id %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
     </div>
 </div>
 <div class="min-w-full">
@@ -81,7 +106,7 @@
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500">
+                    <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -94,8 +119,9 @@
                 <div class="facet-content-section container">
                     <form name="regionUploadForm">
                         <div>
-                            <label class="font-bold" for="regionFile">Highlight Regions</label>
-                            <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                            <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
+                            <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
+                            <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
                         </div>
                     </form>
                     <div id="regionUploadInputReset"></div>
@@ -105,12 +131,14 @@
                 <div class="facet-content-section container">
                     <form name="dataDownloadForm">
                         <div>
-                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
-                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                            <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
+                            <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll" />
+                            <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Request Data</label>
                         </div>
                         <div class="mt-5">
-                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
-                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label class="font-bold flex justify-center" for="dataDlFile">Download Some Selected Data*</label>
+                            <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
                         </div>
                     </form>
                     <div id="dataDownloadLink" class="mt-5 mb-5"></div>
@@ -131,8 +159,8 @@
                         <div id="target-count"></div>
                     </div>
                     <div>
-                        <label for="covSelect">Choose a Coverage View:</label>
-                        <select name="views" id="covSelect">
+                        <label for="covSelect">View:</label>
+                        <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
                             <option value="sig">Largest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">Gene Count</option>
