@@ -9,7 +9,8 @@ watchfiles==0.18.1  # https://github.com/samuelcolvin/watchfiles
 # ------------------------------------------------------------------------------
 mypy==0.910  # https://github.com/python/mypy
 django-stubs==1.9.0  # https://github.com/typeddjango/django-stubs
-pytest==7.2.0  # https://github.com/pytest-dev/pytest
+pytest==8.2.0  # https://github.com/pytest-dev/pytest
+py==1.11.0  # https://github.com/pytest-dev/py -- pytest_benchmark, which gets installed somehow, requires this but doesn't declare it
 pytest-sugar==0.9.4  # https://github.com/Frozenball/pytest-sugar
 
 # Documentation
