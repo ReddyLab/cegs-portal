@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import Http404
+from django.shortcuts import render
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models.validators import validate_accession_id
@@ -205,6 +206,17 @@ class ExperimentListView(MultiResponseFormatView):
                 facets[value.facet.name].append(value)
             else:
                 facets[value.facet.name] = [value]
+
+        if request.headers.get("HX-Target"):
+            return render(
+                request,
+                "search/v1/partials/_experiment_index.html",
+                {
+                    "experiments": experiment_objects,
+                    "experiment_ids": [expr.accession_id for expr in experiment_objects],
+                    "facets": facets,
+                },
+            )
 
         return super().get(
             request,
