@@ -29,7 +29,7 @@ export function facetFilterSetup() {
                             },
                             [
                                 e("div", {class: "flex justify-between"}, [
-                                    e("div", {class: "name"}, expr.name),
+                                    e("div", {class: "exp-name"}, expr.name),
                                     e(
                                         "div",
                                         {
