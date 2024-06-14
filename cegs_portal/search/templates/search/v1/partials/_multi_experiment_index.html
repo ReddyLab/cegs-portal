@@ -1,0 +1,111 @@
+{% load static i18n %}
+{% load waffle_tags %}
+
+<div id="multi-exp-modal">
+<div class="multi-exp-modal-underlay" onclick="closeModal()"></div>
+<div class="container multi-exp-modal-content">
+    <div class="close-button" onclick="closeModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+    </svg>
+    </div>
+    <div class="scroll-area">
+    <div class="flex gap-x-10 items-start">
+        <div class="flex flex-col basis-1/4">
+            <div class="container">
+                <div class="flex justify-center items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
+                        <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
+                    </svg>
+                    <div class="text-xl font-bold text-slate-500">Experiment Filters</div>
+                </div>
+                <div id="categorical-facets">
+                    {% for facet, values in facets.items %}
+                    <fieldset class="my-4" name="facetfield">
+                        <legend class="font-bold">{{ facet }}</legend>
+                        <div class="flex flex-row flex-wrap gap-1">
+                            {% for value in values %}
+                                <div class="ml-1">
+                                    <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
+                                    <label for="{{ value.id }}">{{ value.value }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="container" id="selected-experiments">
+                <div class="flex justify-center items-center">
+                    <div class="font-bold text-2xl text-slate-500">＋</div>
+                    <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+                </div>
+                <div class="title-separator"></div>
+                <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
+                <div id="selected-experiment-list"></div>
+            </div>
+            {% switch "multi_expr_page" %}
+            <div class="container" id="view-experiments">
+                <div class="flex justify-center items-center">
+                    <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
+                </div>
+                <div class="title-separator"></div>
+                <div class="italic flex justify-center" id="experiments-link">Please select at least one experiment.</div>
+            </div>
+            {% endswitch %}
+            {% if logged_in %}
+            <div class="container">
+                <div class="flex justify-center items-center">
+                    <div class="text-xl font-bold text-slate-500 flex justify-center">Download Data from Selected Experiments</div>
+                </div>
+                <div class="title-separator"></div>
+                <form name="dataDownloadForm">
+                    <div>
+                        <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
+                        <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                        <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
+                    </div>
+                </form>
+                <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="experiment-list" class="basis-3/4">
+            {% for experiment in experiments %}
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
+                <div class="container items-center">
+                    <div class="flex justify-between">
+                        <div class="exp-name">{{ experiment.name }}</div>
+                        <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+                    </div>
+                    <div>{{ experiment.description }}</div>
+                    <div class="flex justify-between">
+                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                        <div class="accession-id">{{ experiment.accession_id }}</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% block inline_javascript %}
+<script type="module">
+    import { facetFilterSetup } from "{% static 'search/js/experiment_list/facet_filter.js' %}";
+    import { addDragListeners, addDropListeners, addSelectListeners } from "{% static 'search/js/experiment_list/drag_drop.js' %}";
+    facetFilterSetup();
+    addDropListeners();
+    addDragListeners();
+    addSelectListeners();
+</script>
+{% if logged_in %}
+<script type="module">
+    import { downloadDataSetup } from "{% static 'search/js/experiment_list/download_data.js' %}";
+    downloadDataSetup("{{ csrf_token }}");
+</script>
+{% endif %}
+{% endblock %}
