@@ -40,7 +40,7 @@ def upload(request):
             elif (analysis_file := request.FILES.get("analysis_file")) is not None:
                 analysis_data = analysis_file
 
-            match experiment_file, analysis_file:
+            match experiment_data, analysis_data:
                 case (None, None):
                     desc = "Null Upload"
                 case (_, None):
