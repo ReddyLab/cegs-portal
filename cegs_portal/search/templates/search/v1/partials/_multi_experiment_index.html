@@ -1,5 +1,4 @@
 {% load static i18n %}
-{% load waffle_tags %}
 
 <div id="multi-exp-modal">
 <div class="multi-exp-modal-underlay" onclick="closeModal()"></div>
@@ -44,7 +43,6 @@
                 <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
                 <div id="selected-experiment-list"></div>
             </div>
-            {% switch "multi_expr_page" %}
             <div class="container" id="view-experiments">
                 <div class="flex justify-center items-center">
                     <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
@@ -52,23 +50,6 @@
                 <div class="title-separator"></div>
                 <div class="italic flex justify-center" id="experiments-link">Please select at least one experiment.</div>
             </div>
-            {% endswitch %}
-            {% if logged_in %}
-            <div class="container">
-                <div class="flex justify-center items-center">
-                    <div class="text-xl font-bold text-slate-500 flex justify-center">Download Data from Selected Experiments</div>
-                </div>
-                <div class="title-separator"></div>
-                <form name="dataDownloadForm">
-                    <div>
-                        <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
-                        <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
-                        <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
-                    </div>
-                </form>
-                <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
-            </div>
-            {% endif %}
         </div>
 
         <div id="experiment-list" class="basis-3/4">
@@ -102,10 +83,4 @@
     addDragListeners();
     addSelectListeners();
 </script>
-{% if logged_in %}
-<script type="module">
-    import { downloadDataSetup } from "{% static 'search/js/experiment_list/download_data.js' %}";
-    downloadDataSetup("{{ csrf_token }}");
-</script>
-{% endif %}
 {% endblock %}
