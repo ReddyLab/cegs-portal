@@ -1,6 +1,7 @@
 from enum import StrEnum
 
 from cegs_portal.search.models import (
+    DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
     GrnaType,
@@ -37,6 +38,11 @@ class Facets(StrEnum):
     LOG_SIGNIFICANCE = RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value
     EFFECT_SIZE = RegulatoryEffectObservation.Facet.EFFECT_SIZE.value
     AVG_COUNTS_PER_MILLION = RegulatoryEffectObservation.Facet.AVG_COUNTS_PER_MILLION.value
+    ASSAYS = DNAFeature.Facet.ASSAYS.value
+    CCRE_CATEGORIES = DNAFeature.Facet.CCRE_CATEGORIES.value
+    DHS_CCRE_OVERLAP_CATEGORIES = DNAFeature.Facet.DHS_CCRE_OVERLAP_CATEGORIES.value
+    GRNA_TYPE = DNAFeature.Facet.GRNA_TYPE.value
+    PROMOTER = DNAFeature.Facet.PROMOTER.value
 
 
 class DirectionFacets(StrEnum):
