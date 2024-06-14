@@ -193,9 +193,7 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
             throw new GenomeError("Experiment analyses based on different genomes and are incompatible.");
         }
 
-        genome = await getJson(
-            `${staticRoot}search/experiments/${accessionIDs[0][0]}/${accessionIDs[0][1]}/${manifests[0].genome.file}`
-        );
+        genome = await getJson(`${staticRoot}genome_data/${manifests[0].genome.file}`);
     } catch (error) {
         let consoleError;
         if (error instanceof Error) {
