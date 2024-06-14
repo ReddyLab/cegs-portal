@@ -55,26 +55,30 @@
     {% spaceless %}
     <div class="container">
         <table class="profile-table">
-            <tr>
-                <th>Direction</th>
-                <th>Effect Size</th>
-                <th>Significance</th>
-                <th>Raw p-value</th>
-                <th>Cell Lines</th>
-                {% if regulatory_effect.tissue_types.exist %}
-                <th>Tissue Types</th>
-                {% endif %}
-            </tr>
-            <tr>
-                <td class="italic">{{ regulatory_effect.direction }}</td>
-                <td>{{ regulatory_effect.effect_size|format_effect_size }}</td>
-                <td>{{ regulatory_effect.significance|format_pval }}</td>
-                <td>{{ regulatory_effect.raw_p_value|format_pval }}</td>
-                <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
-                {% if regulatory_effect.tissue_types.exist %}
-                <td>{{ regulatory_effect.tissue_types|join:", " }}</td>
-                {% endif %}
-            </tr>
+            <thead>
+                <tr>
+                    <th>Direction</th>
+                    <th>Effect Size</th>
+                    <th>Corrected p-value</th>
+                    <th>Raw p-value</th>
+                    <th>Cell Lines</th>
+                    {% if regulatory_effect.tissue_types.exist %}
+                    <th>Tissue Types</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="italic">{{ regulatory_effect.direction }}</td>
+                    <td>{{ regulatory_effect.effect_size|format_effect_size }}</td>
+                    <td>{{ regulatory_effect.significance|format_pval }}</td>
+                    <td>{{ regulatory_effect.raw_p_value|format_pval }}</td>
+                    <td>{{ regulatory_effect.cell_lines|join:", " }}</td>
+                    {% if regulatory_effect.tissue_types.exist %}
+                    <td>{{ regulatory_effect.tissue_types|join:", " }}</td>
+                    {% endif %}
+                </tr>
+            </tbody>
         </table>
     </div>
 

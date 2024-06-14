@@ -13,6 +13,122 @@
 <script src="https://cdn.jsdelivr.net/npm/vega-tooltip"></script>
 <!-- This CSS modifies the range slider look -->
 <style>
+      /***** MODAL DIALOG ****/
+    #exp-modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #exp-modal > .exp-modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+
+    #exp-modal > .exp-modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top: 10vh;
+
+        /* Sizing for visible dialog */
+        width: 85%;
+        max-height: 85%;
+
+        /* Display properties for visible dialog*/
+        border: solid 1px #999;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+        background-color: white;
+
+        /* Animate when opening */
+        animation-name: zoomIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    .close-button {
+        cursor: pointer;
+        display:inline-block;
+    }
+
+    .exp-modal-button {
+        background-color: white !important;
+        color: rgb(71 85 105);
+        font-weight: bold;
+    }
+
+    .exp-modal-button:hover {
+        background-color: rgb(229 231 235) !important;
+        border-color: white;
+    }
+
+    #exp-modal .scroll-bounds {
+        margin-bottom: 20px;
+    }
+
+    #exp-modal .scroll-area {
+        overflow-y: scroll;
+        height: calc(100% - 30px);
+        margin-top: 10px;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #exp-modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #exp-modal.closing > .exp-modal-content {
+        /* Animate when closing */
+        animation-name: zoomOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
+
     .noUi-horizontal {
         height: 10px;
     }
@@ -91,24 +207,35 @@
             <tbody>
                 <tr class="bg-gray-100 border-b">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.experiment_type }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.cell_lines|join:", " }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.tissue_types|join:", " }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap" style="font-style: italic">
+                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
                         {{ experiment.assemblies|join:", " }}
                     </td>
                 </tr>
             </tbody>
         </table>
+        <div class="flex justify-center">
+            <button class="exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
+                <div class="flex flex-column items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                    <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
+                    </svg>Change Experiment
+                </div>
+            </button>
+            <div id="modal-container">
+            </div>
+        </div>
     </div>
 </div>
 
@@ -200,7 +327,7 @@
                 <div class="facet-content-section container">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
-                        ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
+                        ><span class="bi bi-layers-half ml-2"></span>
                     </div>
                     <div class="title-separator"></div>
                     <div id="chrom-data-categorical-facets"></div>
@@ -473,7 +600,7 @@
             .height(400)
             .encode(
                 vl.y().fieldQ("0").title("-log10(p-value)"),
-                vl.x().fieldQ(1).title("log2(FC)"), //.scale({"domain":[0, 2], "clamp": true}),
+                vl.x().fieldQ(1).title("Effect Size"), //.scale({"domain":[0, 2], "clamp": true}),
                 vl
                     .color()
                     .fieldN(2)
@@ -525,7 +652,7 @@
                     return values;
                 })
                 .then((values) => {
-                    return plot(values, "Crop of Non-Significant, Low Effect Observations");
+                    return plot(values, "Significant Observations with Effect Size > 1");
                 })
                 .catch((err) => console.log(err));
         })
@@ -788,4 +915,14 @@
 </script>
 
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
+
+<script>
+    function closeModal() {
+        let modal = document.getElementById("exp-modal");
+        modal.classList.add("closing") // Kicks off an animation on the modal dialog
+        modal.addEventListener("animationend", (event) => {
+            modal.remove(); // remove the dialog from the DOM once the animation is over
+        })
+    }
+</script>
 {% endblock %}

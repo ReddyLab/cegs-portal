@@ -116,8 +116,11 @@ class MultiResponseFormatView(View):
 
         response = None
         try:
-            assert data_handler is not None
-            response = handler(request, options, data_handler(options, *args, **kwargs), *args, **kwargs)
+            if data_handler is not None:
+                data = data_handler(options, *args, **kwargs)
+            else:
+                data = None
+            response = handler(request, options, data, *args, **kwargs)
         except Http303 as redirect:
             response = HttpResponseSeeOtherRedirect(redirect_to=redirect.location)
         except Http400 as err:

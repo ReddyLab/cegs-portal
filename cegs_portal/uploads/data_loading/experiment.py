@@ -51,6 +51,10 @@ class FeatureRow:
     misc: Optional[Any] = None
     strand: Optional[ChromosomeStrands] = None
 
+    def __post_init__(self):
+        if self.strand == ".":
+            self.strand = None
+
 
 class FeatureOverlap(Enum):
     BEFORE = 1
@@ -145,6 +149,8 @@ class Experiment:
 
     def load(self):
         source_type = self.metadata.source_type
+        parent_source_type = self.metadata.parent_source_type
+
         genome_assembly = self.metadata.tested_elements_file.genome_assembly
 
         new_elements: dict[str, FeatureRow] = {}
@@ -181,7 +187,7 @@ class Experiment:
                         strand=parent_strand,
                         genome_assembly=GenomeAssembly(genome_assembly),
                         cell_line=element_cell_line,
-                        feature_type=FeatureType(source_type),
+                        feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
                     )
 
                 parent_row = new_parent_elements[parent_name]
@@ -201,7 +207,7 @@ class Experiment:
                 else []
             )
             misc = (
-                {f.split("=") for f in line["misc"].split(";")}
+                {k: v for k, v in [f.split("=") for f in line["misc"].split(";")]}
                 if line["misc"] != "" and line["misc"] is not None
                 else {}
             )
@@ -285,9 +291,9 @@ class Experiment:
                         experiment_accession_id=experiment_accession_id,
                     )
                 )
-                for facet in feature.facets:
+                for _, facet_value in feature.facets:
                     feature_facets.write(
-                        feature_facet_entry(feature_id=feature_id, facet_id=self.facet_values[facet].id)
+                        feature_facet_entry(feature_id=feature_id, facet_id=self.facet_values[facet_value].id)
                     )
 
         bulk_feature_save(feature_rows)

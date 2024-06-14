@@ -916,11 +916,11 @@ tr[data-href]:hover {
   padding: 8px;
 }
 
-.profile-table tr:nth-child(even) {
+.profile-table tbody tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-.profile-table tr:hover {
+.profile-table tbody tr:hover {
   background-color: #ddd;
 }
 
@@ -978,21 +978,6 @@ tr[data-href]:hover {
 .exp-list-content-container-link {
   text-decoration: none;
   color: inherit;
-}
-
-.icon-container {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  margin-right: 1rem;
 }
 
 .accession-id {
@@ -1098,11 +1083,6 @@ input[type="submit"], input[type="button"], button {
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
-}
-
-.my-1 {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
 }
 
 .my-2 {
@@ -1281,10 +1261,6 @@ input[type="submit"], input[type="button"], button {
 
 .w-6 {
   width: 1.5rem;
-}
-
-.w-60 {
-  width: 15rem;
 }
 
 .w-7 {
@@ -1851,6 +1827,11 @@ input[type="submit"], input[type="button"], button {
 .text-primary-600 {
   --tw-text-opacity: 1;
   color: rgb(48 97 175 / var(--tw-text-opacity));
+}
+
+.text-red-600 {
+  --tw-text-opacity: 1;
+  color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
 .text-red-700 {

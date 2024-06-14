@@ -233,11 +233,11 @@ fieldset legend {
     padding: 8px;
   }
 
-  .profile-table tr:nth-child(even) {
+  .profile-table tbody tr:nth-child(even) {
     background-color: #f2f2f2;
   }
 
-  .profile-table tr:hover {
+  .profile-table tbody tr:hover {
     background-color: #ddd;
   }
 
@@ -285,52 +285,43 @@ fieldset legend {
   }
 
   .exp-list-content-container-link:hover .container {
-      transform: scale(1.02);
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    transform: scale(1.02);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
   }
 
   .exp-list-content-container-link {
-      text-decoration: none;
-      color: inherit;
-  }
-
-  .icon-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 3rem;
-      height: 3rem;
-      margin-right: 1rem;
+    text-decoration: none;
+    color: inherit;
   }
 
   .accession-id {
-      color: #6e7e98;
-      margin-top: 0.6rem;
+    color: #6e7e98;
+    margin-top: 0.6rem;
   }
 
   .exp-name {
-      color: #3490dc;
-      font-weight: bold;
+    color: #3490dc;
+    font-weight: bold;
   }
 
   .expr-list-link {
-      color: #3490dc;
-      font-style: normal;
+    color: #3490dc;
+    font-style: normal;
   }
 
   .expr-list-link:visited {
-      color: #3490dc;
-      font-style: normal;
+    color: #3490dc;
+    font-style: normal;
   }
 
   .cell-lines {
-      font-style: italic;
-      color: #718096;
-      margin-top: 0.5rem;
+    font-style: italic;
+    color: #718096;
+    margin-top: 0.5rem;
   }
 
   a.exp-list-content-container-link:hover {
-      color: inherit;
+    color: inherit;
   }
 
   .checkbox-divider:not(:last-child) {

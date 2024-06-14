@@ -246,8 +246,8 @@ def retrieve_experiment_data(
     data_source: ReoDataSource,
     assembly: Optional[str] = None,
 ):
-    where = r"""WHERE (reo_sources_targets.archived = false AND (reo_sources_targets.public = true OR
-    reo_sources_targets.reo_experiment = ANY(%s)))"""
+    where = r"""WHERE (get_expr_data_reo_sources_targets.archived = false AND (get_expr_data_reo_sources_targets.public = true OR
+    get_expr_data_reo_sources_targets.reo_experiment = ANY(%s)))"""
     match data_source:
         case ReoDataSource.EVERYTHING:
             inputs = [[user_experiments]]
@@ -258,20 +258,20 @@ def retrieve_experiment_data(
 
     match data_source:
         case ReoDataSource.SOURCES:
-            where = f"""{where} AND (reo_sources_targets.source_chrom = %s
-                            AND reo_sources_targets.source_loc && %s)"""
+            where = f"""{where} AND (get_expr_data_reo_sources_targets.source_chrom = %s
+                            AND get_expr_data_reo_sources_targets.source_loc && %s)"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
                 i.append(NumericRange(start, end))
         case ReoDataSource.TARGETS:
-            where = f"""{where} AND (reo_sources_targets.target_chrom = %s
-                            AND reo_sources_targets.target_loc && %s)"""
+            where = f"""{where} AND (get_expr_data_reo_sources_targets.target_chrom = %s
+                            AND get_expr_data_reo_sources_targets.target_loc && %s)"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
                 i.append(NumericRange(start, end))
         case ReoDataSource.BOTH:
-            where = f"""{where} AND ((reo_sources_targets.source_chrom = %s AND reo_sources_targets.source_loc && %s)
-                            OR (reo_sources_targets.target_chrom = %s AND reo_sources_targets.target_loc && %s))"""
+            where = f"""{where} AND ((get_expr_data_reo_sources_targets.source_chrom = %s AND get_expr_data_reo_sources_targets.source_loc && %s)
+                            OR (get_expr_data_reo_sources_targets.target_chrom = %s AND get_expr_data_reo_sources_targets.target_loc && %s))"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
                 i.append(NumericRange(start, end))
@@ -283,30 +283,30 @@ def retrieve_experiment_data(
             raise InvalidDataSource()
 
     if experiments is not None and analyses is not None:
-        where = f"""{where} AND (reo_sources_targets.reo_experiment = ANY(%s) OR
-        reo_sources_targets.reo_analysis = ANY(%s))"""
+        where = f"""{where} AND (get_expr_data_reo_sources_targets.reo_experiment = ANY(%s) OR
+        get_expr_data_reo_sources_targets.reo_analysis = ANY(%s))"""
         for i in inputs:
             i.append(experiments)
             i.append(analyses)
     elif experiments is not None:
-        where = f"{where} AND reo_sources_targets.reo_experiment = ANY(%s)"
+        where = f"{where} AND get_expr_data_reo_sources_targets.reo_experiment = ANY(%s)"
         for i in inputs:
             i.append(experiments)
     elif analyses is not None:
-        where = f"{where} AND reo_sources_targets.reo_analysis = ANY(%s)"
+        where = f"{where} AND get_expr_data_reo_sources_targets.reo_analysis = ANY(%s)"
         for i in inputs:
             i.append(analyses)
 
     if len(facets.categorical_facets) > 0:
-        where = f"{where} AND %s::bigint[] && reo_sources_targets.cat_facets"
+        where = f"{where} AND %s::bigint[] && get_expr_data_reo_sources_targets.cat_facets"
         for i in inputs:
             i.append(facets.categorical_facets)
     if facets.effect_size_range is not None:
-        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
+        where = f"{where} AND %s::numrange @> (get_expr_data_reo_sources_targets.reo_facets ->> 'Effect Size')::numeric"
         for i in inputs:
             i.append(NumericRange(*facets.effect_size_range))
     if facets.sig_range is not None:
-        where = f"{where} AND %s::numrange @> (reo_sources_targets.reo_facets ->> '-log10 Significance')::numeric"
+        where = f"{where} AND %s::numrange @> (get_expr_data_reo_sources_targets.reo_facets ->> '-log10 Significance')::numeric"
         for i in inputs:
             i.append(NumericRange(*facets.sig_range))
 
@@ -316,24 +316,24 @@ def retrieve_experiment_data(
             i.append(assembly)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
-                            (reo_sources_targets.source_chrom,
-                             reo_sources_targets.source_loc)) AS sources,
+                            (get_expr_data_reo_sources_targets.source_chrom,
+                             get_expr_data_reo_sources_targets.source_loc)) AS sources,
                         ARRAY_AGG(DISTINCT
-                            (reo_sources_targets.target_chrom,
-                             reo_sources_targets.target_loc,
-                             reo_sources_targets.target_gene_symbol,
-                             reo_sources_targets.target_ensembl_id)) AS targets,
-                        reo_sources_targets.reo_accession as ai, -- ai = accession id
-                        reo_sources_targets.reo_facets ->> 'Effect Size' as effect_size,
-                        reo_sources_targets.reo_facets ->> 'Raw p value' as raw_p_value,
-                        reo_sources_targets.reo_facets ->> 'Significance' as sig,
-                        reo_sources_targets.reo_experiment as eai, -- eai = experiment accession id
-                        reo_sources_targets.reo_analysis as aai -- aai = analysis accession id
-                    FROM reo_sources_targets
-                    WHERE reo_sources_targets.reo_accession = ANY(SELECT DISTINCT reo_sources_targets.reo_accession
-                                                                  FROM reo_sources_targets
+                            (get_expr_data_reo_sources_targets.target_chrom,
+                             get_expr_data_reo_sources_targets.target_loc,
+                             get_expr_data_reo_sources_targets.target_gene_symbol,
+                             get_expr_data_reo_sources_targets.target_ensembl_id)) AS targets,
+                        get_expr_data_reo_sources_targets.reo_accession as ai, -- ai = accession id
+                        get_expr_data_reo_sources_targets.reo_facets ->> 'Effect Size' as effect_size,
+                        get_expr_data_reo_sources_targets.reo_facets ->> 'Raw p value' as raw_p_value,
+                        get_expr_data_reo_sources_targets.reo_facets ->> 'Significance' as sig,
+                        get_expr_data_reo_sources_targets.reo_experiment as eai, -- eai = experiment accession id
+                        get_expr_data_reo_sources_targets.reo_analysis as aai -- aai = analysis accession id
+                    FROM get_expr_data_reo_sources_targets
+                    WHERE get_expr_data_reo_sources_targets.reo_accession = ANY(SELECT DISTINCT get_expr_data_reo_sources_targets.reo_accession
+                                                                  FROM get_expr_data_reo_sources_targets
                                                                   {where})
-                    GROUP BY ai, reo_sources_targets.reo_facets, eai, aai"""
+                    GROUP BY ai, get_expr_data_reo_sources_targets.reo_facets, eai, aai"""
 
     with connection.cursor() as cursor:
         experiment_data = set()
@@ -353,19 +353,19 @@ def sig_reo_loc_search(
 ):
     experiments = [] if experiments is None else experiments
 
-    where = r"WHERE reo_sources_targets_sig_only.archived = false AND"
+    where = r"WHERE get_expr_data_reo_sources_targets_sig_only.archived = false AND"
 
     if experiments_only:
-        where = f"{where} (reo_sources_targets_sig_only.public = true AND"
+        where = f"{where} (get_expr_data_reo_sources_targets_sig_only.public = true AND"
     else:
-        where = f"{where} (reo_sources_targets_sig_only.public = true OR"
+        where = f"{where} (get_expr_data_reo_sources_targets_sig_only.public = true OR"
 
     where = f"""{where}
-                    reo_sources_targets_sig_only.reo_experiment = ANY(%s)) AND
-                    ((reo_sources_targets_sig_only.source_chrom = %s AND
-                    reo_sources_targets_sig_only.source_loc && %s) OR
-                    (reo_sources_targets_sig_only.target_chrom = %s AND
-                    reo_sources_targets_sig_only.target_loc && %s))"""
+                    get_expr_data_reo_sources_targets_sig_only.reo_experiment = ANY(%s)) AND
+                    ((get_expr_data_reo_sources_targets_sig_only.source_chrom = %s AND
+                    get_expr_data_reo_sources_targets_sig_only.source_loc && %s) OR
+                    (get_expr_data_reo_sources_targets_sig_only.target_chrom = %s AND
+                    get_expr_data_reo_sources_targets_sig_only.target_loc && %s))"""
     inputs = [
         experiments,
         location[0],
@@ -381,39 +381,39 @@ def sig_reo_loc_search(
     inputs.append(count)
 
     query = f"""SELECT ARRAY_AGG(DISTINCT
-                            (reo_sources_targets_sig_only.source_chrom,
-                            reo_sources_targets_sig_only.source_loc,
-                            reo_sources_targets_sig_only.source_accession)) AS sources,
+                            (get_expr_data_reo_sources_targets_sig_only.source_chrom,
+                            get_expr_data_reo_sources_targets_sig_only.source_loc,
+                            get_expr_data_reo_sources_targets_sig_only.source_accession)) AS sources,
                         ARRAY_AGG(DISTINCT
-                            (reo_sources_targets_sig_only.target_chrom,
-                            reo_sources_targets_sig_only.target_loc,
-                            reo_sources_targets_sig_only.target_gene_symbol,
-                            reo_sources_targets_sig_only.target_ensembl_id)) AS targets,
-                        reo_sources_targets_sig_only.reo_accession as ai, -- ai = accession id
-                        reo_sources_targets_sig_only.reo_facets ->> 'Effect Size' as effect_size,
-                        reo_sources_targets_sig_only.reo_facets ->> 'Raw p value' as raw_p_value,
-                        reo_sources_targets_sig_only.reo_facets ->> 'Significance' as sig,
-                        reo_sources_targets_sig_only.reo_experiment as eai, -- eai = experiment accession id
+                            (get_expr_data_reo_sources_targets_sig_only.target_chrom,
+                            get_expr_data_reo_sources_targets_sig_only.target_loc,
+                            get_expr_data_reo_sources_targets_sig_only.target_gene_symbol,
+                            get_expr_data_reo_sources_targets_sig_only.target_ensembl_id)) AS targets,
+                        get_expr_data_reo_sources_targets_sig_only.reo_accession as ai, -- ai = accession id
+                        get_expr_data_reo_sources_targets_sig_only.reo_facets ->> 'Effect Size' as effect_size,
+                        get_expr_data_reo_sources_targets_sig_only.reo_facets ->> 'Raw p value' as raw_p_value,
+                        get_expr_data_reo_sources_targets_sig_only.reo_facets ->> 'Significance' as sig,
+                        get_expr_data_reo_sources_targets_sig_only.reo_experiment as eai, -- eai = experiment accession id
                         se.name as expr_name,
-                        reo_sources_targets_sig_only.reo_analysis as aai -- aai = analysis accession id
-                    FROM reo_sources_targets_sig_only
-                    JOIN search_experiment as se on reo_sources_targets_sig_only.reo_experiment = se.accession_id
-                    WHERE reo_sources_targets_sig_only.reo_accession = ANY(
+                        get_expr_data_reo_sources_targets_sig_only.reo_analysis as aai -- aai = analysis accession id
+                    FROM get_expr_data_reo_sources_targets_sig_only
+                    JOIN search_experiment as se on get_expr_data_reo_sources_targets_sig_only.reo_experiment = se.accession_id
+                    WHERE get_expr_data_reo_sources_targets_sig_only.reo_accession = ANY(
                         WITH s AS (
                             SELECT *, ROW_NUMBER()
                             OVER (PARTITION BY aai ORDER BY pval ASC)
-                            FROM(SELECT reo_sources_targets_sig_only.reo_accession,
-                                        reo_sources_targets_sig_only.reo_experiment as eai,
-                                        reo_sources_targets_sig_only.reo_analysis as aai,
-                                        (reo_sources_targets_sig_only.reo_facets->>'Raw p value')::numeric as pval
-                                    FROM reo_sources_targets_sig_only
+                            FROM(SELECT get_expr_data_reo_sources_targets_sig_only.reo_accession,
+                                        get_expr_data_reo_sources_targets_sig_only.reo_experiment as eai,
+                                        get_expr_data_reo_sources_targets_sig_only.reo_analysis as aai,
+                                        (get_expr_data_reo_sources_targets_sig_only.reo_facets->>'Raw p value')::numeric as pval
+                                    FROM get_expr_data_reo_sources_targets_sig_only
                                     {where}
                                 ) as s2)
                         SELECT reo_accession
                             FROM s
                             WHERE ROW_NUMBER <= %s
                     )
-                    GROUP BY ai, reo_sources_targets_sig_only.reo_facets, eai, se.name, aai
+                    GROUP BY ai, get_expr_data_reo_sources_targets_sig_only.reo_facets, eai, se.name, aai
                     ORDER BY eai, aai, raw_p_value
                     """
 

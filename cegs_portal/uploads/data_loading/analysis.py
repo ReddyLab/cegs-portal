@@ -47,6 +47,12 @@ class SourceInfo:
     def __post_init__(self):
         DNAFeatureType(self.feature_type)
 
+        if self.strand == ".":
+            self.strand = None
+
+    def __str__(self):
+        return f"{self.chrom}:{self.start}-{self.end}:{self.strand} {self.bounds} {self.feature_type}"
+
 
 @dataclass
 class ObservationRow:
@@ -89,7 +95,7 @@ class Analysis:
             targets = [line["gene_ensembl_id"]]
 
             raw_p_value = float(line["raw_p_val"])
-            adjust_p_value = float(line["adj_p_val"])
+            adjusted_p_value = float(line["adj_p_val"])
             effect_size = float(line["effect_size"])
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
 
@@ -99,7 +105,7 @@ class Analysis:
 
             num_facets = {
                 Facets.EFFECT_SIZE: effect_size,
-                Facets.SIGNIFICANCE: adjust_p_value,
+                Facets.SIGNIFICANCE: adjusted_p_value,
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
@@ -186,4 +192,5 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-    Analysis(metadata).load().save()
+    analysis = Analysis(metadata).load().save()
+    return analysis.accession_id
