@@ -38,7 +38,7 @@
         padding: 5px 5px;
     }
 
-    #exp-modal {
+    #multi-exp-modal {
         /* Underlay covers entire screen. */
         position: fixed;
         top: 0px;
@@ -59,7 +59,7 @@
         animation-timing-function: ease;
     }
 
-    #exp-modal > .exp-modal-underlay {
+    #multi-exp-modal > .multi-exp-modal-underlay {
         /* underlay takes up the entire viewport. This is only
         required if you want to click to dismiss the popup */
         position: absolute;
@@ -70,7 +70,7 @@
         right: 0px;
     }
 
-    #exp-modal > .exp-modal-content {
+    #multi-exp-modal > .multi-exp-modal-content {
         /* Position visible dialog near the top of the window */
         margin-top: 10vh;
 
@@ -95,44 +95,38 @@
         display:inline-block;
     }
 
-    .exp-modal-button {
+    .multi-exp-modal-button {
         background-color: white !important;
         color: rgb(71 85 105);
         font-weight: bold;
-        position: absolute; left: 0;
-        margin-bottom: 10px;
-        margin-top: 45px;
-        margin-left: -20px;
     }
 
-    .exp-modal-button:hover {
+    .multi-exp-modal-button:hover {
         background-color: rgb(229 231 235) !important;
         border-color: white;
     }
 
-    #exp-modal .scroll-bounds {
+    #multi-exp-modal .scroll-bounds {
         margin-bottom: 20px;
     }
 
-    #exp-modal .scroll-area {
+    #multi-exp-modal .scroll-area {
         overflow-y: scroll;
-        max-height: 80%;
-        margin-bottom: 20px;
+        height: calc(100% - 30px);
         margin-top: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-top: 20px;
-
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
-    #exp-modal.closing {
+    #multi-exp-modal.closing {
         /* Animate when closing */
         animation-name: fadeOut;
         animation-duration: 150ms;
         animation-timing-function: ease;
     }
 
-    #exp-modal.closing > .exp-modal-content {
+    #multi-exp-modal.closing > .multi-exp-modal-content {
         /* Animate when closing */
         animation-name: zoomOut;
         animation-duration: 150ms;
@@ -175,15 +169,6 @@
 {% block content %}
 <div>
     <div class="container">
-        <button class="exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#multi-exp-modal-container">
-            <div class="flex flex-column items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
-                </svg>Change Experiment
-            </div>
-        </button>
-        <div id="multi-exp-modal-container">
-        </div>
         <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
             </svg> Multi-Experiment Coverage Information
@@ -201,6 +186,17 @@
             </svg></a></li>
             {% endfor %}
         </ul>
+        <div class="flex justify-center">
+            <button class="multi-exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="#multi-exp-modal-container">
+                <div class="flex flex-column items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                    <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
+                    </svg>Change Experiments
+                </div>
+            </button>
+        </div>
+        <div id="multi-exp-modal-container">
+        </div>
     </div>
 </div>
 <div class="min-w-full">
@@ -284,7 +280,7 @@
 </script>
 <script>
     function closeModal() {
-        let modal = document.getElementById("exp-modal");
+        let modal = document.getElementById("multi-exp-modal");
         modal.classList.add("closing") // Kicks off an animation on the modal dialog
         modal.addEventListener("animationend", (event) => {
             modal.remove(); // remove the dialog from the DOM once the animation is over
