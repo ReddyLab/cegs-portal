@@ -829,17 +829,39 @@
                         range: ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd']
                     };
 
-                    return vl.markCircle({tooltip: true})
+                    let maxX = 0;
+                    let maxY = 0;
+                    for (let value of data.values) {
+                        maxX = Math.max(value.t, maxX);
+                        maxY = Math.max(value.o, maxY);
+                    }
+
+                    let max = Math.max(maxX, maxY);
+
+                    let pValues = vl.markCircle({tooltip: true})
                     .data(data)
-                    .width(450)
-                    .height(400)
-                    .title('Q-Q Plot')
                     .encode(
                         vl.color().fieldN('cat').scale(scale).title(''),
                         vl.x().fieldQ('t').title(data.xLabel),
                         vl.y().fieldQ('o').title(data.yLabel),
-                    )
-                    .render()
+                    );
+
+                    // Draw a faint red line where y = x
+                    let xy = vl.markLine({clip: true})
+                    .data([{x: 0, y: 0}, {x: max, y: max}])
+                    .encode(
+                        vl.x().fieldQ('x').scale({domain: [0, maxX]}),
+                        vl.y().fieldQ('y').scale({domain: [0, maxY]}),
+                        vl.color().value("#FFCCCC")
+                    );
+
+                    let plot = vl.layer(xy, pValues)
+                    .width(450)
+                    .height(400)
+                    .title('Q-Q Plot')
+                    .render();
+
+                    return plot;
                 }).then((viewElement) => {
                     // render returns a promise to a DOM element containing the chart
                     // viewElement.value contains the Vega View object instance
