@@ -294,15 +294,6 @@ fieldset legend {
     color: inherit;
   }
 
-  .icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    margin-right: 1rem;
-  }
-
   .accession-id {
     color: #6e7e98;
     margin-top: 0.6rem;

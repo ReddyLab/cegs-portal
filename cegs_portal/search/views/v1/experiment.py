@@ -207,7 +207,18 @@ class ExperimentListView(MultiResponseFormatView):
             else:
                 facets[value.facet.name] = [value]
 
-        if request.headers.get("HX-Target"):
+        if request.headers.get("HX-Target") == "multi-exp-modal-container":
+            return render(
+                request,
+                "search/v1/partials/_multi_experiment_index.html",
+                {
+                    "experiments": experiment_objects,
+                    "experiment_ids": [expr.accession_id for expr in experiment_objects],
+                    "facets": facets,
+                },
+            )
+
+        if request.headers.get("HX-Target") == "modal-container":
             return render(
                 request,
                 "search/v1/partials/_experiment_index.html",
