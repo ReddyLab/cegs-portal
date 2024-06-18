@@ -824,9 +824,10 @@
 
                     return {categoryNames, xLabel, yLabel, values};
                 }).then((data) => {
-                    const scale = {
-                        domain: data.categoryNames,
-                        range: ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd']
+                    let catColors = ['#5377A3', '#ff8c00', '#aec7e8', '#1f77b4', '#9467bd'];
+                    const pValueScale = {
+                        domain: [...data.categoryNames, "y = x"],
+                        range: [...catColors.slice(0, data.categoryNames.length), "#ffcccc"]
                     };
 
                     let maxX = 0;
@@ -841,18 +842,18 @@
                     let pValues = vl.markCircle({tooltip: true})
                     .data(data)
                     .encode(
-                        vl.color().fieldN('cat').scale(scale).title(''),
+                        vl.color().fieldN('cat').scale(pValueScale).title(''),
                         vl.x().fieldQ('t').title(data.xLabel),
                         vl.y().fieldQ('o').title(data.yLabel),
                     );
 
                     // Draw a faint red line where y = x
                     let xy = vl.markLine({clip: true})
-                    .data([{x: 0, y: 0}, {x: max, y: max}])
+                    .data([{x: 0, y: 0, cat: "y = x"}, {x: max, y: max, cat: "y = x"}])
                     .encode(
+                        vl.color().fieldN('cat').scale(pValueScale),
                         vl.x().fieldQ('x').scale({domain: [0, maxX]}),
-                        vl.y().fieldQ('y').scale({domain: [0, maxY]}),
-                        vl.color().value("#FFCCCC")
+                        vl.y().fieldQ('y').scale({domain: [0, maxY]})
                     );
 
                     let plot = vl.layer(xy, pValues)
