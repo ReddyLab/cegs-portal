@@ -46,21 +46,26 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="container" id="selected-experiments">
-                <div class="flex justify-center items-center">
-                    <div class="font-bold text-2xl text-slate-500">＋</div>
-                    <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+            <div class="container">
+                <div class="mb-5" id="view-experiments">
+                    <div class="flex justify-center items-center">
+                        <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-pie-chart-fill mr-2"></i
+                            >Analyze Multiple Experiments
+                        </div>
+                    </div>
+                    <div class="title-separator"></div>
+                    <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
                 </div>
-                <div class="title-separator"></div>
-                <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
-                <div id="selected-experiment-list"></div>
-            </div>
-            <div class="container" id="view-experiments">
-                <div class="flex justify-center items-center">
-                    <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
+                <div id="selected-experiments">
+                    <div class="flex justify-center items-center">
+                        <div class="font-bold text-2xl text-slate-500">＋</div>
+                        <div class="text-xl font-bold text-slate-500">Select Experiments</div>
+                    </div>
+                    <div class="w-full h-1/2 border border-gray-300 p-5">
+                        <div class="italic flex justify-center text-center" id="no-selected-experiments">Drag experiments here to select</div>
+                        <div id="selected-experiment-list"></div>
+                    </div>
                 </div>
-                <div class="title-separator"></div>
-                <div class="italic flex justify-center" id="experiments-link">Please select at least one experiment.</div>
             </div>
             {% if logged_in %}
             <div class="container">
