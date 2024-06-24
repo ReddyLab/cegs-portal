@@ -34,23 +34,147 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="container" id="selected-experiments">
-                <div class="flex justify-center items-center">
-                    <div class="font-bold text-2xl text-slate-500">＋</div>
-                    <div class="text-xl font-bold text-slate-500">Selected Experiments</div>
+            <div class="container">
+                <div
+                  class="rounded-t-lg bg-white dark:bg-body-dark">
+                  <h2 class="mb-0" id="headingOne">
+                    <button
+                      class="group relative flex w-full items-center px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none dark:bg-body-dark dark:text-white [&:not([data-twe-collapse-collapsed])]:bg-white [&:not([data-twe-collapse-collapsed])]:text-primary [&:not([data-twe-collapse-collapsed])]:shadow-border-b dark:[&:not([data-twe-collapse-collapsed])]:bg-surface-dark dark:[&:not([data-twe-collapse-collapsed])]:text-primary dark:[&:not([data-twe-collapse-collapsed])]:shadow-white/10 "
+                      type="button"
+                      data-twe-collapse-init
+                      data-twe-target="#collapseOne"
+                      aria-expanded="true"
+                      aria-controls="collapseOne">
+                      <div class="font-bold text-2xl text-slate-500 mb-2">＋</div>
+                      <div>
+                        <div class="text-xl font-bold text-slate-500">Select Experiments</div>
+                      </div>
+                      <span
+                        class="-me-1 ms-auto h-5 w-5 shrink-0 rotate-[-180deg] transition-transform duration-200 ease-in-out group-data-[twe-collapse-collapsed]:me-0 group-data-[twe-collapse-collapsed]:rotate-0 motion-reduce:transition-none [&>svg]:h-6 [&>svg]:w-6">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </span>
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseOne"
+                    class="!visible"
+                    data-twe-collapse-item
+                    data-twe-collapse-show
+                    aria-labelledby="headingOne"
+                    data-twe-parent="#accordionExample">
+                    <div class="w-full h-1/2 border border-gray-300 p-5" id="selected-experiments">
+                      <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
+                      <div id="selected-experiment-list"></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="title-separator"></div>
-                <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
-                <div id="selected-experiment-list"></div>
-            </div>
-            <div class="container" id="view-experiments">
-                <div class="flex justify-center items-center">
-                    <div class="text-xl font-bold text-slate-500">Analyze Multiple Experiments</div>
+                <div
+                  class="bg-white dark:bg-body-dark">
+                  <h2 class="mb-0" id="headingTwo">
+                    <button
+                      class="group relative flex w-full items-center border-0 bg-white px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none dark:bg-body-dark dark:text-white [&:not([data-twe-collapse-collapsed])]:bg-white [&:not([data-twe-collapse-collapsed])]:text-primary [&:not([data-twe-collapse-collapsed])]:shadow-border-b dark:[&:not([data-twe-collapse-collapsed])]:bg-surface-dark dark:[&:not([data-twe-collapse-collapsed])]:text-primary dark:[&:not([data-twe-collapse-collapsed])]:shadow-white/10 "
+                      type="button"
+                      data-twe-collapse-init
+                      data-twe-target="#collapseTwo"
+                      aria-expanded="true"
+                      aria-controls="collapseTwo">
+                      <div class="text-xl font-bold text-slate-500">
+                        <i class="bi bi-pie-chart-fill mr-1"></i> Analyze Multiple Experiments
+                      </div>
+                      <span
+                        class="-me-1 ms-auto h-5 w-5 shrink-0 rotate-[-180deg] transition-transform duration-200 ease-in-out group-data-[twe-collapse-collapsed]:me-0 group-data-[twe-collapse-collapsed]:rotate-0 motion-reduce:transition-none [&>svg]:h-6 [&>svg]:w-6 ">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </span>
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseTwo"
+                    class="!visible"
+                    data-twe-collapse-item
+                    data-twe-collapse-show
+                    aria-labelledby="headingTwo"
+                    data-twe-parent="#accordionExample">
+                    <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
+                      <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="title-separator"></div>
-                <div class="italic flex justify-center" id="experiments-link">Please select at least one experiment.</div>
-            </div>
-        </div>
+                <div
+                  class="bg-white dark:bg-body-dark">
+                  <h2 class="accordion-header mb-0" id="headingThree">
+                    <button
+                      class="data-[twe-collapse-collapsed] group relative flex w-full items-center border-0 bg-white px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none data-[twe-collapse-collapsed]:rounded-b-lg dark:bg-body-dark dark:text-white [&:not([data-twe-collapse-collapsed])]:bg-white [&:not([data-twe-collapse-collapsed])]:text-primary [&:not([data-twe-collapse-collapsed])]:shadow-border-b dark:[&:not([data-twe-collapse-collapsed])]:bg-surface-dark dark:[&:not([data-twe-collapse-collapsed])]:text-primary  dark:[&:not([data-twe-collapse-collapsed])]:shadow-white/10"
+                      type="button"
+                      data-twe-collapse-init
+                      data-twe-collapse-collapsed
+                      data-twe-target="#collapseThree"
+                      aria-expanded="false"
+                      aria-controls="collapseThree">
+                      <div class="text-xl font-bold text-slate-500">
+                        <i class="bi bi-download mr-1"></i> Download Data from Selected Experiments
+                      </div>
+                      <span
+                        class="-me-1 ms-auto h-5 w-5 shrink-0 rotate-[-180deg] transition-transform duration-200 ease-in-out group-data-[twe-collapse-collapsed]:me-0 group-data-[twe-collapse-collapsed]:rotate-0 motion-reduce:transition-none [&>svg]:h-6 [&>svg]:w-6">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </span>
+                    </button>
+                  </h2>
+                  <div
+                    id="collapseThree"
+                    class="!visible hidden"
+                    data-twe-collapse-item
+                    aria-labelledby="headingThree"
+                    data-twe-parent="#accordionExample">
+                    <div class="px-5 py-4">
+                        <form name="dataDownloadForm">
+                            <div>
+                                <label class="font-bold flex justify-center text-center" for="dataDlFile">
+                                    Select a .bed File with Regions of Interest
+                                </label>
+                                <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                                <label for="dataDownloadInput" class="flex justify-center text-center global-button mt-3 border-2 p-2 text-sm">
+                                    Upload file
+                                </label>
+                            </div>
+                        </form>
+                        <div class="italic mt-5 mb-5 flex justify-center text-center">
+                            Please select at least one experiment.
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
 
         <div id="experiment-list" class="basis-3/4">
             {% for experiment in experiments %}
@@ -83,4 +207,5 @@
     addDragListeners();
     addSelectListeners();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/tw-elements/js/tw-elements.umd.min.js"></script>
 {% endblock %}
