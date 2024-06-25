@@ -168,20 +168,14 @@
                   data-te-collapse-item
                   aria-labelledby="headingThree">
                   <div class="px-5 py-4">
-                      <form name="dataDownloadForm">
-                          <div>
-                              <label class="font-bold flex justify-center text-center" for="dataDlFile">
-                                  Select a .bed File with Regions of Interest
-                              </label>
-                              <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
-                              <label for="dataDownloadInput" class="flex justify-center text-center global-button mt-3 border-2 p-2 text-sm">
-                                  Upload file
-                              </label>
-                          </div>
-                      </form>
-                      <div class="italic mt-5 mb-5 flex justify-center text-center">
-                          Please select at least one experiment.
+                    <form name="dataDownloadForm">
+                      <div>
+                          <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
+                          <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                          <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
                       </div>
+                  </form>
+                  <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
                   </div>
                 </div>
               </div>
