@@ -31,19 +31,44 @@
                 </div>
                 <div class="title-separator"></div>
                 <div id="categorical-facets">
-                    {% for facet, values in facets.items %}
+                  {% for facet, values in facets.items %}
                     <fieldset class="my-4" name="facetfield">
-                        <legend class="font-bold">{{ facet }}</legend>
-                        <div class="flex flex-row flex-wrap gap-1">
+                        <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
+                        data-te-collapse-init
+
+                        data-te-target="#facetCollapse{{ forloop.counter }}"
+                        aria-expanded="true"
+                        aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet }}</div>
+                        <div
+                            class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                            <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="h-6 w-6 rotate-180">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </div>
+                        </legend>
+                        <div class="flex flex-row flex-wrap gap-1"
+                            id="facetCollapse{{ forloop.counter }}"
+                            data-te-collapse-item
+                            data-te-collapse-show
+                            aria-labelledby="facetHeader{{ forloop.counter }}">
                             {% for value in values %}
-                                <div class="ml-1">
-                                    <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
-                                    <label for="{{ value.id }}">{{ value.value }}</label>
-                                </div>
-                            {% endfor %}
+                            <div class="ml-1">
+                                <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
+                                <label for="{{ value.id }}">{{ value.value }}</label>
+                            </div>
+                        {% endfor %}
                         </div>
                     </fieldset>
-                    {% endfor %}
+                  {% endfor %}
                 </div>
             </div>
             <div class="container">
