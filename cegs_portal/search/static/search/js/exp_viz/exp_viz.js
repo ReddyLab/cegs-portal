@@ -178,10 +178,13 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         state.u(STATE_SCALE_X, zoomed ? 30 : 1);
         state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
 
-        let body = getFilterBody(state, genome, manifest.chromosomes, [
-            state.g(STATE_CATEGORICAL_FACET_VALUES),
-            state.g(STATE_NUMERIC_FACET_VALUES),
-        ]);
+        let body = getFilterBody(
+            state,
+            genome,
+            manifest.chromosomes,
+            [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+            null
+        );
 
         postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
             (response_json) => {
@@ -201,7 +204,13 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         STATE_CATEGORICAL_FACET_VALUES,
         debounce((s, key) => {
             // Send facet data to server to get filtered data and updated numeric facets
-            let body = getFilterBody(state, genome, manifest.chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
+            let body = getFilterBody(
+                state,
+                genome,
+                manifest.chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES)],
+                null
+            );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
@@ -229,10 +238,13 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         STATE_NUMERIC_FACET_VALUES,
         debounce((s, key) => {
             // Send facet data to server to get filtered data and updated numeric facets
-            let body = getFilterBody(state, genome, manifest.chromosomes, [
-                state.g(STATE_CATEGORICAL_FACET_VALUES),
-                state.g(STATE_NUMERIC_FACET_VALUES),
-            ]);
+            let body = getFilterBody(
+                state,
+                genome,
+                manifest.chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+                null
+            );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
