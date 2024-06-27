@@ -116,8 +116,17 @@ function experimentListItemText(name, accession) {
     return `<span class="experiment-list-item" data-accession="${accession}"><span class="exp-name">${name}</span> <span class="accession-id">${accession}</span></span>`;
 }
 
+function selectAllExperiments() {
+    let selectExperiments = document.getElementsByClassName("select-experiment");
+    for (let experiment of selectExperiments) {
+        experiment.click();
+        addToExperimentList(experimentListItemText(experiment.dataset.name, experiment.dataset.accession));
+    }
+}
+
 export function addSelectListeners() {
     let experimentSummaries = document.getElementsByClassName("select-experiment");
+    let selectAllButton = document.getElementById("select-all-button");
 
     for (let summary of experimentSummaries) {
         summary.addEventListener("click", (evt) => {
@@ -125,6 +134,11 @@ export function addSelectListeners() {
             addToExperimentList(experimentListItemText(evt.target.dataset.name, evt.target.dataset.accession));
         });
     }
+
+    selectAllButton.addEventListener("click", (evt) => {
+        evt.preventDefault();
+        selectAllExperiments();
+    });
 }
 
 export function addDragListeners() {

@@ -65,7 +65,7 @@
                                 <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
                                 <label for="{{ value.id }}">{{ value.value }}</label>
                             </div>
-                        {% endfor %}
+                            {% endfor %}
                         </div>
                     </fieldset>
                   {% endfor %}
@@ -111,6 +111,9 @@
                   <div class="w-full h-1/2 border border-gray-300 p-5" id="selected-experiments">
                     <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
                     <div id="selected-experiment-list"></div>
+                  </div>
+                  <div class="flex justify-center mt-2">
+                    <button class="global-button border-2 border-gray-300 h-6 text-sm" id="select-all-button">Select all experiments</button>
                   </div>
                 </div>
               </div>
@@ -199,8 +202,8 @@
                           <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
                           <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
                       </div>
-                  </form>
-                  <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
+                    </form>
+                    <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
                   </div>
                 </div>
               </div>
@@ -209,21 +212,21 @@
         </div>
 
         <div id="experiment-list" class="basis-3/4">
-            {% for experiment in experiments %}
-            <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
-                <div class="container items-center">
-                    <div class="flex justify-between">
-                        <div class="exp-name">{{ experiment.name }}</div>
-                        <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
-                    </div>
-                    <div>{{ experiment.description }}</div>
-                    <div class="flex justify-between">
-                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
-                        <div class="accession-id">{{ experiment.accession_id }}</div>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
+          {% for experiment in experiments %}
+              <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
+                  <div class="container items-center">
+                      <div class="flex justify-between">
+                          <div class="exp-name">{{ experiment.name }}</div>
+                          <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+                      </div>
+                      <div>{{ experiment.description }}</div>
+                      <div class="flex justify-between">
+                          <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                          <div class="accession-id">{{ experiment.accession_id }}</div>
+                      </div>
+                  </div>
+              </a>
+          {% endfor %}
         </div>
     </div>
 </div>
