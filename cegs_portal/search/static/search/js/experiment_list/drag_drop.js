@@ -119,14 +119,28 @@ function experimentListItemText(name, accession) {
 function selectAllExperiments() {
     let selectExperiments = document.getElementsByClassName("select-experiment");
     for (let experiment of selectExperiments) {
-        experiment.click();
         addToExperimentList(experimentListItemText(experiment.dataset.name, experiment.dataset.accession));
+    }
+}
+
+function removeAllExperiments() {
+    let experimentListItems = document.querySelectorAll("[id$='-list-item']");
+    experimentListItems.forEach((item) => item.remove());
+
+    let noExperiments = document.getElementById("no-selected-experiments");
+    if (!noExperiments) {
+        let noExperiments = document.createElement("div");
+        noExperiments.className = "italic";
+        noExperiments.id = "no-selected-experiments";
+        noExperiments.textContent = "Drag experiments here to select";
+        document.getElementById("selected-experiments").appendChild(noExperiments);
     }
 }
 
 export function addSelectListeners() {
     let experimentSummaries = document.getElementsByClassName("select-experiment");
     let selectAllButton = document.getElementById("select-all-button");
+    let removeAllButton = document.getElementById("remove-all-button");
 
     for (let summary of experimentSummaries) {
         summary.addEventListener("click", (evt) => {
@@ -139,6 +153,12 @@ export function addSelectListeners() {
         evt.preventDefault();
         selectAllExperiments();
     });
+
+    removeAllButton.addEventListener("click", (evt) => {
+        evt.preventDefault();
+        removeAllExperiments();
+    });
+
 }
 
 export function addDragListeners() {
