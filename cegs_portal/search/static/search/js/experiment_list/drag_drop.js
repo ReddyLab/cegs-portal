@@ -47,6 +47,23 @@ function addRemoveListener(node, accession) {
             if (experiments_link) {
                 rc(experiments_link, t("Please select at least one experiment."));
             }
+        } else {
+            let experiments_link = g("experiments-link");
+            if (experiments_link) {
+                rc(
+                    experiments_link,
+                    e(
+                        "a",
+                        {
+                            href: `experiments?${Array.from(experimentListItems, (item) => `exp=${item.dataset.accession}`).join("&")}`,
+                            class: "expr-list-link",
+                        },
+                        `Analyze ${experimentListItems.length} Selected ${
+                            experimentListItems.length > 1 ? "Experiments together" : "Experiment"
+                        }`
+                    )
+                );
+            }
         }
     });
 }
