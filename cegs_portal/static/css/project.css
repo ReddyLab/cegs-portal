@@ -1551,6 +1551,10 @@ input[type="submit"], input[type="button"], button {
   border-radius: 0.5rem;
 }
 
+.rounded-none {
+  border-radius: 0px;
+}
+
 .rounded-t-lg {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
