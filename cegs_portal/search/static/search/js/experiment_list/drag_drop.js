@@ -146,11 +146,16 @@ function removeAllExperiments() {
 
     let noExperiments = document.getElementById("no-selected-experiments");
     if (!noExperiments) {
-        let noExperiments = document.createElement("div");
+        noExperiments = document.createElement("div");
         noExperiments.className = "italic";
         noExperiments.id = "no-selected-experiments";
         noExperiments.textContent = "Drag experiments here to select";
         document.getElementById("selected-experiments").appendChild(noExperiments);
+    }
+
+    let experiments_link = document.getElementById("experiments-link");
+    if (experiments_link) {
+        experiments_link.textContent = "Please select at least one experiment.";
     }
 }
 
