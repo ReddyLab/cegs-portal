@@ -147,7 +147,7 @@ function removeAllExperiments() {
     let noExperiments = document.getElementById("no-selected-experiments");
     if (!noExperiments) {
         noExperiments = document.createElement("div");
-        noExperiments.className = "italic";
+        noExperiments.className = "italic text-center";
         noExperiments.id = "no-selected-experiments";
         noExperiments.textContent = "Drag experiments here to select";
         document.getElementById("selected-experiments").appendChild(noExperiments);
