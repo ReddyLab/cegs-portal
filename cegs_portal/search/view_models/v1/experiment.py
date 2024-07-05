@@ -52,9 +52,13 @@ class ExperimentSearch:
 
     @classmethod
     def all(cls, facet_ids):
-        experiments = Experiment.objects.annotate(
-            cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
-        ).order_by("accession_id")
+        experiments = (
+            Experiment.objects.annotate(
+                cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
+            )
+            .order_by("accession_id")
+            .prefetch_related("biosamples")
+        )
 
         if len(facet_ids) > 0:
             experiments = experiments.filter(facet_values__id__in=facet_ids)
