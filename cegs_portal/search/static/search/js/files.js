@@ -1,10 +1,16 @@
 export function getJson(path) {
-    return fetch(path, {
+    let options = {
         credentials: "include",
         headers: {
             Accept: "application/json",
         },
-    }).then((response) => {
+    };
+
+    if (arguments.length == 2) {
+        options["signal"] = arguments[1];
+    }
+
+    return fetch(path, options).then((response) => {
         if (!response.ok) {
             throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
         }
