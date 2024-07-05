@@ -25,45 +25,56 @@ function closeButton() {
     );
 }
 
+function handleNoSelectedExperiments() {
+    let noExperiments = g("no-selected-experiments");
+    if (!noExperiments) {
+        noExperiments = e(
+            "div",
+            {class: "italic text-center", id: "no-selected-experiments"},
+            "Drag experiments here to select"
+        );
+        g("selected-experiment-list").before(noExperiments);
+    }
+
+    let dataDownloadLink = g("dataDownloadLink");
+    if (dataDownloadLink) {
+        rc(dataDownloadLink, t("Please select at least one experiment."));
+    }
+
+    let experiments_link = g("experiments-link");
+    if (experiments_link) {
+        rc(experiments_link, t("Please select at least one experiment."));
+    }
+}
+
+function handleExperimentsLink(experimentListItems) {
+    let experiments_link = g("experiments-link");
+    if (experiments_link) {
+        rc(
+            experiments_link,
+            e(
+                "a",
+                {
+                    href: `experiments?${Array.from(experimentListItems, (item) => `exp=${item.dataset.accession}`).join("&")}`,
+                    class: "expr-list-link",
+                },
+                `Analyze ${experimentListItems.length} Selected ${
+                    experimentListItems.length > 1 ? "Experiments together" : "Experiment"
+                }`
+            )
+        );
+    }
+}
+
 function addRemoveListener(node, accession) {
     node.addEventListener("click", (evt) => {
         g(`${accession}-list-item`).remove();
 
         let experimentListItems = document.getElementsByClassName("experiment-list-item");
         if (experimentListItems.length == 0) {
-            let noExperiments = e(
-                "div",
-                {class: "italic", id: "no-selected-experiments"},
-                "Drag experiments here to select"
-            );
-            g("selected-experiment-list").before(noExperiments);
-
-            let dataDownloadLink = g("dataDownloadLink");
-            if (dataDownloadLink) {
-                rc(dataDownloadLink, t("Please select at least one experiment."));
-            }
-
-            let experiments_link = g("experiments-link");
-            if (experiments_link) {
-                rc(experiments_link, t("Please select at least one experiment."));
-            }
+            handleNoSelectedExperiments();
         } else {
-            let experiments_link = g("experiments-link");
-            if (experiments_link) {
-                rc(
-                    experiments_link,
-                    e(
-                        "a",
-                        {
-                            href: `experiments?${Array.from(experimentListItems, (item) => `exp=${item.dataset.accession}`).join("&")}`,
-                            class: "expr-list-link",
-                        },
-                        `Analyze ${experimentListItems.length} Selected ${
-                            experimentListItems.length > 1 ? "Experiments together" : "Experiment"
-                        }`
-                    )
-                );
-            }
+            handleExperimentsLink(experimentListItems);
         }
     });
 }
@@ -99,22 +110,7 @@ function addToExperimentList(experimentItemText) {
         noExperiments.remove();
     }
 
-    let experiments_link = g("experiments-link");
-    if (experiments_link) {
-        rc(
-            experiments_link,
-            e(
-                "a",
-                {
-                    href: `experiments?${accessionIds.map((id) => `exp=${id}`).join("&")}`,
-                    class: "expr-list-link",
-                },
-                `Analyze ${accessionIds.length} Selected ${
-                    accessionIds.length > 1 ? "Experiments together" : "Experiment"
-                }`
-            )
-        );
-    }
+    handleExperimentsLink(experimentListItems);
 }
 
 export function addDropListeners() {
@@ -144,19 +140,7 @@ function removeAllExperiments() {
     let experimentListItems = document.querySelectorAll("[id$='-list-item']");
     experimentListItems.forEach((item) => item.remove());
 
-    let noExperiments = document.getElementById("no-selected-experiments");
-    if (!noExperiments) {
-        noExperiments = document.createElement("div");
-        noExperiments.className = "italic text-center";
-        noExperiments.id = "no-selected-experiments";
-        noExperiments.textContent = "Drag experiments here to select";
-        document.getElementById("selected-experiments").appendChild(noExperiments);
-    }
-
-    let experiments_link = document.getElementById("experiments-link");
-    if (experiments_link) {
-        experiments_link.textContent = "Please select at least one experiment.";
-    }
+    handleNoSelectedExperiments();
 }
 
 export function addSelectListeners() {
