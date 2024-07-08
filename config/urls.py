@@ -16,6 +16,12 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
     [
         path("", cegs_portal.search.views.index, name="home"),
         path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+        path("about/licenses/", TemplateView.as_view(template_name="pages/licenses.html"), name="licenses"),
+        path(
+            "about/licenses/genoverse/",
+            TemplateView.as_view(template_name="pages/genoverse_license.html"),
+            name="genoverse_license",
+        ),
         # Django Admin, use {% url 'admin:index' %}
         path(settings.ADMIN_URL, admin.site.urls),
         # User management
