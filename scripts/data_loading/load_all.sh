@@ -18,8 +18,8 @@ python manage.py shell -c "from scripts.data_loading.db import drop_indexes; dro
 
 # Load cCREs from SCREEN
 echo "Load SCREEN cCREs"
-./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg19.json GRCh37 ''
-./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg38.json GRCh38 13
+./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg19.json hg19 ''
+./scripts/data_loading/load_screen_ccres.sh ${DATA_DIR}/screen_ccres/ccres_hg38.json hg38 13
 
 # Rebuild indexes so experiment data loading doesn't take forever.
 python manage.py shell -c "from scripts.data_loading.db import create_indexes; create_indexes()"

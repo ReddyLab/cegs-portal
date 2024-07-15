@@ -34,7 +34,7 @@ class MockExperimentMetadata:
                 "description": "test file",
                 "filename": "elements_file",
                 "file_location": "elements_file",
-                "genome_assembly": "GRCh38",
+                "genome_assembly": "hg38",
             },
             "/",
         )
@@ -98,8 +98,8 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=promoter_facet, value=PromoterType.PROMOTER.value)
 
     assay_facet = FacetFactory(description="", name=Experiment.Facet.ASSAYS.value)
-    _ = FacetValueFactory(facet=assay_facet, value="scCERES")
-    _ = FacetValueFactory(facet=assay_facet, value="wgCERES")
+    _ = FacetValueFactory(facet=assay_facet, value="Perturb-Seq")
+    _ = FacetValueFactory(facet=assay_facet, value="Proliferation Screen")
     _ = FacetValueFactory(facet=assay_facet, value="ATAC-STARR-seq")
 
     source_type_facet = FacetFactory(description="", name=Experiment.Facet.SOURCE_TYPES.value)
@@ -110,7 +110,7 @@ def facets() -> list[Facet]:
 
     cell_line_facet = FacetFactory(description="", name=Experiment.Facet.CELL_LINE.value)
     _ = FacetValueFactory(facet=cell_line_facet, value="iPSC")
-    _ = FacetValueFactory(facet=cell_line_facet, value="k562")
+    _ = FacetValueFactory(facet=cell_line_facet, value="K562")
     _ = FacetValueFactory(facet=cell_line_facet, value="NPC")
     _ = FacetValueFactory(facet=cell_line_facet, value="CD8")
 
@@ -118,6 +118,14 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=tissue_type_facet, value="Stem")
     _ = FacetValueFactory(facet=tissue_type_facet, value="Bone Marrow")
     _ = FacetValueFactory(facet=tissue_type_facet, value="T Cell")
+
+    genome_assembly_facet = FacetFactory(description="", name=Experiment.Facet.GENOME_ASSEMBLY.value)
+    _ = FacetValueFactory(facet=tissue_type_facet, value="hg19")
+    _ = FacetValueFactory(facet=tissue_type_facet, value="hg38")
+
+    crispr_facet = FacetFactory(description="", name=Experiment.Facet.CRISPR_MODULATION.value)
+    _ = FacetValueFactory(facet=tissue_type_facet, value="CRISPRa")
+    _ = FacetValueFactory(facet=tissue_type_facet, value="CRISPRi")
 
     return [
         direction_facet,
@@ -127,6 +135,8 @@ def facets() -> list[Facet]:
         source_type_facet,
         cell_line_facet,
         tissue_type_facet,
+        genome_assembly_facet,
+        crispr_facet,
     ]
 
 

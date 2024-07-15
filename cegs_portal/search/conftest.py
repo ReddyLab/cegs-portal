@@ -190,7 +190,7 @@ def reo_source_targets():
 def search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Facet], reo_source_targets) -> SearchResults:
     return {
         "location": ChromosomeLocation("chr1", "10000", "15000"),
-        "assembly": "GRCh37",
+        "assembly": "hg19",
         "features": feature_pages,
         "sig_reg_effects": [(("DCPEXPR0000000001", "DCPAN0000000001"), reo_source_targets)],
         "facets": facets,
@@ -209,13 +209,13 @@ def features() -> Iterable[DNAFeature]:
 
 @pytest.fixture
 def feature() -> DNAFeature:
-    return DNAFeatureFactory(ref_genome="GRCh38")
+    return DNAFeatureFactory(ref_genome="hg38")
 
 
 @pytest.fixture
 def effect_dir_feature() -> DNAFeature:
     return DNAFeatureFactory(
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         effect_directions=[
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.ENRICHED.value,
@@ -226,34 +226,34 @@ def effect_dir_feature() -> DNAFeature:
 
 @pytest.fixture
 def search_feature() -> DNAFeature:
-    return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="hg38")
 
 
 @pytest.fixture
 def private_feature() -> DNAFeature:
-    return DNAFeatureFactory(public=False, ref_genome="GRCh38")
+    return DNAFeatureFactory(public=False, ref_genome="hg38")
 
 
 @pytest.fixture
 def archived_feature() -> DNAFeature:
-    return DNAFeatureFactory(archived=True, ref_genome="GRCh38")
+    return DNAFeatureFactory(archived=True, ref_genome="hg38")
 
 
 @pytest.fixture
 def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
-    pub_feature = DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    pub_feature = DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="hg38")
     private_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         public=False,
     )
     archived_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         archived=True,
     )
 
@@ -487,7 +487,7 @@ def genoverse_dhs_features():
     start = 1_000_000
     length = 10_000
     gap = 1_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
@@ -548,7 +548,7 @@ def genoverse_gene_features():
     start = 1_000_000
     length = 10_000
     gap = 1_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
@@ -599,7 +599,7 @@ def genoverse_transcript_features():
     chrom = "chr10"
     start = 1_000_000
     end = 1_100_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     g1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,

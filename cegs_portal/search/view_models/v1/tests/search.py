@@ -31,19 +31,19 @@ def test_private_sig_reo_loc_search(private_reg_effects):
 
 @pytest.mark.usefixtures("reg_effects")
 def test_feature_sig_reos():
-    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "GRCh38", [])
+    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "hg38", [])
     assert len(result) == 2
 
 
 def test_private_feature_sig_reos(private_reg_effects):
     _, _, _, _, _, _, experiment = private_reg_effects
 
-    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "GRCh38", [])
+    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "hg38", [])
     assert len(result) == 0
 
     result = Search.feature_sig_reos(
         ChromosomeLocation("chr1", "1", "1000000"),
-        "GRCh38",
+        "hg38",
         [],
         user_type=UserType.LOGGED_IN,
         private_experiments=[experiment.accession_id],
@@ -53,8 +53,8 @@ def test_private_feature_sig_reos(private_reg_effects):
 
 @pytest.mark.usefixtures("private_reg_effects")
 def test_admin_feature_sig_reos():
-    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "GRCh38", [])
+    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "hg38", [])
     assert len(result) == 0
 
-    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "GRCh38", [], user_type=UserType.ADMIN)
+    result = Search.feature_sig_reos(ChromosomeLocation("chr1", "1", "1000000"), "hg38", [], user_type=UserType.ADMIN)
     assert len(result) == 2
