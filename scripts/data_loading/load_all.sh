@@ -13,8 +13,8 @@ echo "Load facets"
 python manage.py shell -c "from scripts.data_loading.db import drop_indexes; drop_indexes()"
 
 # Load gencode annotations and FeatureAssemblies (genes, transcripts, exons)
-./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v19.annotation.gff3 GRCh37 '' 19
-./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v43.annotation.gff3 GRCh38 13 43
+./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v19.annotation.gff3 hg19 '' 19
+./scripts/data_loading/load_gencode_gff3_data.sh ${DATA_DIR}/gencode_annotations/gencode.v43.annotation.gff3 hg38 13 43
 
 # Load cCREs from SCREEN
 echo "Load SCREEN cCREs"
