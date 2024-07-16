@@ -19,6 +19,18 @@
         .footer-border {
             border-top: 4px solid rgba(41, 120, 177, 242);
         }
+
+        @media (max-width: 600px) {
+            img {
+                margin-bottom: 10px;
+                margin-top: 20px;
+            }
+        }
+
+        .footer-link:hover {
+            color: lightblue;
+        }
+
     </style>
     {% endblock %}
     <!-- Le javascript ================================================== -->
@@ -155,16 +167,15 @@
             <footer class="mt-14 bg-dark p-4 text-white flex-none footer-border">
                 <div class="flex justify-around items-center my-3 flex-wrap">
                     <div class="flex flex-col">
-                        <div class="text-md mt-3"><i class="bi bi-envelope-at"></i> Contact CCGR</div>
-                        <div class="text-md mt-3"><i class="bi bi-patch-question"></i> About Us</div>
-                        <div class="text-md mt-3"><i class="bi bi-newspaper"></i> Terms & Conditions</div>
+                        <div class="text-md mt-3 full-width"><a href="#" class="footer-link"><i class="bi bi-envelope-at"></i> Contact CCGR</a></div>
+                        <div class="text-md mt-3 full-width"><a href="#" class="footer-link"><i class="bi bi-patch-question"></i> About Us</a></div>
+                        <div class="text-md mt-3 full-width"><a href="#" class="footer-link"><i class="bi bi-newspaper"></i> Terms & Conditions</a></div>
                     </div>
                     <img src="{% static 'CCGRLogo-condensed.png' %}" width="300" />
                     <img src="{% static 'duke_university_wordmark_white.png' %}" width="200" />
                 </div>
                 <div class="text-center text-sm">© Duke University</div>
             </footer>
-
 
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
