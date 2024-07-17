@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block css %}
+{{ block.super }}
+
+<style>
+    .about-container {
+        color: #094474;
+    }
+
+    .header {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container about-container flex flex-col space-y-2">
+    <h1>Portal Help</h1>
+
+    <h2>Users</h2>
+    <div class="ml-5 flex flex-col space-y-2">
+        <div>
+        <h3>How do I get an account?</h3>
+
+        <div>Please request an account from the admin team</div>
+        </div>
+
+        <div>
+        <h3>What can I do?</h3>
+
+        <div>so much</div>
+        </div>
+
+        <div>
+        <h3>How do I get data into the portal?</h3>
+
+        <div>Ask an admin</div>
+        </div>
+
+        <div>
+        <h3>Does the portal have an API? How do I use it?</h3>
+
+        <div>Yes, the portal does have a JSON api! It is documented <a href="">here</a></div>
+        </div>
+    </div>
+
+    <h2>Admins</h2>
+
+    <div class="ml-5  flex flex-col space-y-2">
+        <div>
+        <h3>Data Uploads</h3>
+
+        <div>Here is how you upload data</div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

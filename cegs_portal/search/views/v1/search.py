@@ -175,7 +175,6 @@ class SearchView(MultiResponseFormatView):
         options = super().request_options(request)
         options["search_query"] = request.GET.get("query", "")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
-        options["feature_page"] = int(request.GET.get("feature_page", 1))
         options["selected-tab"] = request.GET.get("tab", None)
         return options
 
