@@ -80,7 +80,6 @@
                     type="button"
                     data-te-collapse-init
                     data-te-target="#collapseOne"
-                    aria-expanded="true"
                     aria-controls="collapseOne">
                     <span class="font-bold text-2xl text-slate-500">
                       ＋ <div class="text-xl font-bold text-slate-500 inline">Select Experiments</div>
@@ -126,7 +125,6 @@
                     type="button"
                     data-te-collapse-init
                     data-te-target="#collapseTwo"
-                    aria-expanded="true"
                     aria-controls="collapseTwo">
                     <div class="text-xl font-bold text-slate-500">
                       <i class="bi bi-pie-chart-fill mr-1"></i> Analyze Multiple Experiments
@@ -243,6 +241,31 @@
     addDropListeners();
     addDragListeners();
     addSelectListeners();
+</script>
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                document.querySelector('#headingOne button').setAttribute('aria-expanded', 'false');
+                document.querySelector('#headingTwo button').setAttribute('aria-expanded', 'false');
+                document.querySelector('#headingOne button').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#headingTwo button').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#collapseOne').classList.add('hidden');
+                document.querySelector('#collapseTwo').classList.add('hidden');
+                document.querySelector('#collapseOne').removeAttribute('data-te-collapse-show');
+                document.querySelector('#collapseTwo').removeAttribute('data-te-collapse-show');
+            } else {
+                document.querySelector('#headingOne button').setAttribute('aria-expanded', 'true');
+                document.querySelector('#headingTwo button').setAttribute('aria-expanded', 'true');
+                document.querySelector('#headingOne button').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#headingTwo button').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#collapseOne').classList.remove('hidden');
+                document.querySelector('#collapseTwo').classList.remove('hidden');
+                document.querySelector('#collapseOne').setAttribute('data-te-collapse-show', '');
+                document.querySelector('#collapseTwo').setAttribute('data-te-collapse-show', '');
+            }
+        });
+    });
 </script>
 {% if logged_in %}
 <script type="module">
