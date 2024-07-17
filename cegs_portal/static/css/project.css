@@ -797,6 +797,13 @@ h2 {
   text-shadow: 2px 2px #e3f2fd;
 }
 
+h3 {
+  font-family: sans-serif;
+  font-size: 1.25rem;
+  color: #094474;
+  text-shadow: 1px 1px #e3f2fd;
+}
+
 .page-header-w-icon {
   font-family: sans-serif;
   font-size: 2rem;
@@ -1209,6 +1216,10 @@ input[type="submit"], input[type="button"], button {
   margin-top: 1.25rem;
 }
 
+.ml-5 {
+  margin-left: 1.25rem;
+}
+
 .block {
   display: block;
 }
@@ -1410,12 +1421,12 @@ input[type="submit"], input[type="button"], button {
           transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.list-none {
-  list-style-type: none;
-}
-
 .list-disc {
   list-style-type: disc;
+}
+
+.list-none {
+  list-style-type: none;
 }
 
 .grid-cols-1 {
