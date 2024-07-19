@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from cegs_portal.search.models import Biosample, Experiment, File
+from cegs_portal.search.models import Biosample, Experiment, ExperimentCollection, File
 
 
 def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, Any]] = None):
@@ -26,6 +26,17 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
         "assay": experiment_obj.experiment_type,
         "biosamples": [biosample(b) for b in experiment_obj.biosamples.all()],
         "files": [file(f) for f in experiment_obj.files.all()],
+    }
+
+    return result
+
+
+def experiment_collection(collection: ExperimentCollection, options: Optional[dict[str, Any]] = None):
+    result = {
+        "accession_id": collection.accession_id,
+        "name": collection.name,
+        "description": collection.description if collection.description is not None else "",
+        "experiments": [{"accession_id": expr.accession_id, "name": expr.name} for expr in collection.experiments],
     }
 
     return result

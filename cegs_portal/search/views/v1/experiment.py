@@ -2,11 +2,18 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import Http404
 from django.shortcuts import render
 
-from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
+from cegs_portal.search.json_templates.v1.experiment import (
+    experiment,
+    experiment_collection,
+    experiments,
+)
 from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.search.validators import validate_analysis_accession_id
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
-from cegs_portal.search.view_models.v1 import ExperimentSearch
+from cegs_portal.search.view_models.v1 import (
+    ExperimentCollectionSearch,
+    ExperimentSearch,
+)
 from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     MultiResponseFormatView,
@@ -250,3 +257,39 @@ class ExperimentListView(MultiResponseFormatView):
             return ExperimentSearch.all(options["facets"]), facet_values
 
         return ExperimentSearch.all_with_private(options["facets"], self.request.user.all_experiments()), facet_values
+
+
+class ExperimentCollectionView(ExperimentAccessMixin, MultiResponseFormatView):
+    json_renderer = experiment_collection
+    template = "search/v1/experiment_collection.html"
+
+    def get_experiment_accession_id(self):
+        return self.kwargs["expcol_id"]
+
+    def is_public(self):
+        try:
+            return ExperimentCollectionSearch.is_public(self.kwargs["expcol_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return ExperimentCollectionSearch.is_archived(self.kwargs["expcol_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def get(self, request, options, data, expcol_id):
+        collection, experiments = data
+        return super().get(
+            request,
+            options,
+            {"collection": collection, "experiments": experiments},
+        )
+
+    def get_data(self, options, expcol_id):
+        try:
+            collection, experiments = ExperimentCollectionSearch.id_search(expcol_id)
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+        return collection, experiments

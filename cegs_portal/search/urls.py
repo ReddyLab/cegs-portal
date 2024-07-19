@@ -37,6 +37,11 @@ urlpatterns = [
     path("experiment", views.v1.ExperimentListView.as_view(), name="experiments"),
     path("experiments", views.v1.ExperimentsView.as_view(), name="combined_experiments"),
     re_path(r"experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8,10})$", views.v1.ExperimentView.as_view(), name="experiment"),
+    re_path(
+        r"experiment_collection/(?P<expcol_id>DCPEXCL[A-F0-9]{10})$",
+        views.v1.ExperimentCollectionView.as_view(),
+        name="experiment_collection",
+    ),
     path(
         "experiment_coverage",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
@@ -84,6 +89,9 @@ urlpatterns = [
     path("v1/experiment", views.v1.ExperimentListView.as_view()),
     path("v1/experiments", views.v1.ExperimentListView.as_view()),
     re_path(r"v1/experiment/(?P<exp_id>DCPEXPR[A-F0-9]{8,10})$", views.v1.ExperimentView.as_view()),
+    re_path(
+        r"v1/experiment_collection/(?P<expcol_id>DCPEXCL[A-F0-9]{10})$", views.v1.ExperimentCollectionView.as_view()
+    ),
     path(
         "v1/experiment_coverage",
         csrf_exempt(views.v1.ExperimentCoverageView.as_view()),
