@@ -1,7 +1,7 @@
 from typing import cast
 
 from django.contrib.postgres.aggregates import StringAgg
-from django.db.models import Value
+from django.db.models import Q, Value
 
 from cegs_portal.search.models import Experiment, ExperimentCollection
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
@@ -28,10 +28,7 @@ class ExperimentCollectionSearch:
 
     @classmethod
     def id_search(cls, accession_id: str):
-        try:
-            collection = ExperimentCollection.objects.get(accession_id=accession_id)
-        except ExperimentCollection.DoesNotExist:
-            raise ObjectNotFoundError(f"Experiment Collection {accession_id} was not found")
+        collection = ExperimentCollection.objects.filter(accession_id=accession_id)
 
         experiments = (
             Experiment.objects.annotate(
@@ -43,3 +40,15 @@ class ExperimentCollectionSearch:
         )
 
         return collection, experiments
+
+    @classmethod
+    def id_search_public(cls, accession_id: str):
+        collection, experiments = cls.id_search(accession_id)
+        return collection.filter(public=True, archived=False), experiments.filter(public=True, archived=False)
+
+    @classmethod
+    def id_search_with_private(cls, accession_id: str, private_experiment_collections: str, private_experiments: str):
+        collection, experiments = cls.id_search(accession_id)
+        return collection.filter(
+            Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiment_collections))
+        ), experiments.filter(Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments)))

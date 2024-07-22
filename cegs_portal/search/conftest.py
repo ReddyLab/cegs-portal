@@ -19,7 +19,11 @@ from cegs_portal.search.models import (
     File,
     RegulatoryEffectObservation,
 )
+from cegs_portal.search.models.experiment import ExperimentCollection
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
+from cegs_portal.search.models.tests.experiment_collection_factory import (
+    ExperimentCollectionFactory,
+)
 from cegs_portal.search.models.tests.experiment_factory import (
     BiosampleFactory,
     ExperimentFactory,
@@ -65,6 +69,66 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
     e3 = ExperimentFactory(archived=True)
     _ = (_file(experiment=e3), _file(experiment=e3))
     return (e1, e2, e3)
+
+
+@pytest.fixture
+def experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory()
+    e1 = ExperimentFactory()
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory()
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory()
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def private_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory(public=False)
+    e1 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def archived_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory(archived=True)
+    e1 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def access_control_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory()
+    e1 = ExperimentFactory()
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
 
 
 @pytest.fixture

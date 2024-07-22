@@ -46,7 +46,7 @@ class ExperimentAccessMixin(UserPassesTestMixin):
     request: Any
 
     def test_func(self):
-        if self.is_archived():
+        if self.is_archived() and (self.request.user.is_anonymous or not self.request.user.is_portal_admin):
             self.raise_exception = True  # Don't redirect to login
             return False
 

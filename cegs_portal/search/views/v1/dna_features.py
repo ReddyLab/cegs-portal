@@ -203,6 +203,8 @@ class DNAFeatureLoc(MultiResponseFormatView):
             paginate - only used for JSON data, HTML is always paginated
             page - which page to show
                 * int
+            per_page - Number of features per page
+                * int
         """
         options = super().request_options(request)
         options["assembly"] = request.GET.get("assembly", GRCH38)
