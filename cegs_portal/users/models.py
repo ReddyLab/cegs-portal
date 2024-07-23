@@ -22,7 +22,10 @@ class User(AbstractUser):
     first_name = None  # type: ignore
     last_name = None  # type: ignore
 
-    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list)
+    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list, blank=True)
+    experiment_collections = ArrayField(
+        CharField(_("Associated Experiment Collections"), max_length=17), default=list, blank=True
+    )
     is_portal_admin = BooleanField(_("Is User a Portal Admin"), default=False)
 
     def get_full_name(self):
@@ -52,6 +55,18 @@ class User(AbstractUser):
         else:
             return self_experiments + group_experiments
 
+    def all_experiment_collections(self):
+        self_experiment_collections = self.experiment_collections
+        group_experiment_collections = (
+            User.objects.filter(username=self.username)
+            .prefetch_related("groups__groupextension__experiment_collectionss")
+            .values_list("groups__groupextension__experiment_collections", flat=True)[0]
+        )
+        if group_experiment_collections is None:
+            return self_experiment_collections
+        else:
+            return self_experiment_collections + group_experiment_collections
+
 
 # This might seem like an awkard way to extend the Group model, but that's only because it is.
 # There is not currently a simple way to create a custom group model and use it for auth in the
@@ -61,4 +76,7 @@ class User(AbstractUser):
 class GroupExtension(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
     description = CharField(_("Group Description"), max_length=1024, null=True)
-    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list)
+    experiments = ArrayField(CharField(_("Associated Experiments"), max_length=17), default=list, blank=True)
+    experiment_collections = ArrayField(
+        CharField(_("Associated Experiment Collections"), max_length=17), default=list, blank=True
+    )

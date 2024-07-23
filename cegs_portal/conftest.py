@@ -59,6 +59,20 @@ class SearchClient:
         self.group.experiments = experiment_list
         self.group.save()
 
+    def add_user_experiment_collection(self, experiment_collection: str):
+        if self.user is None:
+            return
+
+        self.user.experiment_collections.append(experiment_collection)
+        self.user.save()
+
+    def add_group_experiment_collection(self, experiment_collection: str):
+        if self.group is None:
+            return
+
+        self.group.experiment_collections.append(experiment_collection)
+        self.group.save()
+
 
 @pytest.fixture
 def public_client():

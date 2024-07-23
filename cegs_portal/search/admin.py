@@ -8,6 +8,7 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeature,
     Experiment,
+    ExperimentCollection,
     Facet,
     FacetValue,
     File,
@@ -119,6 +120,7 @@ class ExperimentAdmin(admin.ModelAdmin):
 
 admin.site.register(Experiment, ExperimentAdmin)
 
+admin.site.register(ExperimentCollection)
 
 admin.site.register(Facet)
 

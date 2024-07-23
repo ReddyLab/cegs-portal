@@ -7,6 +7,7 @@ from .experiment import (
     Biosample,
     CellLine,
     Experiment,
+    ExperimentCollection,
     ExperimentDataFile,
     Pipeline,
     TissueType,
