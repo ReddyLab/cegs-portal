@@ -79,6 +79,17 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
 
+class ExperimentCollection(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="expcol_accession_id_index"),
+        ]
+
+    name = models.CharField(max_length=512)
+    description = models.CharField(max_length=4096, null=True, blank=True)
+    experiments = models.ManyToManyField(Experiment, related_name="collections", blank=True)
+
+
 # Deprecated in favor of File + ExperimentDataFileInfo
 class ExperimentDataFile(models.Model):
     description = models.CharField(max_length=4096, null=True, blank=True)
