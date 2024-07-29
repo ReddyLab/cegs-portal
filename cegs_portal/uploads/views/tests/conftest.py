@@ -35,8 +35,7 @@ class MockExperimentMetadata:
                 "filename": "elements_file",
                 "file_location": "elements_file",
                 "genome_assembly": "hg38",
-            },
-            "/",
+            }
         )
         self.source_type = DNAFeatureType.GRNA.value
         self.parent_source_type = DNAFeatureType.DHS.value
@@ -119,14 +118,6 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=tissue_type_facet, value="Bone Marrow")
     _ = FacetValueFactory(facet=tissue_type_facet, value="T Cell")
 
-    genome_assembly_facet = FacetFactory(description="", name=Experiment.Facet.GENOME_ASSEMBLY.value)
-    _ = FacetValueFactory(facet=tissue_type_facet, value="hg19")
-    _ = FacetValueFactory(facet=tissue_type_facet, value="hg38")
-
-    crispr_facet = FacetFactory(description="", name=Experiment.Facet.CRISPR_MODULATION.value)
-    _ = FacetValueFactory(facet=tissue_type_facet, value="CRISPRa")
-    _ = FacetValueFactory(facet=tissue_type_facet, value="CRISPRi")
-
     return [
         direction_facet,
         grna_type_facet,
@@ -135,8 +126,6 @@ def facets() -> list[Facet]:
         source_type_facet,
         cell_line_facet,
         tissue_type_facet,
-        genome_assembly_facet,
-        crispr_facet,
     ]
 
 

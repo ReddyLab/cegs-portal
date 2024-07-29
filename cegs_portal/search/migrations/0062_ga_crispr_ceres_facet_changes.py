@@ -73,7 +73,7 @@ def add_new_facets(apps, schema_editor):
         hg38.save()
 
 
-def add_assembly_facet(apps, schema_editor):
+def add_assembly_facet_to_experiments(apps, schema_editor):
     Experiment = apps.get_model("search", "Experiment")
     FacetValue = apps.get_model("search", "FacetValue")
 
@@ -96,7 +96,7 @@ def add_assembly_facet(apps, schema_editor):
             experiment.save()
 
 
-def remove_assembly_facet(apps, schema_editor):
+def remove_assembly_facet_from_experiments(apps, schema_editor):
     Experiment = apps.get_model("search", "Experiment")
     FacetValue = apps.get_model("search", "FacetValue")
 
@@ -152,12 +152,12 @@ def revert_genome_assemblies(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("search", "0060_analysis_p_value_adj_method_and_more"),
+        ("search", "0061_alter_analysis_genome_assembly_and_more"),
     ]
 
     operations = [
         migrations.RunPython(add_new_facets, revert_new_facets),
-        migrations.RunPython(add_assembly_facet, remove_assembly_facet),
+        migrations.RunPython(add_assembly_facet_to_experiments, remove_assembly_facet_from_experiments),
         # We can automatically add the crispr facet because that information isn't
         # in the DB anywhere
         migrations.RunPython(update_genome_assemblies, revert_genome_assemblies),
