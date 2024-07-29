@@ -6,8 +6,14 @@ from django.test import Client
 
 from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.views.v1 import NonTargetRegEffectsView
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def nt_view():
+    return NonTargetRegEffectsView.as_view()
 
 
 def test_sig_only_proximal_reg_effects_list_json(client: Client, proximal_non_targeting_reg_effects):
