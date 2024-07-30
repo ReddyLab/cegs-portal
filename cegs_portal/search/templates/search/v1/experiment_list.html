@@ -49,8 +49,7 @@
                     aria-expanded="true"
                     aria-controls="experimentFiltersCollapse">
                     <div class="flex justify-center items-center">
-                      <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-funnel-fill"></i>
-                      Filter Experiments</div>
+                      <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-funnel-fill"></i>Filter Experiments</div>
                     </div>
                         <div
                             class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
@@ -73,7 +72,7 @@
                         data-te-collapse-item
                         data-te-collapse-show
                         aria-labelledby="experimentFiltersHeader">
-                        <div id="categorical-facets">
+                        <div id="categorical-facets" class="min-w-full">
                             {% for facet, values in facets.items %}
                                 <fieldset class="my-4" name="facetfield">
                                     <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
@@ -124,8 +123,7 @@
                   aria-expanded="true"
                   aria-controls="combinedExperimentsCollapse">
                   <div class="flex justify-center items-center">
-                    <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-layers-half"></i>
-                      Combine Experiments</div>
+                    <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-layers-half"></i>Combine Experiments</div>
                   </div>
                       <span
                           class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
@@ -191,7 +189,7 @@
                         <div class="flex justify-center mt-2">
                           <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="select-all-button">Select all experiments</button>
                           <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="remove-all-button">Clear all</button>
-                        </div>
+                      </div>
                       </div>
                     </div>
                     <div
