@@ -27,7 +27,6 @@ def check_json_response(response, feature):
     assert response_feature["strand"] == feature.strand
     assert response_feature["name"] == feature.name
     assert response_feature["ref_genome"] == feature.ref_genome
-    assert response_feature["ref_genome_patch"] == feature.ref_genome_patch
     assert response_feature["type"] == feature.get_feature_type_display()
 
 

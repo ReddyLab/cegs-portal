@@ -52,6 +52,8 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         SOURCE_TYPES = "Experiment Source Type"
         CELL_LINE = "Cell Line"
         TISSUE_TYPE = "Tissue Type"
+        GENOME_ASSEMBLY = "Genome Assembly"
+        CRISPR_MODULATION = "CRISPR Modulation"
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)

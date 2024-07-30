@@ -19,8 +19,8 @@ class MockExperimentMetadata:
         self.experiment = ExperimentFactory()
         self.accession_id = self.experiment.accession_id
         self.file_metadata = [
-            FileMetadata({"file": "elements_file", "genome_assembly": "GRCh38"}, "/"),
-            FileMetadata({"file": "elements_parent_file", "genome_assembly": "GRCh38"}, "/"),
+            FileMetadata({"file": "elements_file", "genome_assembly": "hg38"}, "/"),
+            FileMetadata({"file": "elements_parent_file", "genome_assembly": "hg38"}, "/"),
         ]
         self.tested_elements_file = self.file_metadata[0]
         self.tested_elements_parent_file = self.file_metadata[1]

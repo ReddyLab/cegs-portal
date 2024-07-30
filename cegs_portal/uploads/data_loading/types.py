@@ -55,6 +55,8 @@ class DirectionFacets(StrEnum):
 class GenomeAssembly(StrEnum):
     GRCH38 = "GRCh38"
     GRCH37 = "GRCh37"
+    HG19 = "hg19"
+    HG38 = "hg38"
 
 
 class RangeBounds(StrEnum):

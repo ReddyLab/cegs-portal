@@ -145,9 +145,9 @@ def _dna_features(assembly) -> Iterable[DNAFeature]:
 
 @pytest.fixture
 def dna_features() -> Iterable[DNAFeature]:
-    return _dna_features("GRCh38")
+    return _dna_features("hg38")
 
 
 @pytest.fixture
-def dna_features_grch37() -> Iterable[DNAFeature]:
-    return _dna_features("GRCh37")
+def dna_features_hg19() -> Iterable[DNAFeature]:
+    return _dna_features("hg19")

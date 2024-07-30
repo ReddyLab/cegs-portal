@@ -1,13 +1,13 @@
 {
-    "name": "scCERES screen of 3200 DHS implicated in cell proliferation in K562 cells",
-    "description": "This is a sublibrary of the one designed for wgCERES, restricted to hit gRNAs (in distal DHSs, showing an effect on cell proliferation) in ~3,200 DHSs. Cells were transfected at a high MOI, with a median of 7 gRNAs per cell. The readout is single-cell RNA-seq, and includes data for both gRNAs protospacers and mRNA transcripts.",
+    "name": "Perturb-Seq screen of 3200 DHS implicated in cell proliferation in K562 cells",
+    "description": "This is a sublibrary of the one designed for Proliferation Screen, restricted to hit gRNAs (in distal DHSs, showing an effect on cell proliferation) in ~3,200 DHSs. Cells were transfected at a high MOI, with a median of 7 gRNAs per cell. The readout is single-cell RNA-seq, and includes data for both gRNAs protospacers and mRNA transcripts.",
     "biosamples": [
         {
-            "cell_type": "k562",
+            "cell_type": "K562",
             "tissue_type": "Bone Marrow"
         }
     ],
-    "assay": "scCERES",
+    "assay": "Perturb-Seq",
     "source type": "DHS",
     "year": "2021",
     "experimentalist": "Tyler Klann",
@@ -16,6 +16,6 @@
         "description": "Tested DHSs.",
         "filename": "tested_elements.tsv",
         "file_location": "cegs_portal/uploads/views/tests/tested_elements.tsv",
-        "genome_assembly": "GRCh38"
+        "genome_assembly": "hg38"
     }
 }

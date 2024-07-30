@@ -88,7 +88,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
         experi_assemblies = set()
         for f in experi.data_files.all():
-            experi_assemblies.add(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
+            experi_assemblies.add(f.ref_genome)
 
         experi_cell_lines = set()
         experi_tissue_types = set()

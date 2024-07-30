@@ -34,9 +34,8 @@ class MockExperimentMetadata:
                 "description": "test file",
                 "filename": "elements_file",
                 "file_location": "elements_file",
-                "genome_assembly": "GRCh38",
-            },
-            "/",
+                "genome_assembly": "hg38",
+            }
         )
         self.source_type = DNAFeatureType.GRNA.value
         self.parent_source_type = DNAFeatureType.DHS.value
@@ -98,8 +97,8 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=promoter_facet, value=PromoterType.PROMOTER.value)
 
     assay_facet = FacetFactory(description="", name=Experiment.Facet.ASSAYS.value)
-    _ = FacetValueFactory(facet=assay_facet, value="scCERES")
-    _ = FacetValueFactory(facet=assay_facet, value="wgCERES")
+    _ = FacetValueFactory(facet=assay_facet, value="Perturb-Seq")
+    _ = FacetValueFactory(facet=assay_facet, value="Proliferation Screen")
     _ = FacetValueFactory(facet=assay_facet, value="ATAC-STARR-seq")
 
     source_type_facet = FacetFactory(description="", name=Experiment.Facet.SOURCE_TYPES.value)
@@ -110,7 +109,7 @@ def facets() -> list[Facet]:
 
     cell_line_facet = FacetFactory(description="", name=Experiment.Facet.CELL_LINE.value)
     _ = FacetValueFactory(facet=cell_line_facet, value="iPSC")
-    _ = FacetValueFactory(facet=cell_line_facet, value="k562")
+    _ = FacetValueFactory(facet=cell_line_facet, value="K562")
     _ = FacetValueFactory(facet=cell_line_facet, value="NPC")
     _ = FacetValueFactory(facet=cell_line_facet, value="CD8")
 

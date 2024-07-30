@@ -39,7 +39,7 @@ def run(experiment_filename):
                     # in the exact same location. This handles that situation.
                     # The two gene IDs are ENSG00000272333 and ENSG00000105663.
                     # I decided that ENSG00000272333 was the "correct" gene to use here
-                    # because it's the one that still exists in GRCh38.
+                    # because it's the one that still exists in hg38.
                     genes[gene_name] = "ENSG00000272333"
 
     with open("genes.txt", "w") as output:

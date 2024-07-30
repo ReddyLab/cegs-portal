@@ -401,12 +401,12 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         let menu = {
             title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-            Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
+            Assembly: feature.ref_genome,
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
         let effects = await fetch(
-            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`
+            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`,
         ).then((response) => {
             if (!response.ok) {
                 throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);

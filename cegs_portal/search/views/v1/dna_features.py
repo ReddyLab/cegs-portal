@@ -16,9 +16,9 @@ from cegs_portal.search.views.custom_views import (
 from cegs_portal.utils.http_exceptions import Http400
 
 DEFAULT_TABLE_LENGTH = 20
-GRCH37 = "GRCh37"
-GRCH38 = "GRCh38"
-ALL_ASSEMBLIES = [GRCH38, GRCH37]  # Ordered by "importance"
+HG19 = "hg19"
+HG38 = "hg38"
+ALL_ASSEMBLIES = [HG19, HG38]  # Ordered by "importance"
 
 
 def get_sig_only(value):
@@ -207,7 +207,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * int
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", GRCH38)
+        options["assembly"] = request.GET.get("assembly", HG38)
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
