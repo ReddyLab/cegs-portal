@@ -3,6 +3,25 @@
 {% load static i18n %}
 {% load waffle_tags %}
 
+{% block css %}
+{{ block.super }}
+<style>
+  .dropdown-container {
+    background: #ffffff;
+    box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+  }
+
+  .remove-lr-margin {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+
+</style>
+{% endblock %}
+
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
@@ -20,25 +39,18 @@
         </span>
     </div>
     <div class="title-separator"></div>
-    <div class="flex gap-x-10 items-start">
-        <div class="flex flex-col basis-1/4">
-            <div class="container">
-                <div class="flex justify-center items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon h-4 w-4 mr-2 text-slate-500">
-                        <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
-                    </svg>
-                    <div class="text-xl font-bold text-slate-500">Experiment Filters</div>
-                </div>
-                <div class="title-separator"></div>
-                <div id="categorical-facets">
-                  {% for facet, values in facets.items %}
-                    <fieldset class="my-4" name="facetfield">
-                        <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
-                        data-te-collapse-init
-
-                        data-te-target="#facetCollapse{{ forloop.counter }}"
-                        aria-expanded="true"
-                        aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet }}</div>
+    <div class="flex flex-col lg:flex-row lg:space-x-10 items-start mx-auto">
+        <div class="lg:order-1 lg:w-1/4 w-full mx-auto">
+            <div class="dropdown-container">
+                <fieldset class="my-4" name="experimentFilters">
+                    <legend class="flex flex-row group font-bold min-w-full" id="experimentFiltersHeader"
+                    data-te-collapse-init
+                    data-te-target="#experimentFiltersCollapse"
+                    aria-expanded="true"
+                    aria-controls="experimentFiltersCollapse">
+                    <div class="flex justify-center items-center">
+                      <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-funnel-fill"></i> Filter Experiments</div>
+                    </div>
                         <div
                             class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
                             <svg
@@ -54,180 +66,243 @@
                                 d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                             </svg>
                         </div>
-                        </legend>
-                        <div class="flex flex-row flex-wrap gap-1"
-                            id="facetCollapse{{ forloop.counter }}"
-                            data-te-collapse-item
-                            data-te-collapse-show
-                            aria-labelledby="facetHeader{{ forloop.counter }}">
-                            {% for value in values %}
-                            <div class="ml-1">
-                                <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
-                                <label for="{{ value.id }}">{{ value.value }}</label>
-                            </div>
+                    </legend>
+                    <div class="flex flex-row flex-wrap gap-1"
+                        id="experimentFiltersCollapse"
+                        data-te-collapse-item
+                        data-te-collapse-show
+                        aria-labelledby="experimentFiltersHeader">
+                        <div id="categorical-facets" class="w-full">
+                            {% for facet, values in facets.items %}
+                                <fieldset class="my-4" name="facetfield">
+                                    <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"
+                                    data-te-collapse-init
+                                    data-te-target="#facetCollapse{{ forloop.counter }}"
+                                    aria-expanded="true"
+                                    aria-controls="facetCollapse{{ forloop.counter }}"><div>{{ facet }}</div>
+                                    <div
+                                        class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none dark:fill-blue-300 dark:group-[[data-te-collapse-collapsed]]:fill-white inline-block">
+                                        <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="h-6 w-6 rotate-180">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                    </legend>
+                                    <div class="flex flex-row flex-wrap gap-1"
+                                        id="facetCollapse{{ forloop.counter }}"
+                                        data-te-collapse-item
+                                        data-te-collapse-show
+                                        aria-labelledby="facetHeader{{ forloop.counter }}">
+                                        {% for value in values %}
+                                        <div class="ml-1">
+                                            <input id="{{ value.id }}" type="checkbox" name="{{ facet }}"/>
+                                            <label for="{{ value.id }}">{{ value.value }}</label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </fieldset>
                             {% endfor %}
                         </div>
-                    </fieldset>
-                  {% endfor %}
-                </div>
-            </div>
-            <div class="container">
-              <div
-                class="rounded-t-lg bg-white">
-                <h2 class="mb-0" id="headingOne">
-                  <button
-                    class="group relative flex w-full items-center px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
-                    type="button"
-                    data-te-collapse-init
-                    data-te-target="#collapseOne"
-                    aria-expanded="true"
-                    aria-controls="collapseOne">
-                    <span class="font-bold text-2xl text-slate-500">
-                      ＋ <div class="text-xl font-bold text-slate-500 inline">Select Experiments</div>
-                    </span>
-                    <span
-                      class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="rotate-180">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </span>
-                  </button>
-                </h2>
-                <div
-                  id="collapseOne"
-                  class="!visible"
-                  data-te-collapse-item
-                  data-te-collapse-show
-                  aria-labelledby="headingOne">
-                  <div class="w-full h-1/2 border border-gray-300 p-5" id="selected-experiments">
-                    <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
-                    <div id="selected-experiment-list"></div>
-                  </div>
-                  <div class="flex justify-center mt-2">
-                    <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="select-all-button">Select all experiments</button>
-                    <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="remove-all-button">Clear all</button>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="bg-white">
-                <h2 class="mb-0" id="headingTwo">
-                  <button
-                    class="group relative flex w-full items-center border-0 bg-white px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
-                    type="button"
-                    data-te-collapse-init
-                    data-te-target="#collapseTwo"
-                    aria-expanded="true"
-                    aria-controls="collapseTwo">
-                    <div class="text-xl font-bold text-slate-500">
-                      <i class="bi bi-pie-chart-fill mr-1"></i> Analyze Multiple Experiments
                     </div>
-                    <span
-                      class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="rotate-180">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </span>
-                  </button>
-                </h2>
-                <div
-                  id="collapseTwo"
-                  class="!visible"
-                  data-te-collapse-item
-                  data-te-collapse-show
-                  aria-labelledby="headingTwo">
-                  <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
-                    <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
-                  </div>
-                </div>
-              </div>
-              {% if logged_in %}
-              <div
-                class="bg-white">
-                <h2 class="accordion-header mb-0" id="headingThree">
-                  <button
-                    class="data-[twe-collapse-collapsed] group relative flex w-full items-center border-0 bg-white px-5 py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none data-[twe-collapse-collapsed]:rounded-b-lg"
-                    type="button"
-                    data-te-collapse-init
-                    data-te-collapse-collapsed
-                    data-te-target="#collapseThree"
-                    aria-expanded="false"
-                    aria-controls="collapseThree">
-                    <div class="text-xl font-bold text-slate-500">
-                      <i class="bi bi-download mr-1"></i> Download Data from Selected Experiments
-                    </div>
-                    <span
-                      class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="rotate-180">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </span>
-                  </button>
-                </h2>
-                <div
-                  id="collapseThree"
-                  class="!visible hidden"
-                  data-te-collapse-item
-                  aria-labelledby="headingThree">
-                  <div class="px-5 py-4">
-                    <form name="dataDownloadForm">
-                      <div>
-                          <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
-                          <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
-                          <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
-                      </div>
-                    </form>
-                    <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
-                  </div>
-                </div>
-              </div>
-              {% endif %}
+                </fieldset>
             </div>
-        </div>
 
-        <div id="experiment-list" class="basis-3/4">
-          {% for experiment in experiments %}
-              <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
-                  <div class="container items-center">
-                      <div class="flex justify-between">
-                          <div class="exp-name">{{ experiment.name }}</div>
-                          <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
-                      </div>
-                      <div>{{ experiment.description }}</div>
-                      <div class="flex justify-between">
-                          <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
-                          <div class="accession-id">{{ experiment.accession_id }}</div>
-                      </div>
+            <div class="dropdown-container">
+              <fieldset class="my-4" name="combinedExperiments">
+                  <legend class="flex flex-row group font-bold min-w-full" id="combinedExperimentsHeader"
+                  data-te-collapse-init
+                  data-te-target="#combinedExperimentsCollapse"
+                  aria-expanded="true"
+                  aria-controls="combinedExperimentsCollapse">
+                  <div class="flex justify-center items-center">
+                    <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-layers-half"></i> Combine Experiments</div>
                   </div>
-              </a>
-          {% endfor %}
+                      <span
+                          class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
+                          <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="rotate-180">
+                          <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                          </svg>
+                      </span>
+                  </legend>
+                  <div class="flex flex-row flex-wrap gap-1"
+                      id="combinedExperimentsCollapse"
+                      data-te-collapse-item
+                      data-te-collapse-show
+                      aria-labelledby="combinedExperimentsHeader">
+                  <div class="w-full">
+                    <div
+                      class="rounded-t-lg bg-white">
+                      <h2 class="mb-0" id="selectExperiments">
+                        <button
+                          class="remove-lr-margin group relative flex w-full items-center py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
+                          type="button"
+                          data-te-collapse-init
+                          data-te-target="#selectExperimentsCollapse"
+                          aria-controls="selectExperimentsCollapse">
+                          <span class="font-bold text-2xl text-slate-500">
+                            ＋ <div class="text-xl font-bold text-slate-500 inline">Select Experiments</div>
+                          </span>
+                          <span
+                            class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="currentColor"
+                              class="rotate-180">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </span>
+                        </button>
+                      </h2>
+                      <div
+                        id="selectExperimentsCollapse"
+                        class="!visible"
+                        data-te-collapse-item
+                        data-te-collapse-show
+                        aria-labelledby="selectExperiments">
+                        <div class="w-full h-1/2 border border-gray-300 p-5" id="selected-experiments">
+                          <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
+                          <div id="selected-experiment-list"></div>
+                        </div>
+                        <div class="flex justify-center mt-2">
+                          <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="select-all-button">Select all experiments</button>
+                          <button class="global-button rounded-none border-2 border-gray-300 h-6 text-xs" id="remove-all-button">Clear all</button>
+                      </div>
+                      </div>
+                    </div>
+                    <div
+                      class="bg-white">
+                      <h2 class="mb-0" id="analyzeExperiments">
+                        <button
+                          class="remove-lr-margin group relative flex w-full items-center border-0 bg-white py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
+                          type="button"
+                          data-te-collapse-init
+                          data-te-target="#analyzeExperimentsCollapse"
+                          aria-controls="analyzeExperimentsCollapse">
+                          <div class="text-xl font-bold text-slate-500">
+                            <i class="bi bi-pie-chart-fill mr-1"></i> Analyze Multiple Experiments
+                          </div>
+                          <span
+                            class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="currentColor"
+                              class="rotate-180">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </span>
+                        </button>
+                      </h2>
+                      <div
+                        id="analyzeExperimentsCollapse"
+                        class="!visible"
+                        data-te-collapse-item
+                        data-te-collapse-show
+                        aria-labelledby="analyzeExperiments">
+                        <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
+                          <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
+                        </div>
+                      </div>
+                    </div>
+                    {% if logged_in %}
+                    <div
+                      class="bg-white">
+                      <h2 class="accordion-header mb-0" id="downloadData">
+                        <button
+                          class="remove-lr-margin data-[twe-collapse-collapsed] group relative flex w-full items-center border-0 bg-white py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none data-[twe-collapse-collapsed]:rounded-b-lg"
+                          type="button"
+                          data-te-collapse-init
+                          data-te-collapse-collapsed
+                          data-te-target="#collapseThree"
+                          aria-expanded="false"
+                          aria-controls="collapseThree">
+                          <div class="text-xl font-bold text-slate-500">
+                            <i class="bi bi-download mr-1"></i> Download Data from Selected Experiments
+                          </div>
+                          <span
+                            class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="currentColor"
+                              class="rotate-180">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                          </span>
+                        </button>
+                      </h2>
+                      <div
+                        id="collapseThree"
+                        class="!visible hidden"
+                        data-te-collapse-item
+                        aria-labelledby="downloadData">
+                        <div class="px-5 py-4">
+                          <form name="dataDownloadForm">
+                            <div>
+                                <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
+                                <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                                <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
+                            </div>
+                          </form>
+                          <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
+                        </div>
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                  </div>
+              </fieldset>
+          </div>
+        </div>
+        <div class="md:order-2 md:w-3/4 mx-auto" id="experiment-list">
+            {% for experiment in experiments %}
+            <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
+                <div class="container items-center">
+                    <div class="flex justify-between">
+                        <div class="exp-name">{{ experiment.name }}</div>
+                        <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+                    </div>
+                    <div>{{ experiment.description }}</div>
+                    <div class="flex justify-between">
+                        <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
+                        <div class="accession-id">{{ experiment.accession_id }}</div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -242,6 +317,47 @@
     addDropListeners();
     addDragListeners();
     addSelectListeners();
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      window.addEventListener('resize', function() {
+          if (window.innerWidth <= 1020) {
+              document.querySelector('#combinedExperimentsHeader').setAttribute('aria-expanded', 'false');
+              document.querySelector('#combinedExperimentsHeader').setAttribute('data-te-collapse-collapsed', '');
+              document.querySelector('#combinedExperimentsCollapse').classList.add('hidden');
+              document.querySelector('#combinedExperimentsCollapse').removeAttribute('data-te-collapse-show');
+              document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
+              document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
+              document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
+              document.querySelector('#experimentFiltersCollapse').removeAttribute('data-te-collapse-show');
+              document.querySelector('#selectExperiments button').setAttribute('aria-expanded', 'false');
+              document.querySelector('#analyzeExperiments button').setAttribute('aria-expanded', 'false');
+              document.querySelector('#selectExperiments button').setAttribute('data-te-collapse-collapsed', '');
+              document.querySelector('#analyzeExperiments button').setAttribute('data-te-collapse-collapsed', '');
+              document.querySelector('#selectExperimentsCollapse').classList.add('hidden');
+              document.querySelector('#analyzeExperimentsCollapse').classList.add('hidden');
+              document.querySelector('#selectExperimentsCollapse').removeAttribute('data-te-collapse-show');
+              document.querySelector('#analyzeExperimentsCollapse').removeAttribute('data-te-collapse-show');
+          } else {
+              document.querySelector('#combinedExperimentsHeader').setAttribute('aria-expanded', 'true');
+              document.querySelector('#combinedExperimentsHeader').removeAttribute('data-te-collapse-collapsed');
+              document.querySelector('#combinedExperimentsCollapse').classList.remove('hidden');
+              document.querySelector('#combinedExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+              document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'true');
+              document.querySelector('#experimentFiltersHeader').removeAttribute('data-te-collapse-collapsed');
+              document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
+              document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
+              document.querySelector('#selectExperiments button').setAttribute('aria-expanded', 'true');
+              document.querySelector('#analyzeExperiments button').setAttribute('aria-expanded', 'true');
+              document.querySelector('#selectExperiments button').removeAttribute('data-te-collapse-collapsed');
+              document.querySelector('#analyzeExperiments button').removeAttribute('data-te-collapse-collapsed');
+              document.querySelector('#selectExperimentsCollapse').classList.remove('hidden');
+              document.querySelector('#analyzeExperimentsCollapse').classList.remove('hidden');
+              document.querySelector('#selectExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+              document.querySelector('#analyzeExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+          }
+      });
+  });
 </script>
 {% if logged_in %}
 <script type="module">
