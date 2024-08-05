@@ -169,6 +169,26 @@
          background-color: rgb(229 231 235) !important;
     }
 
+    .width-container {
+        background: #ffffff;
+        -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding-top: 10px;
+        padding-bottom: 20px;
+        padding-left: 40px;
+        padding-right: 40px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+
+    }
+
+    /* .container {
+        margin-left: -20px;
+        margin-right: -200px;
+    } */
+
+
+
 </style>
 {% endblock %}
 
@@ -185,46 +205,51 @@
 
 {% block content %}
 <div class="flex flex-column justify-center min-w-full">
-    <div class="container min-w-fit max-w-fit">
-        <table class="min-w-fit max-w-fit">
-            <thead class="bg-white border-b">
-                <tr>
-                    <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
-                        </svg> {{ experiment.name }}
-                        {% if analyses|length > 1 %}
-                            <select class="analysis-button border-2 p-2 text-sm mb-0.5" id="analysisSelector">
-                                {% for analysis in analyses %}
-                                    <option value="{% url 'search:experiment' experiment.accession_id %}?analysis={{ analysis.1 }}" {{ analysis.0 }}>v{{ forloop.counter }}</option>
-                                {% endfor %}
-                            </select>
-                        {% elif analyses|length == 1  %}
-                            <p class="ml-1">v1</p>
-                        {% endif %}
-                    </div>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="bg-gray-100 border-b">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
-                        {{ experiment.experiment_type }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
-                        {{ experiment.cell_lines|join:", " }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
-                        {{ experiment.tissue_types|join:", " }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
-                    <td class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic">
-                        {{ experiment.assemblies|join:", " }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="container min-w-fit max-w-fit sm:w-auto -mx-7 sm:mx-0">
+        <div class="bg-white border-b">
+            <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
+                <span><i class="fa-solid fa-flask-vial mr-1"></i>{{ experiment.name }}
+                {% if analyses|length > 1 %}
+                    <select class="analysis-button border-2 p-2 text-sm mb-0.5 ml-1" id="analysisSelector">
+                        {% for analysis in analyses %}
+                            <option value="{% url 'search:experiment' experiment.accession_id %}?analysis={{ analysis.1 }}" {{ analysis.0 }}>v{{ forloop.counter }}</option>
+                        {% endfor %}
+                    </select>
+                {% elif analyses|length == 1  %}
+                    v1
+                {% endif %}
+                </span>
+            </div>
+
+        </div>
+        <div class="bg-gray-100 border-b flex flex-wrap text-center">
+            <div class="flex items-center px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">Assay</div>
+                <div class="text-sm text-gray-500 font-light italic ml-2">
+                    {{ experiment.experiment_type }}
+                </div>
+            </div>
+            <div class="flex items-center px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">Cell Lines</div>
+                <div class="text-sm text-gray-500 font-light italic ml-2">
+                    {{ experiment.cell_lines|join:", " }}
+                </div>
+            </div>
+            <div class="flex items-center px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">Tissue Type</div>
+                <div class="text-sm text-gray-500 font-light italic ml-2">
+                    {{ experiment.tissue_types|join:", " }}
+                </div>
+            </div>
+
+            <div class="flex items-center px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">Assembly</div>
+                <div class="text-sm text-gray-500 font-light italic ml-2">
+                    {{ experiment.assemblies|join:", " }}
+                </div>
+            </div>
+
+        </div>
         <div class="flex justify-center">
             <button class="exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#modal-container">
                 <div class="flex flex-column items-center">
@@ -321,10 +346,10 @@
         aria-labelledby="tabs-overview-tab"
         data-te-tab-active
     >
-        <div class="flex flex-row gap-x-10">
+        <div class="flex flex-col md:flex-row md:space-x-10 mx-auto">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section container">
+                <div class="facet-content-section width-container sm:w-auto -mx-7 sm:mx-0">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half ml-2"></span>
@@ -335,7 +360,7 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section container">
+                <div class="facet-content-section width-container sm:w-auto -mx-7 sm:mx-0">
                     <form name="regionUploadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
@@ -347,7 +372,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section container">
+                <div class="facet-content-section width-container sm:w-auto -mx-7 sm:mx-0">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -368,10 +393,10 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 container">
+            <div class="basis-3/4 width-container sm:w-auto -mx-7 sm:mx-0 min-h-screen">
                 <!-- content section container for ChromCov -->
                 <div class="flex flex-row gap-x-4 items-center">
-                    <div id="chrom-data-legend"></div>
+                    <!-- <div id="chrom-data-legend"></div> -->
                     <div class="flex flex-col">
                         <div id="reo-count"></div>
                         <div id="source-count"></div>
@@ -397,42 +422,38 @@
         aria-labelledby="tabs-details-tab"
     >
         <div class="container mx-auto">
-            <table class="min-w-full">
-                <thead class="bg-white border-b">
-                    <tr>
-                        <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Description</th>
-                        <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                            {{ experiment.description }}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="bg-gray-100 border-b">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assay</td>
-                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                            {{ experiment.experiment_type }}
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cell Lines</td>
-                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                            {{ experiment.cell_lines|join:", " }}
-                        </td>
-                    </tr>
-                    <tr class="bg-gray-100 border-b">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tissue Type</td>
-                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                            {{ experiment.tissue_types|join:", " }}
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Assemblies</td>
-                        <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                            {{ experiment.assemblies|join:", " }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="min-w-full">
+                <div class="bg-white border-b">
+                    <div class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Description</div>
+                    <div class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                        {{ experiment.description }}
+                    </div>
+                </div>
+                <div class="bg-gray-100 border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.experiment_type }}
+                    </div>
+                </div>
+                <div class="bg-white border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.cell_lines|join:", " }}
+                    </div>
+                </div>
+                <div class="bg-gray-100 border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.tissue_types|join:", " }}
+                    </div>
+                </div>
+                <div class="bg-white border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assemblies</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.assemblies|join:", " }}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div
@@ -441,53 +462,54 @@
         role="tabpanel"
         aria-labelledby="tabs-files-tab"
     >
-        <div class="container mx-auto">
-            <div class="flex flex-col">
-                <div class="w-full">
-                    <table class="divide-y divide-gray-400" id="dataFilesTable">
-                        <div class="text-xl font-bold" style="color: rgb(100 116 139);">
-                            Data Files <i class="bi bi-folder-symlink-fill"></i>
-                        </div>
-                        <thead class="bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-2 text-xs text-white">File Name</th>
-                                <th class="px-6 py-2 text-xs text-white">Description</th>
-                                <th class="px-6 py-2 text-xs text-white">File Type</th>
-                                <th class="px-6 py-2 text-xs text-white">File Size</th>
-                                <th class="px-6 py-2 text-xs text-white">Download</th>
-                            </tr>
-                        </thead>
-                        {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
-                        <tbody class="bg-white divide-y divide-gray-300">
-                            <tr class="text-center whitespace-nowrap">
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-500 w-[100px]">
-                                        <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900 w-[600px]">
-                                        <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
-                                <td class="px-6 py-4">File Size</td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="inline-block text-center">
-                                        <i class="bi bi-download"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                        {% endfor %} {% endif %}
-                    </table>
+    <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0">
+        <div class="width-container overflow-x-auto sm:w-auto -mx-20 sm:mx-0">
+                <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                    Data Files <i class="bi bi-folder-symlink-fill"></i>
                 </div>
-            </div>
-        </div>
+                <table class="min-w-full divide-y divide-gray-400" id="dataFilesTable">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-2 text-xs text-white">File Name</th>
+                            <th class="px-6 py-2 text-xs text-white">Description</th>
+                            <th class="px-6 py-2 text-xs text-white">File Type</th>
+                            <th class="px-6 py-2 text-xs text-white">File Size</th>
+                            <th class="px-6 py-2 text-xs text-white">Download</th>
+                        </tr>
+                    </thead>
+                    {% if experiment.data_files.exists %} {% for file in experiment.data_files.all %}
+                    <tbody class="bg-white divide-y divide-gray-300">
+                        <tr class="text-center whitespace-nowrap">
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-500 w-[100px]">
+                                    <p class="text-ellipsis overflow-hidden ...">{{ file.filename }}</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900 w-[600px]">
+                                    <p class="text-ellipsis overflow-hidden ...">{{ file.description }}</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">File Type</td>
+                            <td class="px-6 py-4">File Size</td>
+                            <td class="px-6 py-4">
+                                <a href="#" class="inline-block text-center">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    {% endfor %} {% endif %}
+                </table>
 
-        <div class="container mx-auto">
-            <div class="flex flex-col">
-                <div class="w-full">
+        </div>
+    </div>
+
+    <!-- <div class="flex flex-column justify-center min-w-full">
+        <div class="container min-w-fit max-w-fit sm:w-auto -mx-7 sm:mx-0"> -->
+
+        <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0">
+            <div class="width-container overflow-x-auto sm:w-auto -mx-20 sm:mx-0">
                     <table class="divide-y divide-gray-300" id="otherFilesTable">
                         <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                             Other Files <i class="bi bi-folder-symlink-fill"></i>
@@ -531,7 +553,7 @@
                         </tbody>
                         {% endfor %} {% endif %}
                     </table>
-                </div>
+
             </div>
         </div>
     </div>
@@ -542,14 +564,16 @@
         aria-labelledby="tabs-qc-graphs-tab"
     >
         <div
-            class="container mx-auto min-w-max max-w-max text-xl font-bold"
+            class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none"
             style="color: rgb(100 116 139);"
         >
+            <div class="width-container sm:w-auto -mx-20 sm:mx-0">
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex flex-nowrap my-3.5">
+            <div class="flex flex-nowrap my-3.5 w-full overflow-x-auto">
                 <div id="ncells_histogram" class="mr-4"></div>
                 <div id="ngrna_histogram"></div>
+            </div>
             </div>
         </div>
     </div>
@@ -559,16 +583,18 @@
         role="tabpanel"
         aria-labelledby="tabs-analysis"
     >
-        <div
-            class="container mx-auto min-w-max max-w-max text-xl font-bold"
-            style="color: rgb(100 116 139);"
-        >
+    <div
+        class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none"
+        style="color: rgb(100 116 139);"
+    >
+        <div class="width-container sm:w-auto -mx-20 sm:mx-0">
             Analysis <i class="bi bi-pie-chart-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex flex-nowrap my-3.5">
-                <div id="volcano"></div>
+            <div class="flex flex-nowrap my-3.5 overflow-x-auto">
+                <div id="volcano" class="mr-4"></div>
                 <div id="uniform_qqplot" class="mr-4"></div>
             </div>
+        </div>
         </div>
     </div>
 </div>
