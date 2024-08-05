@@ -8,7 +8,8 @@ redis==4.5.4  # https://github.com/andymccurdy/redis-py
 hiredis==2.2.2  # https://github.com/redis/hiredis-py
 uvicorn[standard]==0.26.0  # https://github.com/encode/uvicorn
 channels==4.0.0  # https://github.com/django/channels
-daphne==4.0.0  # https://github.com/django/daphne
+daphne==4.1.2  # https://github.com/django/daphne
+twisted[tls]>=24.3 # https://twisted.org
 requests==2.32.0  # https://docs.python-requests.org/en/master/
 maturin==0.14.8 # https://maturin.rs
 huey==2.4.5 # https://github.com/coleifer/huey/
