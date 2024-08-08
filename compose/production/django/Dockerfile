@@ -2,10 +2,10 @@ ARG PYTHON_VERSION=3.11.9-slim-bullseye
 ARG RUST_VERSION=1.77-bullseye
 
 # define an alias for the specfic python version used in this file.
-FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} as python
+FROM image-mirror-prod-registry.cloud.duke.edu/library/python:${PYTHON_VERSION} AS python
 
 # Build the rust applications for generating coverage information
-FROM image-mirror-prod-registry.cloud.duke.edu/library/rust:${RUST_VERSION} as rust
+FROM image-mirror-prod-registry.cloud.duke.edu/library/rust:${RUST_VERSION} AS rust
 
 WORKDIR /build
 RUN git clone https://github.com/ReddyLab/ccgr_portal_cov_viz.git
@@ -25,7 +25,7 @@ RUN maturin build -b pyo3 -i 3.11 --release
 RUN ls /exp_viz/target/wheels
 
 # Python build stage
-FROM python as python-build-stage
+FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
 
@@ -49,14 +49,14 @@ COPY ./requirements .
 RUN python -m pip wheel --wheel-dir /usr/src/app/wheels -r ${BUILD_ENVIRONMENT}.txt
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV BUILD_ENV=${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
