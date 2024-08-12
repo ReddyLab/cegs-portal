@@ -18,7 +18,7 @@ from cegs_portal.utils.http_exceptions import Http400
 DEFAULT_TABLE_LENGTH = 20
 HG19 = "hg19"
 HG38 = "hg38"
-ALL_ASSEMBLIES = [HG19, HG38]  # Ordered by "importance"
+ALL_ASSEMBLIES = [HG38, HG19]  # Ordered by descending "importance"
 
 
 def get_sig_only(value):
@@ -26,6 +26,19 @@ def get_sig_only(value):
         return False
     else:
         return True
+
+
+def normalize_assembly(value):
+    if value is None:
+        return None
+
+    match value.lower():
+        case "grch38" | "hg38":
+            return HG38
+        case "grch37" | "hg19":
+            return HG19
+        case _:
+            raise Http400(f"Invalid assembly {value}")
 
 
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
@@ -69,7 +82,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             feature_id
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", None)
+        options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
         options["feature_properties"] = request.GET.getlist("property", [])
         options["json_format"] = request.GET.get("format", None)
         sig_only = request.GET.get("sig_only", True)
@@ -207,7 +220,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * int
         """
         options = super().request_options(request)
-        options["assembly"] = request.GET.get("assembly", HG38)
+        options["assembly"] = normalize_assembly(request.GET.get("assembly", HG38))
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
         options["search_type"] = request.GET.get("search_type", "overlap")
