@@ -171,6 +171,19 @@
                 transition-duration: 0.4s;
     }
 
+       .width-container {
+        background: #ffffff;
+        -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+        padding-top: 10px;
+        padding-bottom: 20px;
+        padding-left: 40px;
+        padding-right: 40px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+
+    }
+
 </style>
 {% endblock %}
 {% block javascript %}
@@ -209,7 +222,11 @@
     </div>
 
     {% if region and assembly %}
-    <div class="p-2" id="genoverse"></div>
+    <div class="container centered-container bg-transparent border-none shadow-none min-w-full lg:w-auto mx-auto pt-0 pb-0 mt-0 mb-0 flex flex-row justify-center" id="genoverse-container">
+        <div class="dna-feature-container bg-transparent border-none shadow-none lg:w-auto overflow-x-auto -mx-12 sm:mx-0">
+            <div id="genoverse"></div>
+        </div>
+    </div>
     {% endif %}
 
     <div class="min-w-full">
@@ -292,7 +309,7 @@
             aria-labelledby="tabs-summary-tab"
             {% if tab_summary_selected %}data-te-tab-active{% endif %}
         >
-            <div class="flex flex-row items-start gap-x-10 min-w-full">
+            <div class="flex flex-col md:flex-row md:space-x-10 mx-auto">
                 <div class="flex flex-col gap-4 basis-1/4">
                     <div id="facets" class="container">
                         <div class="search-results-table-title table-container-header">
@@ -360,12 +377,16 @@
 
                 <div class="flex flex-col gap-4 basis-3/4">
                     {% if feature_counts %}
-                    <div class="container" id="feature-counts">
+                    <div class="container min-w-full bg-transparent border-none shadow-none lg:w-auto mx-auto pt-0 pb-0 mt-0 mb-0" >
+                        <div class="width-container overflow-x-auto sm:w-auto -mx-7 sm:mx-0" id="feature-counts">
                     {% include "search/v1/partials/_search_feature_counts.html" with feature_counts=feature_counts sig_reo_count_features=sig_reo_count_features %}
+                        </div>
                     </div>
                     {% endif %}
-                    <div class="container basis-3/4" id="sig-reg-effects">
+                    <div class="container basis-3/4 min-w-full bg-transparent border-none shadow-none lg:w-auto mx-auto pt-0 pb-0 mt-0 mb-0"">
+                        <div class="width-container overflow-x-auto sm:w-auto -mx-7 sm:mx-0" id="sig-reg-effects">
                     {% include "search/v1/partials/_sig_reg_effects.html" with sig_reg_effects=sig_reg_effects %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -388,7 +409,7 @@
             aria-labelledby="tabs-features-tab"
             {% if tab_features_selected %}data-te-tab-active{% endif %}
         >
-            <div class="flex flex-row items-start gap-x-10 min-w-full">
+            <div class="flex flex-col md:flex-row md:space-x-10 mx-auto">
                 <div class="flex flex-col gap-4 flex-none">
                     <div class="container">
                         <a name="near_features"></a>

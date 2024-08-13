@@ -1093,6 +1093,29 @@ input[type="submit"], input[type="button"], button {
   top: 0px;
 }
 
+<<<<<<< Updated upstream
+=======
+.-mx-12 {
+  margin-left: -3rem;
+  margin-right: -3rem;
+}
+
+.-mx-2 {
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.-mx-20 {
+  margin-left: -5rem;
+  margin-right: -5rem;
+}
+
+.-mx-7 {
+  margin-left: -1.75rem;
+  margin-right: -1.75rem;
+}
+
+>>>>>>> Stashed changes
 .mx-1 {
   margin-left: 0.25rem;
   margin-right: 0.25rem;
@@ -1760,6 +1783,10 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1rem;
 }
 
+.pb-0 {
+  padding-bottom: 0px;
+}
+
 .pb-3 {
   padding-bottom: 0.75rem;
 }
@@ -1790,6 +1817,10 @@ input[type="submit"], input[type="button"], button {
 
 .pr-8 {
   padding-right: 2rem;
+}
+
+.pt-0 {
+  padding-top: 0px;
 }
 
 .pt-3 {
