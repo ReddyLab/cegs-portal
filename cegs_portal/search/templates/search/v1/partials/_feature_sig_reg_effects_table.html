@@ -1,20 +1,22 @@
 {% load humanize %}
 {% load custom_helpers %}
 
-<div class="container min-w-full">
+<div class="container bg-transparent border-none shadow-none min-w-full lg:w-auto mx-auto pt-0">
 {% if sig_reg_effects|length > 0 %}
-    <div class="flex max-w-full min-w-full justify-between items-center">
-        <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
-        <div class="justify-self-end">
-            <span class="text-lg">Download:</span>
-            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">
-                <button class="tsv-button" id="downloadButton">TSV</button>
-            </a>
-            <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=bed6">
-                <button class="tsv-button" id="downloadButtonNew">BED6</button>
-            </a>
+    <div class="width-container overflow-x-auto sm:w-auto -mx-12 sm:mx-0">
+        <div class="table-title flex flex-col md:flex-row items-center justify-between">
+            <div class="text-xl font-bold">Sificant Regulatory Effect Observations</div>
+            <div class="flex-1 flex justify-end items-center">
+                <span class="text-lg">Download:</span>
+                <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">
+                    <button class="tsv-button" id="downloadButton">TSV</button>
+                </a>
+                <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=bed6">
+                    <button class="tsv-button" id="downloadButtonNew">BED6</button>
+                </a>
+            </div>
         </div>
-    </div>
+
     <table class="data-table">
         <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
         {% for regeffect in sig_reg_effects %}
@@ -54,4 +56,5 @@
 {% else %}
     <div>No Relevant Regulatory Effect Observations Found</div>
 {% endif %}
+</div>
 </div>
