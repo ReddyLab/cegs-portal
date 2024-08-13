@@ -23,6 +23,22 @@ CEGSGenoverse = Genoverse.extend({
         }
     },
     sharedStateCallbacks: [],
+    constructor: function (config) {
+        // The portal backend uses "hg19/hg38"
+        // but genoverse uses "grch37/grch38" so we
+        // have to convert here.
+        //
+        // Portal endpoints do the reverse mapping.
+        if (config.genome.toLowerCase() == "hg38") {
+            config.genome = "grch38";
+            config.assembly = "grch38";
+        } else if (config.genome.toLowerCase() == "hg19") {
+            config.genome = "grch37";
+            config.assembly = "grch37";
+        }
+
+        this.base(config);
+    },
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
