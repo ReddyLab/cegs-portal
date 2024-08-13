@@ -223,10 +223,10 @@
     <div
         id="coverage"
     >
-        <div class="flex flex-row gap-x-10">
+    <div class="flex flex-col md:flex-row md:space-x-10 mx-auto">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section container">
+                <div class="facet-content-section container mx-auto overflow-x-auto">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
@@ -237,9 +237,9 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section container">
+                <div class="facet-content-section container mx-auto">
                     <form name="regionUploadForm">
-                        <div>
+                        <div class="">
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
                             <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
                             <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
@@ -249,7 +249,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section container">
+                <div class="facet-content-section container mx-auto">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -270,7 +270,7 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 container">
+            <div class="basis-3/4 container mx-auto overflow-x-auto">
                 <!-- content section container for ChromCov -->
                 <div class="flex flex-row gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
