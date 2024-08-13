@@ -1072,10 +1072,6 @@ input[type="submit"], input[type="button"], button {
   position: relative;
 }
 
-.right-0 {
-  right: 0px;
-}
-
 .right-2 {
   right: 0.5rem;
 }
@@ -1084,6 +1080,29 @@ input[type="submit"], input[type="button"], button {
   top: 0px;
 }
 
+<<<<<<< Updated upstream
+=======
+.-mx-12 {
+  margin-left: -3rem;
+  margin-right: -3rem;
+}
+
+.-mx-20 {
+  margin-left: -5rem;
+  margin-right: -5rem;
+}
+
+.-mx-5 {
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+}
+
+.-mx-7 {
+  margin-left: -1.75rem;
+  margin-right: -1.75rem;
+}
+
+>>>>>>> Stashed changes
 .mx-1 {
   margin-left: 0.25rem;
   margin-right: 0.25rem;
@@ -1124,6 +1143,10 @@ input[type="submit"], input[type="button"], button {
   margin-bottom: 1rem;
 }
 
+.-mr-1 {
+  margin-right: -0.25rem;
+}
+
 .mb-0 {
   margin-bottom: 0px;
 }
@@ -1160,6 +1183,17 @@ input[type="submit"], input[type="button"], button {
   margin-left: 0.5rem;
 }
 
+<<<<<<< Updated upstream
+=======
+.ml-3 {
+  margin-left: 0.75rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
+}
+
+>>>>>>> Stashed changes
 .ml-auto {
   margin-left: auto;
 }
@@ -1469,6 +1503,12 @@ input[type="submit"], input[type="button"], button {
           align-items: center;
 }
 
+.justify-end {
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
+}
+
 .justify-center {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
@@ -1563,6 +1603,19 @@ input[type="submit"], input[type="button"], button {
   overflow: hidden;
 }
 
+<<<<<<< Updated upstream
+=======
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+>>>>>>> Stashed changes
 .text-ellipsis {
   text-overflow: ellipsis;
 }
@@ -1739,6 +1792,10 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1rem;
 }
 
+.pb-0 {
+  padding-bottom: 0px;
+}
+
 .pb-3 {
   padding-bottom: 0.75rem;
 }
@@ -1769,6 +1826,10 @@ input[type="submit"], input[type="button"], button {
 
 .pr-8 {
   padding-right: 2rem;
+}
+
+.pt-0 {
+  padding-top: 0px;
 }
 
 .pt-3 {
@@ -1854,6 +1915,11 @@ input[type="submit"], input[type="button"], button {
   letter-spacing: -0.025em;
 }
 
+.text-blue-600 {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity));
+}
+
 .text-blue-700 {
   --tw-text-opacity: 1;
   color: rgb(29 78 216 / var(--tw-text-opacity));
@@ -1867,6 +1933,11 @@ input[type="submit"], input[type="button"], button {
 .text-gray-600 {
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity));
+}
+
+.text-gray-700 {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity));
 }
 
 .text-gray-800 {
@@ -2918,8 +2989,13 @@ fieldset legend {
     margin-top: 0px;
   }
 
+<<<<<<< Updated upstream
   .md\:w-3\/4 {
     width: 75%;
+=======
+  .md\:block {
+    display: block;
+>>>>>>> Stashed changes
   }
 
   .md\:flex-row {
@@ -2933,6 +3009,12 @@ fieldset legend {
     --tw-space-y-reverse: 0;
     margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+  }
+
+  .md\:truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
