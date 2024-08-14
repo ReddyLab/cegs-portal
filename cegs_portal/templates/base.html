@@ -19,6 +19,18 @@
         .footer-border {
             border-top: 4px solid rgba(41, 120, 177, 242);
         }
+
+        @media (max-width: 600px) {
+            img {
+                margin-bottom: 10px;
+                margin-top: 20px;
+            }
+        }
+
+        .footer-link:hover {
+            color: lightblue;
+        }
+
     </style>
     {% endblock %}
     <!-- Le javascript ================================================== -->
@@ -36,7 +48,7 @@
                   class="flex items-center justify-between flex-wrap bg-dark py-4 nav-border">
               >
                   <div
-                      class="flex justify-between lg:w-auto w-full lg:border-b-0 pl-6 pr-2 border-solid border-b-2 border-gray-300 pb-5 lg:pb-0"
+                      class="flex justify-between lg:w-auto w-full lg:border-b-0 pl-6 pr-2 pb-5 lg:pb-0"
                   >
                       <div class="flex items-center flex-shrink-0 text-gray-800">
                           <span class="font-medium text-xl tracking-tight" style="color: azure">
@@ -60,7 +72,7 @@
                       </div>
                   </div>
 
-                  <div class="menu w-full lg:block flex-grow lg:flex lg:items-center lg:w-auto lg:px-3 px-8">
+                  <div id="nav-collapse-button" class="menu hidden w-full lg:block flex-grow lg:flex lg:items-center lg:w-auto lg:px-3 px-8">
                       <div class="text-md font-bold lg:flex-grow">
                           <a
                               href="{% url 'home' %}"
@@ -155,9 +167,9 @@
             <footer class="mt-14 bg-dark p-4 text-white flex-none footer-border">
                 <div class="flex justify-around items-center my-3 flex-wrap">
                     <div class="flex flex-col">
-                        <div class="text-md mt-3"><i class="bi bi-envelope-at"></i> Contact CCGR</div>
-                        <div class="text-md mt-3"><i class="bi bi-patch-question"></i> About Us</div>
-                        <div class="text-md mt-3"><i class="bi bi-newspaper"></i> Terms & Conditions</div>
+                        <div class="text-md mt-3 full-width"><a href="#" class="footer-link"><i class="bi bi-envelope-at"></i> Contact CCGR</a></div>
+                        <div class="text-md mt-3 full-width"><a href="{% url 'about' %}" class="footer-link"><i class="bi bi-patch-question"></i> About Us</a></div>
+                        <div class="text-md mt-3 full-width"><a href="#" class="footer-link"><i class="bi bi-newspaper"></i> Terms & Conditions</a></div>
                     </div>
                     <img src="{% static 'CCGRLogo-condensed.png' %}" width="300" />
                     <img src="{% static 'duke_university_wordmark_white.png' %}" width="200" />
@@ -165,10 +177,14 @@
                 <div class="text-center text-sm">© Duke University</div>
             </footer>
 
-
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
         <!-- Script tags with only code, no src (defer by default)  -->
+        <script>
+            document.getElementById('nav').addEventListener('click', function () {
+                document.getElementById('nav-collapse-button').classList.toggle('hidden');
+            });
+        </script>
          {% endblock inline_javascript %}
     </body>
 </html>

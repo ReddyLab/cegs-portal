@@ -48,8 +48,8 @@ def save_associations(associations):
 
 
 def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
-    if genome_assembly not in ["GRCh37", "GRCh38"]:
-        raise ValueError("Please enter either GRCh37 or GRCh38 for the assembly")
+    if genome_assembly not in ["hg19", "hg38"]:
+        raise ValueError("Please enter either hg19 or hg38 for the assembly")
 
     return (
         DNAFeature.objects.filter(feature_type="DNAFeatureType.CCRE", ref_genome=genome_assembly)

@@ -52,6 +52,8 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         SOURCE_TYPES = "Experiment Source Type"
         CELL_LINE = "Cell Line"
         TISSUE_TYPE = "Tissue Type"
+        GENOME_ASSEMBLY = "Genome Assembly"
+        CRISPR_MODULATION = "CRISPR Modulation"
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)
@@ -75,6 +77,17 @@ class Experiment(Accessioned, Faceted, AccessControlled):
 
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
+
+
+class ExperimentCollection(Accessioned, Faceted, AccessControlled):
+    class Meta(Accessioned.Meta):
+        indexes = [
+            models.Index(fields=["accession_id"], name="expcol_accession_id_index"),
+        ]
+
+    name = models.CharField(max_length=512)
+    description = models.CharField(max_length=4096, null=True, blank=True)
+    experiments = models.ManyToManyField(Experiment, related_name="collections", blank=True)
 
 
 # Deprecated in favor of File + ExperimentDataFileInfo

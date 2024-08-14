@@ -8,6 +8,7 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeature,
     Experiment,
+    ExperimentCollection,
     Facet,
     FacetValue,
     File,
@@ -34,6 +35,14 @@ admin.site.register(DNAFeature, DNAFeatureAdmin)
 
 
 class FileForm(forms.ModelForm):
+    url = forms.URLField(
+        label="URL",
+        required=False,
+        max_length=200,
+        widget=forms.URLInput(attrs={"class": "vURLField"}),
+        assume_scheme="http",
+    )
+
     class Meta:
         model = File
         fields = (
@@ -119,6 +128,7 @@ class ExperimentAdmin(admin.ModelAdmin):
 
 admin.site.register(Experiment, ExperimentAdmin)
 
+admin.site.register(ExperimentCollection)
 
 admin.site.register(Facet)
 

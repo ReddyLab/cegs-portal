@@ -19,7 +19,11 @@ from cegs_portal.search.models import (
     File,
     RegulatoryEffectObservation,
 )
+from cegs_portal.search.models.experiment import ExperimentCollection
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
+from cegs_portal.search.models.tests.experiment_collection_factory import (
+    ExperimentCollectionFactory,
+)
 from cegs_portal.search.models.tests.experiment_factory import (
     BiosampleFactory,
     ExperimentFactory,
@@ -68,18 +72,78 @@ def access_control_experiments() -> tuple[Experiment, Experiment, Experiment]:
 
 
 @pytest.fixture
+def experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory()
+    e1 = ExperimentFactory()
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory()
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory()
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def private_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory(public=False)
+    e1 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def archived_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory(archived=True)
+    e1 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
+def access_control_experiment_collection() -> ExperimentCollection:
+    ec = ExperimentCollectionFactory()
+    e1 = ExperimentFactory()
+    _ = (_file(experiment=e1), _file(experiment=e1))
+    e2 = ExperimentFactory(public=False)
+    _ = (_file(experiment=e2), _file(experiment=e2))
+    e3 = ExperimentFactory(archived=True)
+    _ = (_file(experiment=e3), _file(experiment=e3))
+    ec.experiments.add(e1)
+    ec.experiments.add(e2)
+    ec.experiments.add(e3)
+    return ec
+
+
+@pytest.fixture
 def experiment_list_data():
     e1 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e1), _file(experiment=e1))
     e2 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e2), _file(experiment=e2))
-    e3 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    e3 = ExperimentFactory(biosamples=(BiosampleFactory(),), description=None)
     _ = (_file(experiment=e3), _file(experiment=e3))
     e4 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e4), _file(experiment=e4))
     e5 = ExperimentFactory(biosamples=(BiosampleFactory(),))
     _ = (_file(experiment=e5), _file(experiment=e5))
-    e6 = ExperimentFactory(biosamples=(BiosampleFactory(),))
+    e6 = ExperimentFactory(biosamples=(BiosampleFactory(),), description=None)
     _ = (_file(experiment=e6), _file(experiment=e6))
     experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
     f1 = FacetValueFactory()
@@ -190,7 +254,7 @@ def reo_source_targets():
 def search_results(feature_pages: Pageable[DNAFeature], facets: Manager[Facet], reo_source_targets) -> SearchResults:
     return {
         "location": ChromosomeLocation("chr1", "10000", "15000"),
-        "assembly": "GRCh37",
+        "assembly": "hg19",
         "features": feature_pages,
         "sig_reg_effects": [(("DCPEXPR0000000001", "DCPAN0000000001"), reo_source_targets)],
         "facets": facets,
@@ -209,13 +273,13 @@ def features() -> Iterable[DNAFeature]:
 
 @pytest.fixture
 def feature() -> DNAFeature:
-    return DNAFeatureFactory(ref_genome="GRCh38")
+    return DNAFeatureFactory(ref_genome="hg38")
 
 
 @pytest.fixture
 def effect_dir_feature() -> DNAFeature:
     return DNAFeatureFactory(
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         effect_directions=[
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.ENRICHED.value,
@@ -226,34 +290,34 @@ def effect_dir_feature() -> DNAFeature:
 
 @pytest.fixture
 def search_feature() -> DNAFeature:
-    return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    return DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="hg38")
 
 
 @pytest.fixture
 def private_feature() -> DNAFeature:
-    return DNAFeatureFactory(public=False, ref_genome="GRCh38")
+    return DNAFeatureFactory(public=False, ref_genome="hg38")
 
 
 @pytest.fixture
 def archived_feature() -> DNAFeature:
-    return DNAFeatureFactory(archived=True, ref_genome="GRCh38")
+    return DNAFeatureFactory(archived=True, ref_genome="hg38")
 
 
 @pytest.fixture
 def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
-    pub_feature = DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="GRCh38")
+    pub_feature = DNAFeatureFactory(feature_type=DNAFeatureType.GENE, ref_genome="hg38")
     private_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         public=False,
     )
     archived_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
         location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
-        ref_genome="GRCh38",
+        ref_genome="hg38",
         archived=True,
     )
 
@@ -487,7 +551,7 @@ def genoverse_dhs_features():
     start = 1_000_000
     length = 10_000
     gap = 1_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
@@ -548,7 +612,7 @@ def genoverse_gene_features():
     start = 1_000_000
     length = 10_000
     gap = 1_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
@@ -599,7 +663,7 @@ def genoverse_transcript_features():
     chrom = "chr10"
     start = 1_000_000
     end = 1_100_000
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     g1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,

@@ -1,100 +1,23 @@
 import json
-from typing import Any
 
 import pytest
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.test import Client
 
-from cegs_portal.conftest import SearchClient
+from cegs_portal.conftest import RequestBuilder
 from cegs_portal.search.models import Experiment
+from cegs_portal.search.views.v1.experiment import ExperimentView
 
 pytestmark = pytest.mark.django_db
 
 
-def test_experiment_list_json(client: Client, experiment_list_data: tuple[Any, Any]):
-    experiments, _ = experiment_list_data
-    response = client.get("/search/experiment?accept=application/json")
-    assert response.status_code == 200
-    json_content = json.loads(response.content)
-
-    assert len(json_content["experiments"]) == len(experiments)
-
-    for json_expr, expr in zip(json_content["experiments"], experiments):
-        assert json_expr["accession_id"] == expr.accession_id
-        assert json_expr["name"] == expr.name
-        assert json_expr["description"] == expr.description
+@pytest.fixture
+def experiment_view():
+    return ExperimentView.as_view()
 
 
-def test_experiment_list_facet_json(client: Client, experiment_list_data: tuple[Any, Any]):
-    _, facets = experiment_list_data
-    response = client.get(f"/search/experiment?accept=application/json&facet={facets[0].id}")
-    assert response.status_code == 200
-    json_content = json.loads(response.content)
-
-    assert len(json_content["experiments"]) == 3
-
-
-def test_experiment_list_all_facets_json(client: Client, experiment_list_data: tuple[Any, Any]):
-    experiments, facets = experiment_list_data
-    response = client.get(f"/search/experiment?accept=application/json&facet={facets[0].id}&facet={facets[1].id}")
-    assert response.status_code == 200
-    json_content = json.loads(response.content)
-
-    assert len(json_content["experiments"]) == len(experiments)
-
-
-def test_experiment_list_html(client: Client):
-    response = client.get("/search/experiment")
-
-    # The content of the page isn't necessarily stable, so we just want to make sure
-    # we don't get a 400 or 500 error here
-    assert response.status_code == 200
-
-
-@pytest.mark.usefixtures("access_control_experiments")
-def test_experiment_list_with_anonymous_client(client: Client):
-    response = client.get("/search/experiment?accept=application/json")
-    assert response.status_code == 200
-
-    json_content = json.loads(response.content)
-    assert len(json_content["experiments"]) == 1
-
-
-@pytest.mark.usefixtures("access_control_experiments")
-def test_experiment_list_with_authenticated_client(login_client: SearchClient):
-    response = login_client.get("/search/experiment?accept=application/json")
-    assert response.status_code == 200
-
-    json_content = json.loads(response.content)
-    assert len(json_content["experiments"]) == 1
-
-
-def test_experiment_list_with_authenticated_authorized_client(
-    login_client: SearchClient, access_control_experiments: tuple[Experiment, Experiment, Experiment]
-):
-    _, private_experiment, archived_experiment = access_control_experiments
-
-    login_client.set_user_experiments([private_experiment.accession_id, archived_experiment.accession_id])
-    response = login_client.get("/search/experiment?accept=application/json")
-    assert response.status_code == 200
-
-    json_content = json.loads(response.content)
-    assert len(json_content["experiments"]) == 2
-
-
-def test_experiment_list_with_authenticated_authorized_group_client(
-    group_login_client: Client, access_control_experiments: tuple[Experiment, Experiment, Experiment]
-):
-    _, private_experiment, archived_experiment = access_control_experiments
-
-    group_login_client.set_group_experiments([private_experiment.accession_id, archived_experiment.accession_id])
-    response = group_login_client.get("/search/experiment?accept=application/json")
-    assert response.status_code == 200
-
-    json_content = json.loads(response.content)
-    assert len(json_content["experiments"]) == 2
-
-
-def test_experiment_json(client: Client, experiment: Experiment):
+def test_experiment_e2e(client: Client, experiment: Experiment):
     response = client.get(f"/search/experiment/{experiment.accession_id}?accept=application/json")
 
     assert response.status_code == 200
@@ -102,68 +25,118 @@ def test_experiment_json(client: Client, experiment: Experiment):
 
     assert json_content["accession_id"] == experiment.accession_id
     assert json_content["name"] == experiment.name
-    assert json_content["description"] == experiment.description
+    assert json_content["description"] == (experiment.description if experiment.description is not None else "")
 
-
-def test_experiment_html(client: Client, experiment: Experiment):
     response = client.get(f"/search/experiment/{experiment.accession_id}")
+
+    assert response.status_code == 200
+
+    response = client.get("/search/experiment/DCPEXPRFFFFFFFFFF?accept=application/json")
+
+    assert response.status_code == 404
+
+
+def test_experiment_json(public_test_client: RequestBuilder, experiment_view, experiment: Experiment):
+    response = public_test_client.get(f"/search/experiment/{experiment.accession_id}?accept=application/json").request(
+        experiment_view, exp_id=experiment.accession_id
+    )
+
+    assert response.status_code == 200
+    json_content = response.json()
+
+    assert json_content["accession_id"] == experiment.accession_id
+    assert json_content["name"] == experiment.name
+    assert json_content["description"] == (experiment.description if experiment.description is not None else "")
+
+
+def test_experiment_html(public_test_client: RequestBuilder, experiment_view, experiment: Experiment):
+    response = public_test_client.get(f"/search/experiment/{experiment.accession_id}").request(
+        experiment_view, exp_id=experiment.accession_id
+    )
 
     # The content of the page isn't necessarily stable, so we just want to make sure
     # we don't get a 400 or 500 error here
     assert response.status_code == 200
 
 
-def test_no_experiment_html(client: Client):
-    response = client.get("/search/experiment/DCPEXPR0000000000")
+def test_no_experiment_html(public_test_client: RequestBuilder, experiment_view):
+    with pytest.raises(Http404):
+        public_test_client.get("/search/experiment/DCPEXPR0000000000").request(
+            experiment_view, exp_id="DCPEXPR0000000000"
+        )
 
-    assert response.status_code == 404
 
-
-def test_experiment_with_anonymous_client(client: Client, private_experiment: Experiment):
-    response = client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+def test_experiment_with_anonymous_client(
+    public_test_client: RequestBuilder, experiment_view, private_experiment: Experiment
+):
+    response = public_test_client.get(
+        f"/search/experiment/{private_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=private_experiment.accession_id)
     assert response.status_code == 302
 
 
-def test_experiment_with_authenticated_client(login_client: SearchClient, private_experiment: Experiment):
-    response = login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
-    assert response.status_code == 403
+def test_experiment_with_authenticated_client(
+    login_test_client: RequestBuilder, experiment_view, private_experiment: Experiment
+):
+    with pytest.raises(PermissionDenied):
+        login_test_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json").request(
+            experiment_view, exp_id=private_experiment.accession_id
+        )
 
 
-def test_experiment_with_authenticated_authorized_client(login_client: SearchClient, private_experiment: Experiment):
-    login_client.set_user_experiments([private_experiment.accession_id])
-    response = login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+def test_experiment_with_authenticated_authorized_client(
+    login_test_client: RequestBuilder, experiment_view, private_experiment: Experiment
+):
+    login_test_client.set_user_experiments([private_experiment.accession_id])
+    response = login_test_client.get(
+        f"/search/experiment/{private_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=private_experiment.accession_id)
     assert response.status_code == 200
 
 
 def test_experiment_with_authenticated_authorized_group_client(
-    group_login_client: SearchClient, private_experiment: Experiment
+    group_login_test_client: RequestBuilder, experiment_view, private_experiment: Experiment
 ):
-    group_login_client.set_group_experiments([private_experiment.accession_id])
-    response = group_login_client.get(f"/search/experiment/{private_experiment.accession_id}?accept=application/json")
+    group_login_test_client.set_group_experiments([private_experiment.accession_id])
+    response = group_login_test_client.get(
+        f"/search/experiment/{private_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=private_experiment.accession_id)
     assert response.status_code == 200
 
 
-def test_archived_experiment_with_anonymous_client(client: Client, archived_experiment: Experiment):
-    response = client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
-    assert response.status_code == 403
+def test_archived_experiment_with_anonymous_client(
+    public_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
+):
+    with pytest.raises(PermissionDenied):
+        public_test_client.get(
+            f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+        ).request(experiment_view, exp_id=archived_experiment.accession_id)
 
 
-def test_archived_experiment_with_authenticated_client(login_client: SearchClient, archived_experiment: Experiment):
-    response = login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
-    assert response.status_code == 403
+def test_archived_experiment_with_authenticated_client(
+    login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
+):
+    with pytest.raises(PermissionDenied):
+        login_test_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json").request(
+            experiment_view, exp_id=archived_experiment.accession_id
+        )
 
 
 def test_archived_experiment_with_authenticated_authorized_client(
-    login_client: SearchClient, archived_experiment: Experiment
+    login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
-    login_client.set_user_experiments([archived_experiment.accession_id])
-    response = login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
-    assert response.status_code == 403
+    login_test_client.set_user_experiments([archived_experiment.accession_id])
+    with pytest.raises(PermissionDenied):
+        login_test_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json").request(
+            experiment_view, exp_id=archived_experiment.accession_id
+        )
 
 
 def test_archived_experiment_with_authenticated_authorized_group_client(
-    group_login_client: SearchClient, archived_experiment: Experiment
+    group_login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
-    group_login_client.set_group_experiments([archived_experiment.accession_id])
-    response = group_login_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json")
-    assert response.status_code == 403
+    group_login_test_client.set_group_experiments([archived_experiment.accession_id])
+    with pytest.raises(PermissionDenied):
+        group_login_test_client.get(
+            f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+        ).request(experiment_view, exp_id=archived_experiment.accession_id)

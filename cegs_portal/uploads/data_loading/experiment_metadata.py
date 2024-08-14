@@ -143,8 +143,9 @@ class AnalysisMetadata(Metadata):
 
 class ExperimentMetadata(Metadata):
     description: Optional[str]
-    assay: str
+    assay: Optional[str]
     name: str
+    crispr: Optional[str]
     accession_id: str
     biosamples: list[ExperimentBiosample]
     source_type: str
@@ -154,10 +155,11 @@ class ExperimentMetadata(Metadata):
     misc_files: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], accession_id):
-        self.description = experiment_dict.get("description", None)
-        self.assay = experiment_dict.get("assay", None)
+        self.description = experiment_dict.get("description")
+        self.assay = experiment_dict.get("assay")
         self.name = experiment_dict["name"]
         assert self.name != ""
+        self.crispr = experiment_dict.get("crispr")
         self.accession_id = accession_id
         self.source_type = experiment_dict["source type"]
         self.data_format = experiment_dict.get("data_format", "standard")
@@ -180,10 +182,21 @@ class ExperimentMetadata(Metadata):
             source_type=get_source_type(self.source_type),
         )
         experiment.save()
-        assay_facet = FacetValue.objects.get(value=self.assay)
+
+        if self.assay is not None:
+            assay_facet = FacetValue.objects.get(value=self.assay)
+            experiment.facet_values.add(assay_facet)
+
         source_facet = FacetValue.objects.get(value__iexact=self.source_type)
-        experiment.facet_values.add(assay_facet)
         experiment.facet_values.add(source_facet)
+
+        if self.crispr is not None:
+            crispr_facet = FacetValue.objects.get(value=self.crispr)
+            experiment.facet_values.add(crispr_facet)
+
+        assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_file.genome_assembly)
+        experiment.facet_values.add(assembly_facet)
+
         experiment.save()
 
         self.tested_elements_file.db_save(experiment)

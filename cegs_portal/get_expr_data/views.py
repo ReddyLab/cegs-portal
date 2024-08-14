@@ -30,8 +30,8 @@ from cegs_portal.get_expr_data.view_models import (
 from cegs_portal.utils.http_exceptions import Http400
 
 MAX_REGION_SIZE = 100_000_000
-GRCH37 = "GRCh37"
-GRCH38 = "GRCh38"
+HG19 = "hg19"
+HG38 = "hg38"
 
 logger = logging.getLogger("django.request")
 
@@ -112,9 +112,9 @@ def get_assembly(request) -> Optional[str]:
 
     match assembly.lower():
         case "hg19" | "grch37":
-            return GRCH37
+            return HG19
         case "hg38" | "grch38":
-            return GRCH38
+            return HG38
 
     raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
 

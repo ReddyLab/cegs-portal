@@ -23,12 +23,12 @@ class DNAFeatureFactory(DjangoModelFactory):
     ensembl_id = _faker.unique.numerify(text="ENSG###########")
     name = Faker("lexify", text="????-1", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     cell_line = Faker("text", max_nb_chars=50)
-    chrom_name = Faker("numerify", text=r"chr%%")
+    chrom_name = Faker("numerify", text=r"chr1%")
     _start = random.randint(0, 1000000)
     _end = _start + random.randint(1, 1000000)
     location = NumericRange(_start, _end)
     strand = random.choice(["+", "-", None])
-    ref_genome = "GRCh38"
+    ref_genome = "hg38"
     ref_genome_patch = Faker("numerify", text="##")
     feature_type = str(random.choice(list(DNAFeatureType)))
     feature_subtype = Faker("text", max_nb_chars=50)

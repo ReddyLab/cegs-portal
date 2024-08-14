@@ -31,6 +31,7 @@ import {
     STATE_COVERAGE_TYPE,
     STATE_LEGEND_INTERVALS,
     STATE_FEATURE_FILTER_TYPE,
+    STATE_COMBO_SET_OP,
 } from "./consts.js";
 import {
     numericFilterControls,
@@ -170,7 +171,8 @@ function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
             source: legendIntervalFunc(coverageData, "source_intervals"),
             target: legendIntervalFunc(coverageData, "target_intervals"),
         },
-        [STATE_FEATURE_FILTER_TYPE]: "sources",
+        [STATE_FEATURE_FILTER_TYPE]: g("feature-select").value,
+        [STATE_COMBO_SET_OP]: g("set-op-select").value,
     });
 
     return state;
@@ -193,9 +195,7 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
             throw new GenomeError("Experiment analyses based on different genomes and are incompatible.");
         }
 
-        genome = await getJson(
-            `${staticRoot}search/experiments/${accessionIDs[0][0]}/${accessionIDs[0][1]}/${manifests[0].genome.file}`
-        );
+        genome = await getJson(`${staticRoot}genome_data/${manifests[0].genome.file}`);
     } catch (error) {
         let consoleError;
         if (error instanceof Error) {
@@ -271,10 +271,13 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         state.u(STATE_SCALE_X, zoomed ? 30 : 1);
         state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
 
-        let body = getFilterBody(state, genome, manifests[0].chromosomes, [
-            state.g(STATE_CATEGORICAL_FACET_VALUES),
-            state.g(STATE_NUMERIC_FACET_VALUES),
-        ]);
+        let body = getFilterBody(
+            state,
+            genome,
+            manifests[0].chromosomes,
+            [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+            state.g(STATE_COMBO_SET_OP)
+        );
 
         postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
@@ -286,7 +289,13 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     });
 
     function get_all_data() {
-        let body = getFilterBody(state, genome, manifests[0].chromosomes, [state.g(STATE_CATEGORICAL_FACET_VALUES)]);
+        let body = getFilterBody(
+            state,
+            genome,
+            manifests[0].chromosomes,
+            [state.g(STATE_CATEGORICAL_FACET_VALUES)],
+            state.g(STATE_COMBO_SET_OP)
+        );
 
         postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
@@ -315,10 +324,13 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         STATE_NUMERIC_FACET_VALUES,
         debounce((s, key) => {
             // Send facet data to server to get filtered data and updated numeric facets
-            let body = getFilterBody(state, genome, manifests[0].chromosomes, [
-                state.g(STATE_CATEGORICAL_FACET_VALUES),
-                state.g(STATE_NUMERIC_FACET_VALUES),
-            ]);
+            let body = getFilterBody(
+                state,
+                genome,
+                manifests[0].chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+                state.g(STATE_COMBO_SET_OP)
+            );
 
             postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
                 state.u(
@@ -456,7 +468,6 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     // Feature Filter Selector
     //
     let featureFilterSelector = g("feature-select");
-    featureFilterSelector.value = "sources";
     featureFilterSelector.addEventListener(
         "change",
         () => {
@@ -466,6 +477,22 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     );
 
     state.ac(STATE_FEATURE_FILTER_TYPE, (s, key) => {
+        get_all_data();
+    });
+
+    //
+    // Experiment Combination Set Operator Selector
+    //
+    let setOpSelector = g("set-op-select");
+    setOpSelector.addEventListener(
+        "change",
+        () => {
+            state.u(STATE_COMBO_SET_OP, setOpSelector.value);
+        },
+        false
+    );
+
+    state.ac(STATE_COMBO_SET_OP, (s, key) => {
         get_all_data();
     });
 }

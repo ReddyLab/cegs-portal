@@ -23,6 +23,22 @@ CEGSGenoverse = Genoverse.extend({
         }
     },
     sharedStateCallbacks: [],
+    constructor: function (config) {
+        // The portal backend uses "hg19/hg38"
+        // but genoverse uses "grch37/grch38" so we
+        // have to convert here.
+        //
+        // Portal endpoints do the reverse mapping.
+        if (config.genome.toLowerCase() == "hg38") {
+            config.genome = "grch38";
+            config.assembly = "grch38";
+        } else if (config.genome.toLowerCase() == "hg19") {
+            config.genome = "grch37";
+            config.assembly = "grch37";
+        }
+
+        this.base(config);
+    },
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
@@ -401,12 +417,12 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         let menu = {
             title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-            Assembly: `${feature.ref_genome} ${feature.ref_genome_patch}`,
+            Assembly: feature.ref_genome,
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
 
         let effects = await fetch(
-            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`
+            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`,
         ).then((response) => {
             if (!response.ok) {
                 throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);

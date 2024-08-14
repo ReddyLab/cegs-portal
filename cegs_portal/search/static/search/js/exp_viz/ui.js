@@ -161,7 +161,7 @@ export function countFilterControls(state) {
     return filterNodes;
 }
 
-export function getFilterBody(state, genome, chroms, filter_values) {
+export function getFilterBody(state, genome, chroms, filter_values, combo_op) {
     let filters = {
         filters: filter_values,
         chromosomes: genome.map((c) => c.chrom),
@@ -172,7 +172,7 @@ export function getFilterBody(state, genome, chroms, filter_values) {
     }
     try {
         let combinations = state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"));
-        filters.combinations = combinations.concat(combinations.slice(1).map((_) => "i"));
+        filters.combinations = combinations.concat(combinations.slice(1).map((_) => combo_op));
         filters.combination_features = state.g(STATE_FEATURE_FILTER_TYPE);
     } catch (e) {
         // An "Invalid State Key" exception is expected when this is called from

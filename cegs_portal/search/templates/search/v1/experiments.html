@@ -38,6 +38,129 @@
         padding: 5px 5px;
     }
 
+    #multi-exp-modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #multi-exp-modal > .multi-exp-modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+
+    #multi-exp-modal > .multi-exp-modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top: 10vh;
+
+        /* Sizing for visible dialog */
+        width: 85%;
+        max-height: 85%;
+
+        /* Display properties for visible dialog*/
+        border: solid 1px #999;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+        background-color: white;
+
+        /* Animate when opening */
+        animation-name: zoomIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    .close-button {
+        cursor: pointer;
+        display:inline-block;
+    }
+
+    .multi-exp-modal-button {
+        background-color: white !important;
+        color: rgb(71 85 105);
+        font-weight: bold;
+    }
+
+    .multi-exp-modal-button:hover {
+        background-color: rgb(229 231 235) !important;
+        border-color: white;
+    }
+
+    #multi-exp-modal .scroll-bounds {
+        margin-bottom: 20px;
+    }
+
+    #multi-exp-modal .scroll-area {
+        overflow-y: scroll;
+        height: calc(100% - 30px);
+        margin-top: 10px;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #multi-exp-modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #multi-exp-modal.closing > .multi-exp-modal-content {
+        /* Animate when closing */
+        animation-name: zoomOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
+
+    .intersect-button {
+        margin-left: 5px;
+        background-color: rgb(244, 245, 247) !important;
+    }
+
+    .intersect-button:hover {
+        background-color: rgb(229 231 235) !important;
+    }
 </style>
 {% endblock %}
 
@@ -58,19 +181,42 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
             </svg> Multi-Experiment Coverage Information
         </div>
-        <div class="mt-5">The coverage data from the following experiments have been intersected based on their
-            <select name="views" id="feature-select">
+        <div class="mt-2 italic">The coverage data from the following experiments have been <select class="intersect-button border-2 p-2 h-10 text-sm" name="set ops" id="set-op-select">
+            <option value="i" selected>intersected</option>
+            <option value="u">unioned</option>
+        </select> based on their
+            <select class="intersect-button border-2 p-2 h-10 text-sm" name="views" id="feature-select">
                 <option value="sources">Tested Elements</option>
                 <option value="targets">Genes</option>
                 <option value="sources-targets" selected>Tested Elements and Genes</option>
-            </select></div>
-        <ul class="list-disc mt-5">
-            {% for expr in experiments %}
-            <li>{{ expr.name }} <a class="link" href="{% url 'search:experiment' expr.accession_id %}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
-            </svg></a></li>
-            {% endfor %}
-        </ul>
+            </select>
+        </div>
+        <table class="min-w-full mt-2">
+            <tbody>
+                {% for expr in experiments %}
+                <tr class="{% cycle 'bg-gray-100 border-b' 'bg-white border-b' %}">
+                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ expr.name }}</td>
+                    <td class="text-sm text-gray-900 font-light px-6 py-2 whitespace-nowrap">
+                        <a class="link" href="{% url 'search:experiment' expr.accession_id %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+                            </svg>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="flex justify-center">
+            <button class="multi-exp-modal-button mt-3 border-2 p-2" hx-get="{% url 'search:experiments' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="#multi-exp-modal-container">
+                <div class="flex flex-column items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                    <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>/>
+                    </svg>Change Experiments
+                </div>
+            </button>
+        </div>
+        <div id="multi-exp-modal-container"></div>
     </div>
 </div>
 <div class="min-w-full">
@@ -81,7 +227,7 @@
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
                 <div class="facet-content-section container">
-                    <div class="text-slate-500">
+                    <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
                     </div>
@@ -94,8 +240,9 @@
                 <div class="facet-content-section container">
                     <form name="regionUploadForm">
                         <div>
-                            <label class="font-bold" for="regionFile">Highlight Regions</label>
-                            <input id="regionUploadInput" type="file" accept=".bed" name="regionFile" />
+                            <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
+                            <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
+                            <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
                         </div>
                     </form>
                     <div id="regionUploadInputReset"></div>
@@ -105,12 +252,14 @@
                 <div class="facet-content-section container">
                     <form name="dataDownloadForm">
                         <div>
-                            <label class="font-bold" for="dataDlAll">Download All Selected Data*</label>
-                            <div><input id="dataDownloadAll" type="button" name="dataDlAll" value="Request Data" /></div>
+                            <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
+                            <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll" />
+                            <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Request Data</label>
                         </div>
                         <div class="mt-5">
-                            <label class="font-bold" for="dataDlFile">Download Some Selected Data*</label>
-                            <input id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label class="font-bold flex justify-center" for="dataDlFile">Download Some Selected Data*</label>
+                            <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
                         </div>
                     </form>
                     <div id="dataDownloadLink" class="mt-5 mb-5"></div>
@@ -131,8 +280,8 @@
                         <div id="target-count"></div>
                     </div>
                     <div>
-                        <label for="covSelect">Choose a Coverage View:</label>
-                        <select name="views" id="covSelect">
+                        <label for="covSelect">View:</label>
+                        <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
                             <option value="sig">Largest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">Gene Count</option>
@@ -152,4 +301,14 @@
     import {combined_viz} from "{% static 'search/js/exp_viz/combo_viz.js' %}";
     combined_viz("{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
 </script>
+<script>
+    function closeModal() {
+        let modal = document.getElementById("multi-exp-modal");
+        modal.classList.add("closing") // Kicks off an animation on the modal dialog
+        modal.addEventListener("animationend", (event) => {
+            modal.remove(); // remove the dialog from the DOM once the animation is over
+        })
+    }
+</script>
+<script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

@@ -16,7 +16,7 @@
 <div>
     <div class="title-separator"></div>
         <div style="display: flex; justify-content: space-between">
-            <h1>
+            <span class="page-header-w-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1.5">
                     <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                     <path
@@ -39,7 +39,7 @@
                         <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
                     {% endfor %}
                 </select>
-            </h1>
+            </span>
         </div>
 
     <div class="title-separator"></div>
@@ -68,7 +68,7 @@
                             <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
                         </a>
                     </td>
-                    <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                    <td>{{ feature.ref_genome }}</td>
                     <td>{{ feature.get_feature_type_display }}</td>
                     {% if feature.feature_subtype %}
                     <td>{{ feature.feature_subtype|remove_underscores }}</td>

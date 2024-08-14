@@ -361,9 +361,6 @@
                     "ref_genome": {
                         "type": "string"
                     },
-                    "ref_genome_patch": {
-                        "type": "string"
-                    },
                     "source_for": {
                         "type": "array",
                         "items": {

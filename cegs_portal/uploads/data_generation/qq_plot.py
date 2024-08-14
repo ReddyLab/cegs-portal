@@ -1,3 +1,4 @@
+import math
 import os
 import struct
 
@@ -11,6 +12,8 @@ from cegs_portal.search.models import (
     GrnaType,
     RegulatoryEffectObservation,
 )
+
+MIN_SIG = 1e-100
 
 
 def gen_qq_plot(analysis, analysis_dir):
@@ -40,7 +43,8 @@ def gen_qq_plot(analysis, analysis_dir):
 
     qq_data = {0: [], 1: []}
     for reo in reos:
-        p_val_log_10 = float(reo["reo_facets"][RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value])
+        raw_p_val = max(float(reo["reo_facets"][RegulatoryEffectObservation.Facet.RAW_P_VALUE.value]), MIN_SIG)
+        p_val_log_10 = -math.log10(raw_p_val)
 
         cat_facets = set(reo["cat_facets"])
         if cat_facets & non_ctrl:
