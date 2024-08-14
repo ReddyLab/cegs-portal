@@ -239,7 +239,7 @@
             <div class="flex items-center px-6 py-4">
                 <div class="text-sm font-medium text-gray-900">Assembly</div>
                 <div class="text-sm text-gray-500 font-light italic ml-2">
-                    {{ experiment.tissue_types|join:", " }}
+                    {{ experiment.assemblies|join:", " }}
                 </div>
             </div>
 
@@ -406,7 +406,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="overflow-x-auto" id="chrom-data"></div>
+                    <div id="chrom-data"></div>
                 </div>
             </div>
         </div>
@@ -417,41 +417,43 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="container mx-auto">
-            <div class="min-w-full">
-                <div class="bg-white border-b">
-                    <div class="text-xl text-slate-500 font-bold px-6 py-4 text-left">Description</div>
-                    <div class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                        {{ experiment.description }}
+        <div class="flex justify-center">
+            <div class="container min-w-fit max-w-fit sm:w-auto -mx-7 sm:mx-0">
+                <div class="min-w-full">
+                    <div class="bg-white border-b">
+                        <div class="text-xl text-slate-500 font-bold px-6 py-4 text-left">Description</div>
+                        <div class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                            {{ experiment.description }}
+                        </div>
                     </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.experiment_type }}
+                    <div class="bg-gray-100 border-b flex items-center">
+                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
+                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                            {{ experiment.experiment_type }}
+                        </div>
                     </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.cell_lines|join:", " }}
+                    <div class="bg-white border-b flex items-center">
+                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
+                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                            {{ experiment.cell_lines|join:", " }}
+                        </div>
                     </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.tissue_types|join:", " }}
+                    <div class="bg-gray-100 border-b flex items-center">
+                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
+                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                            {{ experiment.tissue_types|join:", " }}
+                        </div>
                     </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assemblies</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.assemblies|join:", " }}
+                    <div class="bg-white border-b flex items-center">
+                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assemblies</div>
+                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                            {{ experiment.assemblies|join:", " }}
+                        </div>
                     </div>
                 </div>
             </div>
+            </div>
         </div>
-    </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
         id="tabs-files"
@@ -459,7 +461,7 @@
         aria-labelledby="tabs-files-tab"
     >
     <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0 p-0">
-        <div class="responsive-container overflow-x-auto sm:w-auto -mx-20 sm:mx-0 mt-0">
+        <div class="responsive-container overflow-x-auto sm:w-auto -mx-14 sm:mx-0 mt-0">
             <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                 Data Files <i class="bi bi-folder-symlink-fill"></i>
             </div>
@@ -501,7 +503,7 @@
     </div>
 
     <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0 p-0">
-        <div class="responsive-container overflow-x-auto sm:w-auto -mx-20 sm:mx-0">
+        <div class="responsive-container overflow-x-auto sm:w-auto -mx-14 sm:mx-0">
             <table class="divide-y divide-gray-300" id="otherFilesTable">
                 <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                     Other Files <i class="bi bi-folder-symlink-fill"></i>
@@ -558,12 +560,14 @@
             class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none p-0"
             style="color: rgb(100 116 139);"
         >
-            <div class="responsive-container sm:w-auto -mx-20 sm:mx-0">
+            <div class="responsive-container sm:w-auto -mx-14 sm:mx-0">
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex flex-nowrap my-3.5 w-full overflow-x-auto">
-                <div id="ncells_histogram" class="mr-4"></div>
-                <div id="ngrna_histogram"></div>
+            <div class="flex justify-center">
+                <div class="flex flex-nowrap my-3.5 w-full overflow-x-auto">
+                    <div id="ncells_histogram" class="mr-4"></div>
+                    <div id="ngrna_histogram"></div>
+                </div>
             </div>
             </div>
         </div>
@@ -578,12 +582,14 @@
         class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none p-0"
         style="color: rgb(100 116 139);"
     >
-        <div class="responsive-container sm:w-auto -mx-20 sm:mx-0">
+        <div class="responsive-container sm:w-auto -mx-14 sm:mx-0">
             Analysis <i class="bi bi-pie-chart-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex flex-nowrap my-3.5 overflow-x-auto">
-                <div id="volcano" class="mr-4"></div>
-                <div id="uniform_qqplot" class="mr-4"></div>
+            <div class="flex justify-center">
+                <div class="flex flex-nowrap my-3.5 overflow-x-auto">
+                    <div id="volcano" class="mr-4"></div>
+                    <div id="uniform_qqplot" class="mr-4"></div>
+                </div>
             </div>
         </div>
         </div>
