@@ -49,80 +49,59 @@ def req_view():
     return RequestExperimentDataView.as_view()
 
 
-@pytest.mark.parametrize(
-    "accession_id,valid",
-    [
-        ("DCPEXPR0000000002", True),
-        ("DCPEXPRAAAAAAAAAA", True),
-        ("DCPEXP00000002", False),
-        ("DCPEXPR000000000F", True),
-        ("DCPEXPR000000000G", False),
-    ],
-)
-def test_validate_expr(accession_id, valid):
-    assert validate_expr(accession_id) == valid
+def test_validate_expr():
+    assert validate_expr("DCPEXPR0000000002")
+    assert validate_expr("DCPEXPRAAAAAAAAAA")
+    assert validate_expr("DCPEXP00000002") is False
+    assert validate_expr("DCPEXPR000000000F")
+    assert validate_expr("DCPEXPR000000000G") is False
 
 
-@pytest.mark.parametrize(
-    "filename,valid",
-    [
-        ("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv", True),
-        ("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8", False),
-        ("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f.tsv", False),
-        ("DCPEXPR0000000002.DCPEXPR000000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv", False),
-        ("DCPEXPR000000000K.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv", False),
-    ],
-)
-def test_validate_filename(filename, valid):
-    assert validate_filename(filename) == valid
+def test_validate_filename():
+    assert validate_filename("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
+    assert validate_filename("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8") is False
+    assert validate_filename("DCPEXPR0000000002.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f.tsv") is False
+    assert validate_filename("DCPEXPR0000000002.DCPEXPR000000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv") is False
+    assert validate_filename("DCPEXPR000000000K.DCPEXPR0000000003.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv") is False
 
 
-@pytest.mark.parametrize(
-    "expr_accession_ids,an_accession_ids,valid",
-    [
-        (["DCPEXPR0000000002"], [], True),
-        (["DCPEXPR0000000002", "DCPEXPR0000000003"], [], True),
-        (["DCPEXPR000000000K"], [], False),
-        (["DCPEXPR0000000002", "DCPXPR00000003"], [], False),
-        ([], ["DCPAN0000000002"], True),
-        ([], ["DCPAN0000000002", "DCPAN0000000003"], True),
-        ([], ["DCPAN000000000K"], False),
-        ([], ["DCPAN0000000002", "DCPN00000003"], False),
-        (["DCPEXPR0000000002"], ["DCPAN0000000002"], True),
-        (["DCPEXPR0000000002", "DCPEXPR0000000003"], ["DCPAN0000000002", "DCPAN0000000003"], True),
-        (["DCPEXPR000000000K"], ["DCPAN000000000K"], False),
-        (["DCPEXPR0000000002", "DCPXPR00000003"], ["DCPAN0000000002", "DCPN00000003"], False),
-    ],
-)
-def test_gen_output_filename(expr_accession_ids, an_accession_ids, valid):
-    assert validate_filename(gen_output_filename(expr_accession_ids, an_accession_ids)) == valid
+def test_gen_output_filename():
+    assert validate_filename(gen_output_filename(["DCPEXPR0000000002"], []))
+    assert validate_filename(gen_output_filename(["DCPEXPR0000000002", "DCPEXPR0000000003"], []))
+    assert validate_filename(gen_output_filename(["DCPEXPR000000000K"], [])) is False
+    assert validate_filename(gen_output_filename(["DCPEXPR0000000002", "DCPXPR00000003"], [])) is False
+    assert validate_filename(gen_output_filename([], ["DCPAN0000000002"]))
+    assert validate_filename(gen_output_filename([], ["DCPAN0000000002", "DCPAN0000000003"]))
+    assert validate_filename(gen_output_filename([], ["DCPAN000000000K"])) is False
+    assert validate_filename(gen_output_filename([], ["DCPAN0000000002", "DCPN00000003"])) is False
+    assert validate_filename(gen_output_filename(["DCPEXPR0000000002"], ["DCPAN0000000002"]))
+    assert validate_filename(
+        gen_output_filename(["DCPEXPR0000000002", "DCPEXPR0000000003"], ["DCPAN0000000002", "DCPAN0000000003"])
+    )
+    assert validate_filename(gen_output_filename(["DCPEXPR000000000K"], ["DCPAN000000000K"])) is False
+    assert (
+        validate_filename(
+            gen_output_filename(["DCPEXPR0000000002", "DCPXPR00000003"], ["DCPAN0000000002", "DCPN00000003"])
+        )
+        is False
+    )
 
 
-@pytest.mark.parametrize(
-    "source_locs,result",
-    [
-        ('{"(,)"}', []),
-        (r'{"(chr1,\"[11,1001)\")"}', ["chr1:11-1001"]),
-        (r'{"(chr1,\"[11,1001)\")","(chr2,\"[22223,33334)\")"}', ["chr1:11-1001", "chr2:22223-33334"]),
-    ],
-)
-def test_parse_source_locs(source_locs, result):
-    assert parse_source_locs(source_locs) == result
+def test_parse_source_locs():
+    assert parse_source_locs('{"(,)"}') == []
+    assert parse_source_locs(r'{"(chr1,\"[11,1001)\")"}') == ["chr1:11-1001"]
+    assert parse_source_locs(r'{"(chr1,\"[11,1001)\")","(chr2,\"[22223,33334)\")"}') == [
+        "chr1:11-1001",
+        "chr2:22223-33334",
+    ]
 
 
-@pytest.mark.parametrize(
-    "target_info,result",
-    [
-        ('{"(,,,)"}', []),
-        (r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)"}', ["GWSR-1:ENSG20717717659"]),
-        (
-            r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)","(chr1,\"[35000,40000)\",PKND-1,ENSG20717717659)"}',
-            ["GWSR-1:ENSG20717717659", "PKND-1:ENSG20717717659"],
-        ),
-    ],
-)
-def test_parse_target_info(target_info, result):
-    assert parse_target_info(target_info) == result
+def test_parse_target_info():
+    assert parse_target_info('{"(,,,)"}') == []
+    assert parse_target_info(r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)"}') == ["GWSR-1:ENSG20717717659"]
+    assert parse_target_info(
+        r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)","(chr1,\"[35000,40000)\",PKND-1,ENSG20717717659)"}'
+    ) == ["GWSR-1:ENSG20717717659", "PKND-1:ENSG20717717659"]
 
 
 @pytest.mark.usefixtures("reg_effects")
