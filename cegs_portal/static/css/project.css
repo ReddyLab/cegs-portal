@@ -1090,6 +1090,11 @@ input[type="submit"], input[type="button"], button {
   top: 0px;
 }
 
+.-mx-14 {
+  margin-left: -3.5rem;
+  margin-right: -3.5rem;
+}
+
 .-mx-20 {
   margin-left: -5rem;
   margin-right: -5rem;
@@ -1708,6 +1713,10 @@ input[type="submit"], input[type="button"], button {
   fill: currentColor;
 }
 
+.p-0 {
+  padding: 0px;
+}
+
 .p-2 {
   padding: 0.5rem;
 }
@@ -1779,6 +1788,10 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1rem;
 }
 
+.pb-0 {
+  padding-bottom: 0px;
+}
+
 .pb-3 {
   padding-bottom: 0.75rem;
 }
@@ -1809,6 +1822,10 @@ input[type="submit"], input[type="button"], button {
 
 .pr-8 {
   padding-right: 2rem;
+}
+
+.pt-0 {
+  padding-top: 0px;
 }
 
 .pt-3 {
@@ -2958,6 +2975,11 @@ fieldset legend {
     max-width: 28rem;
   }
 
+  .sm\:flex-wrap {
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+  }
+
   .sm\:p-8 {
     padding: 2rem;
   }
@@ -2973,12 +2995,6 @@ fieldset legend {
     -webkit-box-direction: normal;
         -ms-flex-direction: row;
             flex-direction: row;
-  }
-
-  .md\:space-x-10 > :not([hidden]) ~ :not([hidden]) {
-    --tw-space-x-reverse: 0;
-    margin-right: calc(2.5rem * var(--tw-space-x-reverse));
-    margin-left: calc(2.5rem * calc(1 - var(--tw-space-x-reverse)));
   }
 
   .md\:space-y-6 > :not([hidden]) ~ :not([hidden]) {
