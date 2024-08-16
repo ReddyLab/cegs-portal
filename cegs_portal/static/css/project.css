@@ -1099,16 +1099,6 @@ input[type="submit"], input[type="button"], button {
   top: 0px;
 }
 
-.-mx-14 {
-  margin-left: -3.5rem;
-  margin-right: -3.5rem;
-}
-
-.-mx-7 {
-  margin-left: -1.75rem;
-  margin-right: -1.75rem;
-}
-
 .mx-1 {
   margin-left: 0.25rem;
   margin-right: 0.25rem;
@@ -1326,10 +1316,6 @@ input[type="submit"], input[type="button"], button {
   width: 1.75rem;
 }
 
-.w-72 {
-  width: 18rem;
-}
-
 .w-\[100px\] {
   width: 100px;
 }
@@ -1344,6 +1330,14 @@ input[type="submit"], input[type="button"], button {
 
 .w-full {
   width: 100%;
+}
+
+.min-w-\[12rem\] {
+  min-width: 12rem;
+}
+
+.min-w-\[768px\] {
+  min-width: 768px;
 }
 
 .min-w-fit {
@@ -2285,6 +2279,8 @@ fieldset legend {
   }
 }
 
+/* Tailwind breakpoint "sm" */
+
 @media (min-width: 640px) {
   .content-container {
     padding: 20px 30px;
@@ -2924,11 +2920,6 @@ fieldset legend {
 }
 
 @media (min-width: 640px) {
-  .sm\:mx-0 {
-    margin-left: 0px;
-    margin-right: 0px;
-  }
-
   .sm\:w-auto {
     width: auto;
   }
@@ -2937,13 +2928,13 @@ fieldset legend {
     max-width: 28rem;
   }
 
-  .sm\:flex-wrap {
-    -ms-flex-wrap: wrap;
-        flex-wrap: wrap;
-  }
-
   .sm\:p-8 {
     padding: 2rem;
+  }
+
+  .sm\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 
   .sm\:px-10 {
@@ -2955,6 +2946,10 @@ fieldset legend {
 @media (min-width: 768px) {
   .md\:mt-0 {
     margin-top: 0px;
+  }
+
+  .md\:min-w-0 {
+    min-width: 0px;
   }
 
   .md\:flex-row {

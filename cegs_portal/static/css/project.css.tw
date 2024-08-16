@@ -541,6 +541,7 @@ fieldset legend {
   }
 }
 
+/* Tailwind breakpoint "sm" */
 @media (min-width: 640px) {
   .content-container {
     padding: 20px 30px;

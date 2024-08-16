@@ -323,10 +323,10 @@
         aria-labelledby="tabs-overview-tab"
         data-te-tab-active
     >
-        <div class="flex flex-row gap-x-10">
+        <div class="flex flex-col md:flex-row max-w-full gap-x-10">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half ml-2"></span>
@@ -337,7 +337,7 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container">
                     <form name="regionUploadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
@@ -349,7 +349,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -371,25 +371,27 @@
             </div>
 
             <div class="content-container basis-3/4">
-                <div class="sm:w-auto sm:mx-0 overflow-x-auto">
                 <!-- content section container for ChromCov -->
-                    <div class="flex flex-row sm:flex-wrap gap-x-4 items-center">
-                        <div id="chrom-data-legend"></div>
-                        <div class="flex flex-col">
-                            <div id="reo-count"></div>
-                            <div id="source-count"></div>
-                            <div id="target-count"></div>
-                        </div>
-                        <div>
-                            <label for="covSelect">View:</label>
-                            <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
-                                <option value="sig">Largest Significance</option>
-                                <option value="effect">Greatest Effect Size</option>
-                                <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
-                            </select>
-                        </div>
+                <div class="flex flex-row flex-wrap gap-x-4 items-center">
+                    <div id="chrom-data-legend"></div>
+                    <div class="flex flex-col">
+                        <div id="reo-count"></div>
+                        <div id="source-count"></div>
+                        <div id="target-count"></div>
                     </div>
-                    <div id="chrom-data"></div>
+                    <div>
+                        <label for="covSelect">View:</label>
+                        <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
+                            <option value="sig">Largest Significance</option>
+                            <option value="effect">Greatest Effect Size</option>
+                            <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="max-w-full">
+                    <div class="overflow-x-auto">
+                        <div id="chrom-data" class="min-w-[768px] md:min-w-0"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -400,7 +402,7 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="content-container min-w-fit max-w-fit  flex justify-center">
+        <div class="content-container min-w-fit max-w-fit flex justify-center">
             <div class="min-w-full">
                 <div class="bg-white border-b">
                     <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
