@@ -30,7 +30,7 @@ export function categoricalFilterControls(facets, default_facets) {
                                 : e("input", {type: "checkbox", id: entry[0], name: facet.name}, []),
                             e("label", {for: entry[0]}, entry[1]),
                         ]);
-                    })
+                    }),
                 ),
             ]);
         });
@@ -88,14 +88,19 @@ export function numericFilterControls(state, facets) {
             sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
         });
 
-        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", sliderLabel), sliderNode]));
+        filterNodes.push(
+            e("div", {class: "h-24 min-w-[12rem]"}, [
+                e("div", sliderLabel),
+                e("div", {class: "px-4 sm:px-0"}, sliderNode),
+            ]),
+        );
     }
 
     sliderNodes.forEach((sliderNode) => {
         sliderNode.noUiSlider.on("slide", function (values, handle) {
             state.u(
                 STATE_NUMERIC_FACET_VALUES,
-                sliderNodes.map((n) => n.noUiSlider.get(true))
+                sliderNodes.map((n) => n.noUiSlider.get(true)),
             );
         });
     });
@@ -146,14 +151,16 @@ export function countFilterControls(state) {
             sliderNode.noUiSlider.updateOptions({tooltips: [false, false]});
         });
 
-        filterNodes.push(e("div", {class: "h-24 w-72"}, [e("div", name), sliderNode]));
+        filterNodes.push(
+            e("div", {class: "h-24 min-w-[12rem]"}, [e("div", name), e("div", {class: "px-4 sm:px-0"}, sliderNode)]),
+        );
     }
 
     sliderNodes.forEach((sliderNode) => {
         sliderNode.noUiSlider.on("slide", function (values, handle) {
             state.u(
                 STATE_COUNT_FILTER_VALUES,
-                sliderNodes.map((n) => n.noUiSlider.get(true))
+                sliderNodes.map((n) => n.noUiSlider.get(true)),
             );
         });
     });
