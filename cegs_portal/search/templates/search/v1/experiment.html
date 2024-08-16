@@ -239,7 +239,7 @@
             <div class="flex items-center px-6 py-4">
                 <div class="text-sm font-medium text-gray-900">Assembly</div>
                 <div class="text-sm text-gray-500 font-light italic ml-2">
-                    {{ experiment.assemblies|join:", " }}
+                    {{ experiment.genome_assembly }}
                 </div>
             </div>
 
@@ -445,9 +445,9 @@
                         </div>
                     </div>
                     <div class="bg-white border-b flex items-center">
-                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assemblies</div>
+                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assembly</div>
                         <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                            {{ experiment.assemblies|join:", " }}
+                            {{ experiment.genome_assembly }}
                         </div>
                     </div>
                 </div>

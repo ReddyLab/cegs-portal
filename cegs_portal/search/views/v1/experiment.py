@@ -86,10 +86,6 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
 
-        experi_assemblies = set()
-        for f in experi.data_files.all():
-            experi_assemblies.add(f"{f.ref_genome}.{f.ref_genome_patch or '0'}")
-
         experi_cell_lines = set()
         experi_tissue_types = set()
         for bios in experi.biosamples.all():
@@ -98,7 +94,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
         setattr(experi, "cell_lines", experi_cell_lines)
         setattr(experi, "tissue_types", experi_tissue_types)
-        setattr(experi, "assemblies", experi_assemblies)
+        setattr(experi, "genome_assembly", experi.default_analysis.genome_assembly)
 
         return experi, other_experiments
 
