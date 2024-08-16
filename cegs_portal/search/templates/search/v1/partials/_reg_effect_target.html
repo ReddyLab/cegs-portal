@@ -10,7 +10,7 @@
             <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
                 <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">{{ feature.name }}</a></td>
                 <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower|intcomma }}-{{ feature.location.upper|add:"-1"|intcomma }}</span>:{{ feature.strand }}</td>
-                <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                <td>{{ feature.ref_genome }}</td>
             </tr>
         {% endfor %}
     </table>

@@ -55,22 +55,36 @@ CHROM_NAMES = [
 SET_OPS = ["i", "u"]
 
 
-@lru_cache(maxsize=100)
-def load_coverage(acc_id, chrom):
+def coverage_path(acc_id, chrom):
     exp_acc_id, analysis_acc_id = acc_id.split("/")
     if chrom is None:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd"))
+        return join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.ecd")
     else:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd"))
+        return join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.ecd")
+
+
+@lru_cache(maxsize=100)
+def load_coverage(acc_id, chrom):
+    coverage_file = coverage_path(acc_id, chrom)
+    filename = finders.find(coverage_file)
+    if filename is None:
+        raise Http400(f"Coverage file {coverage_file} not found")
     return load_coverage_data_allow_threads(filename)
 
 
-def load_features(acc_id, chrom):
+def features_path(acc_id, chrom):
     exp_acc_id, analysis_acc_id = acc_id.split("/")
     if chrom is None:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.fd"))
+        return join("search", "experiments", exp_acc_id, analysis_acc_id, "level1.fd")
     else:
-        filename = finders.find(join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.fd"))
+        return join("search", "experiments", exp_acc_id, analysis_acc_id, f"level2_{chrom}.fd")
+
+
+def load_features(acc_id, chrom):
+    feature_file = features_path(acc_id, chrom)
+    filename = finders.find(feature_file)
+    if filename is None:
+        raise Http400(f"Feature file {feature_file} not found")
 
     return acc_id, load_feature_data_allow_threads(filename)
 
@@ -181,11 +195,6 @@ class ExperimentCoverageView(MultiResponseFormatView):
             options["filters"] = body["filters"]
         except Exception as e:
             raise Http400(f'Invalid request body, no "filters" object:\n{request.body}') from e
-
-        try:
-            options["chromosomes"] = body["chromosomes"]
-        except Exception as e:
-            raise Http400(f'Invalid request body, no "chromosomes" object:\n{request.body}') from e
 
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")

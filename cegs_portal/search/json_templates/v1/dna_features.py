@@ -21,7 +21,6 @@ FeatureJson = TypedDict(
         "strand": str,
         "ids": list[str],
         "ref_genome": str,
-        "ref_genome_patch": str,
         "closest_gene_ensembl_id": Optional[int],
         "closest_gene_name": str,
     },
@@ -65,7 +64,6 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "ids": feature_obj.ids,
         "misc": feature_obj.misc,
         "ref_genome": feature_obj.ref_genome,
-        "ref_genome_patch": feature_obj.ref_genome_patch,
     }
 
     if options is not None and "regeffects" in options.get("feature_properties", []):

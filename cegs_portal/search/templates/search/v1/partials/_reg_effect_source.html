@@ -10,7 +10,7 @@
             <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
                 <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">{{ feature.get_feature_type_display }} @ <span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower|intcomma }}-{{ feature.location.upper|add:"-1"|intcomma }}</span>{% if feature.strand %}:{{ feature.strand }}{% endif %}</a></td>
                 <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}">{{ feature.closest_gene_name }} ({{ feature.closest_gene_ensembl_id }})</a>{% else %}N/A{% endif %}</td>
-                <td>{{ feature.ref_genome }}.{{ feature.ref_genome_patch|default:"0" }}</td>
+                <td>{{ feature.ref_genome }}</td>
             </tr>
         {% endfor %}
     </table>

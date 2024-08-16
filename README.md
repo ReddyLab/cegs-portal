@@ -13,13 +13,13 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ## Set up Devlopment Environment
 
-First, clone this repository. This is a Django 4.x project that requires Python >= 3.9. Additionally you'll need at least Node.js 14.17 for CSS auto-reloading and compilation. The database, PostgreSQL, can [downloaded here](https://www.postgresql.org/download/) but the easiest way to set up the database is using Docker compose or, if you're on a Mac, [Postgres.app](https://postgresapp.com).
+First, clone this repository. This is a Django 5.1 project that requires Python >= 3.10. Additionally you'll need at least Node.js 14.17 for CSS auto-reloading and compilation. The database, PostgreSQL, can [downloaded here](https://www.postgresql.org/download/) but the easiest way to set up the database is using Docker compose or, if you're on a Mac, [Postgres.app](https://postgresapp.com).
 
 These instructions are for unix/linux systems. Windows users can follow along if they want to use WSL to run the portal.
 
 ### Pre-reqs
 
--   [python](https://www.python.org) >= 3.9
+-   [python](https://www.python.org) >= 3.10
 -   [docker](http://docker.com)
 -   [Node.js](https://nodejs.dev) >= 14.17
 -   [Rust](https://www.rust-lang.org)

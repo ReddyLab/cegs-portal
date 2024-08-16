@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 from django.db.models import Subquery
 
@@ -8,13 +8,13 @@ from cegs_portal.search.view_models.errors import ObjectNotFoundError
 
 class DNAFeatureNonTargetSearch:
     @classmethod
-    def expr_id(cls, feature_id: str) -> Optional[str]:
+    def expr_id(cls, feature_id: str) -> str:
         feature = DNAFeature.objects.filter(accession_id=feature_id).values_list("experiment_accession_id", flat=True)
 
         if len(feature) == 0:
             raise ObjectNotFoundError(f"DNA Feature {feature_id} not found")
 
-        return cast(Optional[str], feature[0])
+        return cast(str, feature[0])
 
     @classmethod
     def is_public(cls, feature_id: str) -> bool:

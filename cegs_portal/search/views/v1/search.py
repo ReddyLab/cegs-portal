@@ -33,8 +33,8 @@ ENSEMBL_RE = re.compile(r"(ENS[0-9a-z]+)(\s+|$)", re.IGNORECASE)
 ASSEMBLY_RE = re.compile(r"(hg19|hg38|grch37|grch38)(\s+|$)", re.IGNORECASE)
 POSSIBLE_GENE_NAME_RE = re.compile(r"([A-Z0-9][A-Z0-9\.\-]+)(\s+|$)", re.IGNORECASE)
 
-GRCH37 = "GRCh37"
-GRCH38 = "GRCh38"
+HG19 = "hg19"
+HG38 = "hg38"
 
 MAX_REGION_SIZE = 100_000_000
 
@@ -57,7 +57,7 @@ def parse_query(
 ]:
     terms: list[tuple[IdType, str]] = []
     location: Optional[ChromosomeLocation] = None
-    assembly: str = GRCH38
+    assembly: str = HG38
     warnings: set[ParseWarning] = set()
     search_type = None
 
@@ -108,9 +108,9 @@ def parse_query(
 
             # Normalize token
             if token in ("hg19", "grch37"):
-                assembly = GRCH37
+                assembly = HG19
             elif token in ("hg38", "grch38"):
-                assembly = GRCH38
+                assembly = HG38
 
             query = query[match.end() :]
             continue
@@ -326,13 +326,13 @@ def get_assembly(request) -> Optional[str]:
     assembly = request.GET.get("assembly", None)
 
     if assembly is None:
-        return GRCH38
+        return HG38
 
     match assembly.lower():
         case "hg19" | "grch37":
-            return GRCH37
+            return HG19
         case "hg38" | "grch38":
-            return GRCH38
+            return HG38
 
     raise BadRequest(f"Invalid assembly {assembly}. Please specify one of hg19, grch38, hg38, or grch38.")
 
@@ -352,7 +352,7 @@ class FeatureCountView(MultiResponseFormatView):
             region
                 * a genomic location, in the form of "chrN:start-end"
             assembly
-                * the reference genome to search against. Defaults to GRCh38
+                * the reference genome to search against. Defaults to hg38
         """
         options = super().request_options(request)
         options["region"] = get_region(request)
