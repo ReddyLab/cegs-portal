@@ -168,23 +168,6 @@
     .analysis-button:hover {
          background-color: rgb(229 231 235) !important;
     }
-
-    .responsive-container {
-        background: #ffffff;
-        -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-                box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px 30px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    /* .container {
-        margin-left: -20px;
-        margin-right: -200px;
-    } */
-
-
-
 </style>
 {% endblock %}
 
@@ -201,7 +184,7 @@
 
 {% block content %}
 <div class="flex flex-column justify-center min-w-full">
-    <div class="container min-w-fit max-w-fit sm:w-auto -mx-7 sm:mx-0">
+    <div class="content-container min-w-fit max-w-fit">
         <div class="bg-white border-b">
             <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
                 <span><i class="fa-solid fa-flask-vial mr-1"></i>{{ experiment.name }}
@@ -258,7 +241,7 @@
     </div>
 </div>
 
-<div class="min-w-full">
+<div class="min-w-full max-w-full">
     <div class="flex flex-column justify-center">
         <ul
             class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
@@ -340,10 +323,10 @@
         aria-labelledby="tabs-overview-tab"
         data-te-tab-active
     >
-        <div class="flex flex-col md:flex-row mx-auto">
+        <div class="flex flex-row gap-x-10">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section responsive-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half ml-2"></span>
@@ -354,7 +337,7 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section responsive-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
                     <form name="regionUploadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
@@ -366,7 +349,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section responsive-container sm:w-auto -mx-7 sm:mx-0">
+                <div class="facet-content-section content-container sm:w-auto -mx-7 sm:mx-0">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -387,8 +370,8 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 container bg-transparent border-none shadow-none lg:w-auto pt-0 pb-0 mt-0 mb-0">
-                <div class="responsive-container sm:w-auto -mx-14 sm:mx-0 overflow-x-auto">
+            <div class="content-container basis-3/4">
+                <div class="sm:w-auto sm:mx-0 overflow-x-auto">
                 <!-- content section container for ChromCov -->
                     <div class="flex flex-row sm:flex-wrap gap-x-4 items-center">
                         <div id="chrom-data-legend"></div>
@@ -412,59 +395,57 @@
         </div>
     </div>
     <div
-        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear sm:w-auto data-[te-tab-active]:block"
         id="tabs-details"
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="flex justify-center">
-            <div class="container min-w-fit max-w-fit sm:w-auto -mx-7 sm:mx-0">
-                <div class="min-w-full">
-                    <div class="bg-white border-b">
-                        <div class="text-xl text-slate-500 font-bold px-6 py-4 text-left">Description</div>
-                        <div class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                            {{ experiment.description }}
-                        </div>
+        <div class="content-container min-w-fit max-w-fit  flex justify-center">
+            <div class="min-w-full">
+                <div class="bg-white border-b">
+                    <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
+                    <div class="text-sm font-medium text-gray-900 mb-4 text-left">
+                        {{ experiment.description }}
                     </div>
-                    <div class="bg-gray-100 border-b flex items-center">
-                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
-                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                            {{ experiment.experiment_type }}
-                        </div>
+                </div>
+                <div class="bg-gray-100 border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.experiment_type }}
                     </div>
-                    <div class="bg-white border-b flex items-center">
-                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
-                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                            {{ experiment.cell_lines|join:", " }}
-                        </div>
+                </div>
+                <div class="bg-white border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.cell_lines|join:", " }}
                     </div>
-                    <div class="bg-gray-100 border-b flex items-center">
-                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
-                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                            {{ experiment.tissue_types|join:", " }}
-                        </div>
+                </div>
+                <div class="bg-gray-100 border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.tissue_types|join:", " }}
                     </div>
-                    <div class="bg-white border-b flex items-center">
-                        <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assembly</div>
-                        <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                            {{ experiment.genome_assembly }}
-                        </div>
+                </div>
+                <div class="bg-white border-b flex items-center">
+                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assembly</div>
+                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
+                        {{ experiment.genome_assembly }}
                     </div>
                 </div>
             </div>
-            </div>
         </div>
+    </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
         id="tabs-files"
         role="tabpanel"
         aria-labelledby="tabs-files-tab"
     >
-    <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0 p-0">
-        <div class="responsive-container overflow-x-auto sm:w-auto -mx-14 sm:mx-0 mt-0">
+        <div class="content-container mx-auto">
             <div class="text-xl font-bold" style="color: rgb(100 116 139);">
                 Data Files <i class="bi bi-folder-symlink-fill"></i>
             </div>
+            <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-400" id="dataFilesTable">
                 <thead class="bg-gray-700">
                     <tr>
@@ -499,15 +480,15 @@
                 </tbody>
                 {% endfor %} {% endif %}
             </table>
+            </div>
         </div>
-    </div>
 
-    <div class="container bg-transparent border-none shadow-none mx-auto mb-0 mt-0 p-0">
-        <div class="responsive-container overflow-x-auto sm:w-auto -mx-14 sm:mx-0">
+        <div class="content-container mx-auto overflow-x-auto ">
+            <div class="text-xl font-bold" style="color: rgb(100 116 139);">
+                Other Files <i class="bi bi-folder-symlink-fill"></i>
+            </div>
+            <div class="overflow-x-auto">
             <table class="divide-y divide-gray-300" id="otherFilesTable">
-                <div class="text-xl font-bold" style="color: rgb(100 116 139);">
-                    Other Files <i class="bi bi-folder-symlink-fill"></i>
-                </div>
                 <thead class="bg-gray-700">
                     <tr>
                         <th class="px-6 py-2 text-xs text-white">File Name</th>
@@ -547,8 +528,8 @@
                 </tbody>
                 {% endfor %} {% endif %}
             </table>
+            </div>
         </div>
-    </div>
     </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
@@ -557,18 +538,14 @@
         aria-labelledby="tabs-qc-graphs-tab"
     >
         <div
-            class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none p-0"
+            class="content-container mx-auto text-xl font-bold max-w-fit"
             style="color: rgb(100 116 139);"
         >
-            <div class="responsive-container sm:w-auto -mx-14 sm:mx-0">
             QC Graphs <i class="bi bi-file-bar-graph-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex justify-center">
-                <div class="flex flex-nowrap my-3.5 w-full overflow-x-auto">
-                    <div id="ncells_histogram" class="mr-4"></div>
-                    <div id="ngrna_histogram"></div>
-                </div>
-            </div>
+            <div class="flex flex-nowrap my-3.5 max-w-fit overflow-x-auto">
+                <div id="ncells_histogram" class="mr-4"></div>
+                <div id="ngrna_histogram"></div>
             </div>
         </div>
     </div>
@@ -578,18 +555,15 @@
         role="tabpanel"
         aria-labelledby="tabs-analysis"
     >
-    <div
-        class="container text-xl font-bold mx-auto bg-transparent border-none shadow-none p-0"
-        style="color: rgb(100 116 139);"
-    >
-        <div class="responsive-container sm:w-auto -mx-14 sm:mx-0">
+        <div
+            class="content-container mx-auto text-xl font-bold max-w-fit"
+            style="color: rgb(100 116 139);"
+        >
             Analysis <i class="bi bi-pie-chart-fill"></i>
             <div class="title-separator my-3.5"></div>
-            <div class="flex justify-center">
-                <div class="flex flex-nowrap my-3.5 overflow-x-auto">
-                    <div id="volcano" class="mr-4"></div>
-                    <div id="uniform_qqplot" class="mr-4"></div>
-                </div>
+            <div class="flex flex-nowrap my-3.5 max-w-fit overflow-x-auto">
+                <div id="volcano" class="mr-4"></div>
+                <div id="uniform_qqplot" class="mr-4"></div>
             </div>
         </div>
         </div>

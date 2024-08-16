@@ -768,6 +768,15 @@ a:visited {
   margin-bottom: 20px;
 }
 
+.content-container {
+  background: #ffffff;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
 .centered-container {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -1155,6 +1164,10 @@ input[type="submit"], input[type="button"], button {
   margin-bottom: 0.875rem;
 }
 
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
 .mb-5 {
   margin-bottom: 1.25rem;
 }
@@ -1193,10 +1206,6 @@ input[type="submit"], input[type="button"], button {
 
 .mr-4 {
   margin-right: 1rem;
-}
-
-.mt-0 {
-  margin-top: 0px;
 }
 
 .mt-1 {
@@ -1632,10 +1641,6 @@ input[type="submit"], input[type="button"], button {
   border-top-width: 0px;
 }
 
-.border-none {
-  border-style: none;
-}
-
 .border-blue-700 {
   --tw-border-opacity: 1;
   border-color: rgb(29 78 216 / var(--tw-border-opacity));
@@ -1670,10 +1675,6 @@ input[type="submit"], input[type="button"], button {
   background-color: rgb(241 245 249 / var(--tw-bg-opacity));
 }
 
-.bg-transparent {
-  background-color: transparent;
-}
-
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
@@ -1685,10 +1686,6 @@ input[type="submit"], input[type="button"], button {
 
 .fill-current {
   fill: currentColor;
-}
-
-.p-0 {
-  padding: 0px;
 }
 
 .p-2 {
@@ -1707,9 +1704,9 @@ input[type="submit"], input[type="button"], button {
   padding: 1.5rem;
 }
 
-.px-10 {
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .px-2 {
@@ -1762,10 +1759,6 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1rem;
 }
 
-.pb-0 {
-  padding-bottom: 0px;
-}
-
 .pb-3 {
   padding-bottom: 0.75rem;
 }
@@ -1796,10 +1789,6 @@ input[type="submit"], input[type="button"], button {
 
 .pr-8 {
   padding-right: 2rem;
-}
-
-.pt-0 {
-  padding-top: 0px;
 }
 
 .pt-3 {
@@ -1964,13 +1953,6 @@ input[type="submit"], input[type="button"], button {
 .shadow {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
-  -webkit-box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-          box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-.shadow-none {
-  --tw-shadow: 0 0 #0000;
-  --tw-shadow-colored: 0 0 #0000;
   -webkit-box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
           box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
@@ -2300,6 +2282,12 @@ fieldset legend {
             flex-grow: 0;
     padding: 0;
     overflow-y: visible;
+  }
+}
+
+@media (min-width: 640px) {
+  .content-container {
+    padding: 20px 30px;
   }
 }
 
@@ -2956,6 +2944,11 @@ fieldset legend {
 
   .sm\:p-8 {
     padding: 2rem;
+  }
+
+  .sm\:px-10 {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
   }
 }
 
