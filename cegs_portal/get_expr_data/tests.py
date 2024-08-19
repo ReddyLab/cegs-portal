@@ -26,7 +26,7 @@ from cegs_portal.get_expr_data.views import (
     RequestExperimentDataView,
 )
 
-pytestmark = pytest.mark.django_db(transaction=True)
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
