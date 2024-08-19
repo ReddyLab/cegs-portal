@@ -10,8 +10,9 @@
 
     {% block css %}
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" />
+
     <style>
         .nav-border {
             border-bottom: 4px solid rgba(41, 120, 177, 242);
@@ -158,7 +159,7 @@
               </nav>
           </div>
 
-            <div class="grow flex flex-col items-center px-10">
+            <div class="grow flex flex-col items-center px-1 sm:px-10">
                 {% block content %}
                 <p>Use this document as a way to quick start any new project.</p>
                 {% endblock content %}
