@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 from django.contrib.postgres.fields import DateRangeField
 from django.db import models
@@ -41,6 +41,16 @@ class Biosample(Accessioned):
         return f"{self.name} ({self.cell_line_name})"
 
 
+class CRISPRModulationType(StrEnum):
+    CRISPRA = "CRISPRa"
+    CRISPRI = "CRISPRi"
+
+
+class GenomeAssemblyType(StrEnum):
+    HG19 = "hg19"
+    HG38 = "hg38"
+
+
 class Experiment(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -52,8 +62,8 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         SOURCE_TYPES = "Experiment Source Type"
         CELL_LINE = "Cell Line"
         TISSUE_TYPE = "Tissue Type"
-        GENOME_ASSEMBLY = "Genome Assembly"
-        CRISPR_MODULATION = "CRISPR Modulation"
+        GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
+        CRISPR_MODULATION = "CRISPR Modulation"  # CRISPRModulationType
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)

@@ -6,9 +6,11 @@ from .experiment import (
     Analysis,
     Biosample,
     CellLine,
+    CRISPRModulationType,
     Experiment,
     ExperimentCollection,
     ExperimentDataFile,
+    GenomeAssemblyType,
     Pipeline,
     TissueType,
 )
