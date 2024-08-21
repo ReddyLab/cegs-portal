@@ -3,11 +3,13 @@ from psycopg2.extras import NumericRange
 
 from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import (
+    CRISPRModulationType,
     DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
     Experiment,
     Facet,
+    GenomeAssemblyType,
     GrnaType,
     PromoterType,
     RegulatoryEffectObservation,
@@ -27,7 +29,7 @@ class MockExperimentMetadata:
 
     def __init__(self):
         self.experiment = ExperimentFactory()
-        self.assay = "scCERES"
+        self.assay = "Perturb-Seq"
         self.accession_id = self.experiment.accession_id
         self.tested_elements_file = FileMetadata(
             {
@@ -117,6 +119,22 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=tissue_type_facet, value="Stem")
     _ = FacetValueFactory(facet=tissue_type_facet, value="Bone Marrow")
     _ = FacetValueFactory(facet=tissue_type_facet, value="T Cell")
+
+    # The reason there's a check to see if the crispr and assembly facets already exist is because
+    # they are created when pytest is run with --create-db but deleted at the end of the run. So
+    # we don't want to create them when pytest is run with --create-db, but do want to create them
+    # otherwise.
+    crispr = Facet.objects.filter(name=Experiment.Facet.CRISPR_MODULATION.value).first()
+    if crispr is None:
+        crispr_facet = FacetFactory(description="", name=Experiment.Facet.CRISPR_MODULATION.value)
+        _ = FacetValueFactory(facet=crispr_facet, value=CRISPRModulationType.CRISPRA)
+        _ = FacetValueFactory(facet=crispr_facet, value=CRISPRModulationType.CRISPRI)
+
+    assembly = Facet.objects.filter(name=Experiment.Facet.GENOME_ASSEMBLY.value).first()
+    if assembly is None:
+        assembly_facet = FacetFactory(description="", name=Experiment.Facet.GENOME_ASSEMBLY.value)
+        _ = FacetValueFactory(facet=assembly_facet, value=GenomeAssemblyType.HG19)
+        _ = FacetValueFactory(facet=assembly_facet, value=GenomeAssemblyType.HG38)
 
     return [
         direction_facet,
