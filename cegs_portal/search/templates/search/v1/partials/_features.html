@@ -2,17 +2,13 @@
     {% load humanize %}
 
     {% if features|length > 0 %}
-    <div class="container bg-transparent border-none shadow-none min-w-full lg:w-auto mx-auto pt-0">
-        <div class="width-container overflow-x-auto sm:w-auto -mx-12 sm:mx-0">
-            <div class="table-title flex flex-col md:flex-row items-center justify-between">
-                <div class="flex-1">
-
-                </div>
+        <div class="min-w-full">
+            <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
                 <div class="table-container-title mx-auto">
 
                     DNA Features
                 </div>
-                <div class="flex-1 flex justify-end items-center">
+                <div class="justify-end items-center">
                     <span class="search-results-text-small">Download:</span>
                     <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
                         <button class="tsv-button search-results-tsv-buttons" id="downloadButton">TSV</button>
@@ -65,9 +61,8 @@
                     {% endif %}
                 </span>
             </div>
-    </div>
     {% else %}
-        <div class="container min-w-full">
+        <div class="content-container min-w-full">
             <div class="table-title table-container-header">
                 No DNA Features Found
             </div>
