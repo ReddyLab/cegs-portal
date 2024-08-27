@@ -75,8 +75,8 @@
         margin-top: 10vh;
 
         /* Sizing for visible dialog */
-        width: 85%;
-        max-height: 85%;
+        width: 95%;
+        max-height: 95%;
 
         /* Display properties for visible dialog*/
         border: solid 1px #999;
@@ -311,6 +311,47 @@
             modal.remove(); // remove the dialog from the DOM once the animation is over
         })
     }
+</script>
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 1020) {
+                document.querySelector('#combinedExperimentsHeader').setAttribute('aria-expanded', 'false');
+                document.querySelector('#combinedExperimentsHeader').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#combinedExperimentsCollapse').classList.add('hidden');
+                document.querySelector('#combinedExperimentsCollapse').removeAttribute('data-te-collapse-show');
+                document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
+                document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
+                document.querySelector('#experimentFiltersCollapse').removeAttribute('data-te-collapse-show');
+                document.querySelector('#selectExperiments button').setAttribute('aria-expanded', 'false');
+                document.querySelector('#analyzeExperiments button').setAttribute('aria-expanded', 'false');
+                document.querySelector('#selectExperiments button').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#analyzeExperiments button').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#selectExperimentsCollapse').classList.add('hidden');
+                document.querySelector('#analyzeExperimentsCollapse').classList.add('hidden');
+                document.querySelector('#selectExperimentsCollapse').removeAttribute('data-te-collapse-show');
+                document.querySelector('#analyzeExperimentsCollapse').removeAttribute('data-te-collapse-show');
+            } else {
+                document.querySelector('#combinedExperimentsHeader').setAttribute('aria-expanded', 'true');
+                document.querySelector('#combinedExperimentsHeader').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#combinedExperimentsCollapse').classList.remove('hidden');
+                document.querySelector('#combinedExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+                document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'true');
+                document.querySelector('#experimentFiltersHeader').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
+                document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
+                document.querySelector('#selectExperiments button').setAttribute('aria-expanded', 'true');
+                document.querySelector('#analyzeExperiments button').setAttribute('aria-expanded', 'true');
+                document.querySelector('#selectExperiments button').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#analyzeExperiments button').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#selectExperimentsCollapse').classList.remove('hidden');
+                document.querySelector('#analyzeExperimentsCollapse').classList.remove('hidden');
+                document.querySelector('#selectExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+                document.querySelector('#analyzeExperimentsCollapse').setAttribute('data-te-collapse-show', '');
+            }
+        });
+    });
 </script>
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
 {% endblock %}

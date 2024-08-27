@@ -3,25 +3,6 @@
 {% load static i18n %}
 {% load waffle_tags %}
 
-{% block css %}
-{{ block.super }}
-<style>
-  .dropdown-container {
-    background: #ffffff;
-    box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 18px;
-  }
-
-  .remove-lr-margin {
-    padding-left: 0rem;
-    padding-right: 0rem;
-  }
-
-</style>
-{% endblock %}
-
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
