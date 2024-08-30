@@ -32,6 +32,8 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             return DNAFeatureSourceType.DHS
         case "ccre":
             return DNAFeatureSourceType.CCRE
+        case "called regulatory element":
+            return DNAFeatureSourceType.CRE
         case _:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
