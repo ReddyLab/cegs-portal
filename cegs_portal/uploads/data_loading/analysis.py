@@ -58,8 +58,8 @@ class SourceInfo:
 class ObservationRow:
     sources: list[SourceInfo]
     targets: list[str]  # ensembl ids
-    categorical_facets: list[str]
-    numeric_facets: dict[str:float]
+    categorical_facets: list[list[str]]
+    numeric_facets: dict[Facets, float]
 
 
 class Analysis:
@@ -76,7 +76,7 @@ class Analysis:
         }
 
     def load(self):
-        source_type = self.metadata.source_type
+        source_type = FeatureType(self.metadata.source_type)
 
         results_file = self.metadata.results
         results_tsv = InternetFile(results_file.file_location).file
@@ -92,7 +92,10 @@ class Analysis:
             )
             sources = [SourceInfo(chrom_name, start, end, bounds, strand, source_type)]
 
-            targets = [line["gene_ensembl_id"]]
+            if (target := line["gene_ensembl_id"]) != "":
+                targets = [target]
+            else:
+                targets = []
 
             raw_p_value = float(line["raw_p_val"])
             adjusted_p_value = float(line["adj_p_val"])

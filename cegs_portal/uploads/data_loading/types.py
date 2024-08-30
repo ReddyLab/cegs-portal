@@ -29,6 +29,7 @@ class FeatureType(StrEnum):
     DHS = DNAFeatureType.DHS.value
     GRNA = DNAFeatureType.GRNA.value
     CAR = DNAFeatureType.CAR.value
+    CRE = DNAFeatureType.CRE.value
 
 
 class Facets(StrEnum):
