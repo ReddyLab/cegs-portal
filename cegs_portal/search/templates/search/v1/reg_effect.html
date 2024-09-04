@@ -24,6 +24,14 @@
         font-weight: bold;
     }
 
+    .header-w-icon {
+        font-family: sans-serif;
+        font-size: 2rem;
+        color: #094474;
+        text-shadow: 2px 2px #e3f2fd;
+        margin-bottom: 10px;
+    }
+
 </style>
 {% endblock %}
 
@@ -33,11 +41,9 @@
 <div>
     <div class="title-separator"></div>
     <div class="flex flex-col flex-wrap items-center justify-center mb-3.5">
-        <div>
-            <span class="page-header-w-icon flex flex-wrap items-center">
+        <div class="header-w-icon flex flex-wrap items-center justify-center">
                 <i class="fa-solid fa-eye"></i>
                 <span>{{ regulatory_effect.accession_id }}</span> <span class="ml-1 text-2xl">(Regulatory Effect Observation)</span>
-            </span>
         </div>
         <div class="experiment-header-title flex flex-wrap items-center justify-center">
             Experiment:
