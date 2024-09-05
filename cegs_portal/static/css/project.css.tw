@@ -360,6 +360,19 @@ fieldset legend {
         margin-top: 10px;
     }
 
+  .dropdown-container {
+    background: #ffffff;
+    box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+  }
+
+  .remove-lr-margin {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+
   @media screen {
     div.search-wrapper label {
       display: none;
