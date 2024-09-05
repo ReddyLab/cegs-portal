@@ -16,6 +16,7 @@ class AccessionType(Enum):
     DHS = "dhs"
     EXPERIMENT = "experiment"
     CAR = "chromatin accessible region"
+    CRE = "called regulatory element"
     TT = "tissue type"
     CL = "cell line"
     BIOS = "biosample"
@@ -40,6 +41,8 @@ class AccessionType(Enum):
             return "EXPR"
         if self == AccessionType.CAR:
             return "CAR"
+        if self == AccessionType.CRE:
+            return "CRE"
         if self == AccessionType.TT:
             return "TT"
         if self == AccessionType.CL:
@@ -68,6 +71,8 @@ class AccessionType(Enum):
                 return AccessionType.GRNA
             case DNAFeatureType.CAR.value:
                 return AccessionType.CAR
+            case DNAFeatureType.CRE.value:
+                return AccessionType.CRE
 
         raise Exception(f"Invalid DNAFeatureType: {feature_type}")
 

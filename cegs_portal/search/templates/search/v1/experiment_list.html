@@ -3,25 +3,6 @@
 {% load static i18n %}
 {% load waffle_tags %}
 
-{% block css %}
-{{ block.super }}
-<style>
-  .dropdown-container {
-    background: #ffffff;
-    box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 18px;
-  }
-
-  .remove-lr-margin {
-    padding-left: 0rem;
-    padding-right: 0rem;
-  }
-
-</style>
-{% endblock %}
-
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
@@ -147,11 +128,10 @@
                       data-te-collapse-show
                       aria-labelledby="combinedExperimentsHeader">
                   <div class="w-full">
-                    <div
-                      class="rounded-t-lg bg-white">
+                    <div>
                       <h2 class="mb-0" id="selectExperiments">
                         <button
-                          class="remove-lr-margin group relative flex w-full items-center py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
+                          class="bg-white remove-lr-margin group relative flex w-full items-center py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
                           type="button"
                           data-te-collapse-init
                           data-te-target="#selectExperimentsCollapse"

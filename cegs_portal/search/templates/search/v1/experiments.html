@@ -75,7 +75,7 @@
         margin-top: 10vh;
 
         /* Sizing for visible dialog */
-        width: 85%;
+        width: 95%;
         max-height: 85%;
 
         /* Display properties for visible dialog*/
@@ -176,16 +176,16 @@
 
 {% block content %}
 <div>
-    <div class="container">
+    <div class="content-container">
         <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"/>
-            </svg> Multi-Experiment Coverage Information
+            <span class="text-center"><i class="fa-solid fa-flask-vial mr-1"></i>
+             Multi-Experiment Coverage Information </span>
         </div>
-        <div class="mt-2 italic">The coverage data from the following experiments have been <select class="intersect-button border-2 p-2 h-10 text-sm" name="set ops" id="set-op-select">
+        <div class="mt-2 italic text-center">The coverage data from the following experiments have been <select class="intersect-button border-2 p-2 h-10 text-sm" name="set ops" id="set-op-select">
             <option value="i" selected>intersected</option>
             <option value="u">unioned</option>
         </select> based on their
-            <select class="intersect-button border-2 p-2 h-10 text-sm" name="views" id="feature-select">
+            <select class="intersect-button border-2 p-2 h-10 text-sm mb-2 sm:mb-0" name="views" id="feature-select">
                 <option value="sources">Tested Elements</option>
                 <option value="targets">Genes</option>
                 <option value="sources-targets" selected>Tested Elements and Genes</option>
@@ -195,7 +195,7 @@
             <tbody>
                 {% for expr in experiments %}
                 <tr class="{% cycle 'bg-gray-100 border-b' 'bg-white border-b' %}">
-                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ expr.name }}</td>
+                    <td class="px-6 py-2 text-sm font-medium text-gray-900">{{ expr.name }}</td>
                     <td class="text-sm text-gray-900 font-light px-6 py-2 whitespace-nowrap">
                         <a class="link" href="{% url 'search:experiment' expr.accession_id %}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
@@ -223,10 +223,10 @@
     <div
         id="coverage"
     >
-        <div class="flex flex-row gap-x-10">
+    <div class="flex flex-col md:flex-row md:space-x-10 mx-auto">
             <div id="chrom-data-filters" class="basis-1/4">
                 <!-- content section container for facet side bar -->
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container">
                     <div class="text-slate-500 flex justify-center">
                         <span id="chrom-data-header" class="text-xl font-bold"></span
                         ><span class="bi bi-layers-half" style="margin-left: 0.5em"></span>
@@ -237,19 +237,17 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container mx-auto">
                     <form name="regionUploadForm">
-                        <div>
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
                             <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
                             <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
-                        </div>
                     </form>
                     <div id="regionUploadInputReset"></div>
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section container">
+                <div class="facet-content-section content-container mx-auto">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -270,9 +268,9 @@
                 {% endif %}
             </div>
 
-            <div class="basis-3/4 container">
+            <div class="basis-3/4 content-container">
                 <!-- content section container for ChromCov -->
-                <div class="flex flex-row gap-x-4 items-center">
+                <div class="flex flex-row flex-wrap gap-x-4 items-center">
                     <div id="chrom-data-legend"></div>
                     <div class="flex flex-col">
                         <div id="reo-count"></div>
@@ -288,7 +286,11 @@
                         </select>
                     </div>
                 </div>
-                <div id="chrom-data"></div>
+                <div class="min-w-full max-w-xs">
+                    <div class="overflow-x-auto ">
+                        <div id="chrom-data" class="min-w-[768px] md:min-w-0"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
