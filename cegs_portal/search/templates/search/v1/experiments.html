@@ -76,7 +76,7 @@
 
         /* Sizing for visible dialog */
         width: 95%;
-        max-height: 95%;
+        max-height: 85%;
 
         /* Display properties for visible dialog*/
         border: solid 1px #999;
@@ -195,7 +195,7 @@
             <tbody>
                 {% for expr in experiments %}
                 <tr class="{% cycle 'bg-gray-100 border-b' 'bg-white border-b' %}">
-                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{ expr.name }}</td>
+                    <td class="px-6 py-2 text-sm font-medium text-gray-900">{{ expr.name }}</td>
                     <td class="text-sm text-gray-900 font-light px-6 py-2 whitespace-nowrap">
                         <a class="link" href="{% url 'search:experiment' expr.accession_id %}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill inline" viewBox="0 0 16 16">
