@@ -97,7 +97,7 @@
     </div>
 
     {% if regulatory_effect.sources.exists %}
-    <div class="content-container overflow-x-auto">
+    <div class="content-container">
         <div class="min-w-full max-w-sm">
         <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
             <div class="table-container-title mx-auto">
@@ -115,7 +115,9 @@
             </div>
         </div>
         <div class="title-separator"></div>
+        <div class="overflow-x-auto">
         {% include "search/v1/partials/_reg_effect_source.html" with features=regulatory_effect.sources.all %}
+        </div>
     </div>
     </div>
     {% endif %}
@@ -139,7 +141,9 @@
             </div>
         </div>
         <div class="title-separator"></div>
+        <div class="overflow-x-auto">
         {% include "search/v1/partials/_reg_effect_target.html" with features=regulatory_effect.targets.all %}
+        </div>
     </div>
     </div>
     {% endif %}
