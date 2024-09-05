@@ -1794,6 +1794,10 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1.25rem;
 }
 
+.pb-6 {
+  padding-bottom: 1.5rem;
+}
+
 .pl-0 {
   padding-left: 0px;
 }
