@@ -1208,6 +1208,10 @@ input[type="submit"], input[type="button"], button {
   margin-left: 0.5rem;
 }
 
+.ml-3 {
+  margin-left: 0.75rem;
+}
+
 .ml-4 {
   margin-left: 1rem;
 }
@@ -1394,6 +1398,10 @@ input[type="submit"], input[type="button"], button {
   max-width: 1024px;
 }
 
+.max-w-sm {
+  max-width: 24rem;
+}
+
 .max-w-xs {
   max-width: 20rem;
 }
@@ -1515,6 +1523,12 @@ input[type="submit"], input[type="button"], button {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+}
+
+.justify-end {
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
 }
 
 .justify-center {
@@ -1914,6 +1928,11 @@ input[type="submit"], input[type="button"], button {
 .text-gray-600 {
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity));
+}
+
+.text-gray-700 {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity));
 }
 
 .text-gray-800 {
@@ -2930,6 +2949,13 @@ fieldset legend {
 
   .sm\:max-w-md {
     max-width: 28rem;
+  }
+
+  .sm\:flex-row {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
   }
 
   .sm\:p-8 {
