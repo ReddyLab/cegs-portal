@@ -62,7 +62,13 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     dhsColor: "#e69600",
     fontHeight: 14,
     withNonSigEffectColor: "#000",
-    withSigEffectColor: {DHS: "#009e73", gRNA: "#E69F00", cCRE: "#56B4E9", "Chromatin Accessible Region": "#F0E442"},
+    withSigEffectColor: {
+        DHS: "#009e73",
+        gRNA: "#E69F00",
+        cCRE: "#56B4E9",
+        "Chromatin Accessible Region": "#F0E442",
+        "Called Regulatory Element": "#F0E442",
+    },
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
         feature.color = this.dhsColor;
