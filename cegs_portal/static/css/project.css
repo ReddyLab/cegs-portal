@@ -1126,10 +1126,6 @@ input[type="submit"], input[type="button"], button {
   position: relative;
 }
 
-.right-0 {
-  right: 0px;
-}
-
 .right-2 {
   right: 0.5rem;
 }
@@ -1166,6 +1162,10 @@ input[type="submit"], input[type="button"], button {
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+.-mr-1 {
+  margin-right: -0.25rem;
 }
 
 .mb-0 {
@@ -1222,10 +1222,6 @@ input[type="submit"], input[type="button"], button {
 
 .mr-1 {
   margin-right: 0.25rem;
-}
-
-.mr-1\.5 {
-  margin-right: 0.375rem;
 }
 
 .mr-2 {
@@ -1629,6 +1625,12 @@ input[type="submit"], input[type="button"], button {
   overflow-x: auto;
 }
 
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .text-ellipsis {
   text-overflow: ellipsis;
 }
@@ -1743,6 +1745,11 @@ input[type="submit"], input[type="button"], button {
 
 .p-6 {
   padding: 1.5rem;
+}
+
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .px-1 {
@@ -1913,6 +1920,11 @@ input[type="submit"], input[type="button"], button {
 
 .tracking-tight {
   letter-spacing: -0.025em;
+}
+
+.text-blue-600 {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity));
 }
 
 .text-blue-700 {
@@ -2990,6 +3002,10 @@ fieldset legend {
     margin-top: 0px;
   }
 
+  .md\:block {
+    display: block;
+  }
+
   .md\:w-1\/4 {
     width: 25%;
   }
@@ -3019,6 +3035,12 @@ fieldset legend {
     --tw-space-y-reverse: 0;
     margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
     margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+  }
+
+  .md\:truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
