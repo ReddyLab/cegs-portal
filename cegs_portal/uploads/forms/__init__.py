@@ -7,12 +7,14 @@ from cegs_portal.uploads.validators import validate_experiment_accession_id
 
 class UploadFileForm(forms.Form):
     experiment_accession = forms.CharField(
-        label="Experiment Accession ID", max_length=17, validators=[validate_experiment_accession_id]
+        label="Experiment Accession ID", max_length=17, validators=[validate_experiment_accession_id], required=False
     )
     experiment_file = forms.FileField(label="Experiment File", required=False)
     experiment_url = forms.URLField(label="Experiment URL", required=False, assume_scheme="http")
     analysis_file = forms.FileField(label="Analysis File", required=False)
     analysis_url = forms.URLField(label="Analysis URL", required=False, assume_scheme="http")
+    full_file = forms.FileField(label="Full Experiment Information File", required=False)
+    full_url = forms.URLField(label="Full Experiment Information URL", required=False, assume_scheme="http")
 
     @property
     def helper(self):
@@ -25,6 +27,13 @@ class UploadFileForm(forms.Form):
                 '<legend class="form-header-text">Upload Experiment and/or Analysis Metadata</legend>',
                 HTML('<div class="title-separator my-3.5"></div>'),
                 "experiment_accession",
+                HTML('<div class="title-separator my-3.5"></div>'),
+                Fieldset(
+                    '<div class="form-label">Compressed Full Experiment Information</div>',
+                    Field("full_url", wrapper_class="indent"),
+                    Field("full_file", wrapper_class="indent inline_url_field"),
+                ),
+                HTML('<div class="title-separator my-3.5"></div>'),
                 Fieldset(
                     '<div class="form-label">Experiment Metadata</div>',
                     Field("experiment_url", wrapper_class="indent"),
