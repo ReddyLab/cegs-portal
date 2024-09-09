@@ -50,17 +50,17 @@ class InternetFile:
         else:
             self.file = file
 
-    def _file_load(cls, file_path: str):
+    def _file_load(self, file_path: str):
         return open(file_path, "r")
 
-    def _http_load(cls, file_url: str):
+    def _http_load(self, file_url: str):
         with requests.get(file_url) as response:
             if not response.ok:
                 raise ValueError(f"Unable to download {file_url}: {response.status_code} {response.reason}")
 
             return StringIO(response.text)
 
-    def _s3_load(cls, file_url: str):
+    def _s3_load(self, file_url: str):
         return open(file_url, "r")
 
     def close(self):
