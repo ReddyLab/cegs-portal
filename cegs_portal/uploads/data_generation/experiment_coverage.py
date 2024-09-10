@@ -11,9 +11,9 @@ from cegs_portal.search.models import (
 def get_assembly(analysis):
     match analysis.genome_assembly.upper():
         case "GRCH38" | "HG38":
-            return "HG38"
+            return "GRCH38"
         case "GRCH37" | "HG19":
-            return "HG19"
+            return "GRCH37"
         case _:
             raise ValueError(f"Invalid genome assembly {analysis.genome_assembly} for coverage visualizations")
 

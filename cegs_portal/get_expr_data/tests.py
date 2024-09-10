@@ -1,10 +1,11 @@
-import json
 from io import StringIO
 from time import sleep
 
 import pytest
+from django.core.exceptions import BadRequest
+from django.http import Http404
 
-from cegs_portal.conftest import SearchClient
+from cegs_portal.conftest import RequestBuilder
 from cegs_portal.get_expr_data.view_models import (
     Facets,
     ReoDataSource,
@@ -18,8 +19,34 @@ from cegs_portal.get_expr_data.view_models import (
     validate_filename,
     write_experiment_data_csv,
 )
+from cegs_portal.get_expr_data.views import (
+    ExperimentDataProgressView,
+    ExperimentDataView,
+    LocationExperimentDataView,
+    RequestExperimentDataView,
+)
 
-pytestmark = pytest.mark.django_db(transaction=True)
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def status_view():
+    return ExperimentDataProgressView.as_view()
+
+
+@pytest.fixture
+def file_view():
+    return ExperimentDataView.as_view()
+
+
+@pytest.fixture
+def loc_view():
+    return LocationExperimentDataView.as_view()
+
+
+@pytest.fixture
+def req_view():
+    return RequestExperimentDataView.as_view()
 
 
 @pytest.mark.parametrize(
@@ -292,13 +319,15 @@ def test_list_analysis_data(reg_effects):
     ]
 
 
-def test_location_experiment_data(reg_effects, login_client: SearchClient):
+def test_location_experiment_data(reg_effects, login_test_client: RequestBuilder, loc_view):
     _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
-    response = login_client.get("/exp_data/location?region=chr1:1-100000&expr=DCPEXPR0000000002&datasource=both")
+    response = login_test_client.get(
+        "/exp_data/location?region=chr1:1-100000&expr=DCPEXPR0000000002&datasource=both"
+    ).request(loc_view)
     assert response.status_code == 200
 
-    json_content = json.loads(response.content)
+    json_content = response.json()
     assert json_content == {
         "experiment data": [
             {
@@ -323,13 +352,15 @@ def test_location_experiment_data(reg_effects, login_client: SearchClient):
     }
 
 
-def test_location_analysis_data(reg_effects, login_client: SearchClient):
+def test_location_analysis_data(reg_effects, login_test_client: RequestBuilder, loc_view):
     _, _, _, _, _, experiment = reg_effects
     analysis_accession_id = experiment.analyses.first().accession_id
-    response = login_client.get(f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both")
+    response = login_test_client.get(
+        f"/exp_data/location?region=chr1:1-100000&an={analysis_accession_id}&datasource=both"
+    ).request(loc_view)
     assert response.status_code == 200
 
-    json_content = json.loads(response.content)
+    json_content = response.json()
     assert json_content == {
         "experiment data": [
             {
@@ -355,27 +386,33 @@ def test_location_analysis_data(reg_effects, login_client: SearchClient):
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_invalid_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?region=ch1:1-100000&expr=DCPEXPR0000000002&datasource=both")
-    assert response.status_code == 400
+def test_location_experiment_data_invalid_region(login_test_client: RequestBuilder, loc_view):
+    with pytest.raises(BadRequest):
+        login_test_client.get("/exp_data/location?region=ch1:1-100000&expr=DCPEXPR0000000002&datasource=both").request(
+            loc_view
+        )
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_no_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?expr=DCPEXPR0000000002&datasource=both")
-    assert response.status_code == 400
+def test_location_experiment_data_no_region(login_test_client: RequestBuilder, loc_view):
+    with pytest.raises(BadRequest):
+        login_test_client.get("/exp_data/location?expr=DCPEXPR0000000002&datasource=both").request(loc_view)
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_oversize_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?region=chr1:1-10000000000&expr=DCPEXPR0000000002&datasource=both")
-    assert response.status_code == 400
+def test_location_experiment_data_oversize_region(login_test_client: RequestBuilder, loc_view):
+    with pytest.raises(BadRequest):
+        login_test_client.get(
+            "/exp_data/location?region=chr1:1-10000000000&expr=DCPEXPR0000000002&datasource=both"
+        ).request(loc_view)
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_location_experiment_data_backwards_region(login_client: SearchClient):
-    response = login_client.get("/exp_data/location?region=chr1:10000-10&expr=DCPEXPR0000000002&datasource=both")
-    assert response.status_code == 400
+def test_location_experiment_data_backwards_region(login_test_client: RequestBuilder, loc_view):
+    with pytest.raises(BadRequest):
+        login_test_client.get("/exp_data/location?region=chr1:10000-10&expr=DCPEXPR0000000002&datasource=both").request(
+            loc_view
+        )
 
 
 def test_write_experiment_data(reg_effects):
@@ -427,36 +464,38 @@ def test_write_analysis_data(reg_effects):
 
 
 @pytest.mark.usefixtures("reg_effects")
-def test_request_experiment_data(login_client: SearchClient):
+def test_request_experiment_data(login_test_client: RequestBuilder, file_view, req_view, status_view):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = login_client.post(
+    response = login_test_client.post(
         "/exp_data/request?expr=DCPEXPR0000000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
-    )
+    ).request(req_view)
     assert response.status_code == 200
     sleep(0.1)
-    json_content = json.loads(response.content)
-    loc_response = login_client.get(json_content["file location"])
+    json_content = response.json()
+    filename = json_content["file location"].split("/")[-1]
+    loc_response = login_test_client.get(json_content["file location"]).request(file_view, filename=filename)
     assert loc_response.status_code == 200
 
-    prog_response = login_client.get(json_content["file progress"])
+    prog_response = login_test_client.get(json_content["file progress"]).request(status_view, filename=filename)
     assert prog_response.status_code == 200
 
 
-def test_download_experiment_data_success(login_client: SearchClient):
+def test_download_experiment_data_success(login_test_client: RequestBuilder, file_view, req_view):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = login_client.post(
+    response = login_test_client.post(
         "/exp_data/request?expr=DCPEXPR0000000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
-    )
+    ).request(req_view)
     assert response.status_code == 200
     sleep(0.1)
-    json_content = json.loads(response.content)
-    loc_response = login_client.get(json_content["file location"])
+    json_content = response.json()
+    filename = json_content["file location"].split("/")[-1]
+    loc_response = login_test_client.get(json_content["file location"]).request(file_view, filename=filename)
     assert loc_response.status_code == 200
     content = StringIO()
     for data in loc_response.streaming_content:
@@ -464,46 +503,54 @@ def test_download_experiment_data_success(login_client: SearchClient):
     assert len(content.getvalue()) > 0
 
 
-def test_experiment_data_status_success(login_client: SearchClient):
+def test_experiment_data_status_success(login_test_client: RequestBuilder, req_view, status_view):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = login_client.post(
+    response = login_test_client.post(
         "/exp_data/request?expr=DCPEXPR0000000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
-    )
+    ).request(req_view)
     assert response.status_code == 200
     sleep(0.1)
-    json_content = json.loads(response.content)
-    status_response = login_client.get(json_content["file progress"])
+    json_content = response.json()
+    filename = json_content["file location"].split("/")[-1]
+    status_response = login_test_client.get(json_content["file progress"]).request(status_view, filename=filename)
     assert status_response.status_code == 200
-    status = json.loads(status_response.content)
+    status = status_response.json()
     assert status["file progress"] == "ready"
 
 
-def test_experiment_data_status_failure(login_client: SearchClient, public_client: SearchClient):
+def test_experiment_data_status_failure(
+    login_test_client: RequestBuilder, public_test_client: RequestBuilder, req_view, status_view
+):
     bed_file = StringIO("chr1\t1\t1000000\nchr2\t1\t1000000")
     bed_file.name = "test.bed"
-    response = login_client.post(
+    response = login_test_client.post(
         "/exp_data/request?expr=DCPEXPR0000000002&datasource=both",
         data={"regions": bed_file},
         format="multipart/form-data",
-    )
+    ).request(req_view)
     assert response.status_code == 200
     sleep(0.1)
-    json_content = json.loads(response.content)
-    status_response = public_client.get(json_content["file progress"])
+    json_content = response.json()
+    filename = json_content["file location"].split("/")[-1]
+    status_response = public_test_client.get(json_content["file progress"]).request(status_view, filename=filename)
     assert status_response.status_code == 302
 
 
-def test_download_experiment_data_fail(login_client: SearchClient):
-    response = login_client.get("/exp_data/file/DCPEXPR0000000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
-    assert response.status_code == 404
+def test_download_experiment_data_fail(login_test_client: RequestBuilder, file_view):
+    with pytest.raises(Http404):
+        login_test_client.get("/exp_data/file/DCPEXPR0000000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv").request(
+            file_view, filename="DCPEXPR0000000002.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv"
+        )
 
 
-def test_download_experiment_data_invalid_filename(login_client: SearchClient):
-    response = login_client.get("/exp_data/file/DCPEXPR000000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv")
-    assert response.status_code == 400
+def test_download_experiment_data_invalid_filename(login_test_client: RequestBuilder, file_view):
+    with pytest.raises(BadRequest):
+        login_test_client.get("/exp_data/file/DCPEXPR000000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv").request(
+            file_view, filename="DCPEXPR000000000K.981152cc-67da-403f-97e1-b2ff5c1051f8.tsv"
+        )
 
 
 @pytest.mark.usefixtures("reg_effects")

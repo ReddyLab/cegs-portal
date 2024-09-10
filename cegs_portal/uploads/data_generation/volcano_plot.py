@@ -49,7 +49,10 @@ def gen_volcano_plot(analysis, analysis_dir):
                 if p_val > sig_threshold and abs(avg_log_fc) < 1:
                     continue
 
-                symbol = reo["target_gene_symbol"].encode("utf-8")
+                if reo["target_gene_symbol"] is not None:
+                    symbol = reo["target_gene_symbol"].encode("utf-8")
+                else:
+                    symbol = b""
 
                 cat_facets = set(reo["cat_facets"])
                 if cat_facets & non_ctrl:
