@@ -1,3 +1,5 @@
+let browserWidth = () => Math.max(500, window.innerWidth - 50);
+
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
     _sharedState: {
@@ -37,11 +39,18 @@ CEGSGenoverse = Genoverse.extend({
             config.assembly = "grch37";
         }
 
+        config.width = browserWidth();
+
         this.base(config);
     },
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
+
+        let browser = this;
+        window.addEventListener("resize", function () {
+            browser.setWidth(browserWidth());
+        });
     },
     updateURL: function () {
         this.base();
