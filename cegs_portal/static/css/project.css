@@ -2946,7 +2946,7 @@ fieldset legend {
   .sm\:mb-0 {
     margin-bottom: 0px;
   }
-  
+
   .sm\:mt-1 {
     margin-top: 0.25rem;
   }
@@ -3021,7 +3021,7 @@ fieldset legend {
     -ms-flex-wrap: nowrap;
         flex-wrap: nowrap;
   }
-  
+
   .md\:space-x-10 > :not([hidden]) ~ :not([hidden]) {
     --tw-space-x-reverse: 0;
     margin-right: calc(2.5rem * var(--tw-space-x-reverse));
