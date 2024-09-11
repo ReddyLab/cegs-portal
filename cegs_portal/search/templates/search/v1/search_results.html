@@ -620,20 +620,23 @@
         }
     </script>
     <script>
+        function checkWidthToCollapse() {
+            if (window.innerWidth <= 1020) {
+                document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
+                document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
+                document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
+                document.querySelector('#experimentFiltersCollapse').removeAttribute('data-te-collapse-show');
+            } else {
+                document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'true');
+                document.querySelector('#experimentFiltersHeader').removeAttribute('data-te-collapse-collapsed');
+                document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
+                document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', (event) => {
-            window.addEventListener('resize', function() {
-                if (window.innerWidth <= 1020) {
-                    document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
-                    document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
-                    document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
-                    document.querySelector('#experimentFiltersCollapse').removeAttribute('data-te-collapse-show');
-                } else {
-                    document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'true');
-                    document.querySelector('#experimentFiltersHeader').removeAttribute('data-te-collapse-collapsed');
-                    document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
-                    document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
-                }
-            });
+            checkWidthToCollapse();
+            window.addEventListener('resize', checkWidthToCollapse);
         });
     </script>
 {% endblock %}
