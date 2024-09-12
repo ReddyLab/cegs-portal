@@ -41,7 +41,11 @@ def regulatory_effect(
     }
 
     if reg_effect.experiment is not None:
-        result["experiment"] = {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name}
+        result["experiment"] = {
+            "accession_id": reg_effect.experiment.accession_id,
+            "name": reg_effect.experiment.name,
+            "type": reg_effect.experiment.experiment_type,
+        }
 
     return result
 
