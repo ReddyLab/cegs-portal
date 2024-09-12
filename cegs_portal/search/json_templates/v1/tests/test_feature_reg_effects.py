@@ -33,7 +33,11 @@ def test_regulatory_effect(reg_effect: RegulatoryEffectObservation):
         "effect_size": reg_effect.effect_size,
         "significance": reg_effect.significance,
         "raw_p_value": reg_effect.raw_p_value,
-        "experiment": {"accession_id": reg_effect.experiment.accession_id, "name": reg_effect.experiment.name},
+        "experiment": {
+            "accession_id": reg_effect.experiment.accession_id,
+            "name": reg_effect.experiment.name,
+            "type": reg_effect.experiment.experiment_type,
+        },
         "sources": [
             (
                 source.accession_id,
