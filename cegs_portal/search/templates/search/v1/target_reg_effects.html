@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% block css %}
+{{ block.super }}
+<style>
+    @media (max-width: 768px) {
+        .fa-magnifying-glass-arrow-right,
+        .fa-barcode {
+            display: none;
+        }
+    }
+
+</style>
+{% endblock %}
 
 {% block content %}
 
-<div id="target-table">
+<div class="min-w-full" id="target-table">
     {% include "search/v1/partials/_target_reg_effect.html" with regeffects=regeffects feature=feature %}
 </div>
 

@@ -3,11 +3,16 @@
 
 {% if features|length > 0 %}
     <div class="content-container min-w-full max-w-sm">
-        <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
+        <div class="table-title flex flex-col md:flex-row items-center justify-between">
+            <div class="flex-1">
+                <!-- This empty div takes up space on the left for centering and for responsive design-->
+            </div>
             <div class="table-container-title mx-auto">
+                <i class="bi bi-geo-alt-fill location-tab-icon"></i>
+                <i class="fa-solid fa-dna"></i>
                 DNA Features
             </div>
-            <div class="justify-end items-center">
+            <div class="flex-1 flex justify-end items-center">
                 <span class="search-results-text-small">Download:</span>
                 <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
                     <button class="tsv-button search-results-tsv-buttons" id="downloadButton">TSV</button>

@@ -21,10 +21,6 @@
             </a>
         </div>
     </div>
-
-
-
-
         <div class="title-separator"></div>
         <div class="overflow-x-auto">
         <table class="data-table" hx-target="#target-table">
@@ -53,7 +49,7 @@
                     {{ regeffect.significance|stringformat:".3e" }}
                 </td>
                 <td rowspan="{% firstof regeffect.sources.all|length 1 %}" scope="rowgroup">
-                    <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}" style="display: block; width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}">
                         {{ regeffect.experiment.name }}
                     </a>
                 </td>
@@ -73,7 +69,7 @@
                 <td>{{ regeffect.direction }}</td>
                 <td>{{ regeffect.significance }}</td>
                 <td class="md:truncate truncate">
-                    <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}" style="display: block; width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                    <a href="{% url 'search:experiment' regeffect.experiment.accession_id %}"
                     >{{ regeffect.experiment.name }}</a
                     >
                 </td>
