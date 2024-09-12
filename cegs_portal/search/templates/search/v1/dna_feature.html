@@ -28,21 +28,27 @@
     <div class="title-separator"></div>
         <div class="flex justify-between">
             <span class="page-header-w-icon">
-                {% if feature.name %}
-                <div class="flex flex-wrap{% if feature.feature_type == 'DNAFeatureType.GRNA' %} break-all{% endif %}">
+                <div class="flex flex-wrap">
+                {% comment %}
+                We want to contruct names for features without a name or that is a "source type".
+                "Source types" will never have an ensembl id, as only genes, transcripts, and exons
+                have those
+                {% endcomment %}
+                {% if feature.name and feature.ensembl_id %}
                     <div><span><i class="fa-solid fa-dna"></i> {{ feature.name }}</span></div>
-                    {% if feature.ensembl_id %}
-                        <div><span class="text-2xl">({{ feature.ensembl_id }})</span></div>
-                    {% endif %}
-                </div>
                 {% else %}
-                <div>
-                <i class="fa-solid fa-dna"></i> {{ feature.get_feature_type_display }} @
-                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                        <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
-                    </a>
-                </div>
+                    <div>
+                        <i class="fa-solid fa-dna"></i> {{ feature.get_feature_type_display }} @
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
+                        </a>
+                    </div>
                 {% endif %}
+
+                {% if feature.ensembl_id %}
+                    <div><span class="text-2xl">({{ feature.ensembl_id }})</span></div>
+                {% endif %}
+                </div>
                 <select class="global-button mt-3 border-2 p-2 text-sm" id="dropdown">
                     {% for assembly in all_assemblies %}
                         <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
@@ -61,9 +67,14 @@
 
     <div class="content-container">
         <div class="bg-gray-100 border-b flex flex-wrap text-center px-5">
-            <div class="flex items-center ml-3 py-4{% if feature.feature_type == 'DNAFeatureType.GRNA' %} break-all{% endif %}">
+            <div class="flex items-center ml-3 py-4">
                 <div class="text-base font-bold text-gray-900">DNA Feature Aliases:</div>
-                <div class="text-base text-gray-700 font-light italic ml-0.5 break-all">
+                {% comment %}
+                We want to line break wherever we can for narrow screens if the feature might have
+                a weird, long "name" like gRNAs and DHSs do -- basically anything that is a '"source type"
+                We can identify any of these "source types" because they (and only they) don't have ensembl ids
+                {% endcomment %}
+                <div class="text-base text-gray-700 font-light italic ml-0.5 {% if not feature.ensembl_id %} break-all{% endif %}">
                     {{ feature.name|default:feature.accession_id }}
                 </div>
             </div>
