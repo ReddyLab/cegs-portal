@@ -29,7 +29,7 @@
         <div class="flex justify-between">
             <span class="page-header-w-icon">
                 {% if feature.name %}
-                <div class="flex flex-wrap">
+                <div class="flex flex-wrap break-all">
                     <div><span><i class="fa-solid fa-dna"></i> {{ feature.name }}</span></div>
                     {% if feature.ensembl_id %}
                         <div><span class="text-2xl">({{ feature.ensembl_id }})</span></div>
@@ -63,7 +63,7 @@
         <div class="bg-gray-100 border-b flex flex-wrap text-center px-5">
             <div class="flex items-center ml-3 py-4">
                 <div class="text-base font-bold text-gray-900">DNA Feature Aliases:</div>
-                <div class="text-base text-gray-700 font-light italic ml-0.5">
+                <div class="text-base text-gray-700 font-light italic ml-0.5 break-all">
                     {{ feature.name|default:feature.accession_id }}
                 </div>
             </div>
