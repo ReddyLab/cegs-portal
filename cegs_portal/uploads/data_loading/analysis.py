@@ -75,11 +75,16 @@ class Analysis:
             facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=dir_facet.id).all()
         }
 
-    def load(self):
+    def load(self, results_file_location=None):
         source_type = FeatureType(self.metadata.source_type)
 
         results_file = self.metadata.results
-        results_tsv = InternetFile(results_file.file_location).file
+
+        if results_file_location is None:
+            results_tsv = InternetFile(results_file.file_location).file
+        else:
+            results_tsv = InternetFile(results_file_location).file
+
         reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
         for line in reader:

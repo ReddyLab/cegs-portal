@@ -1822,6 +1822,10 @@ input[type="submit"], input[type="button"], button {
   padding-bottom: 1.5rem;
 }
 
+.pb-8 {
+  padding-bottom: 2rem;
+}
+
 .pl-0 {
   padding-left: 0px;
 }
@@ -2962,6 +2966,10 @@ fieldset legend {
     margin-bottom: 0px;
   }
 
+  .sm\:mt-1 {
+    margin-top: 0.25rem;
+  }
+
   .sm\:max-w-md {
     max-width: 28rem;
   }
@@ -3001,6 +3009,10 @@ fieldset legend {
             order: 2;
   }
 
+  .md\:ml-\[550px\] {
+    margin-left: 550px;
+  }
+
   .md\:mt-0 {
     margin-top: 0px;
   }
@@ -3026,6 +3038,11 @@ fieldset legend {
     -webkit-box-direction: normal;
         -ms-flex-direction: row;
             flex-direction: row;
+  }
+
+  .md\:flex-nowrap {
+    -ms-flex-wrap: nowrap;
+        flex-wrap: nowrap;
   }
 
   .md\:space-x-10 > :not([hidden]) ~ :not([hidden]) {

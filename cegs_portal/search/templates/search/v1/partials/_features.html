@@ -1,71 +1,12 @@
 {% load custom_helpers %}
 {% load humanize %}
 
-{% if features|length > 0 %}
-    <div class="content-container min-w-full max-w-sm">
-        <div class="table-title flex flex-col md:flex-row items-center justify-between">
-            <div class="flex-1">
-                <!-- This empty div takes up space on the left for centering and for responsive design-->
-            </div>
-            <div class="table-container-title mx-auto">
-                <i class="bi bi-geo-alt-fill location-tab-icon"></i>
-                <i class="fa-solid fa-dna"></i>
-                DNA Features
-            </div>
-            <div class="flex-1 flex justify-end items-center">
-                <span class="search-results-text-small">Download:</span>
-                <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                    <button class="tsv-button search-results-tsv-buttons" id="downloadButton">TSV</button>
-                </a>
-                <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values&tsv_format=bed6{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                    <button class="tsv-button search-results-tsv-buttons" id="downloadButtonNew">BED6</button>
-                </a>
-            </div>
-        </div>
-        <div class="title-separator"></div>
-        <div class="overflow-x-auto">
-        <table class="data-table search-results-data-table">
-            <tr>
-                <th class="chrom-first-end-cap chrom-light-band">Symbol</th>
-                <th class="chrom-dark-band">Feature Type</th>
-                <th class="chrom-right-centromere chrom-light-band">Location</th>
-                <th class="chrom-left-centromere chrom-light-band">Closest Gene</th>
-                <th class="chrom-light-band table-column-hidden">Parent</th>
-                <th class="chrom-last-end-cap chrom-dark-band">Details</th>
-            </tr>
-            {% for feature in features %}
-                <tr class="data-row" data-href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
-                    <td>{{ feature.name|default:"N/A" }}</a></td>
-                    <td>{{ feature.get_feature_type_display }}</td>
-                    <td><span>{{ feature.chrom_name }}</span>: <span>{{ feature.location.lower|intcomma }}-{{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span></td>
-                    <td>{% if feature.closest_gene_ensembl_id %}<a href="/search/feature/ensembl/{{ feature.closest_gene_ensembl_id }}?assembly={{ feature.ref_genome }}">{{ feature.closest_gene_ensembl_id }}</a>{% else %}{% endif %}</td>
-                    <td class="table-column-hidden">{{ feature.parent.name }}</td>
-                    <td><a href="{% url 'search:dna_features' 'accession' feature.accession_id %}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
-                        </svg>
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-        </div>
-        <div class="pagination">
-            <span class="step-links">
-                {% if features.has_previous %}
-                    <a href="?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">« first</a>
-                    <a href="?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">previous</a>
-                {% endif %}
+
 
                 <span class="current">
                     Page {{ features.number }} of {{ features.paginator.num_pages }}
                 </span>
 
-                {% if features.has_next %}
-                    <a href="?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">next</a>
-                    <a href="?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">last »</a>
-                {% endif %}
-            </span>
         </div>
 </div>
 {% else %}
