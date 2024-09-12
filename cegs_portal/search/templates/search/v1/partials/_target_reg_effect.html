@@ -21,8 +21,8 @@
             </a>
         </div>
     </div>
-        <div class="title-separator"></div>
-        <div class="overflow-x-auto">
+    <div class="title-separator"></div>
+    <div class="overflow-x-auto">
         <table class="data-table" hx-target="#target-table">
             <tr>
                 <th class="chrom-first-end-cap chrom-light-band">Tested Element(s)</th>
@@ -100,7 +100,6 @@
                     <a href="?page={{ regeffects.paginator.num_pages }}" hx-get="{% url 'search:target_effects' feature.accession_id %}?page={{ regeffects.paginator.num_pages }}" hx-target="#target-table">last &raquo;</a>
                 {% endif %}
             </span>
-        </div>
         </div>
     </div>
 </div>
