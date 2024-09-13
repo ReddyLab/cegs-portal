@@ -1,24 +1,29 @@
-    {% load custom_helpers %}
-    {% load humanize %}
+{% load custom_helpers %}
+{% load humanize %}
 
-    {% if features|length > 0 %}
-        <div class="min-w-full max-w-sm">
-            <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
-                <div class="table-container-title mx-auto">
-                    DNA Features
-                </div>
-                <div class="justify-end items-center">
-                    <span class="text-lg">Download:</span>
-                    <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                        <button class="tsv-button" id="downloadButton">TSV</button>
-                    </a>
-                    <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values&tsv_format=bed6{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
-                        <button class="tsv-button" id="downloadButtonNew">BED6</button>
-                    </a>
-                </div>
+{% if features|length > 0 %}
+    <div class="content-container min-w-full max-w-sm">
+        <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
+            <div class="flex-1">
+                <!-- This empty div takes up space on the left for centering and for responsive design-->
             </div>
-            <div class="title-separator"></div>
-            <div class="overflow-x-auto">
+            <div class="table-container-title mx-auto">
+                <i class="bi bi-geo-alt-fill location-tab-icon"></i>
+                <i class="fa-solid fa-dna"></i>
+                DNA Features
+            </div>
+            <div class="flex-1 flex justify-end items-center">
+                <span class="text-lg">Download:</span>
+                <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
+                    <button class="tsv-button" id="downloadButton">TSV</button>
+                </a>
+                <a href="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?accept=text/tab-separated-values&tsv_format=bed6{% for feature in feature_types %}&feature_type={{ feature }}{% endfor %}">
+                    <button class="tsv-button" id="downloadButtonNew">BED6</button>
+                </a>
+            </div>
+        </div>
+        <div class="title-separator"></div>
+        <div class="overflow-x-auto">
             <table class="data-table search-results-data-table">
                 <tr>
                     <th class="chrom-first-end-cap chrom-light-band">Symbol</th>
@@ -44,29 +49,29 @@
                     </tr>
                 {% endfor %}
             </table>
-            </div>
-            <div class="pagination">
-                <span class="step-links">
-                    {% if features.has_previous %}
-                        <a href="?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">« first</a>
-                        <a href="?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">previous</a>
-                    {% endif %}
-
-                    <span class="current">
-                        Page {{ features.number }} of {{ features.paginator.num_pages }}
-                    </span>
-
-                    {% if features.has_next %}
-                        <a href="?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">next</a>
-                        <a href="?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">last »</a>
-                    {% endif %}
-                </span>
-            </div>
-    </div>
-    {% else %}
-        <div class="content-container min-w-full">
-            <div class="table-title table-container-header">
-                No DNA Features Found
-            </div>
         </div>
-    {% endif %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if features.has_previous %}
+                    <a href="?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page=1&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">« first</a>
+                    <a href="?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.previous_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ features.number }} of {{ features.paginator.num_pages }}
+                </span>
+
+                {% if features.has_next %}
+                    <a href="?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.next_page_number }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">next</a>
+                    <a href="?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-get="{% url 'search:dna_feature_loc' loc.chr loc.start loc.end %}?page={{ features.paginator.num_pages }}&dist={{ dist }}{% for type in feature_types %}&feature_type={{ type }}{% endfor %}&assembly={{ assembly|default:'hg38' }}" hx-target="#features-table">last »</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+{% else %}
+    <div class="content-container min-w-full">
+        <div class="table-title table-container-header">
+            No DNA Features Found
+        </div>
+    </div>
+{% endif %}
