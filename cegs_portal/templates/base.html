@@ -168,7 +168,13 @@
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
         <!-- Script tags with only code, no src (defer by default)  -->
-        {% include 'search/v1/partials/_nav_dropdown_button_js.html' %}
         {% endblock inline_javascript %}
+
+         <script>
+            document.getElementById('nav').addEventListener('click', function () {
+                document.getElementById('nav-collapse-button').classList.toggle('hidden');
+            });
+        </script>
+
     </body>
 </html>
