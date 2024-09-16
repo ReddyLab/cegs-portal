@@ -176,7 +176,7 @@
         <div class="mb-8 text-center">
             <div class="search-examples-text">Enter chromosome ranges, Ensembl IDs, or gene names</div>
             <div>
-                <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
+                <form action="{% url 'search:results' %}" method="get" class="search-form text-white flex justify-center">
                     {{ gene_form }}
                     <button type="submit" class="self-end">
                         <svg
