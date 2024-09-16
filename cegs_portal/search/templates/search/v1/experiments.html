@@ -152,4 +152,7 @@
     import {combined_viz} from "{% static 'search/js/exp_viz/combo_viz.js' %}";
     combined_viz("{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
 </script>
+
+{% include 'search/v1/partials/_nav_dropdown_button_js.html' %}
+
 {% endblock %}
