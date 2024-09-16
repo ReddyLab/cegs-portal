@@ -181,11 +181,13 @@
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
         <!-- Script tags with only code, no src (defer by default)  -->
-        <script>
+        {% endblock inline_javascript %}
+
+         <script>
             document.getElementById('nav').addEventListener('click', function () {
                 document.getElementById('nav-collapse-button').classList.toggle('hidden');
             });
         </script>
-         {% endblock inline_javascript %}
+
     </body>
 </html>
