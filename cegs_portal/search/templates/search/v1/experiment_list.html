@@ -8,7 +8,7 @@
 {% block content %}
 <div class="min-w-full">
     <div class="title-separator"></div>
-    <div style="display: flex; justify-content: space-between; align-items: center">
+    <div class="md:ps-10" style="display: flex; justify-content: space-between; align-items: center">
         <span class="page-header-w-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon mr-2">
                 <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -267,10 +267,10 @@
               </fieldset>
           </div>
         </div>
-        <div class="md:order-2 md:w-3/4 mx-auto" id="experiment-list">
+        <div class="md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-list">
             {% for experiment in experiments %}
             <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">
-                <div class="container items-center">
+                <div class="content-container items-center">
                     <div class="flex justify-between">
                         <div class="exp-name">{{ experiment.name }}</div>
                         <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>

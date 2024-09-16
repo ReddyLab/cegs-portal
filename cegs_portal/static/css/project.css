@@ -837,7 +837,6 @@ h2 {
   color: #094474;
   text-shadow: 2px 2px #e3f2fd;
   margin-bottom: 10px;
-  margin-left: 40px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -3062,6 +3061,11 @@ fieldset legend {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  .md\:ps-10 {
+    -webkit-padding-start: 2.5rem;
+            padding-inline-start: 2.5rem;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -3069,6 +3073,11 @@ fieldset legend {
     -webkit-box-ordinal-group: 2;
         -ms-flex-order: 1;
             order: 1;
+  }
+
+  .lg\:mx-auto {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .lg\:mt-0 {
@@ -3095,6 +3104,10 @@ fieldset legend {
 
   .lg\:w-1\/4 {
     width: 25%;
+  }
+
+  .lg\:w-3\/4 {
+    width: 75%;
   }
 
   .lg\:w-auto {
