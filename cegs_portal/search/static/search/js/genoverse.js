@@ -169,7 +169,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                     : this.data,
                 chr,
                 start,
-                end
+                end,
             );
             return deferred.resolveWith(this);
         }
@@ -212,7 +212,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                                 this.showServerErrors && (xhr.responseJSON || {}).message
                                     ? xhr.responseJSON.message
                                     : statusText + " while getting the data, see console for more details",
-                                arguments
+                                arguments,
                             );
                         },
                         complete: function (xhr) {
@@ -231,7 +231,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                     model.dataLoading.push(request);
 
                     return request;
-                })
+                }),
             )
             .done(function () {
                 deferred.resolveWith(model);
@@ -369,7 +369,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                     featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
                     exons.add(exon.accession_id);
                 }
-            }
+            },
         );
 
         ids.forEach((id) => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
@@ -447,21 +447,21 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         });
         let i = 1;
         for (let reo of effects.object_list.slice(0, 5)) {
+            let effect_size;
             if (reo.targets.length > 0) {
-                menu[
-                    `${i}. Effect Size`
-                ] = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
+                effect_size = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
             } else {
-                menu[`${i}. Effect Size`] = `${reo.effect_size >= 0 ? "" : "-"}${reo.effect_size}`;
+                effect_size = `${reo.effect_size}`;
             }
+            menu[`${i}.`] =
+                `<a target="_blank" href="/search/experiment/${reo.experiment.accession_id}">Screen: ${reo.experiment.type}</a>, Effect Size: ${effect_size}`;
 
             i++;
         }
 
         if (effects.object_list.length > 5) {
-            menu[
-                `Full Effect List`
-            ] = `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
+            menu[`Full Effect List`] =
+                `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
         }
 
         return menu;
