@@ -1,9 +1,9 @@
 {% load custom_helpers %}
 {% load humanize %}
 
-{% if features|length > 0 %}
-    <div class="content-container min-w-full max-w-sm">
-        <div class="table-title flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
+{% if not features.empty %}
+    <div class="content-container min-w-full max-w-full">
+        <div class="table-title flex flex-col sm:flex-row justify-between items-center">
             <div class="flex-1">
                 <!-- This empty div takes up space on the left for centering and for responsive design-->
             </div>
