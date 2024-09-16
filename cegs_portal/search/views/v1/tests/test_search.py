@@ -608,36 +608,32 @@ def test_sigdata(reg_effects, client: Client):
 
     sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
 
-    stripped_response = re.sub(
-        r"^ +$", "", response.content.decode("utf-8"), flags=re.MULTILINE
-    )  # strip out spaces in blank lines
-    expected_string = f"""
-<div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
+    stripped_response = re.sub(r"\s+", "", response.content.decode("utf-8"), flags=re.MULTILINE)
+    # strip out spaces in blank lines
 
+    expected_string = re.sub(
+        r"\s+",
+        "",
+        f"""
+    <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
 
-<table class="data-table no-hover">
-    <tr><th>Enhancer/Gene</th><th>Effect Size</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
+    <div class="overflow-x-auto">
+    <table class="data-table no-hover">
+        <tr><th>Enhancer/Gene</th><th>Effect Size</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
 
-
-
-        <tr class="">
-            <td>
-                <div>Tested Element Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
-
-            </td>
-            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.3f}</a></td>
-            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.significance:.6f}</a></td>
-            <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.raw_p_value:.6f}</a></td>
-
-            <td rowspan="1"><a href="/search/experiment/{experiment.accession_id}">{experiment.name}</a></td>
-
-        </tr>
-
-
-</table>
-
-
-"""
+            <tr class="">
+                <td>
+                    <div>Tested Element Locations: <a href="/search/feature/accession/{sources[0].accession_id}">{f"{sources[0].chrom_name}:{sources[0].location.lower:,}-{sources[0].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[1].accession_id}">{f"{sources[1].chrom_name}:{sources[1].location.lower:,}-{sources[1].location.upper:,}"}</a>, <a href="/search/feature/accession/{sources[2].accession_id}">{f"{sources[2].chrom_name}:{sources[2].location.lower:,}-{sources[2].location.upper:,}"}</a></div>
+                </td>
+                <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.effect_size:.3f}</a></td>
+                <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.significance:.6f}</a></td>
+                <td><a href="/search/regeffect/{effect_source.accession_id}">{effect_source.raw_p_value:.6f}</a></td>
+                <td rowspan="1"><a href="/search/experiment/{experiment.accession_id}">{experiment.name}</a></td>
+            </tr>
+    </table>
+    </div>
+    """,
+    )
 
     assert stripped_response == expected_string
 
