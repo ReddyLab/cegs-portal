@@ -1,4 +1,7 @@
-let browserWidth = () => Math.max(500, window.innerWidth - 50);
+// 100 is larger than the sum of the margins we use. By shrinking
+// the width by that much it ensures the browser won't "overflow"
+// it's container until the window is very narrow.
+let browserWidth = () => Math.max(500, window.innerWidth - 100);
 
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
