@@ -1358,10 +1358,6 @@ input[type="submit"], input[type="button"], button {
   width: 400px;
 }
 
-.w-\[420px\] {
-  width: 420px;
-}
-
 .w-\[600px\] {
   width: 600px;
 }
@@ -2972,14 +2968,6 @@ fieldset legend {
 
   .sm\:mt-1 {
     margin-top: 0.25rem;
-  }
-
-  .sm\:h-\[82px\] {
-    height: 82px;
-  }
-
-  .sm\:w-\[623px\] {
-    width: 623px;
   }
 
   .sm\:max-w-md {
