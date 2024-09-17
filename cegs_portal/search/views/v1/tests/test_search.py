@@ -608,8 +608,9 @@ def test_sigdata(reg_effects, client: Client):
 
     sources = sorted(effect_source.sources.all(), key=lambda x: x.accession_id)
 
+    # normalize response and expectation strings by replacing runs of whitespace, including
+    # across multiple lines, by a single space
     stripped_response = re.sub(r"\s+", " ", response.content.decode("utf-8"), flags=re.MULTILINE)
-    # strip out spaces in blank lines
 
     expected_string = re.sub(
         r"\s+",
