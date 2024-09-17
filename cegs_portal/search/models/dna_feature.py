@@ -26,6 +26,15 @@ class PromoterType(Enum):
     NON_PROMOTER = "Non-promoter"
 
 
+class CCRECategoryType(Enum):
+    PLS = "PLS"
+    PELS = "pELS"
+    DELS = "dELS"
+    DNASE = "DNase-H3K4me3"
+    CTCF_ONLY = "CTCF-only"
+    CTCF_BOUND = "CTCF-bound"
+
+
 class DNAFeature(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
