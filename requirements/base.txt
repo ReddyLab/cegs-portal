@@ -13,12 +13,12 @@ twisted[tls]>=24.3 # https://twisted.org
 requests==2.32.0  # https://docs.python-requests.org/en/master/
 maturin==0.14.8 # https://maturin.rs
 huey==2.4.5 # https://github.com/coleifer/huey/
-gunicorn==22.0.0  # https://github.com/benoitc/gunicorn
+gunicorn==23.0.0  # https://github.com/benoitc/gunicorn
 numpy==1.26.4  # https://numpy.org
 
 # Django
 # ------------------------------------------------------------------------------
-django==5.1  # pyup: < 4.1  # https://www.djangoproject.com/
+django==5.1.1  # pyup: < 4.1  # https://www.djangoproject.com/
 django-environ==0.9.0  # https://github.com/joke2k/django-environ
 django-model-utils==4.2.0  # https://github.com/jazzband/django-model-utils
 django-allauth==0.52.0  # https://github.com/pennersr/django-allauth
