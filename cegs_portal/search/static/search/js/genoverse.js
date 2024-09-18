@@ -71,7 +71,7 @@ Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
     labels: false,
     repeatLabels: true,
     bump: false,
-    ccreColor: {
+    color: {
         PLS: "#EB382A",
         pELS: "#F3A94C",
         dELS: "#F7CC63",
@@ -80,7 +80,7 @@ Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
         "CTCF-bound": "#4DB0E4",
     },
     setFeatureColor: function (feature) {
-        feature.color = this.ccreColor[feature.ccre_type];
+        feature.color = this.color[feature.ccre_type];
     },
 });
 
@@ -453,19 +453,57 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
     view: Genoverse.Track.View.cCRE,
     legend: false,
     border: false,
-    info: 'cCRE colors correspond to their <u><a target="_blank" href="https://screen.wenglab.org/assets/about/images/figure3.png">SCREEN meanings</a></u>',
+    controls: "off",
 
-    populateMenu: async function (feature) {
-        let url = `/search/feature/accession/${feature.accession_id}`;
-        let type = feature.type.toUpperCase();
-        let menu = {
-            title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
+    populateMenu: function (feature) {
+        return {
+            title: `<u><a target="_blank" href="https://screen.wenglab.org/assets/about/images/figure3.png">SCREEN cCRE (${feature.ccre_type})</a></u>`,
             Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
             Assembly: feature.ref_genome,
             "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
         };
+    },
+    click: function (e) {
+        var target = $(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
 
-        return menu;
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, 3, target)[0];
+            if (f && f.ccre_type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.ccre_type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - $(this).width() / 2;
+                    });
+            }
+        }
+    },
+
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });
 
