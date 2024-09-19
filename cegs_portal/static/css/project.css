@@ -892,11 +892,6 @@ a.link, a.link:visited {
           flex: 1;
 }
 
-.table-container-downloads {
-  position: absolute;
-  right: 0;
-}
-
 .data-table {
   border-collapse: collapse;
   width: 100%;
