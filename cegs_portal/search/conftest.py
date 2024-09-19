@@ -11,6 +11,7 @@ from cegs_portal.get_expr_data.conftest import (  # noqa: F401
 from cegs_portal.search.json_templates.v1.search_results import SearchResults
 from cegs_portal.search.models import (
     Biosample,
+    CCRECategoryType,
     DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
@@ -552,6 +553,11 @@ def genoverse_dhs_features():
     length = 10_000
     gap = 1_000
     ref_genome = "hg38"
+
+    screen_facet = FacetFactory(description="", name=DNAFeature.Facet.CCRE_CATEGORIES.value)
+    pels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.PELS.value)
+    dels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.DELS.value)
+
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
@@ -563,12 +569,14 @@ def genoverse_dhs_features():
         chrom_name=chrom,
         location=NumericRange(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
+        facet_values=(pels,),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
         feature_type=DNAFeatureType.CCRE,
+        facet_values=(dels,),
     )
     f4 = DNAFeatureFactory(
         ref_genome=ref_genome,

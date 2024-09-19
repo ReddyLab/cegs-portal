@@ -1,7 +1,7 @@
 import random
 
 import factory
-from factory import Faker
+from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker as F
 from psycopg2.extras import NumericRange
@@ -83,3 +83,14 @@ class DNAFeatureFactory(DjangoModelFactory):
         if self.closest_gene:
             return random.randint(0, 10000)
         return None
+
+    @post_generation
+    def facet_values(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            # A list of groups were passed in, use them
+            for value in extracted:
+                self.facet_values.add(value)  # pylint: disable=no-member

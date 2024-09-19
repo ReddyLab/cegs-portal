@@ -61,6 +61,29 @@ CEGSGenoverse = Genoverse.extend({
     },
 });
 
+Genoverse.Track.Model.cCRE = Genoverse.Track.Model.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=cCRE&property=screen_ccre",
+    dataRequestLimit: 5000000,
+});
+
+Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
+    featureHeight: 15,
+    labels: false,
+    repeatLabels: true,
+    bump: false,
+    color: {
+        PLS: "#EB382A",
+        pELS: "#F3A94C",
+        dELS: "#F7CC63",
+        "DNase-H3K4me3": "#F3AEAD",
+        "CTCF-only": "#4DB0E4",
+        "CTCF-bound": "#4DB0E4",
+    },
+    setFeatureColor: function (feature) {
+        feature.color = this.color[feature.ccre_type];
+    },
+});
+
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=effect_targets&property=significant",
     dataRequestLimit: 5000000,
@@ -419,6 +442,69 @@ Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend(
         }
 
         feature.labelColor = feature.labelColor || feature.color;
+    },
+});
+
+Genoverse.Track.cCRE = Genoverse.Track.extend({
+    id: "ccres",
+    name: "cCREs",
+    resizable: false,
+    model: Genoverse.Track.Model.cCRE,
+    view: Genoverse.Track.View.cCRE,
+    legend: false,
+    border: false,
+    controls: "off",
+
+    populateMenu: function (feature) {
+        return {
+            title: `<u><a target="_blank" href="https://screen.wenglab.org/assets/about/images/figure3.png">SCREEN cCRE (${feature.ccre_type})</a></u>`,
+            Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
+            Assembly: feature.ref_genome,
+            "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+        };
+    },
+    click: function (e) {
+        var target = $(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, 3, target)[0];
+            if (f && f.ccre_type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.ccre_type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - $(this).width() / 2;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });
 
