@@ -113,6 +113,7 @@ def test_genoverse_track_model_gene_portal(client: Client, genoverse_gene_featur
         assert feature.get("strand", None) is not None
         assert feature.get("name", None) is not None
         assert feature.get("ensembl_id", None) is not None
+        assert feature["parent_subtype"] is None
 
 
 def test_genoverse_track_model_transcript_portal(client: Client, genoverse_transcript_features):
@@ -146,6 +147,7 @@ def test_genoverse_track_model_transcript_portal(client: Client, genoverse_trans
         assert transcript.get("parent", None) is not None
         assert transcript.get("parent_accession_id", None) is not None
         assert transcript.get("parent_ensembl_id", None) is not None
+        assert transcript["parent_subtype"] is not None
 
     for exon in exons:
         assert exon.get("parent_accession_id", None) is not None
