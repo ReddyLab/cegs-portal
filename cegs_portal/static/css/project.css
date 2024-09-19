@@ -2980,6 +2980,10 @@ fieldset legend {
             flex-direction: row;
   }
 
+  .sm\:overflow-x-visible {
+    overflow-x: visible;
+  }
+
   .sm\:p-8 {
     padding: 2rem;
   }
