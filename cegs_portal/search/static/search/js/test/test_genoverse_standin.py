@@ -123,7 +123,7 @@ def test_genoverse_track_model_transcript_portal(client: Client, genoverse_trans
     features = genoverse_transcript_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_subtype"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -146,6 +146,7 @@ def test_genoverse_track_model_transcript_portal(client: Client, genoverse_trans
         assert transcript.get("parent", None) is not None
         assert transcript.get("parent_accession_id", None) is not None
         assert transcript.get("parent_ensembl_id", None) is not None
+        assert transcript["parent_subtype"] is not None
 
     for exon in exons:
         assert exon.get("parent_accession_id", None) is not None

@@ -67,21 +67,25 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
     }
 
     if options is not None:
-        if "regeffects" in options.get("feature_properties", []):
+        feature_properties = set(options.get("feature_properties", []))
+        if "regeffects" in feature_properties:
             result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
             result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
 
-        if "effect_directions" in options.get("feature_properties", []):
+        if "effect_directions" in feature_properties:
             result["effect_directions"] = feature_obj.effect_directions
 
-        if "effect_targets" in options.get("feature_properties", []):
+        if "effect_targets" in feature_properties:
             result["effect_targets"] = feature_obj.effect_targets
 
         if options.get("json_format", None) == "genoverse":
             genoversify(result)
 
-        if "screen_ccre" in options.get("feature_properties", []):
+        if "screen_ccre" in feature_properties:
             result["ccre_type"] = feature_obj.ccre_type
+
+        if "parent_subtype" in feature_properties:
+            result["parent_subtype"] = feature_obj.parent.feature_subtype if feature_obj.parent else None
 
     return cast(FeatureJson, result)
 

@@ -58,6 +58,9 @@ def test_feature(feature: DNAFeature, effect_dir_feature: DNAFeature):
     f_dict = f_json(effect_dir_feature, {"feature_properties": ["effect_directions"]})
     assert "effect_directions" in f_dict
 
+    f_dict = f_json(effect_dir_feature, {"feature_properties": ["parent_subtype"]})
+    assert "parent_subtype" in f_dict
+
     result["id"] = result["accession_id"]
     result["chr"] = feature.chrom_name.removeprefix("chr")
     assert f_json(feature, {"json_format": "genoverse"}) == result
