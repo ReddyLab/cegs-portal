@@ -261,7 +261,7 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        if any(p in {"effect_directions", "effect_targets", "significant"} for p in feature_properties):
+        if any(p in {"effect_directions", "significant"} for p in feature_properties):
             # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
@@ -274,9 +274,6 @@ class DNAFeatureSearch:
                     default=[],
                 )
             )
-
-        if "effect_targets" in feature_properties:
-            features = features.annotate(effect_targets=ArrayAgg("source_for__targets__accession_id", default=[]))
 
         if "significant" in feature_properties:
             features = features.annotate(
