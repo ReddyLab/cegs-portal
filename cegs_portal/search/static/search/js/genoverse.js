@@ -587,15 +587,59 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
 
         return menu;
     },
+    click: function (e) {
+        var target = $(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, y, target)[0];
+            if (f && f.type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - $(this).width() / 2;
+                    })
+                    .css("top", function () {
+                        return e.pageY + 10;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
+    },
 });
 
 Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
     name: "Experimentally Tested Elements",
     labels: false,
-    legend: Genoverse.Track.Legend.extend({
-        name: "Element Types",
-    }),
+    legend: false,
     model: Genoverse.Track.Model.DHS.Effects,
     controls: [
         $('<a title="Change feature height">Squish</a>').on("click", function () {
