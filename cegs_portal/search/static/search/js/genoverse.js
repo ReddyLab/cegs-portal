@@ -484,10 +484,11 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
                     .$tip.css("left", function () {
                         return e.clientX - $(this).width() / 2;
                     });
+            } else {
+                this.container.tipsy("hide");
             }
         }
     },
-
     addUserEventHandlers: function () {
         var track = this;
 
