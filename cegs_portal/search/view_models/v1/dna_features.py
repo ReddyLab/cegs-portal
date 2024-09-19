@@ -262,7 +262,7 @@ class DNAFeatureSearch:
         features = DNAFeature.objects
 
         if any(p in {"effect_directions", "effect_targets", "significant"} for p in feature_properties):
-            # skip any feature that not the sources for any REOs
+            # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
 
@@ -292,9 +292,11 @@ class DNAFeatureSearch:
                 ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
             )
 
-        return (
-            features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent").order_by("location")
-        )
+        features = features.filter(**filters).prefetch_related(*prefetch_values)
+
+        if "parent_subtype" in feature_properties:
+            features = features.select_related("parent")
+        return features.order_by("location")
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):

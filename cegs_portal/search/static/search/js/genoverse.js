@@ -368,7 +368,7 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 });
 
 Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_subtype",
     dataRequestLimit: 5000000, // As per e! REST API restrictions
 
     setDefaults: function () {
@@ -676,6 +676,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
     legend: false,
+    controls: "off",
     populateMenu: function (feature) {
         if (["Gene", "Exon", "Transcript"].includes(feature.type)) {
             var url = `/search/feature/accession/${feature.accession_id}`;
