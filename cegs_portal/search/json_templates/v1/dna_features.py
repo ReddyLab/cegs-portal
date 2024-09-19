@@ -82,6 +82,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
 
         if "screen_ccre" in options.get("feature_properties", []):
             result["ccre_type"] = feature_obj.ccre_type
+        result["parent_subtype"] = feature_obj.parent.feature_subtype if feature_obj.parent else None
 
     return cast(FeatureJson, result)
 

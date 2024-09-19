@@ -343,6 +343,7 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
                 feature.strand === "+"
                     ? `${feature.name} (${feature.ensembl_id}) >`
                     : `< ${feature.name} (${feature.ensembl_id})`;
+            feature.subtype = titleCaps(feature.subtype.replaceAll("_", " "));
             this.insertFeature(feature);
         }
     },
@@ -350,41 +351,16 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
 
 Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
     setFeatureColor: function (feature) {
-        var processedTranscript = {
-            sense_intronic: 1,
-            sense_overlapping: 1,
-            processed_transcript: 1,
-            nonsense_mediated_decay: 1,
-            non_stop_decay: 1,
-            antisense: 1,
-            retained_intron: 1,
-            tec: 1,
-            non_coding: 1,
-            ambiguous_orf: 1,
-            disrupted_domain: 1,
-            "3prime_overlapping_ncrna": 1,
-        };
-
-        feature.color = "#000000";
-
-        if (processedTranscript[feature.subtype.toLowerCase()]) {
-            feature.color = "#0000FF";
-            feature.legend = "Processed transcript";
-        } else if (feature.subtype === "protein_coding") {
+        if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
-            feature.legend = "Protein coding";
-        } else if (feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("Pseudogene") > -1) {
             feature.color = "#666666";
-            feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "Ribozyme") {
             feature.color = "#8B668B";
-            feature.legend = "RNA gene";
         } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
-            feature.legend = "TR gene";
         } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
-            feature.legend = "IG gene";
         }
 
         feature.labelColor = feature.labelColor || feature.color;
@@ -426,7 +402,12 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                     ref_genome: transcript.ref_genome,
                     exons: {},
                     subFeatures: [],
-                    subtype: transcript.subtype,
+                    subtype: titleCaps(
+                        (transcript.parent_subtype ? transcript.parent_subtype : transcript.subtype).replaceAll(
+                            "_",
+                            " ",
+                        ),
+                    ),
                     type: transcript.type,
                 };
                 geneObj.label =
@@ -435,7 +416,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                         : "< " + (transcript.parent || transcript.ensembl_id);
                 geneObj.sort =
                     model.geneIds[transcript.parent_accession_id] * 1e10 +
-                    (transcript.subtype === "protein_coding" ? 0 : 1e9) +
+                    (transcript.subtype === "Protein Coding" ? 0 : 1e9) +
                     transcript.start +
                     i;
 
@@ -462,40 +443,34 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend({
     setFeatureColor: function (feature) {
         var processedTranscript = {
-            sense_intronic: 1,
-            sense_overlapping: 1,
-            processed_transcript: 1,
-            nonsense_mediated_decay: 1,
-            non_stop_decay: 1,
+            "sense intronic": 1,
+            "sense overlapping": 1,
+            "processed transcript": 1,
+            "nonsense mediated decay": 1,
+            "non stop decay": 1,
             antisense: 1,
-            retained_intron: 1,
+            "retained intron": 1,
             tec: 1,
-            non_coding: 1,
-            ambiguous_orf: 1,
-            disrupted_domain: 1,
-            "3prime_overlapping_ncrna": 1,
+            "non coding": 1,
+            "ambiguous orf": 1,
+            "disrupted domain": 1,
+            "3prime overlapping ncrna": 1,
         };
 
         feature.color = "#000000";
 
         if (processedTranscript[feature.subtype.toLowerCase()]) {
             feature.color = "#0000FF";
-            feature.legend = "Processed transcript";
-        } else if (feature.subtype === "protein_coding") {
+        } else if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
-            feature.legend = "Protein coding";
-        } else if (feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("Pseudogene") > -1) {
             feature.color = "#666666";
-            feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "Ribozyme") {
             feature.color = "#8B668B";
-            feature.legend = "RNA gene";
         } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
-            feature.legend = "TR gene";
         } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
-            feature.legend = "IG gene";
         }
 
         feature.labelColor = feature.labelColor || feature.color;
@@ -656,16 +631,14 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
-    legend: Genoverse.Track.Legend.extend({
-        name: "Gene Types",
-    }),
+    legend: false,
     populateMenu: function (feature) {
         if (["Gene", "Exon", "Transcript"].includes(feature.type)) {
             var url = `/search/feature/accession/${feature.accession_id}`;
             var menu = {
-                title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
-                Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-                Strand: feature.strand,
+                title: `<u><a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a></u>`,
+                Type: feature.subtype,
+                Location: `chr${feature.chr}:${feature.start}-${feature.end}:${feature.strand}`,
             };
 
             return menu;
@@ -683,5 +656,51 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         labels: true,
         model: Genoverse.Track.Model.Transcript.Portal,
         view: Genoverse.Track.View.Transcript.Portal,
+    },
+    click: function (e) {
+        var target = $(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, y, target)[0];
+            if (f && f.type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.subtype)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - $(this).width() / 2;
+                    })
+                    .css("top", function () {
+                        return e.pageY + 10;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });

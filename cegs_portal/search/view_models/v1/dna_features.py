@@ -292,7 +292,9 @@ class DNAFeatureSearch:
                 ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
             )
 
-        return features.filter(**filters).prefetch_related(*prefetch_values).order_by("location")
+        return (
+            features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent").order_by("location")
+        )
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):
