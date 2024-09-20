@@ -17,7 +17,7 @@ def test_genoverse_track_view_DHS(client: Client, genoverse_dhs_features):
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=effect_targets&property=significant"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=significant"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -35,7 +35,6 @@ def test_genoverse_track_view_DHS(client: Client, genoverse_dhs_features):
 
     for feature in json_content:
         assert feature.get("effect_directions", None) is not None
-        assert feature.get("effect_targets", None) is not None
 
 
 def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_features):
@@ -46,7 +45,7 @@ def test_genoverse_track_model_DHS_effects(client: Client, genoverse_dhs_feature
     features = genoverse_dhs_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=effect_targets&property=significant"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=significant"  # noqa: E501
     )
 
     assert response.status_code == 200

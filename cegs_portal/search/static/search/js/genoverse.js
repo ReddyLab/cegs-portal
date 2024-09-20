@@ -142,7 +142,7 @@ Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
 });
 
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=effect_targets&property=significant",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant",
     dataRequestLimit: 5000000,
 });
 

@@ -75,9 +75,6 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         if "effect_directions" in feature_properties:
             result["effect_directions"] = feature_obj.effect_directions
 
-        if "effect_targets" in feature_properties:
-            result["effect_targets"] = feature_obj.effect_targets
-
         if options.get("json_format", None) == "genoverse":
             genoversify(result)
 
