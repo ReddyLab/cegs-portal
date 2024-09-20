@@ -1,3 +1,5 @@
+Genoverse.configure({});
+
 // 100 is larger than the sum of the margins we use. By shrinking
 // the width by that much it ensures the browser won't "overflow"
 // it's container until the window is very narrow.
@@ -164,16 +166,13 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
         feature.color = this.dhsColor;
-        feature.legend = `${feature.type} w/o Reg Effect`;
 
         if (
             feature.effect_directions.length > 0 &&
             feature.effect_directions.every((effect) => effect.effect_directions == "Non-significant")
         ) {
             feature.color = this.withNonSigEffectColor;
-            feature.legend = `${feature.type} w/ Non-significant Effect`;
         } else {
-            feature.legend = `${feature.type} w/ Significant Effect`;
             feature.color = this.withSigEffectColor[feature.type];
         }
     },
@@ -241,7 +240,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         start = Math.max(1, start);
         end = Math.min(this.browser.getChromosomeSize(chr), end);
 
-        var deferred = $.Deferred();
+        var deferred = Genoverse.jQuery.Deferred();
 
         if (typeof this.data !== "undefined") {
             this.receiveData(
@@ -276,11 +275,11 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             bins.push([start, end]);
         }
 
-        $.when
+        Genoverse.jQuery.when
             .apply(
                 $,
-                $.map(bins, function (bin) {
-                    var request = $.ajax({
+                Genoverse.jQuery.map(bins, function (bin) {
+                    var request = Genoverse.jQuery.ajax({
                         url: model.parseURL(chr, bin[0], bin[1]),
                         data: model.urlParams,
                         dataType: model.dataType,
@@ -299,7 +298,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                             );
                         },
                         complete: function (xhr) {
-                            this.dataLoading = $.grep(this.dataLoading, function (t) {
+                            this.dataLoading = Genoverse.jQuery.grep(this.dataLoading, function (t) {
                                 return xhr !== t;
                             });
                         },
@@ -483,7 +482,6 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
     resizable: false,
     model: Genoverse.Track.Model.cCRE,
     view: Genoverse.Track.View.cCRE,
-    legend: false,
     border: false,
     controls: "off",
 
@@ -496,7 +494,7 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
         };
     },
     click: function (e) {
-        var target = $(e.target);
+        var target = Genoverse.jQuery(e.target);
         var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
         var y = e.pageY - target.offset().top;
 
@@ -514,7 +512,7 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
                     .tipsy("show")
                     .data("tipsy")
                     .$tip.css("left", function () {
-                        return e.clientX - $(this).width() / 2;
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
                     });
             } else {
                 this.container.tipsy("hide");
@@ -546,7 +544,6 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.DHS,
     view: Genoverse.Track.View.DHS,
-    legend: true,
     populateMenu: async function (feature) {
         let url = `/search/feature/accession/${feature.accession_id}`;
         let type = feature.type.toUpperCase();
@@ -588,7 +585,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         return menu;
     },
     click: function (e) {
-        var target = $(e.target);
+        var target = Genoverse.jQuery(e.target);
         var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
         var y = e.pageY - target.offset().top;
 
@@ -606,7 +603,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
                     .tipsy("show")
                     .data("tipsy")
                     .$tip.css("left", function () {
-                        return e.clientX - $(this).width() / 2;
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
                     })
                     .css("top", function () {
                         return e.pageY + 10;
@@ -639,11 +636,10 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
     name: "Experimentally Tested Elements",
     labels: false,
-    legend: false,
     model: Genoverse.Track.Model.DHS.Effects,
     controls: [
-        $('<a title="Change feature height">Squish</a>').on("click", function () {
-            const track = $(this)
+        Genoverse.jQuery('<a title="Change feature height">Squish</a>').on("click", function () {
+            const track = Genoverse.jQuery(this)
                 .text((i, text) => (/Un/.test(text) ? "Squish" : "Unsquish"))
                 .data("track");
 
@@ -703,7 +699,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         view: Genoverse.Track.View.Transcript.Portal,
     },
     click: function (e) {
-        var target = $(e.target);
+        var target = Genoverse.jQuery(e.target);
         var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
         var y = e.pageY - target.offset().top;
 
@@ -721,7 +717,7 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
                     .tipsy("show")
                     .data("tipsy")
                     .$tip.css("left", function () {
-                        return e.clientX - $(this).width() / 2;
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
                     })
                     .css("top", function () {
                         return e.pageY + 10;
