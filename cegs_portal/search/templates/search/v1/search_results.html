@@ -5,7 +5,6 @@
 {% block title %}Region Search Results{% endblock %}
 {% block css %}
 {{ block.super }}
-<link href="{% static 'genoverse/css/tooltips.css' %}" rel="stylesheet" ></link>
 <style>
     g.tick > text {
         font-size: 2em;
@@ -170,7 +169,7 @@
 {% endblock %}
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'genoverse/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 {% endblock %}
 {% block content %}
