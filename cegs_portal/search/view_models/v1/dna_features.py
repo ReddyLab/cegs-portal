@@ -2,12 +2,14 @@ from enum import Enum
 from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Count, OuterRef, Q, QuerySet, Subquery
 from psycopg2.extras import NumericRange
 
 from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
+    Facet,
+    FacetValue,
     IdType,
     RegulatoryEffectObservation,
     RegulatoryEffectObservationSet,
@@ -229,8 +231,13 @@ class DNAFeatureSearch:
 
         prefetch_values = ["parent", "parent_accession"]
 
+        if "screen_ccre" in feature_properties:
+            ccre_facet_id = Facet.objects.get(name="cCRE Category").id
+            ccre_facet_values = FacetValue.objects.filter(facet_id=ccre_facet_id).values_list("id", flat=True)
+            facets += ccre_facet_values
+
         if len(facets) > 0:
-            filters["facet_values__in"] = facets
+            filters["facet_values__id__in"] = facets
             prefetch_values.extend(["facet_values", "facet_values__facet"])
 
         if "regeffects" in feature_properties:
@@ -254,8 +261,8 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        if any(p in {"effect_directions", "effect_targets", "significant"} for p in feature_properties):
-            # skip any feature that not the sources for any REOs
+        if any(p in {"effect_directions", "significant"} for p in feature_properties):
+            # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
 
@@ -268,9 +275,6 @@ class DNAFeatureSearch:
                 )
             )
 
-        if "effect_targets" in feature_properties:
-            features = features.annotate(effect_targets=ArrayAgg("source_for__targets__accession_id", default=[]))
-
         if "significant" in feature_properties:
             features = features.annotate(
                 sig_count=Count(
@@ -280,7 +284,16 @@ class DNAFeatureSearch:
             )
             filters["sig_count__gt"] = 0
 
-        return features.filter(**filters).prefetch_related(*prefetch_values).order_by("location")
+        if "screen_ccre" in feature_properties:
+            features = features.annotate(
+                ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
+            )
+
+        features = features.filter(**filters).prefetch_related(*prefetch_values)
+
+        if "parent_subtype" in feature_properties:
+            features = features.select_related("parent")
+        return features.order_by("location")
 
     @classmethod
     def loc_search_public(cls, *args, **kwargs):

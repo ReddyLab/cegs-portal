@@ -2,10 +2,23 @@
 {% load static i18n %}
 {% load humanize %}
 {% load custom_helpers %}
+{% block css %}
+{{ block.super }}
+<style>
+    @media (max-width: 768px) {
+        .bi-geo-alt-fill,
+        .fa-bolt-lightning,
+        .fa-magnifying-glass-arrow-right,
+        .fa-barcode {
+            display: none;
+        }
+    }
 
+</style>
+{% endblock %}
 {% block javascript %}
 {{ block.super }}
-<script type="text/javascript" src="{% static 'genoverse/js/genoverse.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'genoverse/js/genoverse.js' %}"></script>
 <script type="text/javascript" src="{% static 'search/js/genoverse.js' %}"></script>
 {% endblock %}
 
@@ -13,27 +26,31 @@
 
 {% block content %}
 <!-- HEADER -->
-<div>
+<div class="min-w-full max-w-full">
     <div class="title-separator"></div>
-        <div style="display: flex; justify-content: space-between">
+        <div class="flex justify-between md:ps-10">
             <span class="page-header-w-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon mr-1.5">
-                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path
-                        d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"
-                    />
-                </svg>
-                {% if feature.name %}
-                    <span>{{ feature.name }}</span>
-                    {% if feature.ensembl_id %}
-                        <span class="text-2xl">({{ feature.ensembl_id }}) </span>
-                    {% endif %}
+                <div class="flex flex-wrap">
+                {% comment %}
+                We want to contruct names for features without a name or that is a "source type".
+                "Source types" will never have an ensembl id, as only genes, transcripts, and exons
+                have those
+                {% endcomment %}
+                {% if feature.name and feature.ensembl_id %}
+                    <div><span><i class="fa-solid fa-dna"></i> {{ feature.name }}</span></div>
                 {% else %}
-                    {{ feature.get_feature_type_display }} @
-                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                        <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
-                    </a>
+                    <div>
+                        <i class="fa-solid fa-dna"></i> {{ feature.get_feature_type_display }} @
+                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
+                            <span class="text-2xl">{{ feature.chrom_name }}: {{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}{% if feature.strand %}:{{ feature.strand }}{% endif %}</span>
+                        </a>
+                    </div>
                 {% endif %}
+
+                {% if feature.ensembl_id %}
+                    <div><span class="text-2xl">({{ feature.ensembl_id }})</span></div>
+                {% endif %}
+                </div>
                 <select class="global-button mt-3 border-2 p-2 text-sm" id="dropdown">
                     {% for assembly in all_assemblies %}
                         <option value="{% url 'search:dna_features' id_type feature_id %}?assembly={{ assembly.0 }}" {{ assembly.1 }}>{{ assembly.2 }}</option>
@@ -43,39 +60,56 @@
         </div>
 
     <div class="title-separator"></div>
-    <div class="flex flex-row justify-center" id="genoverse-container">
-        <div id="genoverse"></div>
+
+    <div class="flex justify-center min-w-full max-w-sm" id="genoverse-container">
+        <div class="overflow-x-auto sm:overflow-x-visible">
+            <div id="genoverse"></div>
+        </div>
     </div>
-    <div class="container min-w-full">
-        <table class="profile-table">
-            <thead>
-                <tr>
-                    <th>DNA Feature Aliases</th>
-                    <th>Location</th>
-                    <th>Reference Genome</th>
-                    <th>Feature Type</th>
-                {% if feature.feature_subtype %}
-                    <th>Feature Subtype</th>
-                {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ feature.name|default:feature.accession_id }}</td>
-                    <td>
-                        <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:"-1" }}">
-                            <span>{{ feature.chrom_name }}</span>:
-                            <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
-                        </a>
-                    </td>
-                    <td>{{ feature.ref_genome }}</td>
-                    <td>{{ feature.get_feature_type_display }}</td>
-                    {% if feature.feature_subtype %}
-                    <td>{{ feature.feature_subtype|remove_underscores }}</td>
-                    {% endif %}
-                </tr>
-            </tbody>
-        </table>
+
+    <div class="content-container">
+        <div class="bg-gray-100 border-b flex flex-wrap text-center px-5">
+            <div class="flex items-center ml-3 py-4">
+                <div class="text-base font-bold text-gray-900">DNA Feature Aliases:</div>
+                {% comment %}
+                We want to line break wherever we can for narrow screens if the feature might have
+                a weird, long "name" like gRNAs and DHSs do -- basically anything that is a '"source type"
+                We can identify any of these "source types" because they (and only they) don't have ensembl ids
+                {% endcomment %}
+                <div class="text-base text-gray-700 font-light italic ml-0.5 {% if not feature.ensembl_id %} break-all{% endif %}">
+                    {{ feature.name|default:feature.accession_id }}
+                </div>
+            </div>
+            <div class="flex items-center ml-3 py-4">
+                <div class="text-base font-bold text-gray-900">Location:</div>
+                <div class="text-base text-gray-700 font-light italic ml-0.5 flex-wrap">
+                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:'-1' }}" class="text-blue-600 no-underline flex-wrap">
+                        <span>{{ feature.chrom_name }}</span>:
+                        <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center ml-3 py-4">
+                <div class="text-base font-bold text-gray-900">Reference Genome:</div>
+                <div class="text-base text-gray-700 font-light italic ml-0.5">
+                    {{ feature.ref_genome }}
+                </div>
+            </div>
+            <div class="flex items-center ml-3 py-4">
+                <div class="text-base font-bold text-gray-900">Feature Type:</div>
+                <div class="text-base text-gray-700 font-light italic ml-0.5">
+                    {{ feature.get_feature_type_display }}
+                </div>
+            </div>
+            {% if feature.feature_subtype %}
+            <div class="flex items-center ml-3 -mr-1 py-4">
+                <div class="text-base font-bold text-gray-900">Feature Subtype:</div>
+                <div class="text-base text-gray-700 font-light italic ml-0.5">
+                    {{ feature.feature_subtype|remove_underscores }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <!--Tabs navigation-->
@@ -197,7 +231,7 @@
         >
 
             {% if not sources and not targets %}
-            <div class="container min-w-full">
+            <div class="content-container min-w-full">
                 <div class="table-title">
                     No Regulatory Effect Observations Found
                 </div>
@@ -237,7 +271,7 @@
             aria-labelledby="tabs-files-closest-features"
         >
             {% if feature.closest_features.exists %}
-            <div class="container min-w-full">
+            <div class="content-container min-w-full max-w-sm">
                 <a name="closest-features-{{ feature.accession_id }}"></a>
                 <div class="table-title table-container-header">
                     <div class="table-container-title">
@@ -256,10 +290,11 @@
                     </div>
                 </div>
                 <div class="title-separator"></div>
+                <div class="overflow-x-auto">
                 <table class="data-table">
                     <tr>
                         <th class="chrom-first-end-cap chrom-dark-band">Type</th>
-                        <th class="chrom-light-band chrom-right-centromere  ">Cell Line</th>
+                        <th class="chrom-light-band chrom-right-centromere">Cell Line</th>
                         <th class="chrom-left-centromere chrom-light-band">Location</th>
                         <th class="chrom-last-end-cap chrom-light-band">Feature Details</th>
                     </tr>
@@ -285,6 +320,7 @@
                 {% endfor %}
             {% endif %}
                 </table>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -296,15 +332,11 @@
             role="tabpanel"
             aria-labelledby="tabs-find-features-tab"
         >
-            <div class="container centered-container min-w-full">
+            <div class="content-container">
                 <a name="near_features"></a>
                 <div class="table-title table-container-header">
                     <div class="table-container-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-icon mr-2">
-                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
-                        </svg>
-                        Find Nearby DNA Features
+                        <span><i class="fa-solid fa-magnifying-glass"></i> Find Nearby DNA Features</span>
                     </div>
                 </div>
                 <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper%}?assembly={{ feature.ref_genome }}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
@@ -312,8 +344,7 @@
                     <fieldset name="facetfield">
                         <legend class="flex flex-row group font-bold min-w-full" id="facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
                         </legend>
-                        <div class="flex flex-row flex-wrap gap-1"
-                            aria-labelledby="facetHeader{{ forloop.counter }}">
+                        <div class="flex flex-row flex-wrap gap-1 justify-center" aria-labelledby="facetHeader{{ forloop.counter }}">
                             {% for feature_type in dna_feature_types %}
                             <div class="checkbox-divider">
                                 <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
@@ -346,8 +377,7 @@
         >
             <!-- Children -->
             {% if feature.children.exists %}
-            <div class="mb-8 min-w-full">
-                <div class="container">
+            <div class="content-container min-w-full max-w-sm">
                     <a name="children-{{ feature.accession_id }}"></a>
                     <div class="table-title table-container-header">
                         <div class="table-container-title">
@@ -368,6 +398,7 @@
                         </div>
                     </div>
                     <div class="title-separator"></div>
+                    <div class="overflow-x-auto">
                     <table class="data-table">
                         <tr>
                             <th class="chrom-first-end-cap chrom-light-band">ENSEMBL ID</th>
@@ -391,7 +422,7 @@
                         {% endfor %}
             {% endif %}
                     </table>
-                </div>
+                    </div>
             </div>
         </div>
         {% endif %}
@@ -428,6 +459,7 @@
             tracks    : [
                 Genoverse.Track.Scaleline.extend({ strand: false }),
                 Genoverse.Track.Scalebar,
+                Genoverse.Track.cCRE,
                 Genoverse.Track.DHS.Effects,
                 Genoverse.Track.Gene,
             ]

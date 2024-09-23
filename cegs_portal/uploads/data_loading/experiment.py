@@ -45,7 +45,7 @@ class FeatureRow:
     location: tuple[int, int, RangeBounds]  # start, end, bounds
     genome_assembly: GenomeAssembly
     cell_line: str
-    feature_type: FeatureType
+    feature_type: Optional[FeatureType]
     facets: list[GrnaFacet | PromoterFacet] = field(default_factory=list)
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
@@ -147,7 +147,7 @@ class Experiment:
 
         self.facet_values = grna_type_facet_values | promoter_facet_values
 
-    def load(self):
+    def load(self, elements_file_location=None):
         source_type = self.metadata.source_type
         parent_source_type = self.metadata.parent_source_type
 
@@ -156,11 +156,15 @@ class Experiment:
         new_elements: dict[str, FeatureRow] = {}
         new_parent_elements: dict[str, FeatureRow] = {}
 
-        element_file = self.metadata.tested_elements_file
-        element_cell_line = element_file.biosample.cell_line
+        elements_file = self.metadata.tested_elements_file
+        elements_cell_line = elements_file.biosample.cell_line
 
-        element_tsv = InternetFile(element_file.file_location).file
-        reader = csv.DictReader(element_tsv, delimiter=element_file.delimiter(), quoting=csv.QUOTE_NONE)
+        if elements_file_location is None:
+            elements_tsv = InternetFile(elements_file.file_location).file
+        else:
+            elements_tsv = InternetFile(elements_file_location).file
+
+        reader = csv.DictReader(elements_tsv, delimiter=elements_file.delimiter(), quoting=csv.QUOTE_NONE)
 
         for line in reader:
             parent_chrom, parent_start, parent_end, parent_strand, parent_bounds = (
@@ -186,7 +190,7 @@ class Experiment:
                         location=(parent_start, parent_end, RangeBounds(parent_bounds)),
                         strand=parent_strand,
                         genome_assembly=GenomeAssembly(genome_assembly),
-                        cell_line=element_cell_line,
+                        cell_line=elements_cell_line,
                         feature_type=FeatureType(parent_source_type) if parent_source_type is not None else None,
                     )
 
@@ -218,14 +222,14 @@ class Experiment:
                 location=(element_start, element_end, RangeBounds(element_bounds)),
                 strand=element_strand,
                 genome_assembly=GenomeAssembly(genome_assembly),
-                cell_line=element_cell_line,
+                cell_line=elements_cell_line,
                 feature_type=FeatureType(source_type),
                 facets=categorical_facets,
                 parent_name=parent_row.name if parent_row is not None else None,
                 misc=misc,
             )
 
-        element_tsv.close()
+        elements_tsv.close()
         self.features = new_elements.values()
         if len(new_parent_elements) > 0:
             self.parent_features = new_parent_elements.values()

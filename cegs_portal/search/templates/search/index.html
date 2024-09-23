@@ -8,7 +8,97 @@
         display: none;
     }
 
-    .search-container {
+    #masthead {
+        background: #ffffff;
+        -webkit-box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
+        box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
+        padding: 15px 15px;
+        margin-top: -30px;
+        margin-bottom: 20px;
+        width: calc(100% + .5rem); /* The container padding is .25rem on each side */
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Tailwind breakpoint "sm" */
+    @media (min-width: 640px) {
+      #masthead {
+        width: calc(100% + 5rem); /* The container padding is 2.5rem on each side */
+      }
+    }
+
+    .search-header {
+        font-family: sans-serif;
+        font-size: 1.5rem;
+        color: #b3650c;
+        text-shadow: 2px 2px #e3f2fd;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .search-examples-text {
+        font-weight: bold;
+        font-style: italic;
+        color: rgb(16, 52, 122);
+    }
+
+    .search-form {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        justify-content: space-between;
+    }
+
+    .search-form > div {
+        flex: 1 1 100%;
+    }
+
+    .search-form input[type="text"] {
+        width: 100%;
+        padding: 4px 12px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 1px solid #d3d3d3;
+        color: black;
+    }
+
+    .search-form button[type="submit"] {
+        background-color: rgb(16, 52, 122);
+        padding: 6px 14px;
+        margin-left: 2px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        flex: none;
+    }
+
+    .search-form button[type="submit"]:hover {
+        background-color: rgb(5, 26, 69);
+    }
+
+    .search-examples-text {
+        font-weight: bold;
+        font-style: italic;
+        color: rgb(16, 52, 122);
+    }
+
+    .svg-image {
+        fill: currentColor;
+        height: 2em;
+    }
+
+    #card-container {
+        width: min(calc(100% + .5rem), 1380px); /* The container padding is .25rem on each side */
+    }
+
+    /* Tailwind breakpoint "sm" */
+    @media (min-width: 640px) {
+      #card-container {
+          width: min(calc(100% + 5rem), 1380px); /* The container padding is 2.5rem on each side */
+      }
+    }
+
+    .card {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -27,68 +117,46 @@
         align-items: center;
     }
 
-    .search-container:hover {
+    .card:hover {
         transform: scale(1.02);
         box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.35);
     }
 
-    .search-container h2 {
+    .card h2 {
         font-size: 24px;
         font-weight: bold;
         margin-bottom: 10px;
         color: rgba(41, 120, 177, 242);
     }
 
-    .search-form {
-        display: flex;
-        align-items: center;
-        font-size: 14px;
+    .link-card:visited {
+        color: rgba(41, 120, 177, 242);
     }
 
-    .search-form input[type="text"] {
-        width: 80vw;
-        max-width: 400px;
-        padding: 4px 12px;
-        box-sizing: border-box;
-        border-radius: 10px;
-        border: 1px solid #d3d3d3;
-        color: black;
+    .link-card:hover {
+        text-decoration: none;
     }
 
-    .search-form input[type="submit"] {
-        background-color: rgb(16, 52, 122);
-        padding: 4px 12px;
-        margin-left: 10px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-    }
-
-    .search-form input[type="submit"]:hover {
-        background-color: rgb(5, 26, 69);
-    }
-
-    .search-form button[type="submit"] {
-        background-color: rgb(16, 52, 122);
-        padding: 6px 14px;
-        margin-left: 2px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-    }
-
-    .search-form button[type="submit"]:hover {
-        background-color: rgb(5, 26, 69);
+    .card-header {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 5px;
     }
 
     .card-form {
+        width: 300px;
         display: flex;
         align-items: center;
         font-size: 14px;
     }
 
+    .card-form > div {
+        flex-grow: 1;
+    }
+
     .card-form input[type="text"] {
-        width: 300px;
+        width: 100%;
         padding: 5px 12px;
         box-sizing: border-box;
         border-radius: 10px;
@@ -103,63 +171,15 @@
         border-radius: 10px;
         border: none;
         cursor: pointer;
+        flex: none;
     }
 
     .card-form input[type="submit"]:hover {
         background-color: rgb(5, 26, 69);
     }
 
-    .search-header {
-        font-family: sans-serif;
-        font-size: 1.5rem;
-        color: #b3650c;
-        text-shadow: 2px 2px #e3f2fd;
-        text-align: center;
-        font-weight: bold;
-        margin-right: 40px;
-    }
-
     label[for="id_query"] {
         display: none;
-    }
-
-    .search-examples-text {
-        font-weight: bold;
-        font-style: italic;
-        color: rgb(16, 52, 122);
-    }
-
-    .svg-image {
-        fill: currentColor;
-        height: 2em;
-    }
-
-    .card-header{
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-        margin-top: 5px;
-    }
-
-    .content-container-link:hover {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    #masthead {
-        background: #ffffff;
-        -webkit-box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
-        box-shadow: 0px 0px 3px 2px rgba(41, 120, 177, 242);
-        padding: 15px 15px;
-        margin-top: -30px;
-        margin-bottom: 20px;
-        width: calc(100% + 5rem); /* The container padding is 2.5rem on each side */
-        display: flex;
-        justify-content: center;
-    }
-
-    #card-container {
-        width: min(calc(100% + 5rem), 1380px)
     }
 </style>
 {% endblock %}
@@ -168,7 +188,7 @@
 
 {% block content %}
     <div id="masthead">
-        <img width="632" height="82" src="{% static 'landing_page_ccgr_logo.png' %}" />
+        <img src="{% static 'landing_page_ccgr_logo.png' %}" alt="Center for Combinatorial Gene Regulation"/>
     </div>
 
     <div class="mt-5 mb-5">
@@ -176,7 +196,7 @@
         <div class="mb-8 text-center">
             <div class="search-examples-text">Enter chromosome ranges, Ensembl IDs, or gene names</div>
             <div>
-                <form action="{% url 'search:results' %}" method="get" class="search-form text-white">
+                <form action="{% url 'search:results' %}" method="get" class="search-form text-white flex justify-center">
                     {{ gene_form }}
                     <button type="submit" class="self-end">
                         <svg
@@ -204,7 +224,7 @@
     </div>
 
     <div class="flex flex-row flex-wrap justify-center" id="card-container">
-        <div class="search-container">
+        <div class="card">
             <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-image mx-1.5 ">
@@ -232,7 +252,7 @@
             </div>
         </div>
 
-        <div class="search-container">
+        <div class="card">
                 <div class="flex flex-col items-center">
                     <div class="flex flex-row">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -255,7 +275,7 @@
             </form>
         </div>
 
-        <div class="search-container">
+        <div class="card">
             <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -282,9 +302,8 @@
             </div>
         </div>
 
-        <a href="{% url 'search:experiments' %}" class="content-container-link">
-            <div class="search-container">
-                <div class="flex flex-col items-center">
+        <a href="{% url 'search:experiments' %}" class="card link-card ">
+            <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="svg-image mx-1.5 card-header"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
                         <path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/>
@@ -297,13 +316,12 @@
                     </svg>
                 </div>
                 <div class="card-header">List Experiments</div>
-                <p class="text-base text-center">Filter by assays, cell line, tissue type.</div>
+                <p class="text-base text-center">Filter by assays, cell line, tissue type.</p>
             </div>
         </a>
 
-        <a href="{% url 'search:experiments' %}s?exp=DCPEXPR0000000007&exp=DCPEXPR0000000008" class="content-container-link">
-            <div class="search-container">
-                <div class="flex flex-col items-center">
+        <a href="{% url 'search:experiments' %}s?exp=DCPEXPR0000000007&exp=DCPEXPR0000000008" class="card link-card">
+            <div class="flex flex-col items-center">
                 <div class="flex flex-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image card-header">
                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
@@ -320,25 +338,22 @@
                 </div>
                 <div class="card-header">Compare results between experiments</div>
                 <p class="text-base text-center">Select and analyze multiple experiments of your choice</p>
-                </div>
             </div>
         </a>
 
-        <a href="{% url 'search:experiments' %}/DCPEXPR0000000004" class="content-container-link">
-            <div class="search-container">
-                    <div class="flex flex-col items-center">
-                    <div class="flex flex-row">
-                        <i class="bi bi-layers-half text-5xl"></i>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image">
-                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path
-                            d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
-                            />
-                        </svg>
-                    </div>
-                    <div class="card-header">View an experiment's genomic coverage</div>
-                    <p class="text-base text-center">Get an interactive view of data coverage on the genome</p>
+        <a href="{% url 'search:experiments' %}/DCPEXPR0000000004" class="card link-card">
+            <div class="flex flex-col items-center">
+                <div class="flex flex-row">
+                    <i class="bi bi-layers-half text-5xl"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-image">
+                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path
+                        d="M175 389.4c-9.8 16-15 34.3-15 53.1c-10 3.5-20.8 5.5-32 5.5c-53 0-96-43-96-96V64C14.3 64 0 49.7 0 32S14.3 0 32 0H96h64 64c17.7 0 32 14.3 32 32s-14.3 32-32 32V309.9l-49 79.6zM96 64v96h64V64H96zM352 0H480h32c17.7 0 32 14.3 32 32s-14.3 32-32 32V214.9L629.7 406.2c6.7 10.9 10.3 23.5 10.3 36.4c0 38.3-31.1 69.4-69.4 69.4H261.4c-38.3 0-69.4-31.1-69.4-69.4c0-12.8 3.6-25.4 10.3-36.4L320 214.9V64c-17.7 0-32-14.3-32-32s14.3-32 32-32h32zm32 64V224c0 5.9-1.6 11.7-4.7 16.8L330.5 320h171l-48.8-79.2c-3.1-5-4.7-10.8-4.7-16.8V64H384z"
+                        />
+                    </svg>
                 </div>
+                <div class="card-header">View an experiment's genomic coverage</div>
+                <p class="text-base text-center">Get an interactive view of data coverage on the genome</p>
             </div>
         </a>
     </div>

@@ -1,3 +1,67 @@
+Genoverse.configure({});
+
+// 100 is larger than the sum of the margins we use. By shrinking
+// the width by that much it ensures the browser won't "overflow"
+// it's container until the window is very narrow.
+let browserWidth = () => Math.max(500, window.innerWidth - 100);
+
+/*
+ * Title Caps
+ *
+ * Ported to JavaScript By John Resig - http://ejohn.org/ - 21 May 2008
+ * Original by John Gruber - http://daringfireball.net/ - 10 May 2008
+ * License: http://www.opensource.org/licenses/mit-license.php
+ */
+
+(function () {
+    var small = "(a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v[.]?|via|vs[.]?)";
+    var punct = "([!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]*)";
+
+    this.titleCaps = function (title) {
+        var parts = [],
+            split = /[:.;?!] |(?: |^)["Ò]/g,
+            index = 0;
+
+        while (true) {
+            var m = split.exec(title);
+
+            parts.push(
+                title
+                    .substring(index, m ? m.index : title.length)
+                    .replace(/\b([A-Za-z][a-z.'Õ]*)\b/g, function (all) {
+                        return /[A-Za-z]\.[A-Za-z]/.test(all) ? all : upper(all);
+                    })
+                    .replace(RegExp("\\b" + small + "\\b", "ig"), lower)
+                    .replace(RegExp("^" + punct + small + "\\b", "ig"), function (all, punct, word) {
+                        return punct + upper(word);
+                    })
+                    .replace(RegExp("\\b" + small + punct + "$", "ig"), upper),
+            );
+
+            index = split.lastIndex;
+
+            if (m) parts.push(m[0]);
+            else break;
+        }
+
+        return parts
+            .join("")
+            .replace(/ V(s?)\. /gi, " v$1. ")
+            .replace(/(['Õ])S\b/gi, "$1s")
+            .replace(/\b(AT&T|Q&A)\b/gi, function (all) {
+                return all.toUpperCase();
+            });
+    };
+
+    function lower(word) {
+        return word.toLowerCase();
+    }
+
+    function upper(word) {
+        return word.substr(0, 1).toUpperCase() + word.substr(1);
+    }
+})();
+
 CEGSGenoverse = Genoverse.extend({
     // debug: true,
     _sharedState: {
@@ -37,11 +101,18 @@ CEGSGenoverse = Genoverse.extend({
             config.assembly = "grch37";
         }
 
+        config.width = browserWidth();
+
         this.base(config);
     },
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
+
+        let browser = this;
+        window.addEventListener("resize", function () {
+            browser.setWidth(browserWidth());
+        });
     },
     updateURL: function () {
         this.base();
@@ -49,8 +120,31 @@ CEGSGenoverse = Genoverse.extend({
     },
 });
 
+Genoverse.Track.Model.cCRE = Genoverse.Track.Model.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=cCRE&property=screen_ccre",
+    dataRequestLimit: 5000000,
+});
+
+Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
+    featureHeight: 15,
+    labels: false,
+    repeatLabels: true,
+    bump: false,
+    color: {
+        PLS: "#EB382A",
+        pELS: "#F3A94C",
+        dELS: "#F7CC63",
+        "DNase-H3K4me3": "#F3AEAD",
+        "CTCF-only": "#4DB0E4",
+        "CTCF-bound": "#4DB0E4",
+    },
+    setFeatureColor: function (feature) {
+        feature.color = this.color[feature.ccre_type];
+    },
+});
+
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=effect_targets&property=significant",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant",
     dataRequestLimit: 5000000,
 });
 
@@ -72,16 +166,13 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     borderColor: "#f0e442",
     setFeatureColor: function (feature) {
         feature.color = this.dhsColor;
-        feature.legend = `${feature.type} w/o Reg Effect`;
 
         if (
             feature.effect_directions.length > 0 &&
             feature.effect_directions.every((effect) => effect.effect_directions == "Non-significant")
         ) {
             feature.color = this.withNonSigEffectColor;
-            feature.legend = `${feature.type} w/ Non-significant Effect`;
         } else {
-            feature.legend = `${feature.type} w/ Significant Effect`;
             feature.color = this.withSigEffectColor[feature.type];
         }
     },
@@ -149,7 +240,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
         start = Math.max(1, start);
         end = Math.min(this.browser.getChromosomeSize(chr), end);
 
-        var deferred = $.Deferred();
+        var deferred = Genoverse.jQuery.Deferred();
 
         if (typeof this.data !== "undefined") {
             this.receiveData(
@@ -160,7 +251,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                     : this.data,
                 chr,
                 start,
-                end
+                end,
             );
             return deferred.resolveWith(this);
         }
@@ -184,11 +275,11 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             bins.push([start, end]);
         }
 
-        $.when
+        Genoverse.jQuery.when
             .apply(
                 $,
-                $.map(bins, function (bin) {
-                    var request = $.ajax({
+                Genoverse.jQuery.map(bins, function (bin) {
+                    var request = Genoverse.jQuery.ajax({
                         url: model.parseURL(chr, bin[0], bin[1]),
                         data: model.urlParams,
                         dataType: model.dataType,
@@ -203,11 +294,11 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                                 this.showServerErrors && (xhr.responseJSON || {}).message
                                     ? xhr.responseJSON.message
                                     : statusText + " while getting the data, see console for more details",
-                                arguments
+                                arguments,
                             );
                         },
                         complete: function (xhr) {
-                            this.dataLoading = $.grep(this.dataLoading, function (t) {
+                            this.dataLoading = Genoverse.jQuery.grep(this.dataLoading, function (t) {
                                 return xhr !== t;
                             });
                         },
@@ -222,7 +313,7 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
                     model.dataLoading.push(request);
 
                     return request;
-                })
+                }),
             )
             .done(function () {
                 deferred.resolveWith(model);
@@ -251,6 +342,7 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
                 feature.strand === "+"
                     ? `${feature.name} (${feature.ensembl_id}) >`
                     : `< ${feature.name} (${feature.ensembl_id})`;
+            feature.subtype = titleCaps(feature.subtype.replaceAll("_", " "));
             this.insertFeature(feature);
         }
     },
@@ -258,41 +350,16 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
 
 Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
     setFeatureColor: function (feature) {
-        var processedTranscript = {
-            sense_intronic: 1,
-            sense_overlapping: 1,
-            processed_transcript: 1,
-            nonsense_mediated_decay: 1,
-            non_stop_decay: 1,
-            antisense: 1,
-            retained_intron: 1,
-            tec: 1,
-            non_coding: 1,
-            ambiguous_orf: 1,
-            disrupted_domain: 1,
-            "3prime_overlapping_ncrna": 1,
-        };
-
-        feature.color = "#000000";
-
-        if (processedTranscript[feature.subtype.toLowerCase()]) {
-            feature.color = "#0000FF";
-            feature.legend = "Processed transcript";
-        } else if (feature.subtype === "protein_coding") {
+        if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
-            feature.legend = "Protein coding";
-        } else if (feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("Pseudogene") > -1) {
             feature.color = "#666666";
-            feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "Ribozyme") {
             feature.color = "#8B668B";
-            feature.legend = "RNA gene";
         } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
-            feature.legend = "TR gene";
         } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
-            feature.legend = "IG gene";
         }
 
         feature.labelColor = feature.labelColor || feature.color;
@@ -300,7 +367,7 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 });
 
 Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_subtype",
     dataRequestLimit: 5000000, // As per e! REST API restrictions
 
     setDefaults: function () {
@@ -334,7 +401,12 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                     ref_genome: transcript.ref_genome,
                     exons: {},
                     subFeatures: [],
-                    subtype: transcript.subtype,
+                    subtype: titleCaps(
+                        (transcript.parent_subtype ? transcript.parent_subtype : transcript.subtype).replaceAll(
+                            "_",
+                            " ",
+                        ),
+                    ),
                     type: transcript.type,
                 };
                 geneObj.label =
@@ -343,7 +415,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                         : "< " + (transcript.parent || transcript.ensembl_id);
                 geneObj.sort =
                     model.geneIds[transcript.parent_accession_id] * 1e10 +
-                    (transcript.subtype === "protein_coding" ? 0 : 1e9) +
+                    (transcript.subtype === "Protein Coding" ? 0 : 1e9) +
                     transcript.start +
                     i;
 
@@ -360,7 +432,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
                     featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
                     exons.add(exon.accession_id);
                 }
-            }
+            },
         );
 
         ids.forEach((id) => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
@@ -370,43 +442,99 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend({
     setFeatureColor: function (feature) {
         var processedTranscript = {
-            sense_intronic: 1,
-            sense_overlapping: 1,
-            processed_transcript: 1,
-            nonsense_mediated_decay: 1,
-            non_stop_decay: 1,
+            "sense intronic": 1,
+            "sense overlapping": 1,
+            "processed transcript": 1,
+            "nonsense mediated decay": 1,
+            "non stop decay": 1,
             antisense: 1,
-            retained_intron: 1,
+            "retained intron": 1,
             tec: 1,
-            non_coding: 1,
-            ambiguous_orf: 1,
-            disrupted_domain: 1,
-            "3prime_overlapping_ncrna": 1,
+            "non coding": 1,
+            "ambiguous orf": 1,
+            "disrupted domain": 1,
+            "3prime overlapping ncrna": 1,
         };
 
         feature.color = "#000000";
 
         if (processedTranscript[feature.subtype.toLowerCase()]) {
             feature.color = "#0000FF";
-            feature.legend = "Processed transcript";
-        } else if (feature.subtype === "protein_coding") {
+        } else if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
-            feature.legend = "Protein coding";
-        } else if (feature.subtype.indexOf("pseudogene") > -1) {
+        } else if (feature.subtype.indexOf("Pseudogene") > -1) {
             feature.color = "#666666";
-            feature.legend = "Pseudogene";
-        } else if (/rna/i.test(feature.subtype) || feature.subtype === "ribozyme") {
+        } else if (/rna/i.test(feature.subtype) || feature.subtype === "Ribozyme") {
             feature.color = "#8B668B";
-            feature.legend = "RNA gene";
         } else if (/^tr_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#CD6600";
-            feature.legend = "TR gene";
         } else if (/^ig_.+_gene$/i.test(feature.subtype)) {
             feature.color = "#8B4500";
-            feature.legend = "IG gene";
         }
 
         feature.labelColor = feature.labelColor || feature.color;
+    },
+});
+
+Genoverse.Track.cCRE = Genoverse.Track.extend({
+    id: "ccres",
+    name: "cCREs",
+    resizable: false,
+    model: Genoverse.Track.Model.cCRE,
+    view: Genoverse.Track.View.cCRE,
+    border: false,
+    controls: "off",
+
+    populateMenu: function (feature) {
+        return {
+            title: `<u><a target="_blank" href="https://screen.wenglab.org/assets/about/images/figure3.png">SCREEN cCRE (${feature.ccre_type})</a></u>`,
+            Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
+            Assembly: feature.ref_genome,
+            "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+        };
+    },
+    click: function (e) {
+        var target = Genoverse.jQuery(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, 3, target)[0];
+            if (f && f.ccre_type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.ccre_type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });
 
@@ -416,7 +544,6 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.DHS,
     view: Genoverse.Track.View.DHS,
-    legend: true,
     populateMenu: async function (feature) {
         let url = `/search/feature/accession/${feature.accession_id}`;
         let type = feature.type.toUpperCase();
@@ -438,24 +565,70 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
         });
         let i = 1;
         for (let reo of effects.object_list.slice(0, 5)) {
+            let effect_size;
             if (reo.targets.length > 0) {
-                menu[
-                    `${i}. Effect Size`
-                ] = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
+                effect_size = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
             } else {
-                menu[`${i}. Effect Size`] = `${reo.effect_size >= 0 ? "" : "-"}${reo.effect_size}`;
+                effect_size = `${reo.effect_size}`;
             }
+            menu[`${i}.`] =
+                `<a target="_blank" href="/search/experiment/${reo.experiment.accession_id}">Screen: ${reo.experiment.type}</a>, Effect Size: ${effect_size}`;
 
             i++;
         }
 
         if (effects.object_list.length > 5) {
-            menu[
-                `Full Effect List`
-            ] = `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
+            menu[`Full Effect List`] =
+                `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
         }
 
         return menu;
+    },
+    click: function (e) {
+        var target = Genoverse.jQuery(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, y, target)[0];
+            if (f && f.type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
+                    })
+                    .css("top", function () {
+                        return e.pageY + 10;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });
 
@@ -463,13 +636,10 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
     name: "Experimentally Tested Elements",
     labels: false,
-    legend: Genoverse.Track.Legend.extend({
-        name: "Element Types",
-    }),
     model: Genoverse.Track.Model.DHS.Effects,
     controls: [
-        $('<a title="Change feature height">Squish</a>').on("click", function () {
-            const track = $(this)
+        Genoverse.jQuery('<a title="Change feature height">Squish</a>').on("click", function () {
+            const track = Genoverse.jQuery(this)
                 .text((i, text) => (/Un/.test(text) ? "Squish" : "Unsquish"))
                 .data("track");
 
@@ -501,30 +671,23 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
     resizable: "auto",
     model: Genoverse.Track.Model.Gene.Portal,
     view: Genoverse.Track.View.Gene.Portal,
-    legend: Genoverse.Track.Legend.extend({
-        name: "Gene Types",
-    }),
+    legend: false,
+    controls: "off",
     populateMenu: function (feature) {
         if (["Gene", "Exon", "Transcript"].includes(feature.type)) {
             var url = `/search/feature/accession/${feature.accession_id}`;
             var menu = {
-                title: `<a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a>`,
-                Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
-                Strand: feature.strand,
+                title: `<u><a target="_blank" href="${url}">${feature.name} (${feature.ensembl_id})</a></u>`,
+                Type: feature.subtype,
+                Location: `chr${feature.chr}:${feature.start}-${feature.end}:${feature.strand}`,
             };
 
             return menu;
         }
     },
     // Different settings for different zoom level
-    1000000: {
-        // This one applies when > 1M base-pairs per screen
-        labels: false,
-        model: Genoverse.Track.Model.Gene.Portal,
-        view: Genoverse.Track.View.Gene.Portal,
-    },
-    100001: {
-        // more than 100K but less then 2M
+    100_001: {
+        // more than 100K but less then 1M
         labels: true,
         model: Genoverse.Track.Model.Gene.Portal,
         view: Genoverse.Track.View.Gene.Portal,
@@ -534,5 +697,51 @@ Genoverse.Track.Gene = Genoverse.Track.extend({
         labels: true,
         model: Genoverse.Track.Model.Transcript.Portal,
         view: Genoverse.Track.View.Transcript.Portal,
+    },
+    click: function (e) {
+        var target = Genoverse.jQuery(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, y, target)[0];
+            if (f && f.type) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.subtype)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
+                    })
+                    .css("top", function () {
+                        return e.pageY + 10;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
     },
 });

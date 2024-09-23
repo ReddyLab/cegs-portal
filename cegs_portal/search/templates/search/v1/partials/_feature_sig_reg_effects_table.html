@@ -1,11 +1,11 @@
 {% load humanize %}
 {% load custom_helpers %}
 
-<div class="container min-w-full">
+<div class="min-w-full max-w-sm">
 {% if sig_reg_effects|length > 0 %}
-    <div class="flex max-w-full min-w-full justify-between items-center">
-        <div class="text-xl font-bold justify-self-center">Significant Regulatory Effect Observations</div>
-        <div class="justify-self-end">
+    <div class="flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
+        <div class="text-xl font-bold justify-self-center text-center">Significant Regulatory Effect Observations</div>
+        <div class="flex justify-end items-center">
             <span class="text-lg">Download:</span>
             <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">
                 <button class="tsv-button" id="downloadButton">TSV</button>
@@ -15,12 +15,13 @@
             </a>
         </div>
     </div>
+    <div class="overflow-x-auto">
     <table class="data-table">
         <tr><th>Enhancer/Gene</th><th>Effect Size (log2FC)</th><th>Corrected p-value</th><th>Raw p-value</th><th>Experiment</th></tr>
         {% for regeffect in sig_reg_effects %}
         {% cycle '' 'bg-gray-100' as rowcolors silent %}
         <tr class="{{ rowcolors }}">
-            <i class='fas fa-spinner fa-spin htmx-indicator' id="loading-spinner"></i>
+            <i class='fas fa-spinner fa-spin htmx-indicator md:ml-[550px]' id="loading-spinner"></i>
             <td>
                 <div>Tested Element{% if regeffect.sources|length > 1 %}s{% endif %}: {% for source in regeffect.sources.all %}<a href="{% url 'search:dna_features' 'accession' source.accession_id %}">{{ source.get_feature_type_display }} @ {{ source.chrom_name }}: {{ source.location.lower|intcomma }} - {{ source.location.upper|intcomma }}{% if source.strand %}:{{ source.strand }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                 {% if regeffect.targets.exists %}
@@ -50,6 +51,7 @@
                 <a href="?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-get="{% url 'search:feature_sigreo' %}?{{ content_query }}&page={{ sig_reg_effects.paginator.num_pages }}" hx-target="#feature_sigreo-table">last &raquo;</a>
             {% endif %}
         </span>
+    </div>
     </div>
 {% else %}
     <div>No Relevant Regulatory Effect Observations Found</div>

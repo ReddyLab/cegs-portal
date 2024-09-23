@@ -22,7 +22,7 @@
         }
 
         @media (max-width: 600px) {
-            img {
+            footer img {
                 margin-bottom: 10px;
                 margin-top: 20px;
             }
@@ -99,7 +99,7 @@
                               name="query"
                               placeholder="Search"
                           />
-                          <button type="submit" class="absolute right-2 top-0 mt-3 mr-2">
+                          <button type="submit" class="absolute bg-white right-2 top-0 mt-3 mr-2">
                               <svg
                                   class="text-gray-600 h-4 w-4 fill-current"
                                   xmlns="http://www.w3.org/2000/svg"
@@ -181,11 +181,13 @@
         </div>
         {% block modal %}{% endblock modal %} {% block inline_javascript %}
         <!-- Script tags with only code, no src (defer by default)  -->
-        <script>
+        {% endblock inline_javascript %}
+
+         <script>
             document.getElementById('nav').addEventListener('click', function () {
                 document.getElementById('nav-collapse-button').classList.toggle('hidden');
             });
         </script>
-         {% endblock inline_javascript %}
+
     </body>
 </html>

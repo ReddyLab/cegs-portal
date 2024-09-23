@@ -26,6 +26,15 @@ class PromoterType(Enum):
     NON_PROMOTER = "Non-promoter"
 
 
+class CCRECategoryType(Enum):
+    PLS = "PLS"
+    PELS = "pELS"
+    DELS = "dELS"
+    DNASE = "DNase-H3K4me3"
+    CTCF_ONLY = "CTCF-only"
+    CTCF_BOUND = "CTCF-bound"
+
+
 class DNAFeature(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -53,6 +62,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         (str(DNAFeatureType.DHS), DNAFeatureType.DHS.value),
         (str(DNAFeatureType.GRNA), DNAFeatureType.GRNA.value),
         (str(DNAFeatureType.CAR), DNAFeatureType.CAR.value),
+        (str(DNAFeatureType.CRE), DNAFeatureType.CRE.value),
     )
 
     cell_line = models.CharField(max_length=50, null=True, blank=True)
