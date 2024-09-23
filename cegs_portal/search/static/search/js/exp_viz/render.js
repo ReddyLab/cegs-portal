@@ -28,7 +28,7 @@ let sourceRenderColors = coverageTypeFunctions(
     {
         color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(260, 0.75, 0.35)),
         faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-260, 0.75, 0.95)),
-    }
+    },
 );
 
 let targetRenderColors = coverageTypeFunctions(
@@ -43,7 +43,7 @@ let targetRenderColors = coverageTypeFunctions(
     {
         color: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.8), d3.cubehelix(-100, 0.75, 0.35)),
         faded: d3.interpolateCubehelixLong(d3.cubehelix(80, 1.5, 0.95), d3.cubehelix(-100, 0.75, 0.95)),
-    }
+    },
 );
 
 let sourceRenderDataTransform = coverageTypeDeferredFunctions(
@@ -51,19 +51,19 @@ let sourceRenderDataTransform = coverageTypeDeferredFunctions(
         return (d) => {
             let sourceCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).source;
             let sourceCountRange = sourceCountInterval[1] - sourceCountInterval[0];
-            return (d.count - sourceCountInterval[0]) / sourceCountRange;
+            return sourceCountRange != 0 ? (d.count - sourceCountInterval[0]) / sourceCountRange : 0.5;
         };
     },
     (state) => (d) => {
         let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
         let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
+        return significanceRange != 0 ? (d.max_log10_sig - significanceInterval[0]) / significanceRange : 0.5;
     },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
-    }
+        return effectSizeRange != 0 ? (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
+    },
 );
 
 let targetRenderDataTransform = coverageTypeDeferredFunctions(
@@ -71,19 +71,19 @@ let targetRenderDataTransform = coverageTypeDeferredFunctions(
         return (d) => {
             let targetCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).target;
             let targetCountRange = targetCountInterval[1] - targetCountInterval[0];
-            return (d.count - targetCountInterval[0]) / targetCountRange;
+            return sourceCountRange != 0 ? (d.count - targetCountInterval[0]) / targetCountRange : 0.5;
         };
     },
     (state) => (d) => {
         let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
         let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return (d.max_log10_sig - significanceInterval[0]) / significanceRange;
+        return significanceRange != 0 ? (d.max_log10_sig - significanceInterval[0]) / significanceRange : 0.5;
     },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange;
-    }
+        return effectSizeRange != 0 ? (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
+    },
 );
 
 function sourceTooltipDataLabel(state) {
@@ -95,13 +95,13 @@ let targetTooltipDataLabel = ["Gene Count", "Largest Significance", "Greatest Ef
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
     (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Significance`,
-    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Size`
+    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Size`,
 );
 
 let targetLegendTitle = coverageTypeFunctions(
     "Number of Genes Assayed",
     "Significance of Effect on Assayed Genes",
-    "Size of Effect on Assayed Genes"
+    "Size of Effect on Assayed Genes",
 );
 
 let tooltipDataSelectors = [
@@ -152,20 +152,20 @@ export function render(state, genomeRenderer) {
             scale,
             scaleX,
             scaleY,
-            highlightRegions
-        )
+            highlightRegions,
+        ),
     );
     rc(
         g("chrom-data-legend"),
         Legend(d3.scaleSequential(legendIntervals.source, sourceColors.color), {
             title: sourceLegendTitle(state),
-        })
+        }),
     );
     a(
         g("chrom-data-legend"),
         Legend(d3.scaleSequential(legendIntervals.target, targetColors.color), {
             title: targetLegendTitle(state),
-        })
+        }),
     );
     rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
     rc(g("source-count"), t(`${state.g(STATE_SOURCE_TYPE)}s: ${itemCounts[1].toLocaleString()}`));
