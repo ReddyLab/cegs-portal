@@ -88,10 +88,14 @@
     }
 
     #card-container {
-        width: min(calc(100%), 1380px);
-        /* display: grid;
-        grid-template-columns: repeat(auto-fill, 415px);
-        place-content: center; */
+        width: min(calc(100% + .5rem), 1380px); /* The container padding is .25rem on each side */
+    }
+
+    /* Tailwind breakpoint "sm" */
+    @media (min-width: 640px) {
+      #card-container {
+          width: min(calc(100% + 5rem), 1380px); /* The container padding is 2.5rem on each side */
+      }
     }
 
     .card {
