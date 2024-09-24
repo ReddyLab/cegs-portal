@@ -86,6 +86,7 @@ CEGSGenoverse = Genoverse.extend({
             callback(this._sharedState, key);
         }
     },
+    fullWidth: 0, // browser.width doesn't include control panels or labels
     sharedStateCallbacks: [],
     constructor: function (config) {
         // The portal backend uses "hg19/hg38"
@@ -108,10 +109,19 @@ CEGSGenoverse = Genoverse.extend({
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
+        this.fullWidth = browserWidth();
 
         let browser = this;
         window.addEventListener("resize", function () {
-            browser.setWidth(browserWidth());
+            // On iOS devices the "resize" event is dispatched when scrolling, for some reason.
+            // In order to avoid constant "resizes" (that are to the same width, but still make network calls
+            // to refetch the data) we keep track of the current "full width" and only resize if the new computed width
+            // is different.
+            let bw = browserWidth();
+            if (browser.fullWidth != bw) {
+                browser.fullWidth = bw;
+                browser.setWidth(bw);
+            }
         });
     },
     updateURL: function () {
