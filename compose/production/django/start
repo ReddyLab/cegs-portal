@@ -7,5 +7,6 @@ set -o nounset
 
 python /app/manage.py collectstatic --noinput -i "*.ecd" -i "*.fd"
 
-
-/usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -k uvicorn.workers.UvicornWorker
+# Gunicorn recommends setting (2 * $(num_cores) + 1) workers. Our containers have access to 16 cores, which
+# would be 33 workers. This is probably overkill, so we'll go with 8 for now.
+/usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -w 8 -k uvicorn.workers.UvicornWorker
