@@ -299,53 +299,8 @@
     addSelectListeners();
 </script>
 <script>
-    window.addEventListener("DOMContentLoaded", (event) => {
-    let previousWidth = window.innerWidth;
-
-    function handleResize() {
-        const currentWidth = window.innerWidth;
-
-        if (currentWidth <= 1020 && previousWidth > 1020) {
-            document.querySelector("#combinedExperimentsHeader").setAttribute("aria-expanded", "false");
-            document.querySelector("#combinedExperimentsHeader").setAttribute("data-te-collapse-collapsed", "");
-            document.querySelector("#combinedExperimentsCollapse").classList.add("hidden");
-            document.querySelector("#combinedExperimentsCollapse").removeAttribute("data-te-collapse-show");
-            document.querySelector("#experimentFiltersHeader").setAttribute("aria-expanded", "false");
-            document.querySelector("#experimentFiltersHeader").setAttribute("data-te-collapse-collapsed", "");
-            document.querySelector("#experimentFiltersCollapse").classList.add("hidden");
-            document.querySelector("#experimentFiltersCollapse").removeAttribute("data-te-collapse-show");
-            document.querySelector("#selectExperiments button").setAttribute("aria-expanded", "false");
-            document.querySelector("#analyzeExperiments button").setAttribute("aria-expanded", "false");
-            document.querySelector("#selectExperiments button").setAttribute("data-te-collapse-collapsed", "");
-            document.querySelector("#analyzeExperiments button").setAttribute("data-te-collapse-collapsed", "");
-            document.querySelector("#selectExperimentsCollapse").classList.add("hidden");
-            document.querySelector("#analyzeExperimentsCollapse").classList.add("hidden");
-            document.querySelector("#selectExperimentsCollapse").removeAttribute("data-te-collapse-show");
-            document.querySelector("#analyzeExperimentsCollapse").removeAttribute("data-te-collapse-show");
-        } else if (currentWidth > 1020 && previousWidth <= 1020) {
-            document.querySelector("#combinedExperimentsHeader").setAttribute("aria-expanded", "true");
-            document.querySelector("#combinedExperimentsHeader").removeAttribute("data-te-collapse-collapsed");
-            document.querySelector("#combinedExperimentsCollapse").classList.remove("hidden");
-            document.querySelector("#combinedExperimentsCollapse").setAttribute("data-te-collapse-show", "");
-            document.querySelector("#experimentFiltersHeader").setAttribute("aria-expanded", "true");
-            document.querySelector("#experimentFiltersHeader").removeAttribute("data-te-collapse-collapsed");
-            document.querySelector("#experimentFiltersCollapse").classList.remove("hidden");
-            document.querySelector("#experimentFiltersCollapse").setAttribute("data-te-collapse-show", "");
-            document.querySelector("#selectExperiments button").setAttribute("aria-expanded", "true");
-            document.querySelector("#analyzeExperiments button").setAttribute("aria-expanded", "true");
-            document.querySelector("#selectExperiments button").removeAttribute("data-te-collapse-collapsed");
-            document.querySelector("#analyzeExperiments button").removeAttribute("data-te-collapse-collapsed");
-            document.querySelector("#selectExperimentsCollapse").classList.remove("hidden");
-            document.querySelector("#analyzeExperimentsCollapse").classList.remove("hidden");
-            document.querySelector("#selectExperimentsCollapse").setAttribute("data-te-collapse-show", "");
-            document.querySelector("#analyzeExperimentsCollapse").setAttribute("data-te-collapse-show", "");
-        }
-
-        previousWidth = currentWidth;
-    }
-
-    // First screen sizing check
-    if (window.innerWidth <= 1020) {
+function checkWidthToCollapse(currentWidth) {
+    if (currentWidth <= 1020) {
         document.querySelector("#combinedExperimentsHeader").setAttribute("aria-expanded", "false");
         document.querySelector("#combinedExperimentsHeader").setAttribute("data-te-collapse-collapsed", "");
         document.querySelector("#combinedExperimentsCollapse").classList.add("hidden");
@@ -380,8 +335,20 @@
         document.querySelector("#selectExperimentsCollapse").setAttribute("data-te-collapse-show", "");
         document.querySelector("#analyzeExperimentsCollapse").setAttribute("data-te-collapse-show", "");
     }
+}
 
-    window.addEventListener("resize", handleResize);
+window.addEventListener("DOMContentLoaded", (event) => {
+    checkWidthToCollapse(window.innerWidth);
+
+    let previousWidth = window.innerWidth;
+
+    window.addEventListener("resize", (event) => {
+        let currentWidth = window.innerWidth;
+        if (currentWidth != previousWidth) {
+            checkWidthToCollapse(currendWidth);
+            previousWidth = currentWidth;
+        }
+    });
 });
 </script>
 {% if logged_in %}
