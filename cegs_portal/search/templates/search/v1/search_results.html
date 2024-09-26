@@ -619,7 +619,28 @@
         }
     </script>
     <script>
-        function checkWidthToCollapse() {
+        window.addEventListener('DOMContentLoaded', (event) => {
+            let previousWidth = window.innerWidth;
+
+            function checkWidthToCollapse() {
+                const currentWidth = window.innerWidth;
+
+                if (currentWidth <= 1020 && previousWidth > 1020) {
+                    document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
+                    document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
+                    document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
+                    document.querySelector('#experimentFiltersCollapse').removeAttribute('data-te-collapse-show');
+                } else if (currentWidth > 1020 && previousWidth <= 1020) {
+                    document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'true');
+                    document.querySelector('#experimentFiltersHeader').removeAttribute('data-te-collapse-collapsed');
+                    document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
+                    document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
+                }
+
+                previousWidth = currentWidth;
+            }
+
+            //First screen sizing check
             if (window.innerWidth <= 1020) {
                 document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
                 document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
@@ -631,10 +652,7 @@
                 document.querySelector('#experimentFiltersCollapse').classList.remove('hidden');
                 document.querySelector('#experimentFiltersCollapse').setAttribute('data-te-collapse-show', '');
             }
-        }
 
-        window.addEventListener('DOMContentLoaded', (event) => {
-            checkWidthToCollapse();
             window.addEventListener('resize', checkWidthToCollapse);
         });
     </script>
