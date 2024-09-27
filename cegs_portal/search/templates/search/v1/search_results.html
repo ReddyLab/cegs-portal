@@ -619,8 +619,8 @@
         }
     </script>
     <script>
-        function checkWidthToCollapse() {
-            if (currentWidth <= 1020) {
+        function checkWidthToCollapse(width) {
+            if (width <= 1020) {
                 document.querySelector('#experimentFiltersHeader').setAttribute('aria-expanded', 'false');
                 document.querySelector('#experimentFiltersHeader').setAttribute('data-te-collapse-collapsed', '');
                 document.querySelector('#experimentFiltersCollapse').classList.add('hidden');
@@ -642,7 +642,7 @@
                 let currentWidth = window.innerWidth;
                 if (currentWidth != previousWidth) {
                     checkWidthToCollapse(currendWidth);
-                      previousWidth = currentWidth;
+                    previousWidth = currentWidth;
                 }
             });
         });
