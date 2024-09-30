@@ -22,7 +22,22 @@ urlpatterns: list[Union[URLPattern, URLResolver]] = cast(
             TemplateView.as_view(template_name="pages/genoverse_license.html"),
             name="genoverse_license",
         ),
-        path("help/", TemplateView.as_view(template_name="pages/help/index.html"), name="help"),
+        path(
+            "help/",
+            include(
+                [
+                    path("", TemplateView.as_view(template_name="pages/help/index.html"), name="help"),
+                    path(
+                        "metadata/",
+                        TemplateView.as_view(template_name="pages/help/data_metadata.html"),
+                        name="metadata",
+                    ),
+                    path(
+                        "data_prep/", TemplateView.as_view(template_name="pages/help/data_prep.html"), name="data_prep"
+                    ),
+                ]
+            ),
+        ),
         # Django Admin, use {% url 'admin:index' %}
         path(settings.ADMIN_URL, admin.site.urls),
         # User management
