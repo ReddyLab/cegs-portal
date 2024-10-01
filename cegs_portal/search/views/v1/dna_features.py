@@ -13,19 +13,13 @@ from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     MultiResponseFormatView,
 )
+from cegs_portal.utils import truthy_to_bool
 from cegs_portal.utils.http_exceptions import Http400
 
 DEFAULT_TABLE_LENGTH = 20
 HG19 = "hg19"
 HG38 = "hg38"
 ALL_ASSEMBLIES = [HG38, HG19]  # Ordered by descending "importance"
-
-
-def get_sig_only(value):
-    if value == "0" or value == "false" or value == "False":
-        return False
-    else:
-        return True
 
 
 def normalize_assembly(value):
@@ -85,8 +79,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
         options["feature_properties"] = request.GET.getlist("property", [])
         options["json_format"] = request.GET.get("format", None)
-        sig_only = request.GET.get("sig_only", True)
-        options["sig_only"] = get_sig_only(sig_only)
+        options["sig_only"] = truthy_to_bool(request.GET.get("sig_only", True))
         return options
 
     def get(self, request, options, data, id_type, feature_id):
@@ -227,6 +220,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
+        options["paginate"] = truthy_to_bool(request.GET.get("paginate", False))
         options["json_format"] = request.GET.get("format", None)
         options["dist"] = int(request.GET.get("dist", 0))
         options["tsv_format"] = request.GET.get("tsv_format", None)
