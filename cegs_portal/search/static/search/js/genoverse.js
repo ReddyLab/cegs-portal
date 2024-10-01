@@ -153,6 +153,21 @@ Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
     },
 });
 
+Genoverse.Track.Model.Coverage = Genoverse.Track.Model.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&property=reo_source",
+    dataRequestLimit: 5000000,
+});
+
+Genoverse.Track.View.Coverage = Genoverse.Track.View.extend({
+    featureHeight: 15,
+    labels: false,
+    repeatLabels: true,
+    bump: false,
+    setFeatureColor: function (feature) {
+        feature.color = "#502050";
+    },
+});
+
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant",
     dataRequestLimit: 5000000,
@@ -377,7 +392,7 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 });
 
 Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_subtype",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_info",
     dataRequestLimit: 5000000, // As per e! REST API restrictions
 
     setDefaults: function () {
@@ -518,6 +533,57 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
 
                 this.container
                     .attr("title", f.ccre_type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
+    },
+});
+
+Genoverse.Track.Coverage = Genoverse.Track.extend({
+    id: "coverage",
+    name: "Coverage",
+    resizable: false,
+    model: Genoverse.Track.Model.Coverage,
+    view: Genoverse.Track.View.Coverage,
+    border: false,
+    controls: "off",
+    click: function (e) {
+        var target = Genoverse.jQuery(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+
+        if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, 3, target)[0];
+
+            if (f) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.type)
                     .tipsy({trigger: "manual", container: "body", offset: -15})
                     .tipsy("show")
                     .data("tipsy")

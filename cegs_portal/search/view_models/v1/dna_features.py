@@ -31,6 +31,7 @@ class LocSearchProperties(StrEnum):
     EFFECT_DIRECTIONS = "effect_directions"
     PARENT_INFO = "parent_info"
     REG_EFFECTS = "regeffects"
+    REO_SOURCE = "reo_source"
     SCREEN_CCRE = "screen_ccre"
     SIGNIFICANT = "significant"
 
@@ -272,6 +273,7 @@ class DNAFeatureSearch:
         reo_count_properties = {
             LocSearchProperties.EFFECT_DIRECTIONS,
             LocSearchProperties.SIGNIFICANT,
+            LocSearchProperties.REO_SOURCE,
         }
         if any(p in reo_count_properties for p in feature_properties):
             # skip any feature that are not the sources for any REOs
