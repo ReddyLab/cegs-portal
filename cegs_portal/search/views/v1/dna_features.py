@@ -202,7 +202,12 @@ class DNAFeatureLoc(MultiResponseFormatView):
             format
                 * "genoverse" - only relevant for json
             property (multiple)
+                Be careful combining these, their effects are no necessarily orthogonal
                 * "regeffects" - preload associated reg effects
+                * "screen_ccre" - include screen cCRE type
+                * "effect_directions" - include effect directions of associated REOs
+                * "significant" - include only feature that are the source of significant REOs
+                * "reo_source" - include features that are the source for an REO
             search_type
                 * "exact" - match location exactly
                 * "overlap" - match any overlapping feature

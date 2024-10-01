@@ -36,9 +36,7 @@ def test_feature(feature: DNAFeature, effect_dir_feature: DNAFeature):
         "type": feature.get_feature_type_display(),
         "subtype": feature.feature_subtype,
         "ref_genome": feature.ref_genome,
-        "parent": feature.parent if feature.parent is not None else None,
         "parent_accession_id": feature.parent_accession_id if feature.parent is not None else None,
-        "parent_ensembl_id": feature.parent_ensembl_id if feature.parent is not None else None,
         "misc": feature.misc,
     }
     if feature.closest_gene is not None:
@@ -58,7 +56,9 @@ def test_feature(feature: DNAFeature, effect_dir_feature: DNAFeature):
     f_dict = f_json(effect_dir_feature, {"feature_properties": ["effect_directions"]})
     assert "effect_directions" in f_dict
 
-    f_dict = f_json(effect_dir_feature, {"feature_properties": ["parent_subtype"]})
+    f_dict = f_json(effect_dir_feature, {"feature_properties": ["parent_info"]})
+    assert "parent" in f_dict
+    assert "parent_ensembl_id" in f_dict
     assert "parent_subtype" in f_dict
 
     result["id"] = result["accession_id"]
