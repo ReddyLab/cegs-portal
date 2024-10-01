@@ -1158,10 +1158,6 @@ input[type="submit"], input[type="button"], button {
   margin-bottom: 1rem;
 }
 
-.-mr-1 {
-  margin-right: -0.25rem;
-}
-
 .mb-0 {
   margin-bottom: 0px;
 }
