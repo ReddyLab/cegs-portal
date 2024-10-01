@@ -88,7 +88,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
     return cast(FeatureJson, result)
 
 
-def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
+def reg_effect(re_obj: RegulatoryEffectObservation, options: dict[str, Any]):
     result = {
         "accession_id": re_obj.accession_id,
         "effect_size": re_obj.effect_size,
@@ -99,7 +99,7 @@ def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, 
         "targets": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in re_obj.targets.all()],
     }
 
-    if options is not None and options.get("json_format", None) == "genoverse":
+    if options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return result

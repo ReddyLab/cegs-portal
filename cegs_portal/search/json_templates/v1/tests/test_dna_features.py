@@ -77,6 +77,6 @@ def test_reg_effect(reg_effect: RegulatoryEffectObservation):
         "targets": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in reg_effect.targets.all()],
     }
 
-    assert re_json(reg_effect) == result
+    assert re_json(reg_effect, {}) == result
     result["id"] = result["accession_id"]
     assert re_json(reg_effect, {"json_format": "genoverse"}) == result
