@@ -68,9 +68,14 @@
     </div>
 
     <div class="content-container">
-        <div class="bg-gray-100 border-b flex flex-wrap text-center px-5">
+        <div class="bg-gray-100 border-b flex flex-wrap justify-center text-center px-5">
             <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">DNA Feature Aliases:</div>
+                {% comment %}
+                We want to line break wherever we can for narrow screens if the feature might have
+                a weird, long "name" like gRNAs and DHSs do -- basically anything that is a '"source type"
+                We can identify any of these "source types" because they (and only they) don't have ensembl ids
+                {% endcomment %}
                 <div class="text-base text-gray-700 font-light italic ml-0.5 {% if not feature.ensembl_id %} break-all{% endif %}">
                     {{ feature.name|default:feature.accession_id }}
                 </div>
