@@ -66,6 +66,7 @@ urlpatterns = [
     path("feature_counts", views.v1.FeatureCountView.as_view(), name="feature_counts"),
     path("sigdata", view=views.v1.SignificantExperimentDataView.as_view(), name="sigdata"),
     path("feature_sigreo", view=views.v1.FeatureSignificantREOsView.as_view(), name="feature_sigreo"),
+    path("facets/", view=views.v1.facets, name="facets"),
     path("v1/results/", views.v1.SearchView.as_view()),
     re_path(
         r"v1/feature/accession/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})/source_for$",
@@ -110,4 +111,5 @@ urlpatterns = [
         views.v1.RegEffectTargetsView.as_view(),
     ),
     path("v1/feature_counts", views.v1.FeatureCountView.as_view()),
+    path("v1/facets/", view=views.v1.facets),
 ] + static("v1/", document_root=str(settings.APPS_DIR / "search" / "static" / "search" / "v1"))
