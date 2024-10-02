@@ -174,7 +174,7 @@ Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
 });
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
-    featureHeight: 10,
+    featureHeight: 15,
     labels: true,
     repeatLabels: true,
     bump: true,
@@ -374,6 +374,7 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
 });
 
 Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
+    featureHeight: 13,
     setFeatureColor: function (feature) {
         if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
@@ -465,6 +466,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 });
 
 Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend({
+    featureHeight: 13,
     setFeatureColor: function (feature) {
         var processedTranscript = {
             "sense intronic": 1,
@@ -725,12 +727,12 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     configSettings: {
         squish: {
             true: {
-                featureHeight: 2,
+                featureHeight: 7,
                 featureMargin: {top: 1, right: 1, bottom: 1, left: 0},
                 labels: false,
             },
             false: {
-                featureHeight: 6,
+                featureHeight: 15,
                 featureMargin: {top: 2, right: 2, bottom: 2, left: 0},
                 labels: true,
             },
