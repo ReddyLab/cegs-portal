@@ -68,8 +68,8 @@
     </div>
 
     <div class="content-container">
-        <div class="bg-gray-100 border-b flex flex-wrap text-center px-5">
-            <div class="flex items-center ml-3 py-4">
+        <div class="bg-gray-100 border-b flex flex-wrap justify-center text-center px-5">
+            <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">DNA Feature Aliases:</div>
                 {% comment %}
                 We want to line break wherever we can for narrow screens if the feature might have
@@ -80,29 +80,29 @@
                     {{ feature.name|default:feature.accession_id }}
                 </div>
             </div>
-            <div class="flex items-center ml-3 py-4">
+            <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">Location:</div>
-                <div class="text-base text-gray-700 font-light italic ml-0.5 flex-wrap">
-                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:'-1' }}" class="text-blue-600 no-underline flex-wrap">
+                <div class="text-base text-gray-700 font-light italic ml-0.5">
+                    <a href="{% url 'search:results' %}?query={{ feature.chrom_name }}:{{ feature.location.lower }}-{{ feature.location.upper|add:'-1' }}" class="text-blue-600 no-underline">
                         <span>{{ feature.chrom_name }}</span>:
                         <span>{{ feature.location.lower|intcomma }} - {{ feature.location.upper|add:"-1"|intcomma }}:{{ feature.strand|if_strand }}</span>
                     </a>
                 </div>
             </div>
-            <div class="flex items-center ml-3 py-4">
+            <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">Reference Genome:</div>
                 <div class="text-base text-gray-700 font-light italic ml-0.5">
                     {{ feature.ref_genome }}
                 </div>
             </div>
-            <div class="flex items-center ml-3 py-4">
+            <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">Feature Type:</div>
                 <div class="text-base text-gray-700 font-light italic ml-0.5">
                     {{ feature.get_feature_type_display }}
                 </div>
             </div>
             {% if feature.feature_subtype %}
-            <div class="flex items-center ml-3 -mr-1 py-4">
+            <div class="flex flex-col items-start ml-3 py-4 flex-grow">
                 <div class="text-base font-bold text-gray-900">Feature Subtype:</div>
                 <div class="text-base text-gray-700 font-light italic ml-0.5">
                     {{ feature.feature_subtype|remove_underscores }}
