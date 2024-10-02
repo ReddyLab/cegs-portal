@@ -1,67 +1,63 @@
-{% extends "base.html" %}
-
-{% block css %}
-{{ block.super }}
-
-<style>
-    .about-container {
-        color: #094474;
-    }
-
-    .header {
-        font-size: 1.2rem;
-        font-weight: bold;
-        margin-top: 20px;
-        margin-bottom: 10px;
-        text-align: center;
-    }
-</style>
-{% endblock %}
+{% extends "pages/help/help.html" %}
 
 {% block content %}
-<div class="container about-container flex flex-col space-y-2">
+<div class="content-container about-container flex flex-col space-y-2">
     <h1>Portal Help</h1>
 
-    <h2>Users</h2>
-    <div class="ml-5 flex flex-col space-y-2">
+    <div class="ml-5 flex flex-col space-y-5">
+        <div>
+            <h3>What is the CCGR Data Portal?</h3>
+
+            <p>
+                The Duke Center for Combinatorial Gene Regulation (CCGR) aims to make combinatorial studies of
+                regulatory elements and noncoding variants routine. To that end, a major focus of the CCGR is
+                developing resources and technologies for combinatorial manipulation of the human genome.
+                In support of that mission, the CCGR data portal– serves as a central hub where results from
+                functional characterization studies from the CCGR, ENCODE, IGVF, and other projects can be
+                collectively explored and analyzed.
+            </p>
+        </div>
+
+        <div>
+            <h3>What can I do with the Portal?</h3>
+
+            <p>
+                The CCGR Portal has many ways to explore the data. Users can:
+            </p>
+            <ul class="list-disc list-inside">
+                <li>See what has been tested within a genomic region</li>
+                <li>Check in on their gene of intrest to see if anyone else has found associated regulatory elements</li>
+                <li>Get an overview of one or more experiment's coverage</li>
+                <li>Download selected data for further offline analysis</li>
+            </ul>
+        </div>
+
         <div>
             <h3>How do I get an account?</h3>
 
-            <div>Please request an account from the admin team</div>
+            <p>
+                Please <a href="mailto:ccgr_portal_admin@duke.edu?subject=Requesting%20Portal%20Access" class="link">request an account</a> from the admin team.
+                They will set one up and send you the password, which you should promptly change.
+            </p>
         </div>
 
         <div>
-            <h3>What can I do?</h3>
+            <h3>How do I get my data into the portal?</h3>
 
-            <div>so much</div>
+            <p>Package it up in a <a href="data_prep/" class="link">suitable format</a>, with <a href="metadata/" class="link">necessary metadata</a>, and get it to us. We'll upload it for you.</p>
+            <p></p>
         </div>
 
         <div>
-            <h3>How do I get data into the portal?</h3>
+            <h3>Does the portal have an API? How do I use it?</h3>
 
-            <div>Package it up in a <a href="data_prep/" class="link">suitable format</a>, with <a href="metadata/" class="link">necessary metadata</a>, and get it to us. We'll upload it for you.</div>
-        </div>
-
-        <div>
-            <h3>Does the ortal have an API? How do I use it?</h3>
-
-            <div>Yes, the portal does have a JSON API! Please see the documentation <a href="https://ccgr-portal.stoplight.io">on Stoplight</a></div>
+            <p>Yes, the portal does have an extensive JSON API! Please see the OpenAPI spec <a href="https://ccgr-portal.stoplight.io">on Stoplight</a>.</p>
         </div>
 
         <div>
             <h3>What if I find a bug or have a suggestion for a new feature?</h3>
 
-            <div>Please open an issue on the <a href="https://github.com/ReddyLab/cegs-portal/issues">Portal's GitHub issues page.</a></div>
-        </div>
-    </div>
-
-    <h2>Admins</h2>
-
-    <div class="ml-5  flex flex-col space-y-2">
-        <div>
-        <h3>Data Uploads</h3>
-
-        <div>Here is how you upload data</div>
+            <p>Please open an issue on the <a href="https://github.com/ReddyLab/cegs-portal/issues">Portal's GitHub issues page.</a></p>
         </div>
     </div>
 </div>
