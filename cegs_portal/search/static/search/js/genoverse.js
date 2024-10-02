@@ -573,12 +573,54 @@ Genoverse.Track.Coverage = Genoverse.Track.extend({
     view: Genoverse.Track.View.Coverage,
     border: false,
     controls: "off",
+    populateMenu: async function (feature) {
+        let url = `/search/feature/accession/${feature.accession_id}`;
+        let type = feature.type.toUpperCase();
+        let menu = {
+            title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
+            Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
+            Assembly: feature.ref_genome,
+            "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+        };
+
+        let effects = await fetch(
+            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`,
+        ).then((response) => {
+            if (!response.ok) {
+                throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
+            }
+
+            return response.json();
+        });
+        let i = 1;
+        for (let reo of effects.object_list.slice(0, 5)) {
+            let effect_size;
+            if (reo.targets.length > 0) {
+                effect_size = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
+            } else {
+                effect_size = `${reo.effect_size}`;
+            }
+            menu[`${i}.`] =
+                `<a target="_blank" href="/search/experiment/${reo.experiment.accession_id}">Screen: ${reo.experiment.type}</a>, Effect Size: ${effect_size}`;
+
+            i++;
+        }
+
+        if (effects.object_list.length > 5) {
+            menu[`Full Effect List`] =
+                `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
+        }
+
+        return menu;
+    },
     click: function (e) {
         var target = Genoverse.jQuery(e.target);
         var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
         var y = e.pageY - target.offset().top;
-
-        if (e.type === "mousemove") {
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
             var f = this.getClickedFeatures(x, 3, target)[0];
 
             if (f) {
