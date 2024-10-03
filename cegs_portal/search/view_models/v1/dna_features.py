@@ -27,7 +27,7 @@ class LocSearchType(Enum):
     OVERLAP = "overlap"
 
 
-class LocSearchProperties(StrEnum):
+class LocSearchProperty(StrEnum):
     EFFECT_DIRECTIONS = "effect_directions"
     PARENT_INFO = "parent_info"
     REG_EFFECTS = "regeffects"
@@ -240,7 +240,7 @@ class DNAFeatureSearch:
 
         prefetch_values = ["parent", "parent_accession"]
 
-        if LocSearchProperties.SCREEN_CCRE in feature_properties:
+        if LocSearchProperty.SCREEN_CCRE in feature_properties:
             ccre_facet_id = Facet.objects.get(name="cCRE Category").id
             ccre_facet_values = FacetValue.objects.filter(facet_id=ccre_facet_id).values_list("id", flat=True)
             facets += ccre_facet_values
@@ -249,7 +249,7 @@ class DNAFeatureSearch:
             filters["facet_values__id__in"] = facets
             prefetch_values.extend(["facet_values", "facet_values__facet"])
 
-        if LocSearchProperties.REG_EFFECTS in feature_properties:
+        if LocSearchProperty.REG_EFFECTS in feature_properties:
             # The facet presets are used when getting the "direction" property
             # of a RegulatoryEffectObservation. This is done in the _reg_effect.html partial
             # and the reg_effect function of the dna_features.py json template.
@@ -271,16 +271,16 @@ class DNAFeatureSearch:
         features = DNAFeature.objects
 
         reo_count_properties = {
-            LocSearchProperties.EFFECT_DIRECTIONS,
-            LocSearchProperties.SIGNIFICANT,
-            LocSearchProperties.REO_SOURCE,
+            LocSearchProperty.EFFECT_DIRECTIONS,
+            LocSearchProperty.SIGNIFICANT,
+            LocSearchProperty.REO_SOURCE,
         }
         if any(p in reo_count_properties for p in feature_properties):
             # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
 
-        if LocSearchProperties.EFFECT_DIRECTIONS in feature_properties:
+        if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
             features = features.annotate(
                 effect_directions=ArrayAgg(
                     "source_for__facet_values__value",
@@ -289,7 +289,7 @@ class DNAFeatureSearch:
                 )
             )
 
-        if LocSearchProperties.SIGNIFICANT in feature_properties:
+        if LocSearchProperty.SIGNIFICANT in feature_properties:
             features = features.annotate(
                 sig_count=Count(
                     "source_for__facet_values__value",
@@ -298,7 +298,7 @@ class DNAFeatureSearch:
             )
             filters["sig_count__gt"] = 0
 
-        if LocSearchProperties.SCREEN_CCRE in feature_properties:
+        if LocSearchProperty.SCREEN_CCRE in feature_properties:
             features = features.annotate(
                 ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
             )
