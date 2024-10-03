@@ -8,7 +8,6 @@ from cegs_portal.uploads.data_loading.types import (
     FeatureType,
     GenomeAssembly,
     GrnaFacet,
-    RangeBounds,
 )
 
 pytestmark = pytest.mark.django_db
@@ -27,7 +26,7 @@ def test_ccre_associations(experiment_metadata):
         FeatureRow(
             name="0",
             chrom_name="chr1",
-            location=(0, 10, RangeBounds.HALF_OPEN_RIGHT),
+            location=(0, 10),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -38,7 +37,7 @@ def test_ccre_associations(experiment_metadata):
         FeatureRow(
             name="1",
             chrom_name="chr1",
-            location=(90, 120, RangeBounds.HALF_OPEN_RIGHT),
+            location=(90, 120),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -49,7 +48,7 @@ def test_ccre_associations(experiment_metadata):
         FeatureRow(
             name="2",
             chrom_name="chr1",
-            location=(290, 410, RangeBounds.HALF_OPEN_RIGHT),
+            location=(290, 410),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -60,7 +59,7 @@ def test_ccre_associations(experiment_metadata):
         FeatureRow(
             name="3",
             chrom_name="chr1",
-            location=(510, 590, RangeBounds.HALF_OPEN_RIGHT),
+            location=(510, 590),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -71,7 +70,7 @@ def test_ccre_associations(experiment_metadata):
         FeatureRow(
             name="4",
             chrom_name="chr1",
-            location=(940, 950, RangeBounds.HALF_OPEN_RIGHT),
+            location=(940, 950),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -109,7 +108,7 @@ def test_close_ccre_associations(experiment_metadata):
         FeatureRow(
             name="0",
             chrom_name="chr1",
-            location=(90, 100, RangeBounds.HALF_OPEN_RIGHT),
+            location=(90, 100),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -120,7 +119,7 @@ def test_close_ccre_associations(experiment_metadata):
         FeatureRow(
             name="1",
             chrom_name="chr1",
-            location=(200, 220, RangeBounds.HALF_OPEN_RIGHT),
+            location=(200, 220),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -146,7 +145,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="a",
             chrom_name="chr1",
-            location=(0, 50, RangeBounds.HALF_OPEN_RIGHT),
+            location=(0, 50),
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
             feature_type=FeatureType.DHS,
@@ -154,7 +153,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="b",
             chrom_name="chr1",
-            location=(90, 190, RangeBounds.HALF_OPEN_RIGHT),
+            location=(90, 190),
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
             feature_type=FeatureType.DHS,
@@ -162,7 +161,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="c",
             chrom_name="chr1",
-            location=(210, 290, RangeBounds.HALF_OPEN_RIGHT),
+            location=(210, 290),
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
             feature_type=FeatureType.DHS,
@@ -172,7 +171,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="0",
             chrom_name="chr1",
-            location=(5, 10, RangeBounds.HALF_OPEN_RIGHT),
+            location=(5, 10),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -184,7 +183,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="1",
             chrom_name="chr1",
-            location=(15, 25, RangeBounds.HALF_OPEN_RIGHT),
+            location=(15, 25),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -196,7 +195,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="2",
             chrom_name="chr1",
-            location=(30, 40, RangeBounds.HALF_OPEN_RIGHT),
+            location=(30, 40),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -208,7 +207,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="3",
             chrom_name="chr1",
-            location=(91, 99, RangeBounds.HALF_OPEN_RIGHT),
+            location=(91, 99),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -220,7 +219,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="4",
             chrom_name="chr1",
-            location=(120, 130, RangeBounds.HALF_OPEN_RIGHT),
+            location=(120, 130),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -232,7 +231,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="5",
             chrom_name="chr1",
-            location=(120, 130, RangeBounds.HALF_OPEN_RIGHT),
+            location=(120, 130),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",
@@ -244,7 +243,7 @@ def test_parent_ccre_associations(experiment_metadata):
         FeatureRow(
             name="6",
             chrom_name="chr1",
-            location=(120, 130, RangeBounds.HALF_OPEN_RIGHT),
+            location=(120, 130),
             strand=ChromosomeStrands.POSITIVE,
             genome_assembly=GenomeAssembly.HG38,
             cell_line="iPSC",

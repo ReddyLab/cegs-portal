@@ -60,13 +60,6 @@ class GenomeAssembly(StrEnum):
     HG38 = "hg38"
 
 
-class RangeBounds(StrEnum):
-    OPEN = "()"
-    CLOSED = "[]"
-    HALF_OPEN_LEFT = "(]"
-    HALF_OPEN_RIGHT = "[)"
-
-
 class ChromosomeStrands(StrEnum):
     POSITIVE = "+"
     NEGATIVE = "-"

@@ -32,7 +32,6 @@ class FeatureInfo:
     chrom_name: str
     start: int
     end: int
-    bounds: str
 
 
 @dataclass
@@ -40,7 +39,6 @@ class SourceInfo:
     chrom: str
     start: int
     end: int
-    bounds: str
     strand: Optional[str]
     feature_type: FeatureType
 
@@ -51,7 +49,7 @@ class SourceInfo:
             self.strand = None
 
     def __str__(self):
-        return f"{self.chrom}:{self.start}-{self.end}:{self.strand} {self.bounds} {self.feature_type}"
+        return f"{self.chrom}:{self.start}-{self.end}:{self.strand} {self.feature_type}"
 
 
 @dataclass
@@ -88,14 +86,13 @@ class Analysis:
         reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
         for line in reader:
-            chrom_name, start, end, strand, bounds = (
+            chrom_name, start, end, strand = (
                 line["chrom"],
                 int(line["start"]),
                 int(line["end"]),
                 line["strand"],
-                line["bounds"],
             )
-            sources = [SourceInfo(chrom_name, start, end, bounds, strand, source_type)]
+            sources = [SourceInfo(chrom_name, start, end, strand, source_type)]
 
             if (target := line["gene_ensembl_id"]) != "":
                 targets = [target]
@@ -146,7 +143,7 @@ class Analysis:
                         source_cache[source_string] = DNAFeature.objects.filter(
                             experiment_accession_id=experiment_accession_id,
                             chrom_name=source.chrom,
-                            location=NumericRange(source.start, source.end, source.bounds),
+                            location=NumericRange(source.start, source.end),
                             strand=source.strand,
                             ref_genome=genome_assembly,
                             feature_type=DNAFeatureType(source.feature_type),
