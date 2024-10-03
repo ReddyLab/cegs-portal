@@ -47,21 +47,15 @@
         <dd>The chromosome of an associated element that is the "parent" of the tested element</dd>
 
         <dt>parent_start</dt>
-        <dd>Parent element start location (0-indexed)</dd>
+        <dd>Parent element start location (0-indexed, half-open)</dd>
 
         <dt>parent_end</dt>
-        <dd>Parent element end location (0-indexed)</dd>
+        <dd>Parent element end location (0-indexed, half-open)</dd>
 
         <dt>parent_strand</dt>
         <dd>Parent element strand</dd>
 
-        <dt>parent_bounds</dt>
-        <dd>
-            Tested element bounds. This is a string like <code>[]</code> (closed),
-            <code>[)</code>  (half-open), or <code>()</code> (open)
-        </dd>
-
-        <dt>facets</dt>
+        <dt><a id="facets">facets</a></dt>
         <dd>
             Facets are used for categorization and filtering when searching. In the file these
             are key-value pairs in the form of <code>key=value</code> with a <code>;</code>
@@ -108,23 +102,23 @@
         <dt>strand</dt>
         <dd>Tested element strand</dd>
 
-        <dd>gene_name</dd>
-        <dt>The name of the targeted gene (optional)</dt>
+        <dt>gene_name</dt>
+        <dd>The name of the targeted gene (optional; not all experiments target specific genes)</dd>
 
-        <dd>gene_ensembl_id</dd>
-        <dt>The ensembl id of the targeted gene (optional, required if gene_name has a value)</dt>
+        <dt>gene_ensembl_id</dt>
+        <dd>The ensembl id of the targeted gene (optional; required if gene_name has a value)</dd>
 
-        <dd>raw_p_val</dd>
-        <dt>The p-value of the observation</dt>
+        <dt>raw_p_val</dt>
+        <dd>The p-value of the observation</dd>
 
-        <dd>adj_p_val</dd>
-        <dt>The adjusted (e.g., Bonferroni corrected) p-value of the observation</dt>
+        <dt>adj_p_val</dt>
+        <dd>The adjusted (e.g., Bonferroni corrected) p-value of the observation</dd>
 
-        <dd>effect_size</dd>
-        <dt>The size of the observed effect</dt>
+        <dt>effect_size</dt>
+        <dd>The size of the observed effect</dd>
 
-        <dd>facets</dd>
-        <dt>See the facet explination above</dt>
+        <dt>facets</dt>
+        <dd>See the <a href="#facets" class="link">facet explination above</a></dd>
     </dl>
 </div>
 
