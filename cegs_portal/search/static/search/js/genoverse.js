@@ -386,17 +386,17 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
         this.base.apply(this, arguments);
     },
-    parseData: function (data, chr) {
+    parseData: function (data) {
         let model = this;
         let featuresById = this.featuresById;
         let ids = [];
         let transcript_parents = {};
-        let exons = new Set();
 
         data.filter((d) => d.type === "Transcript").forEach(function (transcript, i) {
             transcript_parents[transcript.accession_id] = transcript.parent_accession_id;
 
-            if (!featuresById[transcript.parent_accession_id]) {
+            let geneObj = featuresById[transcript.parent_accession_id];
+            if (!geneObj) {
                 model.geneIds[transcript.parent_accession_id] =
                     model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
                 geneObj = {
@@ -431,21 +431,55 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
                 // Adds feature to featuresById object
                 model.insertFeature(geneObj);
+                ids.push(geneObj.accession_id);
+            } else {
+                geneObj.start = Math.min(geneObj.start, transcript.start);
+                geneObj.end = Math.max(geneObj.end, transcript.end);
             }
-
-            ids.push(geneObj.accession_id);
         });
 
+        // Compute subfeatures for genes
+        // This is necessary because there may be multiple "different" exons that exist in the same location.
+        // If the start and end are the same, we can skip the new one.
+        // If the start is the same but the end is different, we modify the current exon with the largest end
+        // If the end is the same but the start is different, we modify the current exon with the smallest start
+        let potentialGenes = new Map();
         data.filter((d) => d.type === "Exon" && featuresById[transcript_parents[d.parent_accession_id]]).forEach(
             (exon) => {
-                if (!exons.has(exon.accession_id)) {
-                    featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
-                    exons.add(exon.accession_id);
+                let geneId = transcript_parents[exon.parent_accession_id];
+                let gene = potentialGenes.get(geneId);
+                // New gene, so we can just add the current exon
+                if (!gene) {
+                    gene = new Array();
+                    gene.push(exon);
+                    potentialGenes.set(geneId, gene);
+                } else {
+                    // cycle through existing exons to see if we can merge with one
+                    let merged = false;
+                    for (let oldExon of gene) {
+                        if (!merged && exon.start <= oldExon.end && exon.end >= oldExon.start) {
+                            oldExon.start = Math.min(oldExon.start, exon.start);
+                            oldExon.end = Math.max(exon.end, oldExon.end);
+                            merged = true;
+                        }
+                    }
+                    if (!merged) {
+                        gene.push(exon);
+                    }
                 }
             },
         );
 
-        ids.forEach((id) => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
+        // Add computed subfeatures to the genes
+        potentialGenes.forEach((gene, geneId) => {
+            gene.forEach((exon) => {
+                featuresById[geneId].subFeatures.push(exon);
+            });
+        });
+
+        for (let id in featuresById) {
+            featuresById[id].subFeatures.sort((a, b) => a.start - b.start);
+        }
     },
 });
 
