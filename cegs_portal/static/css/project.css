@@ -3015,6 +3015,10 @@ fieldset legend {
     display: block;
   }
 
+  .md\:hidden {
+    display: none;
+  }
+
   .md\:w-1\/4 {
     width: 25%;
   }
