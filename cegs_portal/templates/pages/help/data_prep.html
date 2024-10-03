@@ -35,16 +35,13 @@
         <dd>Tested element chromosome</dd>
 
         <dt>start</dt>
-        <dd>Tested element start location (0-indexed)</dd>
+        <dd>Tested element start location (0-indexed, half-open)</dd>
 
         <dt>end</dt>
-        <dd>Tested element end location (0-indexed)</dd>
+        <dd>Tested element end location (0-indexed, half-open)</dd>
 
         <dt>strand</dt>
         <dd>Tested element strand</dd>
-
-        <dt>bounds</dt>
-        <dd>Tested element bounds. This is a string like <code>[]</code> (closed), <code>[)</code>  (half-open), or <code>()</code> (open)</dd>
 
         <dt>parent_chrom</dt>
         <dd>The chromosome of an associated element that is the "parent" of the tested element</dd>
@@ -97,9 +94,38 @@
         The analysis data file is a tab-separated list of values. We often call it "observations.tsv", but the name can be anything as
         long as it's also in the <a href="/help/metadata/" class="link">metadata file</a>. The columns are as follows:
     </p>
-    <table>
-        <tr><th>chrom</th><th>start</th><th>end</th><th>strand</th><th>bounds</th><th>gene_name</th><th>gene_ensembl_id</th><th>raw_p_val</th><th>adj_p_val</th><th>effect_size</th><th>facets</th></tr>
-    </table>
+
+    <dl>
+        <dt>chrom</dt>
+        <dd>Tested element chromosome</dd>
+
+        <dt>start</dt>
+        <dd>Tested element start location (0-indexed, half-open)</dd>
+
+        <dt>end</dt>
+        <dd>Tested element end location (0-indexed, half-open)</dd>
+
+        <dt>strand</dt>
+        <dd>Tested element strand</dd>
+
+        <dd>gene_name</dd>
+        <dt>The name of the targeted gene (optional)</dt>
+
+        <dd>gene_ensembl_id</dd>
+        <dt>The ensembl id of the targeted gene (optional, required if gene_name has a value)</dt>
+
+        <dd>raw_p_val</dd>
+        <dt>The p-value of the observation</dt>
+
+        <dd>adj_p_val</dd>
+        <dt>The adjusted (e.g., Bonferroni corrected) p-value of the observation</dt>
+
+        <dd>effect_size</dd>
+        <dt>The size of the observed effect</dt>
+
+        <dd>facets</dd>
+        <dt>See the facet explination above</dt>
+    </dl>
 </div>
 
 {% endblock content %}
