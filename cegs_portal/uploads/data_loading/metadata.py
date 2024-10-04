@@ -28,7 +28,6 @@ class AnalysisMetadataKeys(StrEnum):
     DESCRIPTION = "description"
     SOURCE_TYPE = "source type"
     GENOME_ASSEMBLY = "genome_assembly"
-    GENOME_ASSEMBLY_PATCH = "genome_assembly_patch"
     P_VAL_THRESHOLD = "p_val_threshold"
     P_VAL_ADJ_METHOD = "p_val_adj_method"
     RESULTS = "results"
@@ -108,7 +107,6 @@ class AnalysisMetadata(Metadata):
     source_type: str
     results: FileMetadata
     genome_assembly: str
-    genome_assembly_patch: Optional[str]
     p_val_threshold: float
     p_val_adj_method: str
     data_format: str
@@ -121,7 +119,6 @@ class AnalysisMetadata(Metadata):
 
         self.results = FileMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
         self.genome_assembly = analysis_dict[AnalysisMetadataKeys.GENOME_ASSEMBLY]
-        self.genome_assembly_patch = analysis_dict.get(AnalysisMetadataKeys.GENOME_ASSEMBLY_PATCH)
         self.p_val_threshold = analysis_dict[AnalysisMetadataKeys.P_VAL_THRESHOLD]
         self.p_val_adj_method = analysis_dict.get(AnalysisMetadataKeys.P_VAL_ADJ_METHOD, "unknown")
 
@@ -135,7 +132,6 @@ class AnalysisMetadata(Metadata):
                 experiment=experiment,
                 name=self.name,
                 genome_assembly=self.genome_assembly,
-                genome_assembly_patch=self.genome_assembly_patch,
                 p_value_threshold=self.p_val_threshold,
                 p_value_adj_method=self.p_val_adj_method,
             )
