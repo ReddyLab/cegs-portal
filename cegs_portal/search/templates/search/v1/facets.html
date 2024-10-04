@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Facets{% endblock %}
+{% block content %}
+
+<div>
+    <h1>CCGR Portal Facets</h1>
+
+    <div class="content-container flex flex-row flex-wrap gap-5">
+        {% for facet in facets %}
+        <div>
+        <h2 class="bold text-xl">{{ facet.name }}</h2>
+        <ul class="list-disc list-inside">
+        {% for value in facet.values.all %}
+            <li>{{ value.value }}</li>
+        {% endfor %}
+        </ul>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}

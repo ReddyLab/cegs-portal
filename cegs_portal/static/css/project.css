@@ -831,6 +831,13 @@ h2 {
   text-shadow: 2px 2px #e3f2fd;
 }
 
+h3 {
+  font-family: sans-serif;
+  font-size: 1.25rem;
+  color: #094474;
+  text-shadow: 1px 1px #e3f2fd;
+}
+
 .page-header-w-icon {
   font-family: sans-serif;
   font-size: 2rem;
@@ -1210,6 +1217,10 @@ input[type="submit"], input[type="button"], button {
   margin-left: 1rem;
 }
 
+.ml-5 {
+  margin-left: 1.25rem;
+}
+
 .ml-auto {
   margin-left: auto;
 }
@@ -1467,6 +1478,10 @@ input[type="submit"], input[type="button"], button {
   resize: both;
 }
 
+.list-inside {
+  list-style-position: inside;
+}
+
 .list-disc {
   list-style-type: disc;
 }
@@ -1576,6 +1591,12 @@ input[type="submit"], input[type="button"], button {
   --tw-space-y-reverse: 0;
   margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
+.space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.25rem * var(--tw-space-y-reverse));
 }
 
 .divide-y > :not([hidden]) ~ :not([hidden]) {

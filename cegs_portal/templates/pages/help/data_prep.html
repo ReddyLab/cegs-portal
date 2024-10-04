@@ -1,0 +1,125 @@
+{% extends "pages/help/help.html" %}
+
+{% block css %}
+{{ block.super }}
+
+<style>
+    dl > dt {
+        font-weight: bold;
+    }
+
+    dl > dd {
+        margin-inline-start: 1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container about-container flex flex-col space-y-2">
+    <h1>Data Preperation</h1>
+
+    <h2>Experiment Data Format</h2>
+    <p>
+        Experiment data is the data we need from the experiment that isn't specific to an analysis. This includes
+        the locations of tested elements and associated elements, if applicable.
+    </p>
+
+    <p>
+        The experiment data file is a tab-separated list of values. We often call it "tested_elements.tsv", but the name
+        can be anything as long as it's also in the <a href="/help/metadata/" class="link">metadata file</a>.
+        The columns are as follows:
+    </p>
+
+    <dl>
+        <dt>chrom</dt>
+        <dd>Tested element chromosome</dd>
+
+        <dt>start</dt>
+        <dd>Tested element start location (0-indexed, half-open)</dd>
+
+        <dt>end</dt>
+        <dd>Tested element end location (0-indexed, half-open)</dd>
+
+        <dt>strand</dt>
+        <dd>Tested element strand</dd>
+
+        <dt>parent_chrom</dt>
+        <dd>The chromosome of an associated element that is the "parent" of the tested element</dd>
+
+        <dt>parent_start</dt>
+        <dd>Parent element start location (0-indexed, half-open)</dd>
+
+        <dt>parent_end</dt>
+        <dd>Parent element end location (0-indexed, half-open)</dd>
+
+        <dt>parent_strand</dt>
+        <dd>Parent element strand</dd>
+
+        <dt><a id="facets">facets</a></dt>
+        <dd>
+            Facets are used for categorization and filtering when searching. In the file these
+            are key-value pairs in the form of <code>key=value</code> with a <code>;</code>
+            separating pairs. With the <code>key</code> being the name of a facet and the
+            <code>value</code> being a specific kind of <code>key</code>. For example, the
+            facet might be "Assays" and the facet value might be "Flow-FISH CRISPR Screen"
+            <a href="/search/facets/" class="link">These are the current facets</a>. If you want
+            a new facet or to add a new facet value to an existing facet please
+            <a href="mailto:ccgr_portal_admin@duke.edu?subject=Requesting%20New%20Facet" class="link">let us know!</a>
+        </dd>
+
+        <dt>misc</dt>
+        <dd>
+            This is any miscellaneous data you'd like included with each item. It should be
+            in the same format as the facets. It won't be used for searching, it'll just exist
+            in the database.
+        </dd>
+    </dl>
+
+    <p>
+        If there are any columns that you don't need just leave them blank, don't remove them completely
+    </p>
+
+    <h2>Analysis Data Format</h2>
+    <p>
+        Analysis data is the data we need that is specific to a particular analysis. This includes the locations of tested elements,
+        the effect sizes, and p values.
+    </p>
+    <p>
+        The analysis data file is a tab-separated list of values. We often call it "observations.tsv", but the name can be anything as
+        long as it's also in the <a href="/help/metadata/" class="link">metadata file</a>. The columns are as follows:
+    </p>
+
+    <dl>
+        <dt>chrom</dt>
+        <dd>Tested element chromosome</dd>
+
+        <dt>start</dt>
+        <dd>Tested element start location (0-indexed, half-open)</dd>
+
+        <dt>end</dt>
+        <dd>Tested element end location (0-indexed, half-open)</dd>
+
+        <dt>strand</dt>
+        <dd>Tested element strand</dd>
+
+        <dt>gene_name</dt>
+        <dd>The name of the targeted gene (optional; not all experiments target specific genes)</dd>
+
+        <dt>gene_ensembl_id</dt>
+        <dd>The ensembl id of the targeted gene (optional; required if gene_name has a value)</dd>
+
+        <dt>raw_p_val</dt>
+        <dd>The p-value of the observation</dd>
+
+        <dt>adj_p_val</dt>
+        <dd>The adjusted (e.g., Bonferroni corrected) p-value of the observation</dd>
+
+        <dt>effect_size</dt>
+        <dd>The size of the observed effect</dd>
+
+        <dt>facets</dt>
+        <dd>See the <a href="#facets" class="link">facet explination above</a></dd>
+    </dl>
+</div>
+
+{% endblock content %}

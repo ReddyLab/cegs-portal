@@ -1,0 +1,49 @@
+{% extends "pages/help/help.html" %}
+
+{% block content %}
+<div class="content-container about-container flex flex-col space-y-2">
+    <h1>Experiment and Analysis Metadata</h1>
+
+    <p>
+        Every experiment and analysis we add to the portal needs to have some basic metadata included
+        along with it. This metadata is shown when users view the experiment and used to help categorize
+        and filter experiments so users can more easily find the kind of data they are interested in.
+    </p>
+
+    <h2>Experiment Metadata</h2>
+    <p>
+        Experiment Metadata is meant to be independent of any specific analysis. This includes things like a name,
+        description, biosample, assay, tested element type, and location of a file with the locations of the
+        tested elements.
+    </p>
+    <p>
+        This metadata should be a json file called <code>experiment.json</code> and must adhere to
+        <a href="https://github.com/ReddyLab/ccgr_portal_data_loading/blob/main/src/data_utilities/experiment_metadata.schema.json" class="link">this schema</a>.
+    </p>
+
+
+    <h2>Analysis Metadata</h2>
+    <p>
+        Analysis Metadata is meant to cover information about a specific analysis. This includes things like a name,
+        description, p-value threshold, p-value adjustment method, and the location of the file with the analysis results.
+    </p>
+    <p>
+        This metadata should be a json file called <code>analysis001.json</code> and must adhere to
+        <a href="https://github.com/ReddyLab/ccgr_portal_data_loading/blob/main/src/data_utilities/analysis_metadata.schema.json" class="link">this schema</a>.
+    </p>
+
+    <hr />
+
+    <p>
+        We have a <a href="https://github.com/ReddyLab/ccgr_portal_data_loading/tree/main" class="link">set of data utilities</a> that you can use to validate your
+        data and metadata files. To validate metadata run the included <a href="https://github.com/ReddyLab/ccgr_portal_data_loading/blob/main/src/data_utilities/metadata_validation.py" class="link">metadata validation script</a>
+        that can be used for both experiment and analysis metadata
+    </p>
+    <p>
+        For more information on JSON Schemas, check out <a href="https://json-schema.org/specification" class="link">the specification</a>.
+        There are <a href="https://json-schema.org/tools?query=&sortBy=name&sortOrder=ascending&groupBy=none&licenses=&languages=&drafts=&toolingTypes=validator" class="link">quite a few validators</a> available. Please
+        pick one that meets your needs. Our project uses <a href="https://github.com/python-jsonschema/jsonschema" class="link">jsonschema</a> with no problems.
+    </p>
+</div>
+
+{% endblock content %}
