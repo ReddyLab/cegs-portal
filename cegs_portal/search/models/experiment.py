@@ -41,7 +41,8 @@ class Biosample(Accessioned):
         return f"{self.name} ({self.cell_line_name})"
 
 
-class CRISPRModulationType(StrEnum):
+class FunctionalCharacterizationType(StrEnum):
+    REPORTER_ASSAY = "Reporter Assay"
     CRISPRA = "CRISPRa"
     CRISPRI = "CRISPRi"
 
@@ -63,7 +64,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         CELL_LINE = "Cell Line"
         TISSUE_TYPE = "Tissue Type"
         GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
-        CRISPR_MODULATION = "CRISPR Modulation"  # CRISPRModulationType
+        FUNCTIONAL_CHARACTERIZATION = "Functional Characterization Modality"  # FunctionalCharacterizationType
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)

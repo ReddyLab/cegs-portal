@@ -20,7 +20,7 @@ from cegs_portal.search.models import (
 from utils.db_ids import ReoIds
 
 from .db import bulk_reo_save, cat_facet_entry, reo_entry, source_entry, target_entry
-from .experiment_metadata import AnalysisMetadata, InternetFile
+from .metadata import AnalysisMetadata, InternetFile
 from .types import Facets, FeatureType
 
 MIN_SIG = 1e-100
