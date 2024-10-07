@@ -237,7 +237,7 @@
                     <div id="chrom-data-counts"></div>
                 </div>
 
-                <div class="facet-content-section content-container mx-auto">
+                <div class="facet-content-section content-container mx-auto hidden md:block">
                     <form name="regionUploadForm">
                             <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
                             <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
@@ -247,7 +247,7 @@
                 </div>
 
                 {% if logged_in %}
-                <div class="facet-content-section content-container mx-auto">
+                <div class="facet-content-section content-container mx-auto hidden md:block">
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
