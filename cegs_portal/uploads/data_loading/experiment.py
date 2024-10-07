@@ -27,7 +27,7 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
-from .experiment_metadata import ExperimentMetadata, InternetFile
+from .metadata import ExperimentMetadata, InternetFile
 from .types import (
     ChromosomeStrands,
     FeatureType,

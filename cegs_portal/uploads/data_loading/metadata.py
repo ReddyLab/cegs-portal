@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from enum import StrEnum
 from io import StringIO
 from typing import Any, Optional
 
@@ -20,6 +21,29 @@ from .biosample import ExperimentBiosample
 from .file import FileMetadata
 
 MAX_METADATA_CONTENT_LENGTH = 65_536
+
+
+class AnalysisMetadataKeys(StrEnum):
+    NAME = "name"
+    DESCRIPTION = "description"
+    SOURCE_TYPE = "source type"
+    GENOME_ASSEMBLY = "genome_assembly"
+    P_VAL_THRESHOLD = "p_val_threshold"
+    P_VAL_ADJ_METHOD = "p_val_adj_method"
+    RESULTS = "results"
+
+
+class ExperimentMetadataKeys(StrEnum):
+    DESCRIPTION = "description"
+    ASSAY = "assay"
+    NAME = "name"
+    BIOSAMPLES = "biosamples"
+    SOURCE_TYPE = "source type"
+    PARENT_SOURCE_TYPE = "parent source type"
+    YEAR = "year"
+    LAB = "lab"
+    FUNCTIONAL_CHARACTERIZATION = "functional_characterization_modality"
+    TESTED_ELEMENTS_FILE = "tested_elements_file"
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -83,29 +107,22 @@ class AnalysisMetadata(Metadata):
     source_type: str
     results: FileMetadata
     genome_assembly: str
-    genome_assembly_patch: str
     p_val_threshold: float
     p_val_adj_method: str
     data_format: str
-    misc_files: list[FileMetadata]
 
     def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
-        self.description = analysis_dict["description"]
+        self.description = analysis_dict[AnalysisMetadataKeys.DESCRIPTION]
         self.experiment_accession_id = experiment_accession_id
-        self.name = analysis_dict["name"]
+        self.name = analysis_dict[AnalysisMetadataKeys.NAME]
         assert self.name != ""
 
-        self.results = FileMetadata(analysis_dict["results"])
-        self.genome_assembly = analysis_dict["genome_assembly"]
-        self.genome_assembly_patch = analysis_dict.get("genome_assembly_patch", None)
-        self.p_val_threshold = analysis_dict["p_val_threshold"]
-        self.p_val_adj_method = analysis_dict.get("p_val_adj_method", "unknown")
+        self.results = FileMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
+        self.genome_assembly = analysis_dict[AnalysisMetadataKeys.GENOME_ASSEMBLY]
+        self.p_val_threshold = analysis_dict[AnalysisMetadataKeys.P_VAL_THRESHOLD]
+        self.p_val_adj_method = analysis_dict.get(AnalysisMetadataKeys.P_VAL_ADJ_METHOD, "unknown")
 
-        self.source_type = analysis_dict["source type"]
-        self.data_format = analysis_dict.get("data_format", "standard")
-        self.misc_files = (
-            [FileMetadata(file) for file in analysis_dict["misc_files"]] if "misc_files" in analysis_dict else []
-        )
+        self.source_type = analysis_dict[AnalysisMetadataKeys.SOURCE_TYPE]
 
     def db_save(self):
         experiment = Experiment.objects.get(accession_id=self.experiment_accession_id)
@@ -115,7 +132,6 @@ class AnalysisMetadata(Metadata):
                 experiment=experiment,
                 name=self.name,
                 genome_assembly=self.genome_assembly,
-                genome_assembly_patch=self.genome_assembly_patch,
                 p_value_threshold=self.p_val_threshold,
                 p_value_adj_method=self.p_val_adj_method,
             )
@@ -147,32 +163,26 @@ class ExperimentMetadata(Metadata):
     description: Optional[str]
     assay: Optional[str]
     name: str
-    crispr: Optional[str]
+    functional_characterization: Optional[str]
     accession_id: str
     biosamples: list[ExperimentBiosample]
     source_type: str
-    data_format: str
     parent_source_type: Optional[str]
     tested_elements_file: FileMetadata
-    misc_files: list[FileMetadata]
 
     def __init__(self, experiment_dict: dict[str, Any], accession_id):
-        self.description = experiment_dict.get("description")
-        self.assay = experiment_dict.get("assay")
-        self.name = experiment_dict["name"]
+        self.description = experiment_dict.get(ExperimentMetadataKeys.DESCRIPTION)
+        self.assay = experiment_dict.get(ExperimentMetadataKeys.ASSAY)
+        self.name = experiment_dict[ExperimentMetadataKeys.NAME]
         assert self.name != ""
-        self.crispr = experiment_dict.get("crispr")
+        self.functional_characterization = experiment_dict.get(ExperimentMetadataKeys.FUNCTIONAL_CHARACTERIZATION)
         self.accession_id = accession_id
-        self.source_type = experiment_dict["source type"]
-        self.data_format = experiment_dict.get("data_format", "standard")
-        self.parent_source_type = (
-            experiment_dict["parent source type"] if "parent source type" in experiment_dict else None
-        )
+        self.source_type = experiment_dict[ExperimentMetadataKeys.SOURCE_TYPE]
+        self.parent_source_type = experiment_dict.get(ExperimentMetadataKeys.PARENT_SOURCE_TYPE)
 
-        self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict["biosamples"]]
-        self.tested_elements_file = FileMetadata(experiment_dict["tested_elements_file"], self.biosamples)
-        self.misc_files = (
-            [FileMetadata(file) for file in experiment_dict["misc_files"]] if "misc_files" in experiment_dict else []
+        self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict[ExperimentMetadataKeys.BIOSAMPLES]]
+        self.tested_elements_file = FileMetadata(
+            experiment_dict[ExperimentMetadataKeys.TESTED_ELEMENTS_FILE], self.biosamples
         )
 
     def db_save(self):
@@ -192,9 +202,9 @@ class ExperimentMetadata(Metadata):
         source_facet = FacetValue.objects.get(value__iexact=self.source_type)
         experiment.facet_values.add(source_facet)
 
-        if self.crispr is not None:
-            crispr_facet = FacetValue.objects.get(value=self.crispr)
-            experiment.facet_values.add(crispr_facet)
+        if self.functional_characterization is not None:
+            fc_facet = FacetValue.objects.get(value=self.functional_characterization)
+            experiment.facet_values.add(fc_facet)
 
         assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_file.genome_assembly)
         experiment.facet_values.add(assembly_facet)
@@ -217,6 +227,7 @@ class ExperimentMetadata(Metadata):
             tissue_type_facet = FacetValue.objects.get(value__iexact=biosample.tissue_type)
             experiment.facet_values.add(cell_line_facet)
             experiment.facet_values.add(tissue_type_facet)
+
         return experiment
 
     def db_del(self):

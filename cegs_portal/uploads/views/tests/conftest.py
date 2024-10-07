@@ -3,12 +3,12 @@ from psycopg2.extras import NumericRange
 
 from cegs_portal.conftest import SearchClient
 from cegs_portal.search.models import (
-    CRISPRModulationType,
     DNAFeature,
     DNAFeatureType,
     EffectObservationDirectionType,
     Experiment,
     Facet,
+    FunctionalCharacterizationType,
     GenomeAssemblyType,
     GrnaType,
     PromoterType,
@@ -124,11 +124,11 @@ def facets() -> list[Facet]:
     # they are created when pytest is run with --create-db but deleted at the end of the run. So
     # we don't want to create them when pytest is run with --create-db, but do want to create them
     # otherwise.
-    crispr = Facet.objects.filter(name=Experiment.Facet.CRISPR_MODULATION.value).first()
+    crispr = Facet.objects.filter(name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value).first()
     if crispr is None:
-        crispr_facet = FacetFactory(description="", name=Experiment.Facet.CRISPR_MODULATION.value)
-        _ = FacetValueFactory(facet=crispr_facet, value=CRISPRModulationType.CRISPRA)
-        _ = FacetValueFactory(facet=crispr_facet, value=CRISPRModulationType.CRISPRI)
+        crispr_facet = FacetFactory(description="", name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value)
+        _ = FacetValueFactory(facet=crispr_facet, value=FunctionalCharacterizationType.CRISPRA)
+        _ = FacetValueFactory(facet=crispr_facet, value=FunctionalCharacterizationType.CRISPRI)
 
     assembly = Facet.objects.filter(name=Experiment.Facet.GENOME_ASSEMBLY.value).first()
     if assembly is None:

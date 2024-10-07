@@ -4,7 +4,7 @@ import tempfile
 
 from .analysis import Analysis
 from .experiment import Experiment
-from .experiment_metadata import AnalysisMetadata, ExperimentMetadata
+from .metadata import AnalysisMetadata, ExperimentMetadata
 
 
 def load(compressed_file, experiment_accession_id):
