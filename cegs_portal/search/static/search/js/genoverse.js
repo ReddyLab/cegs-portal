@@ -86,6 +86,7 @@ CEGSGenoverse = Genoverse.extend({
             callback(this._sharedState, key);
         }
     },
+    fullWidth: 0, // browser.width doesn't include control panels or labels
     sharedStateCallbacks: [],
     constructor: function (config) {
         // The portal backend uses "hg19/hg38"
@@ -108,10 +109,19 @@ CEGSGenoverse = Genoverse.extend({
     init: function () {
         this.base();
         this.updateSharedState("region", {chr: this.chr, start: this.start, end: this.end});
+        this.fullWidth = browserWidth();
 
         let browser = this;
         window.addEventListener("resize", function () {
-            browser.setWidth(browserWidth());
+            // On iOS devices the "resize" event is dispatched when scrolling, for some reason.
+            // In order to avoid constant "resizes" (that are to the same width, but still make network calls
+            // to refetch the data) we keep track of the current "full width" and only resize if the new computed width
+            // is different.
+            let bw = browserWidth();
+            if (browser.fullWidth != bw) {
+                browser.fullWidth = bw;
+                browser.setWidth(bw);
+            }
         });
     },
     updateURL: function () {
@@ -143,13 +153,28 @@ Genoverse.Track.View.cCRE = Genoverse.Track.View.extend({
     },
 });
 
+Genoverse.Track.Model.Coverage = Genoverse.Track.Model.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&property=reo_source",
+    dataRequestLimit: 5000000,
+});
+
+Genoverse.Track.View.Coverage = Genoverse.Track.View.extend({
+    featureHeight: 15,
+    labels: false,
+    repeatLabels: true,
+    bump: false,
+    setFeatureColor: function (feature) {
+        feature.color = "#502050";
+    },
+});
+
 Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant",
     dataRequestLimit: 5000000,
 });
 
 Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
-    featureHeight: 10,
+    featureHeight: 15,
     labels: true,
     repeatLabels: true,
     bump: true,
@@ -349,6 +374,7 @@ Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
 });
 
 Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
+    featureHeight: 13,
     setFeatureColor: function (feature) {
         if (feature.subtype === "Protein Coding") {
             feature.color = "#A00000";
@@ -367,7 +393,7 @@ Genoverse.Track.View.Gene.Portal = Genoverse.Track.View.Gene.extend({
 });
 
 Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_subtype",
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Transcript&feature_type=Exon&property=parent_info",
     dataRequestLimit: 5000000, // As per e! REST API restrictions
 
     setDefaults: function () {
@@ -376,17 +402,17 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
         this.base.apply(this, arguments);
     },
-    parseData: function (data, chr) {
+    parseData: function (data) {
         let model = this;
         let featuresById = this.featuresById;
         let ids = [];
         let transcript_parents = {};
-        let exons = new Set();
 
         data.filter((d) => d.type === "Transcript").forEach(function (transcript, i) {
             transcript_parents[transcript.accession_id] = transcript.parent_accession_id;
 
-            if (!featuresById[transcript.parent_accession_id]) {
+            let geneObj = featuresById[transcript.parent_accession_id];
+            if (!geneObj) {
                 model.geneIds[transcript.parent_accession_id] =
                     model.geneIds[transcript.parent_accession_id] || ++model.seenGenes;
                 geneObj = {
@@ -421,25 +447,60 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
                 // Adds feature to featuresById object
                 model.insertFeature(geneObj);
+                ids.push(geneObj.accession_id);
+            } else {
+                geneObj.start = Math.min(geneObj.start, transcript.start);
+                geneObj.end = Math.max(geneObj.end, transcript.end);
             }
-
-            ids.push(geneObj.accession_id);
         });
 
+        // Compute subfeatures for genes
+        // This is necessary because there may be multiple "different" exons that exist in the same location.
+        // If the start and end are the same, we can skip the new one.
+        // If the start is the same but the end is different, we modify the current exon with the largest end
+        // If the end is the same but the start is different, we modify the current exon with the smallest start
+        let potentialGenes = new Map();
         data.filter((d) => d.type === "Exon" && featuresById[transcript_parents[d.parent_accession_id]]).forEach(
             (exon) => {
-                if (!exons.has(exon.accession_id)) {
-                    featuresById[transcript_parents[exon.parent_accession_id]].subFeatures.push(exon);
-                    exons.add(exon.accession_id);
+                let geneId = transcript_parents[exon.parent_accession_id];
+                let gene = potentialGenes.get(geneId);
+                // New gene, so we can just add the current exon
+                if (!gene) {
+                    gene = new Array();
+                    gene.push(exon);
+                    potentialGenes.set(geneId, gene);
+                } else {
+                    // cycle through existing exons to see if we can merge with one
+                    let merged = false;
+                    for (let oldExon of gene) {
+                        if (!merged && exon.start <= oldExon.end && exon.end >= oldExon.start) {
+                            oldExon.start = Math.min(oldExon.start, exon.start);
+                            oldExon.end = Math.max(exon.end, oldExon.end);
+                            merged = true;
+                        }
+                    }
+                    if (!merged) {
+                        gene.push(exon);
+                    }
                 }
             },
         );
 
-        ids.forEach((id) => featuresById[id].subFeatures.sort((a, b) => a.start - b.start));
+        // Add computed subfeatures to the genes
+        potentialGenes.forEach((gene, geneId) => {
+            gene.forEach((exon) => {
+                featuresById[geneId].subFeatures.push(exon);
+            });
+        });
+
+        for (let id in featuresById) {
+            featuresById[id].subFeatures.sort((a, b) => a.start - b.start);
+        }
     },
 });
 
 Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend({
+    featureHeight: 13,
     setFeatureColor: function (feature) {
         var processedTranscript = {
             "sense intronic": 1,
@@ -508,6 +569,99 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
 
                 this.container
                     .attr("title", f.ccre_type)
+                    .tipsy({trigger: "manual", container: "body", offset: -15})
+                    .tipsy("show")
+                    .data("tipsy")
+                    .$tip.css("left", function () {
+                        return e.clientX - Genoverse.jQuery(this).width() / 2;
+                    });
+            } else {
+                this.container.tipsy("hide");
+            }
+        }
+    },
+    addUserEventHandlers: function () {
+        var track = this;
+
+        this.base();
+
+        this.container.on(
+            {
+                mousemove: function (e) {
+                    track.click(e);
+                },
+                mouseout: function (e) {
+                    track.container.tipsy("hide");
+                },
+            },
+            ".gv-image-container",
+        );
+    },
+});
+
+Genoverse.Track.Coverage = Genoverse.Track.extend({
+    id: "coverage",
+    name: "Coverage",
+    resizable: false,
+    model: Genoverse.Track.Model.Coverage,
+    view: Genoverse.Track.View.Coverage,
+    border: false,
+    controls: "off",
+    populateMenu: async function (feature) {
+        let url = `/search/feature/accession/${feature.accession_id}`;
+        let type = feature.type.toUpperCase();
+        let menu = {
+            title: `<a target="_blank" href="${url}">${type}: ${feature.accession_id}</a>`,
+            Location: `chr${feature.chr}:${feature.start}-${feature.end}`,
+            Assembly: feature.ref_genome,
+            "Closest Gene": `<a target="_blank" href="/search/feature/ensembl/${feature.closest_gene_ensembl_id}">${feature.closest_gene_name} (${feature.closest_gene_ensembl_id})</a>`,
+        };
+
+        let effects = await fetch(
+            `/search/feature/accession/${feature.accession_id}/source_for?accept=application/json`,
+        ).then((response) => {
+            if (!response.ok) {
+                throw new Error(`${path} fetch failed: ${response.status} ${response.statusText}`);
+            }
+
+            return response.json();
+        });
+        let i = 1;
+        for (let reo of effects.object_list.slice(0, 5)) {
+            let effect_size;
+            if (reo.targets.length > 0) {
+                effect_size = `<a target="_blank" href="/search/feature/accession/${reo.targets[0][0]}">${reo.targets[0][1]} ${reo.effect_size}</a>`;
+            } else {
+                effect_size = `${reo.effect_size}`;
+            }
+            menu[`${i}.`] =
+                `<a target="_blank" href="/search/experiment/${reo.experiment.accession_id}">Screen: ${reo.experiment.type}</a>, Effect Size: ${effect_size}`;
+
+            i++;
+        }
+
+        if (effects.object_list.length > 5) {
+            menu[`Full Effect List`] =
+                `<a target="_blank" href="/search/feature/accession/${feature.accession_id}/source_for">All Associated Effects</a>`;
+        }
+
+        return menu;
+    },
+    click: function (e) {
+        var target = Genoverse.jQuery(e.target);
+        var x = e.pageX - this.container.parent().offset().left + this.browser.scaledStart;
+        var y = e.pageY - target.offset().top;
+        if (e.type === "mouseup") {
+            this.browser.makeMenu(this.getClickedFeatures(x, y, target), e, this.track);
+            return;
+        } else if (e.type === "mousemove") {
+            var f = this.getClickedFeatures(x, 3, target)[0];
+
+            if (f) {
+                this.container.tipsy("hide");
+
+                this.container
+                    .attr("title", f.type)
                     .tipsy({trigger: "manual", container: "body", offset: -15})
                     .tipsy("show")
                     .data("tipsy")
@@ -649,12 +803,12 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     configSettings: {
         squish: {
             true: {
-                featureHeight: 2,
+                featureHeight: 7,
                 featureMargin: {top: 1, right: 1, bottom: 1, left: 0},
                 labels: false,
             },
             false: {
-                featureHeight: 6,
+                featureHeight: 15,
                 featureMargin: {top: 2, right: 2, bottom: 2, left: 0},
                 labels: true,
             },

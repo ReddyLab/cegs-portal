@@ -16,6 +16,7 @@ from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     MultiResponseFormatView,
 )
+from cegs_portal.utils import truthy_to_bool
 from cegs_portal.utils.pagination_types import Pageable
 
 
@@ -61,17 +62,10 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
                 * whether or not to include only significant observations
         """
 
-        def get_sig_only(value):
-            if value == "0" or value == "false" or value == "False":
-                return False
-            else:
-                return True
-
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
-        sig_only = request.GET.get("sig_only", True)
-        options["sig_only"] = get_sig_only(sig_only)
+        options["sig_only"] = truthy_to_bool(request.GET.get("sig_only", True))
         options["tsv_format"] = request.GET.get("tsv_format", None)
 
         return options

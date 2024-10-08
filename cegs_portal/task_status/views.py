@@ -3,16 +3,10 @@ from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 
 from cegs_portal.search.views.custom_views import MultiResponseFormatView
+from cegs_portal.utils import truthy_to_bool
 
 from .json_templates.task_status import task_status, task_statuses
 from .view_models import get_status
-
-
-def get_bool_param(value):
-    if value == "0" or value == "false" or value == "False":
-        return False
-    else:
-        return True
 
 
 class TaskStatusView(UserPassesTestMixin, MultiResponseFormatView):
@@ -60,7 +54,7 @@ class TaskStatusListView(UserPassesTestMixin, MultiResponseFormatView):
         options = super().request_options(request)
         options["page"] = int(request.GET.get("page", 1))
         options["per_page"] = int(request.GET.get("per_page", 20))
-        options["paginate"] = get_bool_param(request.GET.get("paginate", True))
+        options["paginate"] = truthy_to_bool(request.GET.get("paginate", True))
         return options
 
     def get(self, request, options, data, username):

@@ -2,6 +2,7 @@ from typing import Any, Iterable, Optional, TypedDict, Union, cast
 
 from cegs_portal.search.json_templates import genoversify
 from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.view_models.v1.dna_features import LocSearchProperty
 from cegs_portal.utils.pagination_types import Pageable, PageableJson
 
 FeatureJson = TypedDict(
@@ -58,8 +59,6 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
         "type": feature_obj.get_feature_type_display(),
         "subtype": feature_obj.feature_subtype,
         "parent_accession_id": feature_obj.parent_accession_id,
-        "parent_ensembl_id": feature_obj.parent.ensembl_id if feature_obj.parent else None,
-        "parent": feature_obj.parent.name if feature_obj.parent else None,
         "name": feature_obj.name,
         "ids": feature_obj.ids,
         "misc": feature_obj.misc,
@@ -67,27 +66,29 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
     }
 
     if options is not None:
-        feature_properties = set(options.get("feature_properties", []))
-        if "regeffects" in feature_properties:
-            result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
-            result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
-
-        if "effect_directions" in feature_properties:
-            result["effect_directions"] = feature_obj.effect_directions
-
         if options.get("json_format", None) == "genoverse":
             genoversify(result)
 
-        if "screen_ccre" in feature_properties:
+        feature_properties = set(options.get("feature_properties", []))
+        if LocSearchProperty.REG_EFFECTS in feature_properties:
+            result["source_for"] = [reg_effect(r, options) for r in feature_obj.source_for.all()]
+            result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
+
+        if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
+            result["effect_directions"] = feature_obj.effect_directions
+
+        if LocSearchProperty.SCREEN_CCRE in feature_properties:
             result["ccre_type"] = feature_obj.ccre_type
 
-        if "parent_subtype" in feature_properties:
+        if LocSearchProperty.PARENT_INFO in feature_properties:
+            result["parent"] = (feature_obj.parent.name if feature_obj.parent else None,)
+            result["parent_ensembl_id"] = (feature_obj.parent.ensembl_id if feature_obj.parent else None,)
             result["parent_subtype"] = feature_obj.parent.feature_subtype if feature_obj.parent else None
 
     return cast(FeatureJson, result)
 
 
-def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, Any]] = None):
+def reg_effect(re_obj: RegulatoryEffectObservation, options: dict[str, Any]):
     result = {
         "accession_id": re_obj.accession_id,
         "effect_size": re_obj.effect_size,
@@ -98,7 +99,7 @@ def reg_effect(re_obj: RegulatoryEffectObservation, options: Optional[dict[str, 
         "targets": [{"name": feature.name, "ensembl_id": feature.ensembl_id} for feature in re_obj.targets.all()],
     }
 
-    if options is not None and options.get("json_format", None) == "genoverse":
+    if options.get("json_format", None) == "genoverse":
         genoversify(result)
 
     return result

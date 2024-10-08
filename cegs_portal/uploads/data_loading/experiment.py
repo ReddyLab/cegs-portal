@@ -27,14 +27,13 @@ from .db import (
     feature_entry,
     feature_facet_entry,
 )
-from .experiment_metadata import ExperimentMetadata, InternetFile
+from .metadata import ExperimentMetadata, InternetFile
 from .types import (
     ChromosomeStrands,
     FeatureType,
     GenomeAssembly,
     GrnaFacet,
     PromoterFacet,
-    RangeBounds,
 )
 
 
@@ -42,7 +41,7 @@ from .types import (
 class FeatureRow:
     name: Optional[str]
     chrom_name: str
-    location: tuple[int, int, RangeBounds]  # start, end, bounds
+    location: tuple[int, int]  # start, end
     genome_assembly: GenomeAssembly
     cell_line: str
     feature_type: Optional[FeatureType]
@@ -167,15 +166,14 @@ class Experiment:
         reader = csv.DictReader(elements_tsv, delimiter=elements_file.delimiter(), quoting=csv.QUOTE_NONE)
 
         for line in reader:
-            parent_chrom, parent_start, parent_end, parent_strand, parent_bounds = (
+            parent_chrom, parent_start, parent_end, parent_strand = (
                 line["parent_chrom"],
                 line["parent_start"],
                 line["parent_end"],
                 line["parent_strand"],
-                line["parent_bounds"],
             )
 
-            if (parent_chrom == parent_start == parent_end == parent_strand == parent_bounds) and (
+            if (parent_chrom == parent_start == parent_end == parent_strand) and (
                 parent_chrom is None or parent_chrom == ""
             ):
                 parent_row = None
@@ -187,7 +185,7 @@ class Experiment:
                     new_parent_elements[parent_name] = FeatureRow(
                         name=parent_name,
                         chrom_name=parent_chrom,
-                        location=(parent_start, parent_end, RangeBounds(parent_bounds)),
+                        location=(parent_start, parent_end),
                         strand=parent_strand,
                         genome_assembly=GenomeAssembly(genome_assembly),
                         cell_line=elements_cell_line,
@@ -196,12 +194,11 @@ class Experiment:
 
                 parent_row = new_parent_elements[parent_name]
 
-            element_chrom, element_start, element_end, element_strand, element_bounds = (
+            element_chrom, element_start, element_end, element_strand = (
                 line["chrom"],
                 int(line["start"]),
                 int(line["end"]),
                 line["strand"],
-                line["bounds"],
             )
             element_name = f"{element_chrom}:{element_start}-{element_end}:{element_strand}"
 
@@ -219,7 +216,7 @@ class Experiment:
             new_elements[element_name] = FeatureRow(
                 name=element_name,
                 chrom_name=element_chrom,
-                location=(element_start, element_end, RangeBounds(element_bounds)),
+                location=(element_start, element_end),
                 strand=element_strand,
                 genome_assembly=GenomeAssembly(genome_assembly),
                 cell_line=elements_cell_line,

@@ -140,6 +140,13 @@ fieldset legend {
     text-shadow: 2px 2px #e3f2fd;
   }
 
+  h3 {
+    font-family: sans-serif;
+    font-size: 1.25rem;
+    color: #094474;
+    text-shadow: 1px 1px #e3f2fd;
+  }
+
   .page-header-w-icon {
     font-family: sans-serif;
     font-size: 2rem;

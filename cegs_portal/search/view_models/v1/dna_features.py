@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -25,6 +25,15 @@ class LocSearchType(Enum):
     CLOSEST = "closest"
     EXACT = "exact"
     OVERLAP = "overlap"
+
+
+class LocSearchProperty(StrEnum):
+    EFFECT_DIRECTIONS = "effect_directions"
+    PARENT_INFO = "parent_info"
+    REG_EFFECTS = "regeffects"
+    REO_SOURCE = "reo_source"
+    SCREEN_CCRE = "screen_ccre"
+    SIGNIFICANT = "significant"
 
 
 def join_fields(*field_names):
@@ -231,7 +240,7 @@ class DNAFeatureSearch:
 
         prefetch_values = ["parent", "parent_accession"]
 
-        if "screen_ccre" in feature_properties:
+        if LocSearchProperty.SCREEN_CCRE in feature_properties:
             ccre_facet_id = Facet.objects.get(name="cCRE Category").id
             ccre_facet_values = FacetValue.objects.filter(facet_id=ccre_facet_id).values_list("id", flat=True)
             facets += ccre_facet_values
@@ -240,7 +249,7 @@ class DNAFeatureSearch:
             filters["facet_values__id__in"] = facets
             prefetch_values.extend(["facet_values", "facet_values__facet"])
 
-        if "regeffects" in feature_properties:
+        if LocSearchProperty.REG_EFFECTS in feature_properties:
             # The facet presets are used when getting the "direction" property
             # of a RegulatoryEffectObservation. This is done in the _reg_effect.html partial
             # and the reg_effect function of the dna_features.py json template.
@@ -261,12 +270,17 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        if any(p in {"effect_directions", "significant"} for p in feature_properties):
+        reo_count_properties = {
+            LocSearchProperty.EFFECT_DIRECTIONS,
+            LocSearchProperty.SIGNIFICANT,
+            LocSearchProperty.REO_SOURCE,
+        }
+        if any(p in reo_count_properties for p in feature_properties):
             # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
 
-        if "effect_directions" in feature_properties:
+        if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
             features = features.annotate(
                 effect_directions=ArrayAgg(
                     "source_for__facet_values__value",
@@ -275,7 +289,7 @@ class DNAFeatureSearch:
                 )
             )
 
-        if "significant" in feature_properties:
+        if LocSearchProperty.SIGNIFICANT in feature_properties:
             features = features.annotate(
                 sig_count=Count(
                     "source_for__facet_values__value",
@@ -284,15 +298,13 @@ class DNAFeatureSearch:
             )
             filters["sig_count__gt"] = 0
 
-        if "screen_ccre" in feature_properties:
+        if LocSearchProperty.SCREEN_CCRE in feature_properties:
             features = features.annotate(
                 ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
             )
 
-        features = features.filter(**filters).prefetch_related(*prefetch_values)
+        features = features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent")
 
-        if "parent_subtype" in feature_properties:
-            features = features.select_related("parent")
         return features.order_by("location")
 
     @classmethod
