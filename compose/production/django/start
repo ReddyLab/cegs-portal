@@ -8,5 +8,7 @@ set -o nounset
 python /app/manage.py collectstatic --noinput -i "*.ecd" -i "*.fd"
 
 # Gunicorn recommends setting (2 * $(num_cores) + 1) workers. Our containers have access to 16 cores, which
-# would be 33 workers. This is probably overkill, so we'll go with 8 for now.
-/usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -w 8 -k uvicorn.workers.UvicornWorker
+# would be 33 workers. This is probably overkill, so we'll go with 4 for now.
+# NOTE: We tried 8, but kept getting a postgres "too many connections" error, so we dropped to 4.
+#       In the future we might be able to go back up to 8 if we use something like pg_bouncer to pool connections
+/usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -w 4 -k uvicorn.workers.UvicornWorker
