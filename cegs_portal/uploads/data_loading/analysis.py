@@ -5,7 +5,7 @@ from io import StringIO
 from typing import Optional
 
 from django.db import transaction
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -143,7 +143,7 @@ class Analysis:
                         source_cache[source_string] = DNAFeature.objects.filter(
                             experiment_accession_id=experiment_accession_id,
                             chrom_name=source.chrom,
-                            location=NumericRange(source.start, source.end),
+                            location=Int4Range(source.start, source.end),
                             strand=source.strand,
                             ref_genome=genome_assembly,
                             feature_type=DNAFeatureType(source.feature_type),

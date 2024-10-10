@@ -1,7 +1,7 @@
 import csv
 
 from django.db import transaction
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -73,7 +73,7 @@ def load_grna(grna_file, accession_ids, experiment, region_source, cell_line, re
                 bounds = "[)"
             elif strand == "-":
                 bounds = "(]"
-            grna_location = NumericRange(grna_start, grna_end, bounds)
+            grna_location = Int4Range(grna_start, grna_end, bounds)
 
             closest_gene, distance, gene_name = get_closest_gene(ref_genome, chrom_name, grna_start, grna_end)
 

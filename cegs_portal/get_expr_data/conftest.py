@@ -2,7 +2,7 @@ import os
 
 import pytest
 from django.core.files.storage import default_storage
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.get_expr_data.models import (
     EXPR_DATA_DIR,
@@ -45,21 +45,21 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         DNAFeatureFactory(
             accession_id="DCPDHS0000000000",
             chrom_name="chr1",
-            location=NumericRange(10, 1_000),
+            location=Int4Range(10, 1_000),
             experiment_accession=None,
             feature_type=DNAFeatureType.GRNA,
         ),
         DNAFeatureFactory(
             accession_id="DCPDHS0000000001",
             chrom_name="chr1",
-            location=NumericRange(20_000, 111_000),
+            location=Int4Range(20_000, 111_000),
             experiment_accession=None,
             feature_type=DNAFeatureType.DHS,
         ),
         DNAFeatureFactory(
             accession_id="DCPDHS0000000002",
             chrom_name="chr2",
-            location=NumericRange(22_222, 33_333),
+            location=Int4Range(22_222, 33_333),
             experiment_accession=None,
             feature_type=DNAFeatureType.CAR,
         ),
@@ -81,13 +81,13 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
         sources=(
             DNAFeatureFactory(
                 chrom_name="chr1",
-                location=NumericRange(11, 1_001),
+                location=Int4Range(11, 1_001),
                 experiment_accession=None,
                 feature_type=DNAFeatureType.GRNA,
             ),
             DNAFeatureFactory(
                 chrom_name="chr2",
-                location=NumericRange(22_223, 33_334),
+                location=Int4Range(22_223, 33_334),
                 experiment_accession=None,
                 feature_type=DNAFeatureType.CAR,
             ),
@@ -97,7 +97,7 @@ def _reg_effects(public=True, archived=False) -> list[RegulatoryEffectObservatio
                 chrom_name="chr1",
                 name="XUEQ-1",
                 ensembl_id="ENSG01124619313",
-                location=NumericRange(35_001, 40_001),
+                location=Int4Range(35_001, 40_001),
                 experiment_accession=None,
                 feature_type=DNAFeatureType.GENE,
             ),

@@ -86,50 +86,43 @@ def bulk_reo_save(
     with transaction.atomic(), connection.cursor() as cursor:
         effects.seek(0, SEEK_SET)
         print("Adding RegulatoryEffectObservations")
-        cursor.copy_from(
-            effects,
-            "search_regulatoryeffectobservation",
-            columns=(
-                "id",
-                "accession_id",
-                "experiment_id",
-                "experiment_accession_id",
-                "analysis_accession_id",
-                "facet_num_values",
-                "archived",
-                "public",
-            ),
-        )
+        with cursor.copy(
+            """COPY search_regulatoryeffectobservation (
+                id,
+                accession_id,
+                experiment_id,
+                experiment_accession_id,
+                analysis_accession_id,
+                facet_num_values,
+                archived,
+                public
+            ) FROM STDIN"""
+        ) as copy:
+            copy.write(effects.getvalue())
 
     with transaction.atomic(), connection.cursor() as cursor:
         categorical_facets.seek(0, SEEK_SET)
         print("Adding categorical facets to effects")
-        cursor.copy_from(
-            categorical_facets,
-            "search_regulatoryeffectobservation_facet_values",
-            columns=(
-                "regulatoryeffectobservation_id",
-                "facetvalue_id",
-            ),
-        )
+        with cursor.copy(
+            "COPY search_regulatoryeffectobservation_facet_values (regulatoryeffectobservation_id, facetvalue_id) FROM STDIN"
+        ) as copy:
+            copy.write(categorical_facets.getvalue())
 
     with transaction.atomic(), connection.cursor() as cursor:
         source_associations.seek(0, SEEK_SET)
         print("Adding sources to RegulatoryEffectObservations")
-        cursor.copy_from(
-            source_associations,
-            "search_regulatoryeffectobservation_sources",
-            columns=("regulatoryeffectobservation_id", "dnafeature_id"),
-        )
+        with cursor.copy(
+            "COPY search_regulatoryeffectobservation_sources (regulatoryeffectobservation_id, dnafeature_id) FROM STDIN"
+        ) as copy:
+            copy.write(source_associations.getvalue())
 
         if target_associations is not None:
             target_associations.seek(0, SEEK_SET)
             print("Adding targets to RegulatoryEffectObservations")
-            cursor.copy_from(
-                target_associations,
-                "search_regulatoryeffectobservation_targets",
-                columns=("regulatoryeffectobservation_id", "dnafeature_id"),
-            )
+            with cursor.copy(
+                "COPY search_regulatoryeffectobservation_targets (regulatoryeffectobservation_id, dnafeature_id) FROM STDIN"
+            ) as copy:
+                copy.write(target_associations.getvalue())
 
 
 def feature_entry(
@@ -192,56 +185,50 @@ def bulk_feature_save(features: StringIO):
     features.seek(0, SEEK_SET)
     print("Adding features")
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            features,
-            "search_dnafeature",
-            columns=(
-                "id",
-                "accession_id",
-                "ids",
-                "ensembl_id",
-                "name",
-                "cell_line",
-                "chrom_name",
-                "closest_gene_id",
-                "closest_gene_distance",
-                "closest_gene_name",
-                "closest_gene_ensembl_id",
-                "location",
-                "strand",
-                "ref_genome",
-                "ref_genome_patch",
-                "feature_type",
-                "feature_subtype",
-                "source_file_id",
-                "experiment_accession_id",
-                "parent_id",
-                "parent_accession_id",
-                "misc",
-                "archived",
-                "public",
-            ),
-        )
+        with cursor.copy(
+            """COPY search_dnafeature (
+                id,
+                accession_id,
+                ids,
+                ensembl_id,
+                name,
+                cell_line,
+                chrom_name,
+                closest_gene_id,
+                closest_gene_distance,
+                closest_gene_name,
+                closest_gene_ensembl_id,
+                location,
+                strand,
+                ref_genome,
+                ref_genome_patch,
+                feature_type,
+                feature_subtype,
+                source_file_id,
+                experiment_accession_id,
+                parent_id,
+                parent_accession_id,
+                misc,
+                archived,
+                public
+            ) FROM STDIN"""
+        ) as copy:
+            copy.write(features.getvalue())
 
 
 def bulk_feature_facet_save(facets):
     with transaction.atomic(), connection.cursor() as cursor:
         facets.seek(0, SEEK_SET)
         print("Adding facets to features")
-        cursor.copy_from(
-            facets,
-            "search_dnafeature_facet_values",
-            columns=(
-                "dnafeature_id",
-                "facetvalue_id",
-            ),
-        )
+        with cursor.copy("COPY search_dnafeature_facet_values (dnafeature_id, facetvalue_id) FROM STDIN") as copy:
+            copy.write(facets.getvalue())
 
 
 def bulk_save_associations(associations):
     associations.seek(0, SEEK_SET)
     print("Adding ccre associations to features")
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            associations, "search_dnafeature_associated_ccres", columns=("from_dnafeature_id", "to_dnafeature_id")
-        )
+        with cursor.copy(
+            "COPY search_dnafeature_associated_ccres (from_dnafeature_id, to_dnafeature_id) FROM STDIN"
+        ) as copy:
+            copy.write(associations.getvalue())

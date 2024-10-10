@@ -4,7 +4,7 @@ import factory
 from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker as F
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
 from cegs_portal.search.models.tests.experiment_factory import ExperimentFactory
@@ -26,7 +26,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     chrom_name = Faker("numerify", text=r"chr1%")
     _start = random.randint(0, 1000000)
     _end = _start + random.randint(1, 1000000)
-    location = NumericRange(_start, _end)
+    location = Int4Range(_start, _end)
     strand = random.choice(["+", "-", None])
     ref_genome = "hg38"
     ref_genome_patch = Faker("numerify", text="##")

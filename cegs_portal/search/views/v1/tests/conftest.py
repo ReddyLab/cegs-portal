@@ -1,7 +1,7 @@
 from typing import Iterable
 
 import pytest
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.get_expr_data.conftest import reg_effects  # noqa: F401
 from cegs_portal.search.models import (
@@ -97,35 +97,35 @@ def _dna_features(assembly) -> Iterable[DNAFeature]:
         parent=None,
         feature_type=DNAFeatureType.GENE,
         chrom_name="chr1",
-        location=NumericRange(1, 100),
+        location=Int4Range(1, 100),
         ref_genome=assembly,
     )
     f2 = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.GENE,
         chrom_name="chr1",
-        location=NumericRange(200, 300),
+        location=Int4Range(200, 300),
         ref_genome=assembly,
     )
     f3 = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.CCRE,
         chrom_name="chr1",
-        location=NumericRange(1000, 2000),
+        location=Int4Range(1000, 2000),
         ref_genome=assembly,
     )
     f4 = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.CAR,
         chrom_name="chr1",
-        location=NumericRange(50_000, 60_000),
+        location=Int4Range(50_000, 60_000),
         ref_genome=assembly,
     )
     f5 = DNAFeatureFactory(
         parent=None,
         feature_type=DNAFeatureType.CAR,
         chrom_name="chr1",
-        location=NumericRange(70_000, 80_000),
+        location=Int4Range(70_000, 80_000),
         ref_genome=assembly,
     )
     sig_reo_source1 = RegEffectFactory(

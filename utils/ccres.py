@@ -7,7 +7,7 @@ from typing import Optional
 
 from django.db import connection, transaction
 from django.db.models import F, Func
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import AccessionType, DNAFeature, DNAFeatureType
 from scripts.data_loading.db import (
@@ -23,7 +23,7 @@ from .db_ids import FeatureIds
 class CcreSource:
     _id: int
     chrom_name: str
-    test_location: NumericRange
+    test_location: Int4Range
     cell_line: str
     closest_gene_id: int
     closest_gene_distance: int
@@ -34,7 +34,7 @@ class CcreSource:
     experiment_accession_id: str
     genome_assembly_patch: str = "0"
     _new_id: Optional[int] = None
-    new_location: Optional[NumericRange] = None
+    new_location: Optional[Int4Range] = None
     feature_type: DNAFeatureType = DNAFeatureType.CCRE
     misc: dict = field(default_factory=lambda: {"pseudo": True})
 
@@ -42,12 +42,13 @@ class CcreSource:
 def save_associations(associations):
     associations.seek(0, SEEK_SET)
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            associations, "search_dnafeature_associated_ccres", columns=("from_dnafeature_id", "to_dnafeature_id")
-        )
+        with cursor.copy(
+            "COPY search_dnafeature_associated_ccres (from_dnafeature_id, to_dnafeature_id) FROM STDIN"
+        ) as copy:
+            copy.write(associations)
 
 
-def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
+def get_ccres(genome_assembly) -> list[tuple[int, str, Int4Range]]:
     if genome_assembly not in ["hg19", "hg38"]:
         raise ValueError("Please enter either hg19 or hg38 for the assembly")
 

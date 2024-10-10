@@ -1,6 +1,6 @@
 import csv
 
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import DNAFeature
 from utils.experiment import ExperimentMetadata
@@ -22,7 +22,7 @@ def run(experiment_filename):
             gene_name = line["gene_symbol"]
             gene_start = int(line["start"]) - 1
             gene_end = int(line["end"])
-            gene_location = NumericRange(gene_start, gene_end, "[)")
+            gene_location = Int4Range(gene_start, gene_end, "[)")
             if gene_name not in genes:
                 gene_objects = DNAFeature.objects.filter(
                     name=gene_name, location=gene_location, ref_genome=genome_assembly

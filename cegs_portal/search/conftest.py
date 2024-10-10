@@ -2,7 +2,7 @@ from typing import Iterable
 
 import pytest
 from django.db.models import Manager
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.get_expr_data.conftest import (  # noqa: F401
     private_reg_effects,
@@ -200,8 +200,8 @@ def feature_pages() -> Pageable[DNAFeature]:
 @pytest.fixture
 def reo_source_target():
     return {
-        "source_locs": '{"(chr6,\\"[31577822,31578136)\\")"}',
-        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+        "source_locs": [("chr6", "[31577822,31578136)")],
+        "target_info": [("chr6", "[31867384,31869770)", "ZBTB12", "ENSG00000204366")],
         "reo_accession_id": "DCPREO0000000001",
         "effect_size": -1.2,
         "p_value": 0.005,
@@ -216,8 +216,8 @@ def reo_source_target():
 def reo_source_targets():
     return [
         {
-            "source_locs": '{"(chr6,\\"[31577822,31578136)\\",DCPDHS0000000001)"}',
-            "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
+            "source_locs": [("chr6", "[31577822,31578136)", "DCPDHS0000000001")],
+            "target_info": [("chr6", "[31867384,31869770)", "ZBTB12", "ENSG00000204366")],
             "reo_accession_id": "DCPREO00000339D6",
             "effect_size": 0.010958133,
             "p_value": 0.00000184,
@@ -227,8 +227,8 @@ def reo_source_targets():
             "analysis_accession_id": "DCPAN0000000002",
         },
         {
-            "source_locs": '{"(chr6,\\"[32182864,32183339)\\",DCPDHS0000000002)"}',
-            "target_info": '{"(chr6,\\"[31830969,31846824)\\",SLC44A4,ENSG00000204385)"}',
+            "source_locs": [("chr6", "[32182864,32183339)", "DCPDHS0000000002")],
+            "target_info": [("chr6", "[31830969,31846824)", "SLC44A4", "ENSG00000204385")],
             "reo_accession_id": "DCPREO0000033A96",
             "effect_size": -0.005418836,
             "p_value": 0.001948499,
@@ -238,8 +238,8 @@ def reo_source_targets():
             "analysis_accession_id": "DCPAN0000000002",
         },
         {
-            "source_locs": '{"(chr13,\\"[40666345,40666366)\\",DCPDHS0000000003)"}',
-            "target_info": '{"(chr6,\\"[31834608,31839767)\\",SNHG32,ENSG00000204387)"}',
+            "source_locs": [("chr13", "[40666345,40666366)", "DCPDHS0000000003")],
+            "target_info": [("chr6", "[31834608,31839767)", "SNHG32", "ENSG00000204387")],
             "reo_accession_id": "DCPREO00004F45A1",
             "effect_size": -1.2,
             "p_value": 0.005,
@@ -310,14 +310,14 @@ def nearby_feature_mix() -> tuple[DNAFeature, DNAFeature, DNAFeature]:
     private_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.CCRE,
         chrom_name=pub_feature.chrom_name,
-        location=NumericRange(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
+        location=Int4Range(pub_feature.location.lower + 1000, pub_feature.location.upper + 1000),
         ref_genome="hg38",
         public=False,
     )
     archived_feature = DNAFeatureFactory(
         feature_type=DNAFeatureType.DHS,
         chrom_name=pub_feature.chrom_name,
-        location=NumericRange(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
+        location=Int4Range(private_feature.location.lower + 1000, private_feature.location.upper + 1000),
         ref_genome="hg38",
         archived=True,
     )
@@ -561,33 +561,33 @@ def genoverse_dhs_features():
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start, start + length),
+        location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.DHS,
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + length + gap, start + length * 2 + gap),
+        location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
         facet_values=(pels,),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
+        location=Int4Range(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
         feature_type=DNAFeatureType.CCRE,
         facet_values=(dels,),
     )
     f4 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
+        location=Int4Range(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
         feature_type=DNAFeatureType.DHS,
     )
     f5 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
+        location=Int4Range(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
         feature_type=DNAFeatureType.DHS,
     )
 
@@ -625,34 +625,34 @@ def genoverse_gene_features():
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="-",
-        location=NumericRange(start, start + length),
+        location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.GENE,
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="-",
-        location=NumericRange(start + length + gap, start + length * 2 + gap),
+        location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.GENE,
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="+",
-        location=NumericRange(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
+        location=Int4Range(start + length * 2 + gap * 2, start + length * 3 + gap * 2),
         feature_type=DNAFeatureType.GENE,
     )
     f4 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         strand="+",
-        location=NumericRange(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
+        location=Int4Range(start + length * 3 + gap * 3, start + length * 4 + gap * 3),
         feature_type=DNAFeatureType.GENE,
     )
     f5 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
+        location=Int4Range(start + length * 4 + gap * 4, start + length * 5 + gap * 4),
         strand="-",
         feature_type=DNAFeatureType.GENE,
     )
@@ -675,7 +675,7 @@ def genoverse_transcript_features():
     g1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start, start + 40_000),
+        location=Int4Range(start, start + 40_000),
         strand="-",
         feature_type=DNAFeatureType.GENE,
     )
@@ -684,7 +684,7 @@ def genoverse_transcript_features():
         parent=g1,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start, start + 40_000),
+        location=Int4Range(start, start + 40_000),
         strand="-",
         feature_type=DNAFeatureType.TRANSCRIPT,
     )
@@ -693,7 +693,7 @@ def genoverse_transcript_features():
         parent=g1_t1,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start, start + 10_000),
+        location=Int4Range(start, start + 10_000),
         strand="-",
         feature_type=DNAFeatureType.EXON,
     )
@@ -701,7 +701,7 @@ def genoverse_transcript_features():
         parent=g1_t1,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + 20_000, start + 40_000),
+        location=Int4Range(start + 20_000, start + 40_000),
         strand="-",
         feature_type=DNAFeatureType.EXON,
     )
@@ -709,7 +709,7 @@ def genoverse_transcript_features():
     g2 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + 50_000, end),
+        location=Int4Range(start + 50_000, end),
         strand="+",
         feature_type=DNAFeatureType.GENE,
     )
@@ -718,7 +718,7 @@ def genoverse_transcript_features():
         parent=g2,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + 50_000, end),
+        location=Int4Range(start + 50_000, end),
         strand="+",
         feature_type=DNAFeatureType.TRANSCRIPT,
     )
@@ -727,7 +727,7 @@ def genoverse_transcript_features():
         parent=g2_t1,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + 50_000, start + 70_000),
+        location=Int4Range(start + 50_000, start + 70_000),
         strand="+",
         feature_type=DNAFeatureType.EXON,
     )
@@ -735,7 +735,7 @@ def genoverse_transcript_features():
         parent=g2_t1,
         ref_genome=ref_genome,
         chrom_name=chrom,
-        location=NumericRange(start + 80_000, end),
+        location=Int4Range(start + 80_000, end),
         strand="+",
         feature_type=DNAFeatureType.EXON,
     )

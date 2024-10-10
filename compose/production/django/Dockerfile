@@ -68,8 +68,9 @@ RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main
 RUN apt-get update
 RUN apt-get upgrade --no-install-recommends -y
 RUN apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
+  python3-dev \
   # Translations dependencies
   gettext \
   libgmp10
