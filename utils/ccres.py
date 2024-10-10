@@ -42,9 +42,10 @@ class CcreSource:
 def save_associations(associations):
     associations.seek(0, SEEK_SET)
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            associations, "search_dnafeature_associated_ccres", columns=("from_dnafeature_id", "to_dnafeature_id")
-        )
+        with cursor.copy(
+            "COPY search_dnafeature_associated_ccres (from_dnafeature_id, to_dnafeature_id) FROM STDIN"
+        ) as copy:
+            copy.write(associations)
 
 
 def get_ccres(genome_assembly) -> list[tuple[int, str, Int4Range]]:

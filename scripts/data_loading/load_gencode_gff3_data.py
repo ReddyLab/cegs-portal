@@ -40,27 +40,26 @@ ANNOTATION_BUFFER_SIZE = 100_000
 def bulk_annotation_save(genome_annotations: StringIO):
     genome_annotations.seek(0, SEEK_SET)
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.copy_from(
-            genome_annotations,
-            "search_gencodeannotation",
-            columns=(
-                "chrom_name",
-                "location",
-                "strand",
-                "score",
-                "phase",
-                "annotation_type",
-                "id_attr",
-                "ref_genome",
-                "ref_genome_patch",
-                "gene_name",
-                "gene_type",
-                "level",
-                "region_id",
-                "version",
-                "attributes",
-            ),
-        )
+        with cursor.copy(
+            """COPY search_gencodeannotation (
+                chrom_name,
+                location,
+                strand,
+                score,
+                phase,
+                annotation_type,
+                id_attr,
+                ref_genome,
+                ref_genome_patch,
+                gene_name,
+                gene_type,
+                level,
+                region_id,
+                version,
+                attributes,
+            ) FROM STDIN"""
+        ) as copy:
+            copy.write(genome_annotations)
 
 
 @timer("Loading annotations", level=1)
