@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 from django.core.files.storage import default_storage
 from django.db import connection
 from huey.contrib.djhuey import db_task
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range, NumericRange
 
 from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
 
@@ -262,21 +262,21 @@ def retrieve_experiment_data(
                             AND get_expr_data_reo_sources_targets.source_loc && %s)"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
-                i.append(NumericRange(start, end))
+                i.append(Int4Range(start, end))
         case ReoDataSource.TARGETS:
             where = f"""{where} AND (get_expr_data_reo_sources_targets.target_chrom = %s
                             AND get_expr_data_reo_sources_targets.target_loc && %s)"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
-                i.append(NumericRange(start, end))
+                i.append(Int4Range(start, end))
         case ReoDataSource.BOTH:
             where = f"""{where} AND ((get_expr_data_reo_sources_targets.source_chrom = %s AND get_expr_data_reo_sources_targets.source_loc && %s)
                             OR (get_expr_data_reo_sources_targets.target_chrom = %s AND get_expr_data_reo_sources_targets.target_loc && %s))"""
             for i, (chrom, start, end) in zip(inputs, regions):
                 i.append(chrom)
-                i.append(NumericRange(start, end))
+                i.append(Int4Range(start, end))
                 i.append(chrom)
-                i.append(NumericRange(start, end))
+                i.append(Int4Range(start, end))
         case ReoDataSource.EVERYTHING:
             pass
         case _:
@@ -369,9 +369,9 @@ def sig_reo_loc_search(
     inputs = [
         experiments,
         location[0],
-        NumericRange(location[1], location[2]),
+        Int4Range(location[1], location[2]),
         location[0],
-        NumericRange(location[1], location[2]),
+        Int4Range(location[1], location[2]),
     ]
 
     if assembly is not None:

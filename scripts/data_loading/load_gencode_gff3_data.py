@@ -3,7 +3,7 @@ from io import SEEK_SET, StringIO
 from urllib.parse import unquote
 
 from django.db import connection, transaction
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -74,7 +74,7 @@ def load_genome_annotations(genome_annotations, ref_genome, ref_genome_patch, ve
             # Adjust start/end to use 0-based indexing
             start = int(start) - 1
             end = int(end)
-            region = GencodeRegion(chrom_name=chrom_name, base_range=NumericRange(start, end, "[)"))
+            region = GencodeRegion(chrom_name=chrom_name, base_range=Int4Range(start, end, "[)"))
             region.save()
             continue
 
