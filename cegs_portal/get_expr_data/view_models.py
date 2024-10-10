@@ -112,25 +112,31 @@ def file_status(filename, user):
             return DataState.UNKNOWN
 
 
-def parse_source_locs(source_locs: str) -> list[str]:
+def parse_source_locs(source_locs: list[tuple[Optional[str], Optional[str]]]) -> list[str]:
     locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\"\)', source_locs):
-        chrom = match[1]
-        start = match[2]
-        end = match[3]
-        locs.append(f"{chrom}:{start}-{end}")
-        source_locs = source_locs[match.end() :]
+    for source_loc in source_locs:
+        if source_loc[0] is None:
+            continue
+
+        chrom, loc = source_loc
+        if match := re.match(r"\[(\d+),(\d+)\)", loc):
+            start = match[1]
+            end = match[2]
+            locs.append(f"{chrom}:{start}-{end}")
 
     return locs
 
 
-def parse_target_info(target_info: str) -> list[str]:
+def parse_target_info(
+    target_infos: list[tuple[Optional[str], Optional[str], Optional[str], Optional[str]]]
+) -> list[str]:
     info = []
-    while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
-        gene_symbol = match[1]
-        ensembl_id = match[2]
+    for target_info in target_infos:
+        if target_info[2] is None:
+            continue
+
+        _, _, gene_symbol, ensembl_id = target_info
         info.append(f"{gene_symbol}:{ensembl_id}")
-        target_info = target_info[match.end() :]
     return info
 
 
@@ -336,12 +342,12 @@ def retrieve_experiment_data(
                     GROUP BY ai, get_expr_data_reo_sources_targets.reo_facets, eai, aai"""
 
     with connection.cursor() as cursor:
-        experiment_data = set()
-
+        experiment_data = []
         for where_params in inputs:
             cursor.execute(query, where_params)
-            experiment_data.update(cursor.fetchall())
-    return experiment_data
+            experiment_data.extend(cursor.fetchall())
+        experiment_data.sort()
+    return list(map(itemgetter(0), groupby(experiment_data)))
 
 
 def sig_reo_loc_search(

@@ -571,8 +571,8 @@ def test_experiment_no_query_html(public_test_client: RequestBuilder, search_vie
 
 
 def test_parse_source_locs_html():
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS0000000001)}') == [("chr1:1-2", "DCPDHS0000000001")]
-    assert parse_source_locs_html('{(chr1,\\"[1,2)\\",DCPDHS0000000001),(chr2,\\"[2,4)\\",DCPDHS0000000002)}') == [
+    assert parse_source_locs_html([("chr1", "[1,2)", "DCPDHS0000000001")]) == [("chr1:1-2", "DCPDHS0000000001")]
+    assert parse_source_locs_html([("chr1", "[1,2)", "DCPDHS0000000001"), ("chr2", "[2,4)", "DCPDHS0000000002")]) == [
         ("chr1:1-2", "DCPDHS0000000001"),
         ("chr2:2-4", "DCPDHS0000000002"),
     ]
@@ -580,8 +580,8 @@ def test_parse_source_locs_html():
 
 def test_parse_source_target_data_html():
     test_data = {
-        "target_info": '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}',
-        "source_locs": '{(chr1,\\"[1,2)\\",DCPDHS0000000001)}',
+        "target_info": [("chr6", "[31867384,31869770)", "ZBTB12", "ENSG00000204366")],
+        "source_locs": [("chr1", "[1,2)", "DCPDHS0000000001")],
         "asdf": 1234,
     }
     assert parse_source_target_data_html(test_data) == {
@@ -592,11 +592,14 @@ def test_parse_source_target_data_html():
 
 
 def test_parse_target_info_html():
-    assert parse_target_info_html('{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)"}') == [
+    assert parse_target_info_html([("chr6", "[31867384,31869770)", "ZBTB12", "ENSG00000204366")]) == [
         ("ZBTB12", "ENSG00000204366")
     ]
     assert parse_target_info_html(
-        '{"(chr6,\\"[31867384,31869770)\\",ZBTB12,ENSG00000204366)","(chr6,\\"[8386234,2389234)\\",HLA-A,ENSG00000204367)"}'  # noqa: E501
+        [
+            ("chr6", "[31867384,31869770)", "ZBTB12", "ENSG00000204366"),
+            ("chr6", "[8386234,2389234)", "HLA-A", "ENSG00000204367"),
+        ]
     ) == [("ZBTB12", "ENSG00000204366"), ("HLA-A", "ENSG00000204367")]
 
 

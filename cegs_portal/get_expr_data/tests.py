@@ -101,9 +101,9 @@ def test_gen_output_filename(expr_accession_ids, an_accession_ids, valid):
 @pytest.mark.parametrize(
     "source_locs,result",
     [
-        ('{"(,)"}', []),
-        (r'{"(chr1,\"[11,1001)\")"}', ["chr1:11-1001"]),
-        (r'{"(chr1,\"[11,1001)\")","(chr2,\"[22223,33334)\")"}', ["chr1:11-1001", "chr2:22223-33334"]),
+        ([(None, None)], []),
+        ([("chr1", "[11,1001)")], ["chr1:11-1001"]),
+        ([("chr1", "[11,1001)"), ("chr2", "[22223,33334)")], ["chr1:11-1001", "chr2:22223-33334"]),
     ],
 )
 def test_parse_source_locs(source_locs, result):
@@ -113,10 +113,13 @@ def test_parse_source_locs(source_locs, result):
 @pytest.mark.parametrize(
     "target_info,result",
     [
-        ('{"(,,,)"}', []),
-        (r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)"}', ["GWSR-1:ENSG20717717659"]),
+        ([(None, None, None, None)], []),
+        ([("chr1", "[35001,40001)", "GWSR-1", "ENSG20717717659")], ["GWSR-1:ENSG20717717659"]),
         (
-            r'{"(chr1,\"[35001,40001)\",GWSR-1,ENSG20717717659)","(chr1,\"[35000,40000)\",PKND-1,ENSG20717717659)"}',
+            [
+                ("chr1", "[35001,40001)", "GWSR-1", "ENSG20717717659"),
+                ("chr1", "[35000,40000)", "PKND-1", "ENSG20717717659"),
+            ],
             ["GWSR-1:ENSG20717717659", "PKND-1:ENSG20717717659"],
         ),
     ],

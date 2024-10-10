@@ -128,29 +128,33 @@ def parse_query(
     return search_type, terms, location, assembly, warnings
 
 
-def parse_source_locs_html(source_locs: str) -> list[tuple[str, str]]:
+def parse_source_locs_html(
+    source_locs: list[tuple[Optional[str], Optional[str], Optional[str]]]
+) -> list[tuple[str, str]]:
     locs = []
-    while match := re.search(r'\((chr\w+),\\"\[(\d+),(\d+)\)\\",(\w+)\)', source_locs):
-        chrom = match[1]
-        start = int(match[2])
-        end = int(match[3])
-        accession_id = match[4]
-        locs.append((f"{chrom}:{start:,}-{end:,}", accession_id))
-        source_locs = source_locs[match.end() :]
+    for source_loc in source_locs:
+        if source_loc[0] is None:
+            continue
+
+        chrom, loc, accession_id = source_loc
+        if match := re.match(r"\[(\d+),(\d+)\)", loc):
+            start = int(match[1])
+            end = int(match[2])
+            locs.append((f"{chrom}:{start:,}-{end:,}", accession_id))
 
     return locs
 
 
-def parse_target_info_html(target_info: Optional[str]) -> list[tuple[str, str]]:
-    if target_info is None:
-        return []
-
+def parse_target_info_html(
+    target_infos: list[tuple[Optional[str], Optional[str], Optional[str], Optional[str]]]
+) -> list[tuple[str, str]]:
     info = []
-    while match := re.search(r'\(chr\w+,\\"\[\d+,\d+\)\\",([\w-]+),(\w+)\)', target_info):
-        gene_symbol = match[1]
-        ensembl_id = match[2]
+    for target_info in target_infos:
+        if target_info[2] is None:
+            continue
+
+        _, _, gene_symbol, ensembl_id = target_info
         info.append((gene_symbol, ensembl_id))
-        target_info = target_info[match.end() :]
     return info
 
 
