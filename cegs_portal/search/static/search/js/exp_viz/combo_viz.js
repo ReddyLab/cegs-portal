@@ -42,12 +42,6 @@ import {
     setLegendIntervals,
 } from "./ui.js";
 
-class GenomeError extends Error {
-    constructor(message, options) {
-        super(message, options);
-    }
-}
-
 function intersect_array(arr1, arr2) {
     if (arr1.length == 0 || arr2.length == 0) {
         return [];
@@ -75,6 +69,16 @@ function intersect_obj(obj1, obj2) {
         }
     }
     return intersection;
+}
+
+function distinct(sortedArray) {
+    let newArray = [sortedArray[0]];
+    for (let element of sortedArray) {
+        if (element != newArray[newArray.length - 1]) {
+            newArray.push(element);
+        }
+    }
+    return newArray;
 }
 
 // Merge is the intersection of facets
@@ -189,18 +193,10 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
                 ),
             ),
         );
-
-        let genomeNames = manifests.map((m) => m.genome.name);
-        if (genomeNames.some((g) => g != genomeNames[0])) {
-            throw new GenomeError("Experiment analyses based on different genomes and are incompatible.");
-        }
-
         genome = await getJson(`${staticRoot}genome_data/${manifests[0].genome.file}`);
     } catch (error) {
         let consoleError;
-        if (error instanceof GenomeError) {
-            consoleError = error.message;
-        } else if (error instanceof Error) {
+        if (error instanceof Error) {
             consoleError = "Files necessary to load coverage not found.";
         }
 
@@ -210,9 +206,21 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
     return [genome, manifests];
 }
 
+function multipleGenomeAssemblyError(genomeNames) {
+    let message = `These experiment analyses are based on different genomes (${genomeNames.join(", ")}) and cannot be compared.`;
+    let chromData = document.getElementById("chrom-error");
+    a(chromData, e("div", {class: "comparison-error inline-block"}, t(message)));
+}
+
 export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     let experiment_info = JSON.parse(g("experiment_viz").innerText);
     let accessionIDs = experiment_info.map((exp) => [exp.accession_id, exp.analysis_accession_id]);
+    let genomeNames = distinct(experiment_info.map((exp) => exp.genome_assembly).sort());
+    if (genomeNames.length > 1) {
+        multipleGenomeAssemblyError(genomeNames);
+        return;
+    }
+
     let genome, manifests;
     try {
         [genome, manifests] = await getCombinedCoverageData(staticRoot, accessionIDs);
