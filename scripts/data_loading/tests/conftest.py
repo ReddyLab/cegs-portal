@@ -1,5 +1,5 @@
 import pytest
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import DNAFeature, DNAFeatureType, GrnaType, PromoterType
 from cegs_portal.search.models.tests.dna_feature_factory import DNAFeatureFactory
@@ -51,16 +51,16 @@ def facets():
 
 @pytest.fixture(autouse=True)
 def ccres():
-    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(100, 200))
-    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(300, 400))
-    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(500, 600))
-    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=NumericRange(700, 800))
+    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=Int4Range(100, 200))
+    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=Int4Range(300, 400))
+    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=Int4Range(500, 600))
+    _ = DNAFeatureFactory(feature_type=DNAFeatureType.CCRE, chrom_name="chr1", location=Int4Range(700, 800))
 
 
 @pytest.fixture(autouse=True)
 def gene():
     _ = DNAFeatureFactory(
-        feature_type=DNAFeatureType.GENE, chrom_name="chr1", location=NumericRange(1000, 2000), strand="+"
+        feature_type=DNAFeatureType.GENE, chrom_name="chr1", location=Int4Range(1000, 2000), strand="+"
     )
 
 

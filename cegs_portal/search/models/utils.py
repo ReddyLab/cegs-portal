@@ -1,7 +1,7 @@
 from enum import Enum, StrEnum
 from typing import Optional
 
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from .dna_feature_type import DNAFeatureType
 
@@ -126,9 +126,9 @@ class ChromosomeLocation:
     def __init__(self, chromo: str, start: str | int, end: Optional[str | int] = None):
         self.chromo = chromo
         if end is None:
-            self.range = NumericRange(int(start), int(start), bounds="[]")
+            self.range = Int4Range(int(start), int(start), bounds="[]")
         else:
-            self.range = NumericRange(int(start), int(end))
+            self.range = Int4Range(int(start), int(end))
 
     def __str__(self) -> str:
         return f"{self.chromo}: {self.range.lower}-{self.range.upper}"
