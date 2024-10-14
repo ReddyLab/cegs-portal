@@ -98,7 +98,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
     let genome;
     try {
         manifest = await getJson(
-            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`
+            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`,
         );
         genome = await getJson(`${staticRoot}genome_data/${manifest.genome.file}`);
     } catch (error) {
@@ -108,8 +108,8 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
             e(
                 "div",
                 {class: "flex flex-row justify-center"},
-                e("div", {class: "content-container grow-0"}, "No experiment coverage information found.")
-            )
+                e("div", {class: "content-container grow-0"}, "No experiment coverage information found."),
+            ),
         );
         throw new Error("Files necessary to load coverage not found");
     }
@@ -119,6 +119,161 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
 
 function experimentQuery(state) {
     return `exp=${state.g(STATE_SELECTED_EXPERIMENT)}/${state.g(STATE_ANALYSIS)}`;
+}
+
+const bandColors = {
+    acen: "#708090",
+    gneg: "#FFFFFF",
+    gpos: "#000000",
+    gpos100: "#000000",
+    gpos25: "#D9D9D9",
+    gpos33: "#BFBFBF",
+    gpos50: "#999999",
+    gpos66: "#7F7F7F",
+    gpos75: "#666666",
+    gvar: "#E0E0E0",
+    stalk: "#708090",
+};
+
+function ChromDimensions(genome) {
+    this.chromHeight = 98;
+    this.chromSpacing = 10;
+    this.maxPxChromWidth = 2048;
+    this.maxChromSize = genome.reduce((a, c) => (c.size > a ? c.size : a), 0);
+}
+
+function VizRenderContext(chromDimensions, genome) {
+    this.chromDimensions = chromDimensions;
+    this.xInset = 0;
+    this.yInset = 0;
+    this.viewWidth = chromDimensions.maxPxChromWidth + this.xInset * 2;
+    this.viewHeight = this.yInset * 2 + (chromDimensions.chromHeight + chromDimensions.chromSpacing) * genome.length;
+
+    this.toPx = function (size) {
+        return this.chromDimensions.maxPxChromWidth * (size / this.chromDimensions.maxChromSize);
+    };
+}
+
+function _chromosomeOutline(chromDimensions, renderContext, chrom) {
+    const width = renderContext.toPx(chrom.size);
+    const top = 0;
+    const bottom = chromDimensions.chromHeight;
+    const outlinePath = ["M", renderContext.xInset, ",", top];
+    outlinePath.push(
+        "C",
+        renderContext.xInset - 12,
+        ",",
+        top,
+        " ",
+        renderContext.xInset - 12,
+        ",",
+        bottom,
+        " ",
+        renderContext.xInset,
+        ",",
+        bottom,
+    );
+    outlinePath.push("M", renderContext.xInset + width, ",", top);
+    outlinePath.push(
+        "C",
+        renderContext.xInset + width + 12,
+        ",",
+        top,
+        " ",
+        renderContext.xInset + width + 12,
+        ",",
+        bottom,
+        " ",
+        renderContext.xInset + width,
+        ",",
+        bottom,
+    );
+
+    for (const band of chrom.bands) {
+        let bandStart = band.start < band.end ? band.start : band.end;
+        let bandEnd = band.start > band.end ? band.start : band.end;
+        let bandPxStart = renderContext.toPx(bandStart);
+        let bandPxEnd = renderContext.toPx(bandEnd);
+        let bandPxWidth = bandPxEnd - bandPxStart;
+
+        if (band.type == "acen") {
+            if (band.id.startsWith("p")) {
+                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+                outlinePath.push("l", bandPxWidth, ",", chromDimensions.chromHeight / 2);
+                outlinePath.push("l", -bandPxWidth, ",", chromDimensions.chromHeight / 2);
+            } else {
+                outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
+                outlinePath.push("l", -bandPxWidth, ",", chromDimensions.chromHeight / 2);
+                outlinePath.push("l", bandPxWidth, ",", chromDimensions.chromHeight / 2);
+            }
+        } else {
+            outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+            outlinePath.push("M", renderContext.xInset + bandPxStart, ",", bottom);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+        }
+    }
+
+    return outlinePath.join("");
+}
+
+function _chromosomeBand(chromDimensions, renderContext) {
+    return function (band) {
+        const top = 0;
+        let bandStart = band.start < band.end ? band.start : band.end;
+        let bandPxStart = renderContext.toPx(bandStart);
+        let bandEnd = band.start > band.end ? band.start : band.end;
+        let bandPxEnd = renderContext.toPx(bandEnd);
+        let bandPxWidth = bandPxEnd - bandPxStart;
+        let outlinePath = ["M", renderContext.xInset + bandPxStart, ",", top];
+        if (band.type == "acen") {
+            if (band.id.startsWith("p")) {
+                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+                outlinePath.push("l", bandPxWidth, ",", chromDimensions.chromHeight / 2);
+                outlinePath.push("l", -bandPxWidth, ",", chromDimensions.chromHeight / 2);
+            } else {
+                outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
+                outlinePath.push("l", -bandPxWidth, ",", chromDimensions.chromHeight / 2);
+                outlinePath.push("l", bandPxWidth, ",", chromDimensions.chromHeight / 2);
+            }
+        } else {
+            outlinePath.push("l", 0, ",", chromDimensions.chromHeight);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+            outlinePath.push("l", 0, ",", -chromDimensions.chromHeight);
+            outlinePath.push("l", -bandPxWidth, ",", 0);
+        }
+
+        return outlinePath.join("");
+    };
+}
+
+function legendBackground(genome) {
+    let chromDimensions = new ChromDimensions(genome);
+    let renderContext = new VizRenderContext(chromDimensions, genome);
+    const svg = d3
+        .create("svg")
+        .style("margin", 0)
+        .style("position", "absolute")
+        .style("top", "0px")
+        .style("z-index", "1");
+    const chrom = svg.append("g");
+    chrom
+        .selectAll("path")
+        .data(genome[20].bands)
+        .join("path")
+        .attr("fill", (b) => bandColors[b.type])
+        .attr("fill-opacity", 0.1)
+        .attr("stroke", "none")
+        .attr("d", _chromosomeBand(chromDimensions, renderContext));
+
+    chrom
+        .append("path")
+        .attr("stroke-width", 1)
+        .attr("stroke", "rgba(0, 0, 0, .1)")
+        .attr("fill", "none")
+        .attr("d", _chromosomeOutline(chromDimensions, renderContext, genome[20]));
+
+    return svg.node();
 }
 
 export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, csrfToken, sourceType, loggedIn) {
@@ -132,12 +287,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     let genomeName = manifest.genome.name;
 
     rc(g("chrom-data-header"), t("Experiment Overview"));
-
     const genomeRenderer = new GenomeRenderer(genome);
 
     let state = build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType);
 
-    render(state, genomeRenderer);
+    render(state, genomeRenderer, legendBackground(genome));
 
     genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
         let zoomed = state.g(STATE_ZOOMED);
@@ -183,21 +337,21 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             genome,
             manifest.chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-            null
+            null,
         );
 
         postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
             (response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                 );
-            }
+            },
         );
     });
 
     state.ac(STATE_ALL_FILTERED, (s, key) => {
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 
     state.ac(
@@ -209,29 +363,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
                     state.u(
                         STATE_NUMERIC_FACET_VALUES,
                         [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                        false
+                        false,
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(
@@ -243,29 +397,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(STATE_NUMERIC_FILTER_INTERVALS, (s, key) => {
         cc(g("chrom-data-numeric-facets"));
         numericFilterControls(state, state.g(STATE_FACETS)).forEach((element) =>
-            a(g("chrom-data-numeric-facets"), element)
+            a(g("chrom-data-numeric-facets"), element),
         );
     });
 
@@ -291,11 +445,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     countFilters: state.g(STATE_COUNT_FILTER_VALUES),
                 });
             }
-        }, 60)
+        }, 60),
     );
 
     state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 
     let categoricalFacetControls = g("chrom-data-categorical-facets");
@@ -326,7 +480,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             });
             rc(g("regionUploadInputReset"), highlightResetButton);
         },
-        false
+        false,
     );
     let regionUploadInput = g("regionUploadInput");
 
@@ -344,9 +498,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     dataDownloadInput,
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
 
         let dataDownloadAll = g("dataDownloadAll");
@@ -356,9 +510,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 getDownloadAll(
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
     }
 
@@ -372,11 +526,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             let selectedCoverageType = coverageSelector.value;
             state.u(STATE_COVERAGE_TYPE, coverageValue(selectedCoverageType));
         },
-        false
+        false,
     );
 
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
         setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 }

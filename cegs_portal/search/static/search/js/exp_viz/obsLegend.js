@@ -28,7 +28,7 @@ export function Legend(
         ticks = width / 64,
         tickFormat,
         tickValues,
-    } = {}
+    } = {},
 ) {
     function ramp(color, n = 256) {
         const canvas = document.createElement("canvas");
@@ -48,7 +48,9 @@ export function Legend(
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height])
         .style("overflow", "visible")
-        .style("display", "block");
+        .style("display", "block")
+        .style("position", "relative")
+        .style("z-index", "10");
 
     let tickAdjust = (g) => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
     let x;
@@ -101,8 +103,8 @@ export function Legend(
         const thresholds = color.thresholds
             ? color.thresholds() // scaleQuantize
             : color.quantiles
-            ? color.quantiles() // scaleQuantile
-            : color.domain(); // scaleThreshold
+              ? color.quantiles() // scaleQuantile
+              : color.domain(); // scaleThreshold
 
         const thresholdFormat =
             tickFormat === undefined ? (d) => d : typeof tickFormat === "string" ? d3.format(tickFormat) : tickFormat;
@@ -154,7 +156,7 @@ export function Legend(
                 .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined)
                 .tickFormat(typeof tickFormat === "function" ? tickFormat : undefined)
                 .tickSize(tickSize)
-                .tickValues(tickValues)
+                .tickValues(tickValues),
         )
         .call(tickAdjust)
         .call((g) => g.select(".domain").remove())
@@ -167,7 +169,7 @@ export function Legend(
                 .attr("text-anchor", "start")
                 .attr("font-weight", "bold")
                 .attr("class", "title")
-                .text(title)
+                .text(title),
         );
 
     return svg.node();

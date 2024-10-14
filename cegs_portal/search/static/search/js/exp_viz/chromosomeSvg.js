@@ -53,7 +53,7 @@ export class Tooltip {
         // Don't let the left portion of the tooltip get cut off
         let xInset = Math.max(
             viewBox[0] + this.width / 2 + minXPadding,
-            this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX
+            this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX,
         );
 
         // Don't let the right portion of the tooltip get cut off
@@ -136,7 +136,7 @@ export class GenomeRenderer {
             " ",
             renderContext.xInset,
             ",",
-            bottom
+            bottom,
         );
         outlinePath.push("M", renderContext.xInset + width, ",", top);
         outlinePath.push(
@@ -151,7 +151,7 @@ export class GenomeRenderer {
             " ",
             renderContext.xInset + width,
             ",",
-            bottom
+            bottom,
         );
 
         for (const band of d.bands) {
@@ -266,7 +266,7 @@ export class GenomeRenderer {
         scale,
         scaleX,
         scaleY,
-        highlightRegions
+        highlightRegions,
     ) {
         const bucketHeight = 44 * scaleY;
         const scales = {scale, scaleX, scaleY};
@@ -317,7 +317,7 @@ export class GenomeRenderer {
                     this.renderContext.yInset +
                     (this.chromDimensions.chromHeight / 2 +
                         (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) *
-                        scaleY
+                        scaleY,
             )
             .attr("font-size", Math.max(Math.ceil(14 * (scaleY * 0.3)), 32))
             .text((chromo) => chromo.chrom);
@@ -352,7 +352,7 @@ export class GenomeRenderer {
                         r.some(
                             (region) =>
                                 (region[0] >= source.start && region[0] < source.start + bucketSize) ||
-                                (region[1] >= source.start && region[1] < source.start + bucketSize)
+                                (region[1] >= source.start && region[1] < source.start + bucketSize),
                         )
                     ) {
                         return sourceRenderColors.color(sourceRenderDataTransform(source));
@@ -364,7 +364,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY
+                        (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY,
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -390,7 +390,7 @@ export class GenomeRenderer {
                         r.some(
                             (region) =>
                                 (region[0] >= target.start && region[0] < target.start + bucketSize) ||
-                                (region[1] >= target.start && region[1] < target.start + bucketSize)
+                                (region[1] >= target.start && region[1] < target.start + bucketSize),
                         )
                     ) {
                         return targetRenderColors.color(targetRenderDataTransform(target));
@@ -402,7 +402,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY
+                        (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY,
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -463,7 +463,7 @@ export class GenomeRenderer {
                         viewBox,
                         chromName,
                         tooltipDataSelector,
-                        sourceTooltipDataLabel
+                        sourceTooltipDataLabel,
                     );
                 })
                 .on("mouseleave", (event, rect) => {
@@ -516,7 +516,7 @@ export class GenomeRenderer {
                         viewBox,
                         chromName,
                         tooltipDataSelector,
-                        targetTooltipDataLabel
+                        targetTooltipDataLabel,
                     );
                 })
                 .on("mouseleave", (event, rect) => {
