@@ -113,7 +113,7 @@
             chr       : "{{ loc.chr }}".replace("chr", ""),
             start     : {{ loc.start }},
             end       : {{ loc.end }},
-            plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips' ],
+            plugins   : [[ 'karyotype', { showAssembly: true }], 'trackControls', 'tooltips', 'fileDrop' ],
             useHash   : true,
             hideEmptyTracks: false,
             sharedStateCallbacks: [_ul],
