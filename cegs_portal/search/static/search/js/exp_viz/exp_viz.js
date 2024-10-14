@@ -3,6 +3,7 @@ import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
 import {GenomeRenderer} from "./chromosomeSvg.js";
+import {legendBackground} from "./legendBgSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 import {debounce} from "../utils.js";
 import {render} from "./render.js";
@@ -98,7 +99,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
     let genome;
     try {
         manifest = await getJson(
-            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`
+            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`,
         );
         genome = await getJson(`${staticRoot}genome_data/${manifest.genome.file}`);
     } catch (error) {
@@ -108,8 +109,8 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
             e(
                 "div",
                 {class: "flex flex-row justify-center"},
-                e("div", {class: "content-container grow-0"}, "No experiment coverage information found.")
-            )
+                e("div", {class: "content-container grow-0"}, "No experiment coverage information found."),
+            ),
         );
         throw new Error("Files necessary to load coverage not found");
     }
@@ -132,12 +133,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     let genomeName = manifest.genome.name;
 
     rc(g("chrom-data-header"), t("Experiment Overview"));
-
     const genomeRenderer = new GenomeRenderer(genome);
 
     let state = build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType);
 
-    render(state, genomeRenderer);
+    render(state, genomeRenderer, legendBackground(genome));
 
     genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
         let zoomed = state.g(STATE_ZOOMED);
@@ -183,21 +183,21 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             genome,
             manifest.chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-            null
+            null,
         );
 
         postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
             (response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                 );
-            }
+            },
         );
     });
 
     state.ac(STATE_ALL_FILTERED, (s, key) => {
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 
     state.ac(
@@ -209,29 +209,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
                     state.u(
                         STATE_NUMERIC_FACET_VALUES,
                         [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                        false
+                        false,
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(
@@ -243,29 +243,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(STATE_NUMERIC_FILTER_INTERVALS, (s, key) => {
         cc(g("chrom-data-numeric-facets"));
         numericFilterControls(state, state.g(STATE_FACETS)).forEach((element) =>
-            a(g("chrom-data-numeric-facets"), element)
+            a(g("chrom-data-numeric-facets"), element),
         );
     });
 
@@ -291,11 +291,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     countFilters: state.g(STATE_COUNT_FILTER_VALUES),
                 });
             }
-        }, 60)
+        }, 60),
     );
 
     state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 
     let categoricalFacetControls = g("chrom-data-categorical-facets");
@@ -326,7 +326,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             });
             rc(g("regionUploadInputReset"), highlightResetButton);
         },
-        false
+        false,
     );
     let regionUploadInput = g("regionUploadInput");
 
@@ -344,9 +344,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     dataDownloadInput,
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
 
         let dataDownloadAll = g("dataDownloadAll");
@@ -356,9 +356,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 getDownloadAll(
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
     }
 
@@ -372,11 +372,11 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             let selectedCoverageType = coverageSelector.value;
             state.u(STATE_COVERAGE_TYPE, coverageValue(selectedCoverageType));
         },
-        false
+        false,
     );
 
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
         setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
-        render(state, genomeRenderer);
+        render(state, genomeRenderer, legendBackground(genome));
     });
 }
