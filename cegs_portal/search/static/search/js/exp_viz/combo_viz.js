@@ -42,12 +42,6 @@ import {
     setLegendIntervals,
 } from "./ui.js";
 
-class GenomeError extends Error {
-    constructor(message, options) {
-        super(message, options);
-    }
-}
-
 function intersect_array(arr1, arr2) {
     if (arr1.length == 0 || arr2.length == 0) {
         return [];
@@ -77,6 +71,16 @@ function intersect_obj(obj1, obj2) {
     return intersection;
 }
 
+function distinct(sortedArray) {
+    let newArray = [sortedArray[0]];
+    for (let element of sortedArray) {
+        if (element != newArray[newArray.length - 1]) {
+            newArray.push(element);
+        }
+    }
+    return newArray;
+}
+
 // Merge is the intersection of facets
 function merge_facets(experiments_facets) {
     if (experiments_facets.length == 1) {
@@ -90,7 +94,7 @@ function merge_facets(experiments_facets) {
         facet_array.reduce((acc, f) => {
             acc[f.id] = f;
             return acc;
-        }, {})
+        }, {}),
     );
     let base_facets = facet_maps[0];
     let rest_facets = facet_maps.slice(1);
@@ -185,23 +189,15 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
         manifests = await Promise.all(
             accessionIDs.map((accessionIDPair) =>
                 getJson(
-                    `${staticRoot}search/experiments/${accessionIDPair[0]}/${accessionIDPair[1]}/coverage_manifest.json`
-                )
-            )
+                    `${staticRoot}search/experiments/${accessionIDPair[0]}/${accessionIDPair[1]}/coverage_manifest.json`,
+                ),
+            ),
         );
-
-        let genomeNames = manifests.map((m) => m.genome.name);
-        if (genomeNames.some((g) => g != genomeNames[0])) {
-            throw new GenomeError("Experiment analyses based on different genomes and are incompatible.");
-        }
-
         genome = await getJson(`${staticRoot}genome_data/${manifests[0].genome.file}`);
     } catch (error) {
         let consoleError;
         if (error instanceof Error) {
             consoleError = "Files necessary to load coverage not found.";
-        } else if (error instanceof GenomeError) {
-            consoleError = error.message;
         }
 
         throw new Error(consoleError);
@@ -210,9 +206,21 @@ async function getCombinedCoverageData(staticRoot, accessionIDs) {
     return [genome, manifests];
 }
 
+function multipleGenomeAssemblyError(genomeNames) {
+    let message = `These experiment analyses are based on different genomes (${genomeNames.join(", ")}) and cannot be compared.`;
+    let chromData = document.getElementById("chrom-error");
+    a(chromData, e("div", {class: "comparison-error inline-block"}, t(message)));
+}
+
 export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     let experiment_info = JSON.parse(g("experiment_viz").innerText);
     let accessionIDs = experiment_info.map((exp) => [exp.accession_id, exp.analysis_accession_id]);
+    let genomeNames = distinct(experiment_info.map((exp) => exp.genome_assembly).sort());
+    if (genomeNames.length > 1) {
+        multipleGenomeAssemblyError(genomeNames);
+        return;
+    }
+
     let genome, manifests;
     try {
         [genome, manifests] = await getCombinedCoverageData(staticRoot, accessionIDs);
@@ -276,7 +284,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             genome,
             manifests[0].chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-            state.g(STATE_COMBO_SET_OP)
+            state.g(STATE_COMBO_SET_OP),
         );
 
         postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
@@ -294,7 +302,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             genome,
             manifests[0].chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES)],
-            state.g(STATE_COMBO_SET_OP)
+            state.g(STATE_COMBO_SET_OP),
         );
 
         postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
@@ -303,7 +311,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             state.u(
                 STATE_NUMERIC_FACET_VALUES,
                 [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                false
+                false,
             );
             state.u(STATE_ITEM_COUNTS, [
                 response_json.reo_count,
@@ -317,7 +325,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
 
     state.ac(
         STATE_CATEGORICAL_FACET_VALUES,
-        debounce((s, key) => get_all_data(), 300)
+        debounce((s, key) => get_all_data(), 300),
     );
 
     state.ac(
@@ -329,13 +337,13 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                 genome,
                 manifests[0].chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-                state.g(STATE_COMBO_SET_OP)
+                state.g(STATE_COMBO_SET_OP),
             );
 
             postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                 );
                 state.u(STATE_ITEM_COUNTS, [
                     response_json.reo_count,
@@ -343,13 +351,13 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                     response_json.target_count,
                 ]);
             });
-        }, 300)
+        }, 300),
     );
 
     state.ac(STATE_NUMERIC_FILTER_INTERVALS, (s, key) => {
         cc(g("chrom-data-numeric-facets"));
         numericFilterControls(state, state.g(STATE_FACETS)).forEach((element) =>
-            a(g("chrom-data-numeric-facets"), element)
+            a(g("chrom-data-numeric-facets"), element),
         );
     });
 
@@ -375,7 +383,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                     countFilters: state.g(STATE_COUNT_FILTER_VALUES),
                 });
             }
-        }, 60)
+        }, 60),
     );
 
     state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
@@ -410,7 +418,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             });
             rc(g("regionUploadInputReset"), highlightResetButton);
         },
-        false
+        false,
     );
     let regionUploadInput = g("regionUploadInput");
 
@@ -428,9 +436,9 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     dataDownloadInput,
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
 
         let dataDownloadAll = g("dataDownloadAll");
@@ -440,9 +448,9 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                 getDownloadAll(
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
     }
 
@@ -456,7 +464,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             let selectedCoverageType = coverageSelector.value;
             state.u(STATE_COVERAGE_TYPE, coverageValue(selectedCoverageType));
         },
-        false
+        false,
     );
 
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
@@ -473,7 +481,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         () => {
             state.u(STATE_FEATURE_FILTER_TYPE, featureFilterSelector.value);
         },
-        false
+        false,
     );
 
     state.ac(STATE_FEATURE_FILTER_TYPE, (s, key) => {
@@ -489,7 +497,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         () => {
             state.u(STATE_COMBO_SET_OP, setOpSelector.value);
         },
-        false
+        false,
     );
 
     state.ac(STATE_COMBO_SET_OP, (s, key) => {
