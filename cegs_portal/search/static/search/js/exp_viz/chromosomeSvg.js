@@ -53,7 +53,7 @@ export class Tooltip {
         // Don't let the left portion of the tooltip get cut off
         let xInset = Math.max(
             viewBox[0] + this.width / 2 + minXPadding,
-            this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX
+            this.renderContext.xInset + this.renderContext.toPx(d.start) * scaleX,
         );
 
         // Don't let the right portion of the tooltip get cut off
@@ -136,7 +136,7 @@ export class GenomeRenderer {
             " ",
             renderContext.xInset,
             ",",
-            bottom
+            bottom,
         );
         outlinePath.push("M", renderContext.xInset + width, ",", top);
         outlinePath.push(
@@ -151,7 +151,7 @@ export class GenomeRenderer {
             " ",
             renderContext.xInset + width,
             ",",
-            bottom
+            bottom,
         );
 
         for (const band of d.bands) {
@@ -266,7 +266,7 @@ export class GenomeRenderer {
         scale,
         scaleX,
         scaleY,
-        highlightRegions
+        highlightRegions,
     ) {
         const bucketHeight = 44 * scaleY;
         const scales = {scale, scaleX, scaleY};
@@ -317,13 +317,16 @@ export class GenomeRenderer {
                     this.renderContext.yInset +
                     (this.chromDimensions.chromHeight / 2 +
                         (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) *
-                        scaleY
+                        scaleY,
             )
             .attr("font-size", Math.max(Math.ceil(14 * (scaleY * 0.3)), 32))
             .text((chromo) => chromo.chrom);
 
         let allSourceRects = {};
         let allTargetRects = {};
+
+        const bucketFocusTime = 50; // ms
+        const bucketBlurTime = 200; // ms
 
         for (let i = 0; i < coverageData.length; i++) {
             const bucketSize = coverageData[i].bucket_size;
@@ -352,7 +355,7 @@ export class GenomeRenderer {
                         r.some(
                             (region) =>
                                 (region[0] >= source.start && region[0] < source.start + bucketSize) ||
-                                (region[1] >= source.start && region[1] < source.start + bucketSize)
+                                (region[1] >= source.start && region[1] < source.start + bucketSize),
                         )
                     ) {
                         return sourceRenderColors.color(sourceRenderDataTransform(source));
@@ -364,7 +367,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY
+                        (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i * scaleY,
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -390,7 +393,7 @@ export class GenomeRenderer {
                         r.some(
                             (region) =>
                                 (region[0] >= target.start && region[0] < target.start + bucketSize) ||
-                                (region[1] >= target.start && region[1] < target.start + bucketSize)
+                                (region[1] >= target.start && region[1] < target.start + bucketSize),
                         )
                     ) {
                         return targetRenderColors.color(targetRenderDataTransform(target));
@@ -402,7 +405,7 @@ export class GenomeRenderer {
                 .attr(
                     "y",
                     this.renderContext.yInset +
-                        (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY
+                        (54 + (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * i) * scaleY,
                 )
                 .attr("width", bucketWidth)
                 .attr("height", bucketHeight);
@@ -410,48 +413,54 @@ export class GenomeRenderer {
             allTargetRects[i] = targetRects;
 
             let mouseLeave = () => {
+                const t = d3.transition().duration(bucketBlurTime);
                 for (const k of Object.keys(allSourceRects)) {
-                    allSourceRects[k].attr("stroke", null);
-                    allSourceRects[k].attr("stroke-width", null);
+                    allSourceRects[k].interrupt();
+                    allSourceRects[k]
+                        .transition(t)
+                        .attr("fill", (node) => sourceRenderColors.color(sourceRenderDataTransform(node)));
                 }
                 for (const k of Object.keys(allTargetRects)) {
-                    allTargetRects[k].attr("stroke", null);
-                    allTargetRects[k].attr("stroke-width", null);
+                    allTargetRects[k].interrupt();
+                    allTargetRects[k]
+                        .transition(t)
+                        .attr("fill", (node) => targetRenderColors.color(targetRenderDataTransform(node)));
                 }
                 this.tooltip.hide();
             };
 
             sourceRects
                 .on("mouseenter", (event, rect) => {
-                    sourceRects.attr("stroke", (node) => (node.start == rect.start ? "red" : null));
-                    sourceRects.attr("stroke-width", (node) => (node.start == rect.start ? 8 : null));
+                    const t = d3.transition().duration(bucketFocusTime);
+                    for (const k of Object.keys(allSourceRects)) {
+                        allSourceRects[k].interrupt();
+                        allSourceRects[k]
+                            .transition(t)
+                            .attr("fill", (node) =>
+                                k == i && node.start == rect.start
+                                    ? sourceRenderColors.color(sourceRenderDataTransform(node))
+                                    : sourceRenderColors.faded(sourceRenderDataTransform(node)),
+                            );
+                    }
 
-                    let target_buckets = new Array(coverageData.length);
-                    for (let i = 0; i < target_buckets.length; i++) {
-                        target_buckets[i] = new Set();
+                    let targetBuckets = new Array(coverageData.length);
+                    for (let i = 0; i < targetBuckets.length; i++) {
+                        targetBuckets[i] = new Set();
                     }
 
                     for (let i = 0; i < rect.associated_buckets.length; i += 2) {
-                        target_buckets[rect.associated_buckets[i]].add(rect.associated_buckets[i + 1]);
+                        targetBuckets[rect.associated_buckets[i]].add(rect.associated_buckets[i + 1]);
                     }
 
-                    for (let i = 0; i < target_buckets.length; i++) {
-                        let target_bucket = target_buckets[i];
-                        for (let j = 0; j < target_bucket.size; j += 2) {
-                            let targetRects = allTargetRects[i];
-                            targetRects.attr("stroke", function (node) {
-                                if (target_bucket.has((node.start - 1) / bucketSize)) {
-                                    return "yellow";
-                                }
-                                return null;
-                            });
-                            targetRects.attr("stroke-width", function (node) {
-                                if (target_bucket.has((node.start - 1) / bucketSize)) {
-                                    return 8;
-                                }
-                                return null;
-                            });
-                        }
+                    for (let i = 0; i < targetBuckets.length; i++) {
+                        let targetBucket = targetBuckets[i];
+                        let targetRects = allTargetRects[i];
+                        targetRects.transition(t).attr("fill", (node) => {
+                            if (targetBucket.has((node.start - 1) / bucketSize)) {
+                                return targetRenderColors.color(targetRenderDataTransform(node));
+                            }
+                            return targetRenderColors.faded(targetRenderDataTransform(node));
+                        });
                     }
 
                     rect.end = rect.start + bucketSize;
@@ -463,7 +472,7 @@ export class GenomeRenderer {
                         viewBox,
                         chromName,
                         tooltipDataSelector,
-                        sourceTooltipDataLabel
+                        sourceTooltipDataLabel,
                     );
                 })
                 .on("mouseleave", (event, rect) => {
@@ -476,35 +485,36 @@ export class GenomeRenderer {
 
             targetRects
                 .on("mouseenter", (event, rect) => {
-                    targetRects.attr("stroke", (node) => (node.start == rect.start ? "red" : null));
-                    targetRects.attr("stroke-width", (node) => (node.start == rect.start ? 8 : null));
+                    const t = d3.transition().duration(bucketFocusTime);
+                    for (const k of Object.keys(allTargetRects)) {
+                        allTargetRects[k].interrupt();
+                        allTargetRects[k]
+                            .transition(t)
+                            .attr("fill", (node) =>
+                                k == i && node.start == rect.start
+                                    ? targetRenderColors.color(targetRenderDataTransform(node))
+                                    : targetRenderColors.faded(targetRenderDataTransform(node)),
+                            );
+                    }
 
-                    let source_buckets = new Array(coverageData.length);
-                    for (let i = 0; i < source_buckets.length; i++) {
-                        source_buckets[i] = new Set();
+                    let sourceBuckets = new Array(coverageData.length);
+                    for (let i = 0; i < sourceBuckets.length; i++) {
+                        sourceBuckets[i] = new Set();
                     }
 
                     for (let i = 0; i < rect.associated_buckets.length; i += 2) {
-                        source_buckets[rect.associated_buckets[i]].add(rect.associated_buckets[i + 1]);
+                        sourceBuckets[rect.associated_buckets[i]].add(rect.associated_buckets[i + 1]);
                     }
 
-                    for (let i = 0; i < source_buckets.length; i++) {
-                        let source_bucket = source_buckets[i];
-                        for (let j = 0; j < source_bucket.size; j += 2) {
-                            let sourceRects = allSourceRects[i];
-                            sourceRects.attr("stroke", function (node) {
-                                if (source_bucket.has((node.start - 1) / bucketSize)) {
-                                    return "yellow";
-                                }
-                                return null;
-                            });
-                            sourceRects.attr("stroke-width", function (node) {
-                                if (source_bucket.has((node.start - 1) / bucketSize)) {
-                                    return 8;
-                                }
-                                return null;
-                            });
-                        }
+                    for (let i = 0; i < sourceBuckets.length; i++) {
+                        let sourceBucket = sourceBuckets[i];
+                        let sourceRects = allSourceRects[i];
+                        sourceRects.transition(t).attr("fill", (node) => {
+                            if (sourceBucket.has((node.start - 1) / bucketSize)) {
+                                return sourceRenderColors.color(sourceRenderDataTransform(node));
+                            }
+                            return sourceRenderColors.faded(sourceRenderDataTransform(node));
+                        });
                     }
 
                     rect.end = rect.start + bucketSize;
@@ -516,7 +526,7 @@ export class GenomeRenderer {
                         viewBox,
                         chromName,
                         tooltipDataSelector,
-                        targetTooltipDataLabel
+                        targetTooltipDataLabel,
                     );
                 })
                 .on("mouseleave", (event, rect) => {
