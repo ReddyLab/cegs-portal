@@ -539,7 +539,7 @@ Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend(
 
 Genoverse.Track.cCRE = Genoverse.Track.extend({
     id: "ccres",
-    name: "cCREs",
+    name: "SCREEN cCREs",
     resizable: false,
     model: Genoverse.Track.Model.cCRE,
     view: Genoverse.Track.View.cCRE,
@@ -601,7 +601,7 @@ Genoverse.Track.cCRE = Genoverse.Track.extend({
 
 Genoverse.Track.Coverage = Genoverse.Track.extend({
     id: "coverage",
-    name: "Coverage",
+    name: "All Tested Elements",
     resizable: false,
     model: Genoverse.Track.Model.Coverage,
     view: Genoverse.Track.View.Coverage,
@@ -788,7 +788,7 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
 
 Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     id: "dhs-effects",
-    name: "Experimentally Tested Elements",
+    name: "Signficant Tested Elements",
     labels: false,
     model: Genoverse.Track.Model.DHS.Effects,
     controls: [
