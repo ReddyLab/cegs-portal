@@ -71,7 +71,7 @@ RUN apt-get upgrade --no-install-recommends -y
 RUN apt-get install --no-install-recommends -y \
   # debugging
   curl \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   # Translations dependencies
   gettext \
