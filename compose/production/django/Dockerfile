@@ -35,7 +35,7 @@ RUN echo "deb http://security.debian.org/debian-security/ bullseye-security main
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
-  # psycopg2 dependencies
+  # psycopg dependencies
   libpq-dev \
   libgmp10 \
   # Pillow deps
