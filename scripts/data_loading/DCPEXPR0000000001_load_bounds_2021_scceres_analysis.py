@@ -2,7 +2,7 @@ import csv
 import math
 
 from django.db import transaction
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -89,7 +89,7 @@ def load_reg_effects(reo_file, accession_ids, analysis, ref_genome, ref_genome_p
             elif strand == "-":
                 bounds = "(]"
 
-            grna_location = NumericRange(grna_start, grna_end, bounds)
+            grna_location = Int4Range(grna_start, grna_end, bounds)
 
             guide = DNAFeature.objects.get(
                 experiment_accession=experiment,

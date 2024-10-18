@@ -3,7 +3,7 @@ from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, OuterRef, Q, QuerySet, Subquery
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     DNAFeature,
@@ -236,7 +236,7 @@ class DNAFeatureSearch:
             filters["ref_genome"] = assembly
 
         field_lookup = join_fields(field, lookup)
-        filters[field_lookup] = NumericRange(int(start), int(end), "[)")
+        filters[field_lookup] = Int4Range(int(start), int(end), "[)")
 
         prefetch_values = ["parent", "parent_accession"]
 

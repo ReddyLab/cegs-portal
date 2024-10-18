@@ -161,6 +161,7 @@ class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
                         "accession_id": exp.accession_id,
                         "source": exp.get_source_type_display(),
                         "analysis_accession_id": exp.default_analysis.accession_id,
+                        "genome_assembly": exp.default_analysis.genome_assembly,
                     }
                     for exp in data.all()
                 ],

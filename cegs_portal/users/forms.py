@@ -10,7 +10,7 @@ class UserChangeForm(admin_forms.UserChangeForm):
         model = User
 
 
-class UserCreationForm(admin_forms.UserCreationForm):
+class UserCreationForm(admin_forms.AdminUserCreationForm):
     class Meta(admin_forms.UserCreationForm.Meta):
         model = User
 

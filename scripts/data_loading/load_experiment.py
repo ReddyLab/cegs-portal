@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from django.db import transaction
 from django.db.models import F, Func
-from psycopg2.extras import NumericRange
+from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     AccessionIds,
@@ -74,7 +74,7 @@ class CCREFeature:
     _id: int
     accession_id: str
     chrom_name: str
-    location: NumericRange
+    location: Int4Range
     cell_line: str
     closest_gene_id: int
     closest_gene_distance: int
@@ -122,7 +122,7 @@ class CCREFeature:
         return FeatureOverlap.OVERLAP
 
 
-def get_ccres(genome_assembly) -> list[tuple[int, str, NumericRange]]:
+def get_ccres(genome_assembly) -> list[tuple[int, str, Int4Range]]:
     assert GenomeAssembly(genome_assembly)
 
     return (
@@ -157,7 +157,7 @@ class Experiment:
         db_ids = {}
         with FeatureIds() as feature_ids:
             for feature, feature_id in zip(features, feature_ids):
-                feature_location = NumericRange(*feature.location)
+                feature_location = Int4Range(*feature.location)
                 closest_gene, distance, gene_name = get_closest_gene(
                     feature.genome_assembly, feature.chrom_name, feature_location.lower, feature_location.upper
                 )
