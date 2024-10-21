@@ -15,7 +15,7 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[".duke.edu", "", ".ceg
 DATABASES["default"] = env.db("DATABASE_URL")  # noqa F405
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
-DATABASES["default"]["options"] = {"pool": True}  # noqa F405
+DATABASES["default"]["OPTIONS"] = {"pool": True}  # noqa F405
 
 # CACHES
 # ------------------------------------------------------------------------------
