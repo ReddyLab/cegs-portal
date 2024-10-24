@@ -4,9 +4,17 @@ import {addDragListeners, addSelectListeners} from "./drag_drop.js";
 
 let controller;
 
+let experimentListURL = function (facetQuery) {
+    return `experiment?${facetQuery !== "" ? "&" + facetQuery : ""}`;
+};
+
 export function facetFilterSetup() {
     let facetCheckboxes = g("categorical-facets").querySelectorAll("input[type=checkbox]");
+
+    let queryParams = new URLSearchParams(window.location.search);
+    let experimentFacets = queryParams.getAll("facet");
     facetCheckboxes.forEach((checkbox) => {
+        checkbox.checked = experimentFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
         checkbox.addEventListener("change", (_event) => {
             if (controller !== undefined) {
                 controller.abort();
@@ -16,6 +24,8 @@ export function facetFilterSetup() {
                 .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
                 .map((i) => `facet=${i.id}`)
                 .join("&");
+
+            window.history.pushState({}, document.title, experimentListURL(facetQuery));
 
             controller = new AbortController();
 
