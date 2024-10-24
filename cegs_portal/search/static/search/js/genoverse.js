@@ -501,6 +501,7 @@ Genoverse.Track.Model.Transcript.Portal = Genoverse.Track.Model.Transcript.exten
 
 Genoverse.Track.View.Transcript.Portal = Genoverse.Track.View.Transcript.extend({
     featureHeight: 13,
+    subFeatureJoinStyle: "line",
     setFeatureColor: function (feature) {
         var processedTranscript = {
             "sense intronic": 1,
