@@ -15,6 +15,8 @@ from psycopg.types.range import Int4Range, NumericRange
 
 from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
 
+MAX_FILENAME_LENGTH = 255  # This comes from the ExperimentData.filename field/maximum macos filename length
+
 TargetJson = TypedDict(
     "TargetJson",
     {
@@ -73,7 +75,16 @@ def validate_an(expr) -> bool:
 def gen_output_filename(experiments, analyses) -> str:
     search_items = experiments.copy() if experiments is not None else []
     search_items.extend(analyses if analyses is not None else [])
-    return f"{'.'.join(search_items)}.{uuid4()}.tsv"
+    filename_end = f".{uuid4()}.tsv"
+    experiment_names = ".".join(search_items)
+
+    max_experiment_name_length = MAX_FILENAME_LENGTH - len(filename_end)
+
+    if len(experiment_names) > max_experiment_name_length:
+        # Truncate experiment names
+        experiment_names = experiment_names[:max_experiment_name_length]
+
+    return f"{experiment_names}{filename_end}"
 
 
 def validate_filename(filename: str) -> bool:
