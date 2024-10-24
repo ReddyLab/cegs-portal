@@ -1,6 +1,6 @@
 {% load humanize %}
 
-<div class="text-xl font-bold">Results for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
+<div class="text-xl font-bold">Summary Results for {{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</div>
 <div class="flex flex-wrap md:flex-row md:flex-nowrap mt-3 sm:mt-1 gap-5">
     {% for feature, count, sig_count in feature_counts %}
     <div class="justify-self-start">{{ feature }}s: <span class="font-bold">{{ count }}</span>
