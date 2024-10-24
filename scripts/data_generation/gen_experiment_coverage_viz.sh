@@ -53,16 +53,16 @@ gen_data() {
 
 default_facets=`python manage.py shell -c "from cegs_portal.search.models import FacetValue; print(' '.join(str(facet.id) for facet in FacetValue.objects.filter(value__in=['Depleted Only', 'Enriched Only', 'Mixed']).all()))"`
 
-gen_data DCPAN0000000000 HG19 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000002 "${default_facets}"
+gen_data DCPAN0000000000 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000002 "${default_facets}"
 
 # gen_data DCPEXPR0000000003 needs some changes to the cov_viz and related programs to work. Some
 # of the  REOs have null effect sizes because the "direction" of the effect is "both". Deferring
 # for now. It's also not clear how to surface that in the facet filter.
-# gen_data DCPAN0000000001 HG19 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000003 "${default_facets}"
+# gen_data DCPAN0000000001 GRCH37 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000003 "${default_facets}"
 
-gen_data DCPAN0000000002 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000004 "${default_facets}"
-gen_data DCPAN0000000003 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000005 "${default_facets}"
-gen_data DCPAN0000000004 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000006 "${default_facets}"
-gen_data DCPAN0000000005 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000007 "${default_facets}"
-gen_data DCPAN0000000006 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000008 "${default_facets}"
-gen_data DCPAN0000000007 HG38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000009 "${default_facets}"
+gen_data DCPAN0000000002 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000004 "${default_facets}"
+gen_data DCPAN0000000003 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000005 "${default_facets}"
+gen_data DCPAN0000000004 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000006 "${default_facets}"
+gen_data DCPAN0000000005 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000007 "${default_facets}"
+gen_data DCPAN0000000006 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000008 "${default_facets}"
+gen_data DCPAN0000000007 GRCH38 ./cegs_portal/static_data/search/experiments/DCPEXPR0000000009 "${default_facets}"
