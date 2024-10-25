@@ -35,6 +35,17 @@ def normalize_assembly(value):
             raise Http400(f"Invalid assembly {value}")
 
 
+def close_feature(close_feature, feature):
+    return {
+        "type": close_feature.get_feature_type_display(),
+        "cell_line": close_feature.cell_line if close_feature.cell_line is not None else "N/A",
+        "chrom_name": close_feature.chrom_name,
+        "location": close_feature.location,
+        "tss_distance": f"{close_feature.distance_from(feature):+,}",
+        "accession_id": close_feature.accession_id,
+    }
+
+
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_feature.html"
@@ -144,8 +155,12 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
         # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
-        if bool(selected_feature.closest_features.all()):
+
+        # Only Genes will have any "closest features" because "closest features" is the inverse relationship to "closest gene"
+        closest_features = selected_feature.closest_features.all()
+        if bool(closest_features):
             tabs.append("closest features")
+            closest_features = [close_feature(feature, selected_feature) for feature in closest_features]
 
         tabs.append("find nearby")
 
@@ -160,10 +175,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             options,
             {
                 "feature": selected_feature,
+                "closest_features": closest_features,
                 "sources": sources,
                 "targets": targets,
                 "reos": reo_page,
-                "feature_name": "Genome Features",
+                "feature_name": selected_feature.name,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],

@@ -144,5 +144,18 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         except FacetValue.DoesNotExist:
             return None
 
+    def distance_from(self, feature):
+        match self.strand, feature.strand:
+            case "+", "+":
+                return self.location.lower - feature.location.lower
+            case "-", "-":
+                return self.location.upper - feature.location.upper
+            case "+", "-":
+                return self.location.lower - feature.location.upper
+            case "-", "+":
+                return self.location.upper - feature.location.lower
+            case _, _:
+                return self.location.lower - feature.location.lower
+
     def __str__(self):
         return f"{self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
