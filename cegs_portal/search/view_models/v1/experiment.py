@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Optional, cast
 
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Q, Value
@@ -57,9 +57,9 @@ class ExperimentSearch:
         return experiment
 
     @classmethod
-    def all(cls, facet_ids, user_type: UserType = UserType.ANONYMOUS):
-        facet_query_input = for_facet_query_input(facet_ids)
-
+    def experiments(
+        cls, facet_ids, user_type: UserType = UserType.ADMIN, private_experiments: Optional[list[str]] = None
+    ):
         experiments = (
             Experiment.objects.annotate(
                 cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
@@ -67,30 +67,36 @@ class ExperimentSearch:
             .order_by("accession_id")
             .prefetch_related("biosamples")
         )
+
+        # Filter experiment list by facets, if necessary
         match facet_ids, user_type:
             case [], _:
                 pass
             case _, UserType.ANONYMOUS:
-                facet_experiments = public_experiments_for_facets(facet_query_input)
+                facet_experiments = public_experiments_for_facets(for_facet_query_input(facet_ids))
                 experiments = experiments.filter(accession_id__in=facet_experiments)
             case _, UserType.LOGGED_IN:
-                facet_experiments = experiments_for_facets(facet_query_input)
+                facet_experiments = experiments_for_facets(for_facet_query_input(facet_ids))
                 experiments = experiments.filter(accession_id__in=facet_experiments)
             case _, UserType.ADMIN:
-                facet_experiments = experiments_for_facets(facet_query_input)
+                facet_experiments = experiments_for_facets(for_facet_query_input(facet_ids))
                 experiments = experiments.filter(accession_id__in=facet_experiments)
 
+        # Filter experiment list by access level
+        match user_type:
+            case UserType.ANONYMOUS:
+                experiments = experiments.exclude(Q(archived=True) | Q(public=False))
+            case UserType.LOGGED_IN:
+                if private_experiments is None:
+                    private_experiments = []
+                experiments = experiments.filter(
+                    Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments))
+                )
+            case UserType.ADMIN:
+                # Admins SEE ALL
+                pass
+
         return experiments
-
-    @classmethod
-    def all_public(cls, facet_ids):
-        return cls.all(facet_ids, UserType.ANONYMOUS)
-
-    @classmethod
-    def all_with_private(cls, facet_ids, private_experiments):
-        return cls.all(facet_ids, UserType.LOGGED_IN).filter(
-            Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments))
-        )
 
     @classmethod
     def all_except(cls, accession_id):
