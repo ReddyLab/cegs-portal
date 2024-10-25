@@ -1,6 +1,7 @@
 from typing import Optional, cast
 
 from django.db.models import Q
+from django.db.models.fields.json import KT
 
 from cegs_portal.search.models import (
     DNAFeature,
@@ -83,7 +84,7 @@ class RegEffectSearch:
                 "sources",
                 "targets",
             )
-            .order_by("accession_id")
+            .order_by(KT("facet_num_values__Significance"))
         )
 
         if sig_only:
@@ -112,7 +113,7 @@ class RegEffectSearch:
                 "sources",
                 "targets",
             )
-            .order_by("accession_id")
+            .order_by(KT("facet_num_values__Significance"))
         )
 
         if sig_only:

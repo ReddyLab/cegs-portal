@@ -18,7 +18,7 @@ def view():
 
 def test_source_reg_effects_list_e2e(client: Client, source_reg_effects, sig_only_source_reg_effects):
     source = source_reg_effects["source"]
-    effects = sorted(source_reg_effects["effects"], key=lambda x: x.accession_id)
+    effects = source_reg_effects["effects"]
     response = client.get(f"/search/feature/accession/{source.accession_id}/source_for?accept=application/json")
 
     assert response.status_code == 200
@@ -164,7 +164,7 @@ def test_get_archived_source_reg_effects_with_authenticated_authorized_group_cli
 
 def test_source_reg_effects_list_page_json(public_test_client: RequestBuilder, view, source_reg_effects):
     source = source_reg_effects["source"]
-    effects = sorted(source_reg_effects["effects"], key=lambda x: x.accession_id)
+    effects = source_reg_effects["effects"]
     response = public_test_client.get(
         f"/search/feature/accession/{source.accession_id}/source_for?accept=application/json&page=1&per_page=1"
     ).request(view, feature_id=source.accession_id)

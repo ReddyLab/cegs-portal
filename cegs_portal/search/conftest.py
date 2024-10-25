@@ -368,9 +368,13 @@ def source_reg_effects():
     reo3 = RegEffectFactory(
         sources=(source,),
     )
+
+    reos = [reo1, reo2, reo3]
+    reos.sort(key=lambda r: r.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
+
     return {
         "source": source,
-        "effects": [reo1, reo2, reo3],
+        "effects": reos,
     }
 
 
@@ -403,9 +407,12 @@ def sig_only_source_reg_effects():
         facet_values=(direction_non_significant,),
     )
 
+    reos = [reo1, reo2, reo3, reo4]
+    reos.sort(key=lambda r: r.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
+
     return {
         "source": source,
-        "effects": [reo1, reo2, reo3, reo4],
+        "effects": reos,
     }
 
 
@@ -438,9 +445,12 @@ def sig_only_target_reg_effects():
         facet_values=(direction_non_significant,),
     )
 
+    reos = [reo1, reo2, reo3, reo4]
+    reos.sort(key=lambda r: r.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
+
     return {
         "target": target,
-        "effects": [reo1, reo2, reo3, reo4],
+        "effects": reos,
     }
 
 
@@ -478,9 +488,12 @@ def target_reg_effects():
     reo3 = RegEffectFactory(
         targets=(target,),
     )
+    reos = [reo1, reo2, reo3]
+    reos.sort(key=lambda r: r.facet_num_values[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
+
     return {
         "target": target,
-        "effects": [reo1, reo2, reo3],
+        "effects": reos,
     }
 
 
