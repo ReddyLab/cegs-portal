@@ -307,7 +307,7 @@
                             <span>{{ close_feature.chrom_name }}</span>:
                             <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}:{{ close_feature.strand|if_strand }}</span>
                         </td>
-                        <td>{{ close_feature.tss_distance }}</td>
+                        <td>{{ close_feature.tss_distance_display }}</td>
                         <td>
                             <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
