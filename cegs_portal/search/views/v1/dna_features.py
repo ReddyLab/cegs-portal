@@ -41,7 +41,7 @@ def close_feature(close_feature, feature):
         "cell_line": close_feature.cell_line if close_feature.cell_line is not None else "N/A",
         "chrom_name": close_feature.chrom_name,
         "location": close_feature.location,
-        "tss_distance": f"{close_feature.distance_from(feature):+,}",
+        "tss_distance": f"{close_feature.distance_from(feature) / 1000:+,.2f}",
         "accession_id": close_feature.accession_id,
     }
 
