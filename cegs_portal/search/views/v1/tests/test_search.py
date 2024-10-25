@@ -619,7 +619,7 @@ def test_sigdata(reg_effects, client: Client):
         r"\s+",
         " ",
         f"""
-    <div class="text-xl font-bold">Most Significant Reg Effect Observations</div>
+    <div class="text-xl font-bold">Top Significant Reg Effect Observations</div>
 
     <div class="overflow-x-auto">
     <table class="data-table no-hover">
