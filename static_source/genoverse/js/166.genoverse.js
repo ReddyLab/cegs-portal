@@ -1,1 +1,1 @@
-"use strict";(self.webpackChunkgenoverse=self.webpackChunkgenoverse||[]).push([[166],{3166:(e,s,k)=>{k.r(s)}}]);
+"use strict";(self.webpackChunkgenoverse=self.webpackChunkgenoverse||[]).push([[166],{3166:function(e,s,n){n.r(s)}}]);

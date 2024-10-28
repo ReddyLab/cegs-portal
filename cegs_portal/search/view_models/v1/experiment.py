@@ -1,10 +1,16 @@
-from typing import cast
+from typing import Optional, cast
 
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import Q, Value
 
+from cegs_portal.get_expr_data.view_models import (
+    experiments_for_facets,
+    for_facet_query_input,
+    public_experiments_for_facets,
+)
 from cegs_portal.search.models import Experiment, FacetValue
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
+from cegs_portal.users.models import UserType
 
 
 class ExperimentSearch:
@@ -51,7 +57,9 @@ class ExperimentSearch:
         return experiment
 
     @classmethod
-    def all(cls, facet_ids):
+    def experiments(
+        cls, facet_ids, user_type: UserType = UserType.ADMIN, private_experiments: Optional[list[str]] = None
+    ):
         experiments = (
             Experiment.objects.annotate(
                 cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
@@ -60,18 +68,35 @@ class ExperimentSearch:
             .prefetch_related("biosamples")
         )
 
-        if len(facet_ids) > 0:
-            experiments = experiments.filter(facet_values__id__in=facet_ids)
+        # Filter experiment list by facets, if necessary
+        match facet_ids, user_type:
+            case [], _:
+                pass
+            case _, UserType.ANONYMOUS:
+                facet_experiments = public_experiments_for_facets(for_facet_query_input(facet_ids))
+                experiments = experiments.filter(accession_id__in=facet_experiments)
+            case _, UserType.LOGGED_IN:
+                facet_experiments = experiments_for_facets(for_facet_query_input(facet_ids))
+                experiments = experiments.filter(accession_id__in=facet_experiments)
+            case _, UserType.ADMIN:
+                facet_experiments = experiments_for_facets(for_facet_query_input(facet_ids))
+                experiments = experiments.filter(accession_id__in=facet_experiments)
+
+        # Filter experiment list by access level
+        match user_type:
+            case UserType.ANONYMOUS:
+                experiments = experiments.exclude(Q(archived=True) | Q(public=False))
+            case UserType.LOGGED_IN:
+                if private_experiments is None:
+                    private_experiments = []
+                experiments = experiments.filter(
+                    Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments))
+                )
+            case UserType.ADMIN:
+                # Admins SEE ALL
+                pass
 
         return experiments
-
-    @classmethod
-    def all_public(cls, facet_ids):
-        return cls.all(facet_ids).filter(public=True, archived=False)
-
-    @classmethod
-    def all_with_private(cls, facet_ids, private_experiments):
-        return cls.all(facet_ids).filter(Q(archived=False) & (Q(public=True) | Q(accession_id__in=private_experiments)))
 
     @classmethod
     def all_except(cls, accession_id):

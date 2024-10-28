@@ -11,6 +11,7 @@ from cegs_portal.search.views.custom_views import (
     ExperimentAccessMixin,
     MultiResponseFormatView,
 )
+from cegs_portal.users.models import UserType
 from cegs_portal.utils.http_exceptions import Http400
 
 
@@ -241,9 +242,12 @@ class ExperimentListView(MultiResponseFormatView):
         facet_values = ExperimentSearch.experiment_facet_values()
 
         if self.request.user.is_anonymous:
-            return ExperimentSearch.all_public(options["facets"]), facet_values
+            return ExperimentSearch.experiments(options["facets"], UserType.ANONYMOUS), facet_values
 
         if self.request.user.is_superuser or self.request.user.is_portal_admin:
-            return ExperimentSearch.all(options["facets"]), facet_values
+            return ExperimentSearch.experiments(options["facets"], UserType.ADMIN), facet_values
 
-        return ExperimentSearch.all_with_private(options["facets"], self.request.user.all_experiments()), facet_values
+        return (
+            ExperimentSearch.experiments(options["facets"], UserType.LOGGED_IN, self.request.user.all_experiments()),
+            facet_values,
+        )
