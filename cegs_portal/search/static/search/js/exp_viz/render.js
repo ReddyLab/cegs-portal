@@ -55,7 +55,7 @@ let targetRenderDataTransform = coverageTypeDeferredFunctions(
         return (d) => {
             let targetCountInterval = state.g(STATE_COUNT_FILTER_INTERVALS).target;
             let targetCountRange = targetCountInterval[1] - targetCountInterval[0];
-            return sourceCountRange != 0 ? (d.count - targetCountInterval[0]) / targetCountRange : 0.5;
+            return targetCountRange != 0 ? (d.count - targetCountInterval[0]) / targetCountRange : 0.5;
         };
     },
     (state) => (d) => {
