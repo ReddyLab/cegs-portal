@@ -43,7 +43,6 @@ def close_feature(feature, gene):
         "chrom_name": feature.chrom_name,
         "location": feature.location,
         "tss_distance": tss_distance,
-        "tss_distance_display": f"{tss_distance / 1000:+,.2f}",
         "accession_id": feature.accession_id,
     }
 
