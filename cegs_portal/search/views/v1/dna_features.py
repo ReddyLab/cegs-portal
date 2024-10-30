@@ -35,18 +35,6 @@ def normalize_assembly(value):
             raise Http400(f"Invalid assembly {value}")
 
 
-def close_feature(feature, gene):
-    tss_distance = feature.distance_from_gene(gene)
-    return {
-        "type": feature.get_feature_type_display(),
-        "cell_line": feature.cell_line if feature.cell_line is not None else "N/A",
-        "chrom_name": feature.chrom_name,
-        "location": feature.location,
-        "tss_distance": tss_distance,
-        "accession_id": feature.accession_id,
-    }
-
-
 class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_feature.html"
@@ -161,8 +149,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         closest_features = selected_feature.closest_features.all()
         if bool(closest_features):
             tabs.append("closest features")
-            closest_features = [close_feature(feature, selected_feature) for feature in closest_features]
-            closest_features.sort(key=lambda f: abs(f["tss_distance"]))
+            closest_features.sort(key=lambda f: abs(f.closest_gene_distance))
 
         tabs.append("find nearby")
 

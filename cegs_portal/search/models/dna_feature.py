@@ -144,22 +144,5 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         except FacetValue.DoesNotExist:
             return None
 
-    def distance_from_gene(self, gene):
-        match gene.strand:
-            case "+":
-                distances = [self.location.lower - gene.location.lower, self.location.upper - gene.location.lower]
-            case "-":
-                distances = [self.location.lower - gene.location.upper, self.location.upper - gene.location.upper]
-            case _:
-                # This shouldn't happen, since all genes have a strand
-                distances = [
-                    self.location.lower - gene.location.upper,
-                    self.location.upper - gene.location.upper,
-                    self.location.lower - gene.location.lower,
-                    self.location.upper - gene.location.lower,
-                ]
-        distances.sort(key=abs)
-        return distances[0]
-
     def __str__(self):
         return f"{self.chrom_name}:{self.location.lower}-{self.location.upper} ({self.ref_genome})"
