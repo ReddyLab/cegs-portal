@@ -301,7 +301,7 @@
 
                 {% for close_feature in closest_features %}
                     <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
-                        <td>{{ close_feature.type }}</td>
+                        <td>{{ close_feature.get_feature_type_display }}</td>
                         <td>{{ close_feature.cell_line|default:"N/A" }}</td>
                         <td>
                             <span>{{ close_feature.chrom_name }}</span>:

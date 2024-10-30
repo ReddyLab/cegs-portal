@@ -149,6 +149,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         closest_features = selected_feature.closest_features.all()
         if bool(closest_features):
             tabs.append("closest features")
+            closest_features = list(closest_features)
             closest_features.sort(key=lambda f: abs(f.closest_gene_distance))
 
         tabs.append("find nearby")
