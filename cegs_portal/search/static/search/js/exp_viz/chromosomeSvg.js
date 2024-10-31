@@ -1,6 +1,4 @@
-import {legendBackground} from "./legendBgSvg.js";
-
-export const bandColors = {
+const bandColors = {
     acen: "#708090",
     gneg: "#FFFFFF",
     gpos: "#000000",
@@ -89,14 +87,14 @@ export class Tooltip {
     }
 }
 
-export function ChromDimensions(genome) {
+function ChromDimensions(genome) {
     this.chromHeight = 98;
     this.chromSpacing = 10;
     this.maxPxChromWidth = 2048;
     this.maxChromSize = genome.reduce((a, c) => (c.size > a ? c.size : a), 0);
 }
 
-export function VizRenderContext(chromDimensions, genome) {
+function VizRenderContext(chromDimensions, genome) {
     this.chromDimensions = chromDimensions;
     this.xInset = 60;
     this.yInset = 100;
@@ -108,7 +106,38 @@ export function VizRenderContext(chromDimensions, genome) {
     };
 }
 
-export function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions, chrom, chromIndex) {
+function legendBackground(genome) {
+    let chromDimensions = new ChromDimensions(genome);
+    let renderContext = new VizRenderContext(chromDimensions, genome);
+    renderContext.xInset = 0;
+    renderContext.yInset = 0;
+    const svg = d3
+        .create("svg")
+        .style("margin", 0)
+        .style("position", "absolute")
+        .style("top", "0px")
+        .style("z-index", "1");
+    const chrom = svg.append("g");
+    chrom
+        .selectAll("path")
+        .data(genome[20].bands)
+        .join("path")
+        .attr("fill", (b) => bandColors[b.type])
+        .attr("fill-opacity", 0.1)
+        .attr("stroke", "none")
+        .attr("d", chromosomeBand(1, 1, renderContext, chromDimensions, 0));
+
+    chrom
+        .append("path")
+        .attr("stroke-width", 1)
+        .attr("stroke", "rgba(0, 0, 0, .1)")
+        .attr("fill", "none")
+        .attr("d", chromosomeOutline(1, 1, 1, renderContext, chromDimensions, genome[20], 0));
+
+    return svg.node();
+}
+
+function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions, chrom, chromIndex) {
     const width = renderContext.toPx(chrom.size) * scaleX;
     const top =
         renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
@@ -172,7 +201,7 @@ export function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDim
     return outlinePath.join("");
 }
 
-export function chromosomeBand(scaleX, scaleY, renderContext, chromDimensions, chromIndex) {
+function chromosomeBand(scaleX, scaleY, renderContext, chromDimensions, chromIndex) {
     return function (band) {
         const top =
             renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
