@@ -14,6 +14,19 @@ const bandColors = {
 
 const svgns = "http://www.w3.org/2000/svg";
 
+export class ChromRange {
+    constructor(lower, upper) {
+        this.lower = lower;
+        this.upper = upper;
+    }
+}
+export class BucketLocation {
+    constructor(chromIndex, range) {
+        this.chromIndex = chromIndex;
+        this.range = range;
+    }
+}
+
 export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
@@ -282,7 +295,7 @@ export class GenomeRenderer {
 
     render(
         coverageData,
-        focusIndex,
+        focusLocation,
         sourceRenderColors,
         targetRenderColors,
         sourceRenderDataTransform,

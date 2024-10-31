@@ -3,7 +3,7 @@ import {Legend} from "./obsLegend.js";
 import {coverageTypeDeferredFunctions, coverageTypeFunctions} from "./covTypeUtils.js";
 import {
     STATE_ZOOMED,
-    STATE_ZOOM_CHROMO_INDEX,
+    STATE_ZOOM_GENOME_LOCATION,
     STATE_VIEWBOX,
     STATE_ALL_FILTERED,
     STATE_NUMERIC_FILTER_INTERVALS,
@@ -109,7 +109,7 @@ export function render(state, genomeRenderer) {
     const zoomed = state.g(STATE_ZOOMED);
     const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
     let currentLevel = state.g(STATE_ALL_FILTERED);
-    let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
+    let focusLocation = state.g(STATE_ZOOM_GENOME_LOCATION);
     let itemCounts = state.g(STATE_ITEM_COUNTS);
     let legendIntervals = state.g(STATE_LEGEND_INTERVALS);
 
@@ -120,7 +120,7 @@ export function render(state, genomeRenderer) {
         g("chrom-data"),
         genomeRenderer.render(
             currentLevel,
-            focusIndex,
+            focusLocation,
             sourceColors,
             targetColors,
             sourceRenderDataTransform(state),

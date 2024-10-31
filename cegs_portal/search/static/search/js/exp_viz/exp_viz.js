@@ -2,7 +2,7 @@ import {a, cc, e, g, rc, t} from "../dom.js";
 import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
-import {GenomeRenderer} from "./chromosomeSvg.js";
+import {GenomeRenderer, BucketLocation, ChromRange} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 import {debounce} from "../utils.js";
 import {render} from "./render.js";
@@ -11,7 +11,7 @@ import {mergeFilteredData} from "./coverageData.js";
 import {coverageValue, effectInterval, levelCountInterval, sigInterval} from "./covTypeUtils.js";
 import {
     STATE_ZOOMED,
-    STATE_ZOOM_CHROMO_INDEX,
+    STATE_ZOOM_GENOME_LOCATION,
     STATE_VIEWBOX,
     STATE_FACETS,
     STATE_CATEGORICAL_FACET_VALUES,
@@ -62,7 +62,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
 
     let state = new State({
         [STATE_ZOOMED]: false,
-        [STATE_ZOOM_CHROMO_INDEX]: undefined,
+        [STATE_ZOOM_GENOME_LOCATION]: undefined,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
         [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
@@ -147,8 +147,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 renderer.renderContext.viewWidth,
                 renderer.renderContext.viewHeight,
             ]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, i);
-            state.u(STATE_ZOOMED, !zoomed);
+
+            state.u(STATE_ZOOM_GENOME_LOCATION, new BucketLocation(i, new ChromRange(start, end)));
+            state.u(STATE_ZOOMED, true);
         }
     };
 
@@ -156,8 +157,8 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         let zoomed = state.g(STATE_ZOOMED);
         if (zoomed) {
             state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
-            state.u(STATE_ZOOMED, !zoomed);
+            state.u(STATE_ZOOM_GENOME_LOCATION, undefined);
+            state.u(STATE_ZOOMED, false);
         }
     };
 
