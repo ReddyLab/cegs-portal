@@ -3,7 +3,6 @@ import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
 import {GenomeRenderer} from "./chromosomeSvg.js";
-import {legendBackground} from "./legendBgSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 import {debounce} from "../utils.js";
 import {render} from "./render.js";
@@ -234,13 +233,12 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     rc(g("chrom-data-header"), t("Experiment Overview"));
 
     const genomeRenderer = new GenomeRenderer(genome);
-    const legendBg = legendBackground(genome);
 
     let sourceType = experiment_info.length == 1 ? experiment_info[0].source : "Tested Element";
 
     let state = build_state(manifests, genomeRenderer, accessionIDs, sourceType);
 
-    render(state, genomeRenderer, legendBg);
+    render(state, genomeRenderer);
 
     genomeRenderer.onBucketClick = (i, chromName, start, end, renderer) => {
         let zoomed = state.g(STATE_ZOOMED);
@@ -295,7 +293,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     });
 
     state.ac(STATE_ALL_FILTERED, (s, key) => {
-        render(state, genomeRenderer, legendBg);
+        render(state, genomeRenderer);
     });
 
     function get_all_data() {
@@ -389,7 +387,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
     );
 
     state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
-        render(state, genomeRenderer, legendBg);
+        render(state, genomeRenderer);
     });
 
     let categoricalFacetControls = g("chrom-data-categorical-facets");
@@ -471,7 +469,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
 
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
         setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
-        render(state, genomeRenderer, legendBg);
+        render(state, genomeRenderer);
     });
 
     //

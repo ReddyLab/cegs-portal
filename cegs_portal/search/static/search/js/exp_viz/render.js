@@ -106,7 +106,7 @@ let tooltipDataSelectors = [
     },
 ];
 
-export function render(state, genomeRenderer, bgSvg) {
+export function render(state, genomeRenderer) {
     const viewBox = state.g(STATE_VIEWBOX);
     const scale = state.g(STATE_SCALE);
     const scaleX = state.g(STATE_SCALE_X);
@@ -146,7 +146,7 @@ export function render(state, genomeRenderer, bgSvg) {
         Legend(d3.scaleSequential(legendIntervals.target, targetColors.color), {
             title: targetLegendTitle(state),
         }),
-        bgSvg,
+        genomeRenderer.legendBackground,
     ]);
     rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
     rc(g("source-count"), t(`${state.g(STATE_SOURCE_TYPE)}s: ${itemCounts[1].toLocaleString()}`));

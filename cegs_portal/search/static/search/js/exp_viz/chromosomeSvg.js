@@ -1,3 +1,5 @@
+import {legendBackground} from "./legendBgSvg.js";
+
 export const bandColors = {
     acen: "#708090",
     gneg: "#FFFFFF",
@@ -207,6 +209,7 @@ export class GenomeRenderer {
         this.chromDimensions = new ChromDimensions(genome);
         this.renderContext = new VizRenderContext(this.chromDimensions, genome);
         this.tooltip = new Tooltip(this.renderContext);
+        this.legendBackground = legendBackground(genome);
         this.onBucketClick = null;
         this.onBackgroundClick = null;
     }
