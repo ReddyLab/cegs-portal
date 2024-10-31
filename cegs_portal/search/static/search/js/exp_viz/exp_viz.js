@@ -139,10 +139,12 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         } else {
             state.u(STATE_VIEWBOX, [
                 renderer.renderContext.xInset +
-                    renderer.renderContext.toPx(start) * 30 -
-                    renderer.renderContext.viewHeight / 6,
+                    renderer.renderContext.toPx(start + (end - start) / 2) * renderer.renderContext.scaleX(true) -
+                    renderer.renderContext.viewWidth / 2,
                 renderer.renderContext.yInset +
-                    (renderer.chromDimensions.chromHeight + renderer.chromDimensions.chromSpacing) * i * 15 -
+                    (renderer.chromDimensions.chromHeight + renderer.chromDimensions.chromSpacing) *
+                        i *
+                        renderer.renderContext.scaleY(true) -
                     renderer.renderContext.viewHeight / 6,
                 renderer.renderContext.viewWidth,
                 renderer.renderContext.viewHeight,
