@@ -215,13 +215,29 @@ function chromosomeOutline(scaleX, scaleY, renderContext, chromDimensions, chrom
     return outlinePath.join("");
 }
 
+function zoomBand(scaleX, scaleY, renderContext, chromDimensions, focusLocation) {
+    const top =
+        renderContext.yInset +
+        (chromDimensions.chromSpacing + chromDimensions.chromHeight) * focusLocation.chromIndex * scaleY;
+    let bandPxStart = renderContext.toPx(focusLocation.range.lower) * scaleX;
+    let bandPxEnd = renderContext.toPx(focusLocation.range.upper) * scaleX;
+    let bandPxWidth = bandPxEnd - bandPxStart;
+    let outlinePath = ["M", renderContext.xInset + bandPxStart, ",", top];
+    outlinePath.push("l", 0, ",", chromDimensions.chromHeight * scaleY);
+    outlinePath.push("l", bandPxWidth, ",", 0);
+    outlinePath.push("l", 0, ",", -chromDimensions.chromHeight * scaleY);
+    outlinePath.push("l", -bandPxWidth, ",", 0);
+
+    return outlinePath.join("");
+}
+
 function chromosomeBand(scaleX, scaleY, renderContext, chromDimensions, chromIndex) {
     return function (band) {
         const top =
             renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
-        let bandStart = band.start < band.end ? band.start : band.end;
+        let bandStart = Math.min(band.start, band.end);
         let bandPxStart = renderContext.toPx(bandStart) * scaleX;
-        let bandEnd = band.start > band.end ? band.start : band.end;
+        let bandEnd = Math.max(band.start, band.end);
         let bandPxEnd = renderContext.toPx(bandEnd) * scaleX;
         let bandPxWidth = bandPxEnd - bandPxStart;
         let outlinePath = ["M", renderContext.xInset + bandPxStart, ",", top];
@@ -345,7 +361,13 @@ export class GenomeRenderer {
         }
 
         if (zoomed) {
-            this._zoomOutButton(svg, focusIndex, scaleX, scaleY, viewBox[0]);
+            this._zoomOutButton(svg, focusLocation.chromIndex, scaleX, scaleY, viewBox[0]);
+            let frame = chromGroups[focusLocation.chromIndex];
+            let zoom = frame.append("path");
+            zoom.attr("stroke-width", 10)
+                .attr("stroke", "red")
+                .attr("fill", "none")
+                .attr("d", zoomBand(scaleX, scaleY, this.renderContext, this.chromDimensions, focusLocation));
         }
 
         let nameGroup = svg.append("g");
