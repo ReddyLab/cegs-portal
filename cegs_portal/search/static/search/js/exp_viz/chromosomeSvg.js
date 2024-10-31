@@ -100,7 +100,8 @@ function VizRenderContext(chromDimensions, genome) {
     this.yInset = 100;
     this.viewWidth = chromDimensions.maxPxChromWidth + this.xInset * 2;
     this.viewHeight = this.yInset * 2 + (chromDimensions.chromHeight + chromDimensions.chromSpacing) * genome.length;
-
+    this.scaleX = (zoomed) => (zoomed ? 30 : 1);
+    this.scaleY = (zoomed) => (zoomed ? 15 : 1);
     this.toPx = function (size) {
         return this.chromDimensions.maxPxChromWidth * (size / this.chromDimensions.maxChromSize);
     };
@@ -132,12 +133,12 @@ function legendBackground(genome) {
         .attr("stroke-width", 1)
         .attr("stroke", "rgba(0, 0, 0, .1)")
         .attr("fill", "none")
-        .attr("d", chromosomeOutline(1, 1, 1, renderContext, chromDimensions, genome[20], 0));
+        .attr("d", chromosomeOutline(1, 1, renderContext, chromDimensions, genome[20], 0));
 
     return svg.node();
 }
 
-function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions, chrom, chromIndex) {
+function chromosomeOutline(scaleX, scaleY, renderContext, chromDimensions, chrom, chromIndex) {
     const width = renderContext.toPx(chrom.size) * scaleX;
     const top =
         renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
@@ -145,11 +146,11 @@ function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions
     const outlinePath = ["M", renderContext.xInset, ",", top];
     outlinePath.push(
         "C",
-        renderContext.xInset - 12 * scale,
+        renderContext.xInset - 12 * scaleY,
         ",",
         top,
         " ",
-        renderContext.xInset - 12 * scale,
+        renderContext.xInset - 12 * scaleY,
         ",",
         bottom,
         " ",
@@ -160,11 +161,11 @@ function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions
     outlinePath.push("M", renderContext.xInset + width, ",", top);
     outlinePath.push(
         "C",
-        renderContext.xInset + width + 12 * scale,
+        renderContext.xInset + width + 12 * scaleY,
         ",",
         top,
         " ",
-        renderContext.xInset + width + 12 * scale,
+        renderContext.xInset + width + 12 * scaleY,
         ",",
         bottom,
         " ",
@@ -243,7 +244,7 @@ export class GenomeRenderer {
         this.onBackgroundClick = null;
     }
 
-    _zoomOutButton(svg, chromIndex, scales, xInset) {
+    _zoomOutButton(svg, chromIndex, scaleX, scaleY, xInset) {
         const fontSize = 140;
         const strokeSize = 3;
         const fillColor = "#9D9D9D";
@@ -252,11 +253,11 @@ export class GenomeRenderer {
         const text = "Zoom Out";
         const textHAnchor = "middle";
         const textVAnchor = "central";
-        const height = this.chromDimensions.chromSpacing * scales.scaleY - vMargin * 2;
-        const width = 25 * scales.scaleX;
+        const height = this.chromDimensions.chromSpacing * scaleY - vMargin * 2;
+        const width = 25 * scaleX;
         const top =
             this.renderContext.yInset +
-            (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * chromIndex * scales.scaleY -
+            (this.chromDimensions.chromSpacing + this.chromDimensions.chromHeight) * chromIndex * scaleY -
             (height + vMargin);
 
         let buttonGroup = svg.append("g");
@@ -268,7 +269,7 @@ export class GenomeRenderer {
             .attr("height", height)
             .attr("stroke-width", strokeSize)
             .attr("fill", fillColor)
-            .attr("rx", cornerRadius * scales.scale);
+            .attr("rx", cornerRadius * scaleY);
         let buttonText = buttonGroup.append("text");
         buttonText
             .attr("x", xInset + this.renderContext.viewWidth / 2)
@@ -290,13 +291,12 @@ export class GenomeRenderer {
         sourceTooltipDataLabel,
         targetTooltipDataLabel,
         viewBox,
-        scale,
-        scaleX,
-        scaleY,
+        zoomed,
         highlightRegions,
     ) {
+        const scaleX = this.renderContext.scaleX(zoomed);
+        const scaleY = this.renderContext.scaleY(zoomed);
         const bucketHeight = 44 * scaleY;
-        const scales = {scale, scaleX, scaleY};
 
         const svg = d3
             .create("svg")
@@ -327,20 +327,12 @@ export class GenomeRenderer {
                 .attr("fill", "none")
                 .attr(
                     "d",
-                    chromosomeOutline(
-                        scale,
-                        scaleX,
-                        scaleY,
-                        this.renderContext,
-                        this.chromDimensions,
-                        this.genome[i],
-                        i,
-                    ),
+                    chromosomeOutline(scaleX, scaleY, this.renderContext, this.chromDimensions, this.genome[i], i),
                 );
         }
 
-        if (scale > 1) {
-            this._zoomOutButton(svg, focusIndex, scales, viewBox[0]);
+        if (zoomed) {
+            this._zoomOutButton(svg, focusIndex, scaleX, scaleY, viewBox[0]);
         }
 
         let nameGroup = svg.append("g");

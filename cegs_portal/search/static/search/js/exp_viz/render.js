@@ -2,10 +2,8 @@ import {a, g, rc, t} from "../dom.js";
 import {Legend} from "./obsLegend.js";
 import {coverageTypeDeferredFunctions, coverageTypeFunctions} from "./covTypeUtils.js";
 import {
+    STATE_ZOOMED,
     STATE_ZOOM_CHROMO_INDEX,
-    STATE_SCALE,
-    STATE_SCALE_X,
-    STATE_SCALE_Y,
     STATE_VIEWBOX,
     STATE_ALL_FILTERED,
     STATE_NUMERIC_FILTER_INTERVALS,
@@ -108,9 +106,7 @@ let tooltipDataSelectors = [
 
 export function render(state, genomeRenderer) {
     const viewBox = state.g(STATE_VIEWBOX);
-    const scale = state.g(STATE_SCALE);
-    const scaleX = state.g(STATE_SCALE_X);
-    const scaleY = state.g(STATE_SCALE_Y);
+    const zoomed = state.g(STATE_ZOOMED);
     const highlightRegions = state.g(STATE_HIGHLIGHT_REGIONS);
     let currentLevel = state.g(STATE_ALL_FILTERED);
     let focusIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
@@ -133,9 +129,7 @@ export function render(state, genomeRenderer) {
             sourceTooltipDataLabel(state),
             targetTooltipDataLabel,
             viewBox,
-            scale,
-            scaleX,
-            scaleY,
+            zoomed,
             highlightRegions,
         ),
     );

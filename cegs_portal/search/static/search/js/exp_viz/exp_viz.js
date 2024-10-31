@@ -12,9 +12,6 @@ import {coverageValue, effectInterval, levelCountInterval, sigInterval} from "./
 import {
     STATE_ZOOMED,
     STATE_ZOOM_CHROMO_INDEX,
-    STATE_SCALE,
-    STATE_SCALE_X,
-    STATE_SCALE_Y,
     STATE_VIEWBOX,
     STATE_FACETS,
     STATE_CATEGORICAL_FACET_VALUES,
@@ -66,9 +63,6 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
     let state = new State({
         [STATE_ZOOMED]: false,
         [STATE_ZOOM_CHROMO_INDEX]: undefined,
-        [STATE_SCALE]: 1,
-        [STATE_SCALE_X]: 1,
-        [STATE_SCALE_Y]: 1,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
         [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
@@ -172,11 +166,6 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     });
 
     state.ac(STATE_ZOOMED, (s, key) => {
-        const zoomed = s[key];
-        state.u(STATE_SCALE, zoomed ? 15 : 1);
-        state.u(STATE_SCALE_X, zoomed ? 30 : 1);
-        state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
-
         let body = getFilterBody(
             state,
             genome,
