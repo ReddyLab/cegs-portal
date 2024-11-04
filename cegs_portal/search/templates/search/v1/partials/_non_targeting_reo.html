@@ -44,7 +44,7 @@
                 <td>{{ reo.effect_size|format_effect_size }}</td>
                 <td>{{ reo.direction }}</td>
                 <td>{{ reo.significance|format_pval }}</td>
-                <td>{{ first_source.closest_gene_distance|intcomma }}</td>
+                <td>{{ first_source.closest_gene_distance|distance_display }}</td>
                 <td>
                     <div class="w-[100px]">
                         <p class="source-file-name text-ellipsis overflow-hidden ...">{{ first_source.get_feature_type_display }}</p>
