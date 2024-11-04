@@ -144,8 +144,13 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         # calling .exists on something you are going to use anyway is unnecessary work. It results in two queries,
         # the `exists` query and the data loading query, instead of one data-loading query. So you can, instead,
         # wrap the property access that does the data loading in a `bool` to get basically the same result.
-        if bool(selected_feature.closest_features.all()):
+
+        # Only Genes will have any "closest features" because "closest features" is the inverse relationship to "closest gene"
+        closest_features = selected_feature.closest_features.all()
+        if bool(closest_features):
             tabs.append("closest features")
+            closest_features = list(closest_features)
+            closest_features.sort(key=lambda f: abs(f.closest_gene_distance))
 
         tabs.append("find nearby")
 
@@ -160,10 +165,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
             options,
             {
                 "feature": selected_feature,
+                "closest_features": closest_features,
                 "sources": sources,
                 "targets": targets,
                 "reos": reo_page,
-                "feature_name": "Genome Features",
+                "feature_name": selected_feature.name,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],

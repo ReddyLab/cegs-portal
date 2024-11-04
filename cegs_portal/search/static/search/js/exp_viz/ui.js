@@ -10,7 +10,7 @@ import {
     STATE_NUMERIC_FACET_VALUES,
     STATE_SELECTED_EXPERIMENTS,
     STATE_SOURCE_TYPE,
-    STATE_ZOOM_CHROMO_INDEX,
+    STATE_ZOOM_GENOME_LOCATION,
     STATE_ZOOMED,
 } from "./consts.js";
 
@@ -174,8 +174,8 @@ export function getFilterBody(state, genome, chroms, filter_values, combo_op) {
         chromosomes: genome.map((c) => c.chrom),
     };
     if (state.g(STATE_ZOOMED)) {
-        let zoomChromoIndex = state.g(STATE_ZOOM_CHROMO_INDEX);
-        filters.zoom = chroms[zoomChromoIndex].chrom;
+        let zoomChromoIndex = state.g(STATE_ZOOM_GENOME_LOCATION);
+        filters.zoom = chroms[zoomChromoIndex.chromIndex].chrom;
     }
     try {
         let combinations = state.g(STATE_SELECTED_EXPERIMENTS).map((exp) => exp.join("/"));

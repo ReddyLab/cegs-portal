@@ -90,10 +90,9 @@
             <fieldset class="my-4" name="combinedExperiments">
                 <legend class="flex flex-row group font-bold min-w-full" id="combinedExperimentsHeader"
                     data-te-collapse-init
-                    data-te-collapse-collapsed
                     data-te-target="#combinedExperimentsCollapse"
-                    aria-expanded="false"
-                    aria-controls="combinedExperimentsCollapse">
+                    aria-controls="combinedExperimentsCollapse"
+                    aria-expanded="true">
                     <div class="flex justify-center items-center">
                         <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-layers-half"></i> Combine Experiments</div>
                     </div>
@@ -113,10 +112,12 @@
                         </svg>
                     </span>
                 </legend>
-                <div class="flex flex-row flex-wrap gap-1 hidden"
+                <div class="flex flex-row flex-wrap gap-1"
                     id="combinedExperimentsCollapse"
                     data-te-collapse-item
-                    aria-labelledby="combinedExperimentsHeader">
+                    aria-labelledby="combinedExperimentsHeader"
+                    aria-expanded="true"
+                    data-te-collapse-show>
                     <div class="w-full">
                         <div>
                             <h2 class="mb-0" id="selectExperiments">
@@ -124,10 +125,11 @@
                                     class="bg-white remove-lr-margin group relative flex w-full items-center py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
                                     type="button"
                                     data-te-collapse-init
+                                    data-te-collapse-show
                                     data-te-target="#selectExperimentsCollapse"
                                     aria-controls="selectExperimentsCollapse"
-                                    aria-expanded="false"
-                                    data-te-collapse-collapsed>
+                                    aria-expanded="true"
+                                    >
                                     <span class="font-bold text-2xl text-slate-500">
                                         ＋ <div class="text-xl font-bold text-slate-500 inline">Select Experiments</div>
                                     </span>
@@ -150,9 +152,11 @@
                             </h2>
                             <div
                                 id="selectExperimentsCollapse"
-                                class="hidden"
+                                class=""
                                 data-te-collapse-item
-                                aria-labelledby="selectExperiments">
+                                data-te-collapse-show
+                                aria-labelledby="selectExperiments"
+                                aria-expanded="true">
                                 <div class="w-full h-1/2 border border-gray-300 p-5" id="selected-experiments">
                                     <div class="italic flex justify-center" id="no-selected-experiments">Drag experiments here to select</div>
                                     <div id="selected-experiment-list"></div>
@@ -169,10 +173,10 @@
                                     class="remove-lr-margin group relative flex w-full items-center border-0 bg-white py-4 text-left text-base text-neutral-800 transition [overflow-anchor:none] hover:z-[2] focus:z-[3] focus:outline-none"
                                     type="button"
                                     data-te-collapse-init
+                                    data-te-collapse-show
                                     data-te-target="#analyzeExperimentsCollapse"
                                     aria-controls="analyzeExperimentsCollapse"
-                                    aria-expanded="false"
-                                    data-te-collapse-collapsed>
+                                    aria-expanded="true">
                                     <div class="text-xl font-bold text-slate-500">
                                         <i class="bi bi-pie-chart-fill mr-1"></i> Analyze Multiple Experiments
                                     </div>
@@ -195,9 +199,11 @@
                             </h2>
                             <div
                                 id="analyzeExperimentsCollapse"
-                                class="hidden"
+                                class=""
                                 data-te-collapse-item
-                                aria-labelledby="analyzeExperiments">
+                                data-te-collapse-show
+                                aria-labelledby="analyzeExperiments"
+                                aria-expanded="true">
                                 <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
                                     <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
                                 </div>

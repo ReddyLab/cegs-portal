@@ -1,8 +1,5 @@
 export const STATE_ZOOMED = "state-zoomed";
-export const STATE_ZOOM_CHROMO_INDEX = "state-zoom-chromo-index";
-export const STATE_SCALE = "state-scale";
-export const STATE_SCALE_X = "state-scale-x";
-export const STATE_SCALE_Y = "state-scale-y";
+export const STATE_ZOOM_GENOME_LOCATION = "state-zoom-chromo-index";
 export const STATE_VIEWBOX = "state-viewbox";
 export const STATE_FACETS = "state-facets";
 export const STATE_CATEGORICAL_FACET_VALUES = "state-categorical-facets";

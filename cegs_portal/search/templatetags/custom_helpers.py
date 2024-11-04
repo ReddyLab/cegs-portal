@@ -4,6 +4,11 @@ register = template.Library()
 
 
 @register.filter
+def distance_display(value):
+    return f"{value:+,}"
+
+
+@register.filter
 def remove_underscores(value):
     return value.replace("_", " ")
 

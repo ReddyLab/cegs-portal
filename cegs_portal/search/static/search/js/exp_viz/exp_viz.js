@@ -2,7 +2,7 @@ import {a, cc, e, g, rc, t} from "../dom.js";
 import {State} from "../state.js";
 import {getRegions} from "../bed.js";
 import {getJson, postJson} from "../files.js";
-import {GenomeRenderer} from "./chromosomeSvg.js";
+import {GenomeRenderer, BucketLocation, ChromRange} from "./chromosomeSvg.js";
 import {getDownloadRegions, getDownloadAll} from "./downloads.js";
 import {debounce} from "../utils.js";
 import {render} from "./render.js";
@@ -11,10 +11,7 @@ import {mergeFilteredData} from "./coverageData.js";
 import {coverageValue, effectInterval, levelCountInterval, sigInterval} from "./covTypeUtils.js";
 import {
     STATE_ZOOMED,
-    STATE_ZOOM_CHROMO_INDEX,
-    STATE_SCALE,
-    STATE_SCALE_X,
-    STATE_SCALE_Y,
+    STATE_ZOOM_GENOME_LOCATION,
     STATE_VIEWBOX,
     STATE_FACETS,
     STATE_CATEGORICAL_FACET_VALUES,
@@ -65,10 +62,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
 
     let state = new State({
         [STATE_ZOOMED]: false,
-        [STATE_ZOOM_CHROMO_INDEX]: undefined,
-        [STATE_SCALE]: 1,
-        [STATE_SCALE_X]: 1,
-        [STATE_SCALE_Y]: 1,
+        [STATE_ZOOM_GENOME_LOCATION]: undefined,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
         [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
@@ -98,7 +92,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
     let genome;
     try {
         manifest = await getJson(
-            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`
+            `${staticRoot}search/experiments/${exprAccessionID}/${analysisAccessionID}/coverage_manifest.json`,
         );
         genome = await getJson(`${staticRoot}genome_data/${manifest.genome.file}`);
     } catch (error) {
@@ -108,8 +102,8 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
             e(
                 "div",
                 {class: "flex flex-row justify-center"},
-                e("div", {class: "content-container grow-0"}, "No experiment coverage information found.")
-            )
+                e("div", {class: "content-container grow-0"}, "No experiment coverage information found."),
+            ),
         );
         throw new Error("Files necessary to load coverage not found");
     }
@@ -132,7 +126,6 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     let genomeName = manifest.genome.name;
 
     rc(g("chrom-data-header"), t("Experiment Overview"));
-
     const genomeRenderer = new GenomeRenderer(genome);
 
     let state = build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType);
@@ -146,16 +139,19 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         } else {
             state.u(STATE_VIEWBOX, [
                 renderer.renderContext.xInset +
-                    renderer.renderContext.toPx(start) * 30 -
-                    renderer.renderContext.viewHeight / 6,
+                    renderer.renderContext.toPx(start + (end - start) / 2) * renderer.renderContext.scaleX(true) -
+                    renderer.renderContext.viewWidth / 2,
                 renderer.renderContext.yInset +
-                    (renderer.chromDimensions.chromHeight + renderer.chromDimensions.chromSpacing) * i * 15 -
+                    (renderer.chromDimensions.chromHeight + renderer.chromDimensions.chromSpacing) *
+                        i *
+                        renderer.renderContext.scaleY(true) -
                     renderer.renderContext.viewHeight / 6,
                 renderer.renderContext.viewWidth,
                 renderer.renderContext.viewHeight,
             ]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, i);
-            state.u(STATE_ZOOMED, !zoomed);
+
+            state.u(STATE_ZOOM_GENOME_LOCATION, new BucketLocation(i, new ChromRange(start, end)));
+            state.u(STATE_ZOOMED, true);
         }
     };
 
@@ -163,8 +159,8 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
         let zoomed = state.g(STATE_ZOOMED);
         if (zoomed) {
             state.u(STATE_VIEWBOX, [0, 0, renderer.renderContext.viewWidth, renderer.renderContext.viewHeight]);
-            state.u(STATE_ZOOM_CHROMO_INDEX, undefined);
-            state.u(STATE_ZOOMED, !zoomed);
+            state.u(STATE_ZOOM_GENOME_LOCATION, undefined);
+            state.u(STATE_ZOOMED, false);
         }
     };
 
@@ -173,26 +169,21 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
     });
 
     state.ac(STATE_ZOOMED, (s, key) => {
-        const zoomed = s[key];
-        state.u(STATE_SCALE, zoomed ? 15 : 1);
-        state.u(STATE_SCALE_X, zoomed ? 30 : 1);
-        state.u(STATE_SCALE_Y, zoomed ? 15 : 1);
-
         let body = getFilterBody(
             state,
             genome,
             manifest.chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-            null
+            null,
         );
 
         postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
             (response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                 );
-            }
+            },
         );
     });
 
@@ -209,29 +200,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
                     state.u(
                         STATE_NUMERIC_FACET_VALUES,
                         [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                        false
+                        false,
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(
@@ -243,29 +234,29 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 genome,
                 manifest.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-                null
+                null,
             );
 
             postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
                 (response_json) => {
                     state.u(
                         STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes)
+                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
                     );
                     state.u(STATE_ITEM_COUNTS, [
                         response_json.reo_count,
                         response_json.source_count,
                         response_json.target_count,
                     ]);
-                }
+                },
             );
-        }, 300)
+        }, 300),
     );
 
     state.ac(STATE_NUMERIC_FILTER_INTERVALS, (s, key) => {
         cc(g("chrom-data-numeric-facets"));
         numericFilterControls(state, state.g(STATE_FACETS)).forEach((element) =>
-            a(g("chrom-data-numeric-facets"), element)
+            a(g("chrom-data-numeric-facets"), element),
         );
     });
 
@@ -291,7 +282,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     countFilters: state.g(STATE_COUNT_FILTER_VALUES),
                 });
             }
-        }, 60)
+        }, 60),
     );
 
     state.ac(STATE_HIGHLIGHT_REGIONS, (s, key) => {
@@ -326,7 +317,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             });
             rc(g("regionUploadInputReset"), highlightResetButton);
         },
-        false
+        false,
     );
     let regionUploadInput = g("regionUploadInput");
 
@@ -344,9 +335,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     dataDownloadInput,
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
 
         let dataDownloadAll = g("dataDownloadAll");
@@ -356,9 +347,9 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
                 getDownloadAll(
                     [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                     exprAccessionID,
-                    csrfToken
+                    csrfToken,
                 ),
-            false
+            false,
         );
     }
 
@@ -372,7 +363,7 @@ export async function exp_viz(staticRoot, exprAccessionID, analysisAccessionID, 
             let selectedCoverageType = coverageSelector.value;
             state.u(STATE_COVERAGE_TYPE, coverageValue(selectedCoverageType));
         },
-        false
+        false,
     );
 
     state.ac(STATE_COVERAGE_TYPE, (s, key) => {
