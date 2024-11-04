@@ -81,7 +81,7 @@ class DNAFeatureFactory(DjangoModelFactory):
     @factory.lazy_attribute
     def closest_gene_distance(self):
         if self.closest_gene:
-            return random.randint(0, 10000)
+            return random.randint(-10000, 10000)
         return None
 
     @post_generation
