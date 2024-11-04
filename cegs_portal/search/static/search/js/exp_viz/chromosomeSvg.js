@@ -106,114 +106,141 @@ function VizRenderContext(chromDimensions, genome) {
     };
 }
 
+function legendBackground(genome) {
+    let chromDimensions = new ChromDimensions(genome);
+    let renderContext = new VizRenderContext(chromDimensions, genome);
+    renderContext.xInset = 0;
+    renderContext.yInset = 0;
+    const svg = d3
+        .create("svg")
+        .style("margin", 0)
+        .style("position", "absolute")
+        .style("top", "0px")
+        .style("z-index", "1");
+    const chrom = svg.append("g");
+    chrom
+        .selectAll("path")
+        .data(genome[20].bands)
+        .join("path")
+        .attr("fill", (b) => bandColors[b.type])
+        .attr("fill-opacity", 0.1)
+        .attr("stroke", "none")
+        .attr("d", chromosomeBand(1, 1, renderContext, chromDimensions, 0));
+
+    chrom
+        .append("path")
+        .attr("stroke-width", 1)
+        .attr("stroke", "rgba(0, 0, 0, .1)")
+        .attr("fill", "none")
+        .attr("d", chromosomeOutline(1, 1, 1, renderContext, chromDimensions, genome[20], 0));
+
+    return svg.node();
+}
+
+function chromosomeOutline(scale, scaleX, scaleY, renderContext, chromDimensions, chrom, chromIndex) {
+    const width = renderContext.toPx(chrom.size) * scaleX;
+    const top =
+        renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
+    const bottom = top + chromDimensions.chromHeight * scaleY;
+    const outlinePath = ["M", renderContext.xInset, ",", top];
+    outlinePath.push(
+        "C",
+        renderContext.xInset - 12 * scale,
+        ",",
+        top,
+        " ",
+        renderContext.xInset - 12 * scale,
+        ",",
+        bottom,
+        " ",
+        renderContext.xInset,
+        ",",
+        bottom,
+    );
+    outlinePath.push("M", renderContext.xInset + width, ",", top);
+    outlinePath.push(
+        "C",
+        renderContext.xInset + width + 12 * scale,
+        ",",
+        top,
+        " ",
+        renderContext.xInset + width + 12 * scale,
+        ",",
+        bottom,
+        " ",
+        renderContext.xInset + width,
+        ",",
+        bottom,
+    );
+
+    for (const band of chrom.bands) {
+        let bandStart = band.start < band.end ? band.start : band.end;
+        let bandEnd = band.start > band.end ? band.start : band.end;
+        let bandPxStart = renderContext.toPx(bandStart) * scaleX;
+        let bandPxEnd = renderContext.toPx(bandEnd) * scaleX;
+        let bandPxWidth = bandPxEnd - bandPxStart;
+
+        if (band.type == "acen") {
+            if (band.id.startsWith("p")) {
+                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+                outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+                outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+            } else {
+                outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
+                outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+                outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+            }
+        } else {
+            outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+            outlinePath.push("M", renderContext.xInset + bandPxStart, ",", bottom);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+        }
+    }
+
+    return outlinePath.join("");
+}
+
+function chromosomeBand(scaleX, scaleY, renderContext, chromDimensions, chromIndex) {
+    return function (band) {
+        const top =
+            renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scaleY;
+        let bandStart = band.start < band.end ? band.start : band.end;
+        let bandPxStart = renderContext.toPx(bandStart) * scaleX;
+        let bandEnd = band.start > band.end ? band.start : band.end;
+        let bandPxEnd = renderContext.toPx(bandEnd) * scaleX;
+        let bandPxWidth = bandPxEnd - bandPxStart;
+        let outlinePath = ["M", renderContext.xInset + bandPxStart, ",", top];
+        if (band.type == "acen") {
+            if (band.id.startsWith("p")) {
+                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
+                outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+                outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+            } else {
+                outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
+                outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+                outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scaleY);
+            }
+        } else {
+            outlinePath.push("l", 0, ",", chromDimensions.chromHeight * scaleY);
+            outlinePath.push("l", bandPxWidth, ",", 0);
+            outlinePath.push("l", 0, ",", -chromDimensions.chromHeight * scaleY);
+            outlinePath.push("l", -bandPxWidth, ",", 0);
+        }
+
+        return outlinePath.join("");
+    };
+}
+
 export class GenomeRenderer {
     constructor(genome) {
         this.genome = genome;
         this.chromDimensions = new ChromDimensions(genome);
         this.renderContext = new VizRenderContext(this.chromDimensions, genome);
         this.tooltip = new Tooltip(this.renderContext);
+        this.legendBackground = legendBackground(genome);
         this.onBucketClick = null;
         this.onBackgroundClick = null;
-    }
-
-    _chromosomeOutline(scales, d, i) {
-        let chromDimensions = this.chromDimensions;
-        let renderContext = this.renderContext;
-        const width = renderContext.toPx(d.size) * scales.scaleX;
-        const top =
-            renderContext.yInset + (chromDimensions.chromSpacing + chromDimensions.chromHeight) * i * scales.scaleY;
-        const bottom = top + chromDimensions.chromHeight * scales.scaleY;
-        const outlinePath = ["M", renderContext.xInset, ",", top];
-        outlinePath.push(
-            "C",
-            renderContext.xInset - 12 * scales.scale,
-            ",",
-            top,
-            " ",
-            renderContext.xInset - 12 * scales.scale,
-            ",",
-            bottom,
-            " ",
-            renderContext.xInset,
-            ",",
-            bottom,
-        );
-        outlinePath.push("M", renderContext.xInset + width, ",", top);
-        outlinePath.push(
-            "C",
-            renderContext.xInset + width + 12 * scales.scale,
-            ",",
-            top,
-            " ",
-            renderContext.xInset + width + 12 * scales.scale,
-            ",",
-            bottom,
-            " ",
-            renderContext.xInset + width,
-            ",",
-            bottom,
-        );
-
-        for (const band of d.bands) {
-            let bandStart = band.start < band.end ? band.start : band.end;
-            let bandEnd = band.start > band.end ? band.start : band.end;
-            let bandPxStart = this.renderContext.toPx(bandStart) * scales.scaleX;
-            let bandPxEnd = this.renderContext.toPx(bandEnd) * scales.scaleX;
-            let bandPxWidth = bandPxEnd - bandPxStart;
-
-            if (band.type == "acen") {
-                if (band.id.startsWith("p")) {
-                    outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
-                    outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                    outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                } else {
-                    outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
-                    outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                    outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                }
-            } else {
-                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
-                outlinePath.push("l", bandPxWidth, ",", 0);
-                outlinePath.push("M", renderContext.xInset + bandPxStart, ",", bottom);
-                outlinePath.push("l", bandPxWidth, ",", 0);
-            }
-        }
-
-        return outlinePath.join("");
-    }
-
-    _chromosomeBand(scales, chromIndex) {
-        let renderContext = this.renderContext;
-        let chromDimensions = this.chromDimensions;
-        return function (band) {
-            const top =
-                renderContext.yInset +
-                (chromDimensions.chromSpacing + chromDimensions.chromHeight) * chromIndex * scales.scaleY;
-            let bandStart = band.start < band.end ? band.start : band.end;
-            let bandPxStart = renderContext.toPx(bandStart) * scales.scaleX;
-            let bandEnd = band.start > band.end ? band.start : band.end;
-            let bandPxEnd = renderContext.toPx(bandEnd) * scales.scaleX;
-            let bandPxWidth = bandPxEnd - bandPxStart;
-            let outlinePath = ["M", renderContext.xInset + bandPxStart, ",", top];
-            if (band.type == "acen") {
-                if (band.id.startsWith("p")) {
-                    outlinePath.push("M", renderContext.xInset + bandPxStart, ",", top);
-                    outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                    outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                } else {
-                    outlinePath.push("M", renderContext.xInset + bandPxEnd, ",", top);
-                    outlinePath.push("l", -bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                    outlinePath.push("l", bandPxWidth, ",", (chromDimensions.chromHeight / 2) * scales.scaleY);
-                }
-            } else {
-                outlinePath.push("l", 0, ",", chromDimensions.chromHeight * scales.scaleY);
-                outlinePath.push("l", bandPxWidth, ",", 0);
-                outlinePath.push("l", 0, ",", -chromDimensions.chromHeight * scales.scaleY);
-                outlinePath.push("l", -bandPxWidth, ",", 0);
-            }
-
-            return outlinePath.join("");
-        };
     }
 
     _zoomOutButton(svg, chromIndex, scales, xInset) {
@@ -291,14 +318,25 @@ export class GenomeRenderer {
                 .attr("fill", (b) => bandColors[b.type])
                 .attr("fill-opacity", 0.3)
                 .attr("stroke", "none")
-                .attr("d", this._chromosomeBand(scales, i));
+                .attr("d", chromosomeBand(scaleX, scaleY, this.renderContext, this.chromDimensions, i));
 
             chrom
                 .append("path")
                 .attr("stroke-width", 1)
                 .attr("stroke", "black")
                 .attr("fill", "none")
-                .attr("d", this._chromosomeOutline(scales, this.genome[i], i));
+                .attr(
+                    "d",
+                    chromosomeOutline(
+                        scale,
+                        scaleX,
+                        scaleY,
+                        this.renderContext,
+                        this.chromDimensions,
+                        this.genome[i],
+                        i,
+                    ),
+                );
         }
 
         if (scale > 1) {

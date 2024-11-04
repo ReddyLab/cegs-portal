@@ -139,18 +139,15 @@ export function render(state, genomeRenderer) {
             highlightRegions,
         ),
     );
-    rc(
-        g("chrom-data-legend"),
+    rc(g("chrom-data-legend"), [
         Legend(d3.scaleSequential(legendIntervals.source, sourceColors.color), {
             title: sourceLegendTitle(state),
         }),
-    );
-    a(
-        g("chrom-data-legend"),
         Legend(d3.scaleSequential(legendIntervals.target, targetColors.color), {
             title: targetLegendTitle(state),
         }),
-    );
+        genomeRenderer.legendBackground,
+    ]);
     rc(g("reo-count"), t(`Observations: ${itemCounts[0].toLocaleString()}`));
     rc(g("source-count"), t(`${state.g(STATE_SOURCE_TYPE)}s: ${itemCounts[1].toLocaleString()}`));
     rc(g("target-count"), t(`Genes: ${itemCounts[2].toLocaleString()}`));
