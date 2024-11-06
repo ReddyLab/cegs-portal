@@ -4,7 +4,15 @@
 <div class="min-w-full max-w-sm">
 {% if sig_reg_effects|length > 0 %}
     <div class="flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
-        <div class="text-xl font-bold justify-self-center text-center">Significant Regulatory Effect Observations</div>
+        <div class="text-xl font-bold justify-self-center text-center">
+            Significant Regulatory Effect Observations
+            <div class="relative group inline-block">
+                <i class="fa-solid fa-circle-info"></i>
+                <span class="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-64 px-2 py-1 text-sm border border-gray-300 bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    All significant regulatory effect observations found in this region
+                </span>
+            </div>
+        </div>
         <div class="flex justify-end items-center">
             <span class="text-lg">Download:</span>
             <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">
