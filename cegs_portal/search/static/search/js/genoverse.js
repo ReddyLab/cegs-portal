@@ -168,12 +168,7 @@ Genoverse.Track.View.Coverage = Genoverse.Track.View.extend({
     },
 });
 
-Genoverse.Track.Model.DHS = Genoverse.Track.Model.extend({
-    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant",
-    dataRequestLimit: 5000000,
-});
-
-Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
+Genoverse.Track.View.TestedElements = Genoverse.Track.View.extend({
     featureHeight: 15,
     labels: true,
     repeatLabels: true,
@@ -203,7 +198,8 @@ Genoverse.Track.View.DHS = Genoverse.Track.View.extend({
     },
 });
 
-Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
+Genoverse.Track.Model.TestedElements = Genoverse.Track.Model.extend({
+    dataRequestLimit: 5000000,
     init: function (reset) {
         this.base(reset);
 
@@ -356,6 +352,16 @@ Genoverse.Track.Model.DHS.Effects = Genoverse.Track.Model.DHS.extend({
             this.insertFeature(feature);
         }
     },
+});
+
+Genoverse.Track.Model.ReporterAssay = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant&property=reporterassay",
+});
+Genoverse.Track.Model.CRISPRi = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant&property=crispri",
+});
+Genoverse.Track.Model.CRISPRa = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant&property=crispra",
 });
 
 Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
@@ -693,12 +699,13 @@ Genoverse.Track.Coverage = Genoverse.Track.extend({
     },
 });
 
-Genoverse.Track.DHS = Genoverse.Track.extend({
-    id: "dhs",
-    name: "DHSs",
+Genoverse.Track.TestedElements = Genoverse.Track.extend({
+    id: "tested-elements",
+    name: "Tested Elements",
     resizable: "auto",
-    model: Genoverse.Track.Model.DHS,
-    view: Genoverse.Track.View.DHS,
+    labels: false,
+    model: Genoverse.Track.Model.TestedElements,
+    view: Genoverse.Track.View.TestedElements,
     populateMenu: async function (feature) {
         let url = `/search/feature/accession/${feature.accession_id}`;
         let type = feature.type.toUpperCase();
@@ -785,13 +792,6 @@ Genoverse.Track.DHS = Genoverse.Track.extend({
             ".gv-image-container",
         );
     },
-});
-
-Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
-    id: "dhs-effects",
-    name: "Signficant Tested Elements",
-    labels: false,
-    model: Genoverse.Track.Model.DHS.Effects,
     controls: [
         Genoverse.jQuery('<a title="Change feature height">Squish</a>').on("click", function () {
             const track = Genoverse.jQuery(this)
@@ -818,6 +818,24 @@ Genoverse.Track.DHS.Effects = Genoverse.Track.DHS.extend({
     defaultConfig: {
         squish: false,
     },
+});
+
+Genoverse.Track.TestedElements.ReporterAssay = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-reporterassay",
+    name: "Reporter Assay Tested Elements",
+    model: Genoverse.Track.Model.ReporterAssay,
+});
+
+Genoverse.Track.TestedElements.CRISPRi = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-crispri",
+    name: "CRISPRi Tested Elements",
+    model: Genoverse.Track.Model.CRISPRi,
+});
+
+Genoverse.Track.TestedElements.CRISPRa = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-crispra",
+    name: "CRISPRa Tested Elements",
+    model: Genoverse.Track.Model.CRISPRa,
 });
 
 Genoverse.Track.Gene = Genoverse.Track.extend({
