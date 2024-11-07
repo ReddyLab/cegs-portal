@@ -31,7 +31,7 @@ function handleNoSelectedExperiments() {
         noExperiments = e(
             "div",
             {class: "italic text-center", id: "no-selected-experiments"},
-            "Drag experiments here to select"
+            "Drag experiments here or click \" + \" to select"
         );
         g("selected-experiment-list").before(noExperiments);
     }
