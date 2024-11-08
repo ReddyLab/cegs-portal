@@ -41,6 +41,7 @@ class MockExperimentMetadata:
         )
         self.source_type = DNAFeatureType.GRNA.value
         self.parent_source_type = DNAFeatureType.DHS.value
+        self.functional_characterization_modality = FunctionalCharacterizationType.CRISPRI
 
     def db_save(self):
         return self.experiment
