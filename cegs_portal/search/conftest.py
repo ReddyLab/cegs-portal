@@ -18,6 +18,7 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     File,
+    FunctionalCharacterizationType,
     RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.experiment import ExperimentCollection
@@ -560,7 +561,7 @@ def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
 
 
 @pytest.fixture
-def genoverse_dhs_features():
+def genoverse_features():
     chrom = "chr10"
     start = 1_000_000
     length = 10_000
@@ -614,8 +615,13 @@ def genoverse_dhs_features():
     enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched,))
-    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched,))
+    fcm_facet = FacetFactory(description="", name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value)
+    reporter_assay = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.REPORTER_ASSAY)
+    crispri = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRI)
+    crispra = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRA)
+
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched, reporter_assay))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched, crispri, crispra))
     _ = RegEffectFactory(sources=(f3,), facet_values=(non_sig,))
 
     return {

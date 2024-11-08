@@ -20,6 +20,30 @@ DEFAULT_TABLE_LENGTH = 20
 HG19 = "hg19"
 HG38 = "hg38"
 ALL_ASSEMBLIES = [HG38, HG19]  # Ordered by descending "importance"
+VALID_FEATUREID_PROPS = {"regeffects"}
+VALID_FEATURELOC_PROPS = {
+    "regeffects",
+    "screen_ccre",
+    "effect_directions",
+    "significant",
+    "reo_source",
+    "reporterassay",
+    "crispri",
+    "crispra",
+    "parent_info",
+}
+
+
+def validate_properties(property_list):
+    def f(properties):
+        if not all(p in property_list for p in properties):
+            raise Http400(f"Invalid query properties ({properties})")
+
+    return f
+
+
+validate_id_properties = validate_properties(VALID_FEATUREID_PROPS)
+validate_loc_properties = validate_properties(VALID_FEATURELOC_PROPS)
 
 
 def normalize_assembly(value):
@@ -78,6 +102,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         options = super().request_options(request)
         options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
         options["feature_properties"] = request.GET.getlist("property", [])
+        validate_id_properties(options["feature_properties"])
         options["json_format"] = request.GET.get("format", None)
         options["sig_only"] = truthy_to_bool(request.GET.get("sig_only", True))
         return options
@@ -214,6 +239,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * "effect_directions" - include effect directions of associated REOs
                 * "significant" - include only feature that are the source of significant REOs
                 * "reo_source" - include features that are the source for an REO
+                * "reporterassay", "crispri", "crispra" - include features from these kinds of experiments
             search_type
                 * "exact" - match location exactly
                 * "overlap" - match any overlapping feature
@@ -227,6 +253,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["assembly"] = normalize_assembly(request.GET.get("assembly", HG38))
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
+        validate_loc_properties(options["feature_properties"])
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
@@ -235,6 +262,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["json_format"] = request.GET.get("format", None)
         options["dist"] = int(request.GET.get("dist", 0))
         options["tsv_format"] = request.GET.get("tsv_format", None)
+
         return options
 
     def get(self, request, options, data, chromo, start, end):

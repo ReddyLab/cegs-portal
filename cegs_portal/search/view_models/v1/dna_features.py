@@ -34,6 +34,28 @@ class LocSearchProperty(StrEnum):
     REO_SOURCE = "reo_source"
     SCREEN_CCRE = "screen_ccre"
     SIGNIFICANT = "significant"
+    REPORTER_ASSAY = "reporterassay"
+    CRISPRI = "crispri"
+    CRISPRA = "crispra"
+
+
+REO_COUNT_PROPERTIES = {
+    LocSearchProperty.EFFECT_DIRECTIONS,
+    LocSearchProperty.SIGNIFICANT,
+    LocSearchProperty.REO_SOURCE,
+}
+
+FUNCTIONAL_CHARACTERIZATION_PROPERTIES = {
+    LocSearchProperty.REPORTER_ASSAY,
+    LocSearchProperty.CRISPRI,
+    LocSearchProperty.CRISPRA,
+}
+
+FUNCTIONAL_CHARACTERIZATION_VALUES = {
+    LocSearchProperty.REPORTER_ASSAY.value: "Reporter Assay",
+    LocSearchProperty.CRISPRI.value: "CRISPRi",
+    LocSearchProperty.CRISPRA.value: "CRISPRa",
+}
 
 
 def join_fields(*field_names):
@@ -213,6 +235,7 @@ class DNAFeatureSearch:
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
         filters: dict[str, Any] = {"chrom_name": chromo}
+        feature_properties_set = set(feature_properties)
 
         new_feature_types: list[DNAFeatureType] = []
         for ft in feature_types:
@@ -249,7 +272,9 @@ class DNAFeatureSearch:
             filters["facet_values__id__in"] = facets
             prefetch_values.extend(["facet_values", "facet_values__facet"])
 
-        if LocSearchProperty.REG_EFFECTS in feature_properties:
+        included_fcp = feature_properties_set & FUNCTIONAL_CHARACTERIZATION_PROPERTIES
+
+        if LocSearchProperty.REG_EFFECTS in feature_properties or len(included_fcp) > 0:
             # The facet presets are used when getting the "direction" property
             # of a RegulatoryEffectObservation. This is done in the _reg_effect.html partial
             # and the reg_effect function of the dna_features.py json template.
@@ -270,15 +295,39 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        reo_count_properties = {
-            LocSearchProperty.EFFECT_DIRECTIONS,
-            LocSearchProperty.SIGNIFICANT,
-            LocSearchProperty.REO_SOURCE,
-        }
-        if any(p in reo_count_properties for p in feature_properties):
+        if any(p in REO_COUNT_PROPERTIES for p in feature_properties):
             # skip any feature that are not the sources for any REOs
             features = features.annotate(reo_count=Count("source_for"))
             filters["reo_count__gt"] = 0
+
+        if len(included_fcp) > 0:
+            # we want to filter on functional characterization modality type
+
+            # Convert from e.g., "reporterassay" (the property value) to
+            # e.g., "Reporter Assay", the value in the DB.
+            db_fcp = [FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp]
+
+            # count how many times one of the requested functional characterization values
+            # shows up in REOs this feature is a source for
+            features = features.annotate(
+                source_fcp=Count(
+                    "source_for__facet_values__value",
+                    filter=Q(source_for__facet_values__value__in=db_fcp),
+                )
+            )
+
+            # count how many times one of the requested functional characterization values
+            # shows up in REOs this feature is a target of
+            features = features.annotate(
+                target_fcp=Count(
+                    "target_of__facet_values__value",
+                    filter=Q(source_for__facet_values__value__in=db_fcp),
+                )
+            )
+
+            # Only include this feature is it's a source for or target of at least one
+            # reo with a requested functional characterization type
+            features = features.filter(Q(source_fcp__gt=0) | Q(target_fcp__gt=0))
 
         if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
             features = features.annotate(
