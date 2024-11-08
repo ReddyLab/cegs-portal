@@ -274,7 +274,7 @@ class DNAFeatureSearch:
 
         included_fcp = feature_properties_set & FUNCTIONAL_CHARACTERIZATION_PROPERTIES
 
-        if LocSearchProperty.REG_EFFECTS in feature_properties or len(included_fcp) > 0:
+        if LocSearchProperty.REG_EFFECTS in feature_properties:
             # The facet presets are used when getting the "direction" property
             # of a RegulatoryEffectObservation. This is done in the _reg_effect.html partial
             # and the reg_effect function of the dna_features.py json template.
@@ -339,13 +339,7 @@ class DNAFeatureSearch:
             )
 
         if LocSearchProperty.SIGNIFICANT in feature_properties:
-            features = features.annotate(
-                sig_count=Count(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__value__in=["Depleted Only", "Enriched Only", "Mixed"]),
-                )
-            )
-            filters["sig_count__gt"] = 0
+            filters["significant_reo"] = True
 
         if LocSearchProperty.SCREEN_CCRE in feature_properties:
             features = features.annotate(

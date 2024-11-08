@@ -146,6 +146,8 @@ class Analysis:
 
         with ReoIds() as reo_ids:
             for reo_id, reo in zip(reo_ids, self.observations):
+                reo_significant = any(f == "Direction" and fv != "Non-significant" for f, fv in reo.categorical_facets)
+
                 for source in reo.sources:
                     source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
                     if source_string not in source_cache:
@@ -158,7 +160,12 @@ class Analysis:
                             feature_type=DNAFeatureType(source.feature_type),
                         ).values_list("id", flat=True)[0]
 
-                    sources.write(source_entry(reo_id, source_cache[source_string]))
+                    feature_id = source_cache[source_string]
+                    sources.write(source_entry(reo_id, feature_id))
+
+                    feature = DNAFeature.objects.get(id=feature_id)
+                    feature.significant_reo = feature.significant_reo or reo_significant
+                    feature.save()
 
                 for target in reo.targets:
                     if target not in target_cache:
