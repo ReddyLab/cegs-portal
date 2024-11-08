@@ -129,6 +129,9 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
     )
     analysis_accession_id: Optional[str]
 
+    # Are any REOs this feature is a source for significant
+    significant_reo = models.BooleanField(default=False)
+
     @property
     def assay(self):
         return self.facet_values.get(facet__name=DNAFeature.Facet.ASSAYS.value).value

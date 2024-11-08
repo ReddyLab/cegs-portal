@@ -61,3 +61,7 @@ def test_post_analysis_data(add_experiment_client: SearchClient):
         )
         assert response.status_code < 400
         assert RegulatoryEffectObservation.objects.all().count() == 14
+
+        # Make sure that some of the DNA features get updated with information about their
+        # significant REOs
+        assert any(feature.significant_reo for feature in DNAFeature.objects.all())

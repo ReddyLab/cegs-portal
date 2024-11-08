@@ -49,6 +49,7 @@ class FeatureRow:
     parent_name: Optional[str] = None
     misc: Optional[Any] = None
     strand: Optional[ChromosomeStrands] = None
+    significant_reo: bool = False
 
     def __post_init__(self):
         if self.strand == ".":
