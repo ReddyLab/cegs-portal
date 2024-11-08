@@ -209,7 +209,17 @@
                         aria-labelledby="analyzeExperiments">
                         <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
                           <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
+                          <div class="italic mt-2">
+                            Note: Selected experiments must be within the same genome assembly for analysis
+                            <span class="relative group inline-block ml-2">
+                              <i class="fa-solid fa-circle-info -ml-2"></i>
+                              <span class="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-64 px-2 py-1 text-sm border border-gray-300 bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                Filter by genome assembly and select the desired experiments.
+                              </span>
+                            </span>
+                          </div>
                         </div>
+
                       </div>
                     </div>
                     {% if logged_in %}
