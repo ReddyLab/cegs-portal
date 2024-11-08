@@ -8,6 +8,7 @@
         }
     ],
     "assay": "Perturb-Seq",
+    "functional_characterization_modality": "CRISPRi",
     "source type": "DHS",
     "year": "2021",
     "experimentalist": "Tyler Klann",

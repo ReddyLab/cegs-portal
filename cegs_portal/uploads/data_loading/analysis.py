@@ -70,7 +70,7 @@ class Analysis:
 
         dir_facet = Facet.objects.get(name="Direction")
         self.categorical_facet_values = {
-            facet.value: facet.id for facet in FacetValue.objects.filter(facet_id=dir_facet.id).all()
+            facet_value.value: facet_value.id for facet_value in FacetValue.objects.filter(facet_id=dir_facet.id).all()
         }
 
     def load(self, results_file_location=None):
@@ -126,7 +126,11 @@ class Analysis:
 
         analysis_accession_id = self.accession_id
         experiment_accession_id = self.metadata.experiment_accession_id
-        experiment_id = Experiment.objects.filter(accession_id=experiment_accession_id).values_list("id", flat=True)[0]
+        experiment = (
+            Experiment.objects.filter(accession_id=experiment_accession_id).prefetch_related("facet_values").first()
+        )
+        assert experiment is not None
+        experiment_id = experiment.id
         genome_assembly = self.metadata.genome_assembly
         sources = StringIO()
         targets = StringIO()
@@ -134,6 +138,11 @@ class Analysis:
         cat_facets = StringIO()
         source_cache = {}
         target_cache = {}
+
+        fcm_facet_value = None
+        for facet_value in experiment.facet_values.all():
+            if facet_value.facet.name == Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value:
+                fcm_facet_value = facet_value
 
         with ReoIds() as reo_ids:
             for reo_id, reo in zip(reo_ids, self.observations):
@@ -167,6 +176,7 @@ class Analysis:
                     facet_num_values[RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value] = -math.log10(
                         max(reo.numeric_facets[Facets.SIGNIFICANCE], MIN_SIG)
                     )
+
                 effects.write(
                     reo_entry(
                         id_=reo_id,
@@ -179,8 +189,11 @@ class Analysis:
                 )
 
                 for _, facet_value in reo.categorical_facets:
-                    facet_id = self.categorical_facet_values[facet_value]
-                    cat_facets.write(cat_facet_entry(reo_id, facet_id))
+                    facet_value_id = self.categorical_facet_values[facet_value]
+                    cat_facets.write(cat_facet_entry(reo_id, facet_value_id))
+
+                if fcm_facet_value is not None:
+                    cat_facets.write(cat_facet_entry(reo_id, fcm_facet_value.id))
 
         bulk_reo_save(effects, cat_facets, sources, targets)
 
