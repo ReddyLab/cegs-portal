@@ -16,9 +16,8 @@
                 <legend class="flex flex-row group font-bold min-w-full" id="experimentFiltersHeader"
                     data-te-collapse-init
                     data-te-target="#experimentFiltersCollapse"
-                    aria-expanded="false"
-                    aria-controls="experimentFiltersCollapse"
-                    data-te-collapse-collapsed>
+                    aria-expanded="true"
+                    aria-controls="experimentFiltersCollapse">
                     <div class="flex justify-center items-center">
                         <div class="text-xl font-bold text-slate-500 text-center"><i class="bi bi-funnel-fill"></i> Filter Experiments</div>
                     </div>
@@ -38,9 +37,10 @@
                         </svg>
                     </div>
                 </legend>
-                <div class="flex flex-row flex-wrap gap-1 hidden"
+                <div class="flex flex-row flex-wrap gap-1"
                     id="experimentFiltersCollapse"
                     data-te-collapse-item
+                    data-te-collapse-show
                     aria-labelledby="experimentFiltersHeader">
                     <div id="categorical-facets" class="w-full">
                         {% for facet, values in facets.items %}
