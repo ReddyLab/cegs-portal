@@ -39,6 +39,8 @@ class DNAFeatureFactory(DjangoModelFactory):
     parent = None
     closest_gene = None
 
+    significant_reo = False
+
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         # in DNAFeatureSearch#loc_search the "effect_directions" property adds
