@@ -577,6 +577,7 @@ def genoverse_features():
         chrom_name=chrom,
         location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.DHS,
+        significant_reo=True,
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
@@ -584,6 +585,7 @@ def genoverse_features():
         location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
         facet_values=(pels,),
+        significant_reo=True,
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,

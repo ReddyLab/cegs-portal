@@ -10,6 +10,7 @@ pytestmark = pytest.mark.django_db
 
 
 def functional_characterization_test(client: Client, genoverse_features, fcp_type):
+    fc_property, fc_value = fcp_type
     chrom = genoverse_features["chrom"]
     assembly = genoverse_features["ref_genome"]
     start = genoverse_features["start"]
@@ -17,15 +18,13 @@ def functional_characterization_test(client: Client, genoverse_features, fcp_typ
     features = genoverse_features["features"]
 
     response = client.get(
-        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=significant&property={fcp_type[0]}"  # noqa: E501
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property=significant&property={fc_property}"  # noqa: E501
     )
 
     assert response.status_code == 200
 
     json_content = json.loads(response.content)
-    for f in features:
-        for r in f.source_for.all():
-            print(r.facet_values.all())
+
     assert isinstance(json_content, list)
     assert len(json_content) == len(
         [
@@ -34,7 +33,7 @@ def functional_characterization_test(client: Client, genoverse_features, fcp_typ
             if len(f.source_for.all()) > 0
             and all(
                 all(s.value != "Non-significant" for s in r.facet_values.all())
-                and any(s.value == fcp_type[1] for s in r.facet_values.all())
+                and any(s.value == fc_value for s in r.facet_values.all())
                 for r in f.source_for.all()
             )
         ]
