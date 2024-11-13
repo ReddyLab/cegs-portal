@@ -612,7 +612,6 @@ Genoverse.Track.Coverage = Genoverse.Track.extend({
     resizable: false,
     model: Genoverse.Track.Model.Coverage,
     view: Genoverse.Track.View.Coverage,
-    border: false,
     controls: "off",
     populateMenu: async function (feature) {
         let url = `/search/feature/accession/${feature.accession_id}`;
