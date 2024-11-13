@@ -577,13 +577,17 @@ def genoverse_features():
     crispri = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRI)
     crispra = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRA)
 
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
+
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.DHS,
         significant_reo=True,
-        facet_values=(pels, reporter_assay),
+        facet_values=(pels, reporter_assay, enriched),
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
@@ -591,7 +595,7 @@ def genoverse_features():
         location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
         significant_reo=True,
-        facet_values=(pels, crispri, crispra),
+        facet_values=(pels, crispri, crispra, enriched),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
