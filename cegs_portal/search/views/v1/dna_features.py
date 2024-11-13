@@ -108,7 +108,6 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, id_type, feature_id):
-        reo_page = None
         feature_assemblies = []
         features = list(data.all())
         selected_feature = None
@@ -151,17 +150,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         else:
             targets = None
 
-        reos = DNAFeatureSearch.non_targeting_reo_search(selected_feature.accession_id, options.get("sig_only"))
-        if reos.exists():  # use exists here because we _don't_ want to load all of the reos
-            paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
-            reo_page = paginated_reos.page(1)
-        else:
-            reo_page = None
-
         tabs = []
         child_feature_type = None
 
-        if reo_page is not None:
+        reos = DNAFeatureSearch.non_targeting_reo_search(selected_feature.accession_id, options.get("sig_only"))
+        if reos.exists() is not None:
             tabs.append("nearest reo")
 
         # According to the documentation
@@ -193,7 +186,7 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "closest_features": closest_features,
                 "sources": sources,
                 "targets": targets,
-                "reos": reo_page,
+                "reos": reos,
                 "feature_name": selected_feature.name,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
