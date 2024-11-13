@@ -49,7 +49,7 @@ def functional_characterization_test(client: Client, genoverse_features, fcp_typ
         assert "accession_id" in feature
 
 
-def test_genoverse_track_model_reporter_assay(client: Client, genoverse_features):
+def test_genoverse_track_model_functional_characterization(client: Client, genoverse_features):
     for fc in [("reporterassay", "Reporter Assay"), ("crispri", "CRISPRi"), ("crispra", "CRISPRa")]:
         functional_characterization_test(client, genoverse_features, fc)
 
