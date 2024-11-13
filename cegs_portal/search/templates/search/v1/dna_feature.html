@@ -256,7 +256,7 @@
             role="tabpanel"
             aria-labelledby="tabs-nearest-reo-tab"
         >
-            {% if reos %}
+            {% if reos.exists %}
             <div class="mb-8" id="non-target-table" hx-get="{% url 'search:non_target_reo' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
