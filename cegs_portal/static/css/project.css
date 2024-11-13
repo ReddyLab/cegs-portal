@@ -3080,6 +3080,10 @@ fieldset legend {
     min-width: 0px;
   }
 
+  .md\:max-w-full {
+    max-width: 100%;
+  }
+
   .md\:flex-row {
     -webkit-box-orient: horizontal;
     -webkit-box-direction: normal;
