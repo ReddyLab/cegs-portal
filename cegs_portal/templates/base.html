@@ -39,6 +39,7 @@
     {% block javascript %}
     <script defer src="{% static 'js/project.js' %}"></script>
     <script defer src="{% static 'js/htmx.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     {% endblock javascript %}
     </head>
 
@@ -96,6 +97,224 @@
                               >
                               <i class="bi bi-patch-question"></i> Help
                           </a>
+
+                          <a>
+                            <!-- Modal toggle -->
+                            <button data-modal-target="default-modal" data-modal-toggle="default-modal" class="block mt-4 lg:inline-block lg:mt-0 text-white bg-inherit hover:text-white px-2 py-2 rounded hover:bg-blue-700 no-underline" type="button">
+                                <i class="fa-solid fa-book"></i> Glossary
+                            </button>
+
+                            <!-- Main modal -->
+                            <div id="default-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                                <div class="relative p-4 w-full max-w-8xl max-h-full">
+                                    <!-- Modal content -->
+                                    <div class="relative bg-white rounded-lg shadow">
+                                        <!-- Modal header -->
+                                        <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                                            <h3 class="text-xl font-semibold text-gray-900">
+                                                <i class="fa-solid fa-book"></i> CCGR Glossary
+                                            </h3>
+                                            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="default-modal">
+                                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                                </svg>
+                                                <span class="sr-only">Close modal</span>
+                                            </button>
+                                        </div>
+                                        <!-- Modal body -->
+                                        <div class="p-4 md:p-5 space-y-4">
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Duke Center for Combinatorial Gene Regulation (CCGR): The ambitious goal of the Duke Center for Combinatorial Gene Regulation, a Center of Excellence in Genomic Science, is to make combinatorial studies of the function of regulatory elements and noncoding variants routine.
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                CEGS: The Centers of Excellence in Genomic Science (CEGS) program supports multi-investigator, interdisciplinary research teams working together to address biomedical problems through development of integrated, transformative genomic approaches.
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Regulatory Elements
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                DNase I hypersensitive site (DHS): a region of chromatin in the genome that is more sensitive to cleavage by the DNase I enzyme. These regions are characterized by increased DNA accessibility, which is due to the local remodeling of the chromatin structure.(29)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Guide RNA (gRNA): a short RNA sequence that guides the editing of RNA transcripts or DNA.(30)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Chromatin Accessible Region (CAR): genomic regions where chromatin is open or loosened, allowing DNA-binding proteins and transcription factors to bind to their target sequences.(31)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Called Regulatory Element(cre): Regulatory element found but label/name not assigned
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                CCRES
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                CCRE: regions of non-coding DNA which regulate the transcription of neighboring genes.(27)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                A promoter-like sequence (PLS): A PLS is a candidate cis-regulatory element(cCRE) that's putatively labeled as a promoter.(27)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Proximal enhancer-like (pELS): is a candidate cis-regulatory element (cCRE) that is classified as an enhancer and is located within 2 kilobases (kb) of an annotated GENCODE transcription start site (TSS).(27)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Distal enhancer-like (dELS): elements are a type of candidate cis-regulatory element (cCRE) that are classified as putative enhancers.(27)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                H3K4me3: When combined, DNase-H3K4me3 elements are regions that exhibit both DNase hypersensitivity and H3K4me3 marks. These regions typically have promoter-like biochemical signatures and are indicative of active gene regulation.(28)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Distal enhancer-like (dELS): elements are a type of candidate cis-regulatory element (cCRE) that are classified as putative enhancers.(27)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Techniques and Screens
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                ATAC-STARR-seq: A massively parallel reporter assay (MPRA) that quantifies regulatory activity within accessible chromatin. It combines ATAC-seq (assay for transposase-accessible chromatin using sequencing) with STARR-seq (self-transcribing active regulatory region sequencing) to selectively assay the regulatory potential of accessible DNA.(1)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Flow-FISH CRISPR screen: A method combining Hybridization Chain Reaction Fluorescent In-Situ Hybridization (HCR-FlowFISH) with Flow Cytometry to quantify native transcripts within their endogenous loci following CRISPR perturbations of regulatory elements.(2)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Perturb-Seq: A high-throughput method that combines CRISPR-mediated gene inactivations with single-cell RNA sequencing (scRNA-seq) to assess comprehensive gene expression phenotypes for each perturbation.(3)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Proliferation screen: A type of assay used to measure the rapid increase in cell numbers, often used to assess cell growth, division, and the effects of various treatments on cell proliferation.(4)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                scCERES: single-cell (CERES) a computational method to estimate gene dependency levels from CRISPR-Cas9 essentiality screens while accounting for the copy-number-specific effect.(5)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                wgCERES: whole-genome CERES (wgCERES) a computational method to estimate gene dependency levels from CRISPR-Cas9 essentiality screens while accounting for the copy-number-specific effect.(5)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Cell Lines
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                iPSC (Induced Pluripotent Stem Cells): Pluripotent stem cells generated directly from a somatic cell, capable of differentiating into any cell type in the body.(6)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                K562: A human immortalized myelogenous leukemia cell line, derived from a 53-year-old female chronic myelogenous leukemia patient.(7)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                NPC (Neural Progenitor Cells): Cells that can differentiate into various types of neural cells, including neurons and glial cells.(8)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                CD8: A transmembrane glycoprotein that serves as a co-receptor for the T-cell receptor (TCR), predominantly expressed on cytotoxic T cells.(9)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                MCF-7: A breast cancer cell line isolated from a 69-year-old woman, used extensively in breast cancer research.(10)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                HCT116: A human colon cancer cell line used in therapeutic research and drug screenings.(11)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                DU 145: A human prostate cancer cell line used in cancer research.(12)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                A549: A human lung carcinoma cell line used in cancer research and drug testing.(13)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                NCI-H460: A human large cell lung cancer cell line used in cancer research.(14)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                PC-3: A human prostate cancer cell line used in cancer research.(15)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                MDA-MB-231: A human breast cancer cell line used in cancer research.(16)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                HepG2: A human liver cancer cell line used in cancer research.(17)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                SW620: A human colorectal adenocarcinoma cell line used in cancer research.(18)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Functional Characterization Modalities
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                scCRISPRi: Single-cell CRISPR interference, a technique used to study gene function at single-cell resolution by inhibiting gene expression.(19)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                CRISPRi: CRISPR interference, a technique that uses a catalytically dead Cas9 (dCas9) to inhibit gene expression.(19)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                CRISPRa: CRISPR activation, a technique that uses dCas9 fused to transcriptional activators to increase gene expression.(20)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Reporter Assay: An assay that uses a reporter gene to measure the activity of a particular gene or regulatory element.(21)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Genome Assembly
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                hg-19: GRCh37 (hg19) an earlier human reference genome version. This version has been widely used in genomics projects, including long-term, global studies like the 1,000 Genomes Project.(22)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                hg-38: genome assembly GRCh38 (hg38) from Genome Reference Consortium. Corrected and improved version of hg19.(22)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Genomic Terms
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Gene: A gene is the basic physical and functional unit of heredity. Genes are made up of DNA and each chromosome contains many genes.(23)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Transcript: A messenger RNA (mRNA) molecule that carries genetic information from DNA to the cytoplasm, where proteins are made.(24)
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Exon: The sections of DNA (or RNA) that code for proteins.(25)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                Identifiers
+                                            </p>
+                                            <p class="text-base leading-relaxed text-gray-600">
+                                                Ensembl ID: is an identifier used by the Ensembl database to label features like genes, transcripts, exons, or proteins.(26)
+                                            </p>
+                                            <p class="text-base text-xl leading-relaxed text-gray-800">
+                                                References
+                                            </p>
+                                            1. https://github.com/HodgesGenomicsLab/ATAC-STARR-seq
+                                            2. https://www.biorxiv.org/content/10.1101/2020.05.11.078675v1.full.pdf
+                                            3. https://en.wikipedia.org/wiki/Perturb-seq
+                                            4. https://www.news-medical.net/life-sciences/What-is-a-Cell-Proliferation-Assay.aspx
+                                            5. https://pmc.ncbi.nlm.nih.gov/articles/PMC5709193/
+                                            6. https://en.wikipedia.org/wiki/Induced_pluripotent_stem_cell
+                                            7. https://en.wikipedia.org/wiki/K562_cells
+                                            8. https://pmc.ncbi.nlm.nih.gov/articles/PMC6291443/
+                                            9. https://en.wikipedia.org/wiki/CD8
+                                            10.https://en.wikipedia.org/wiki/MCF-7
+                                            11.https://en.wikipedia.org/wiki/HCT116_cells
+                                            12.https://en.wikipedia.org/wiki/DU145
+                                            13.https://en.wikipedia.org/wiki/A549_cell
+                                            14.https://en.wikipedia.org/wiki/NCI-60#NCI-H460
+                                            15.https://en.wikipedia.org/wiki/PC3
+                                            16.https://en.wikipedia.org/wiki/MDA-MB231
+                                            17.https://en.wikipedia.org/wiki/Hep_G2
+                                            18.https://pmc.ncbi.nlm.nih.gov/articles/PMC5783577/
+                                            19.https://en.wikipedia.org/wiki/CRISPR_interference
+                                            20.https://en.wikipedia.org/wiki/CRISPR_activation
+                                            21.https://en.wikipedia.org/wiki/Reporter_gene
+                                            22.https://www.ncbi.nlm.nih.gov/grc/data
+                                            23.https://medlineplus.gov/genetics/understanding/basics/gene/
+                                            24.https://www.britannica.com/science/messenger-RNA
+                                            25.https://www.nature.com/scitable/definition/intron-introns-67/
+                                            26.https://mart.ensembl.org/info/genome/stable_ids/index.html
+                                            27.https://genome.ucsc.edu/cgi-bin/hgTrackUi?db=mm10&g=encodeCcreCombined
+                                            28.https://en.wikipedia.org/wiki/H3K4me3 & https://genome-asia.ucsc.edu/cgi-bin/hgc?hgsid=757946884_2IwOfEgyCFvgg7sAeuM2KuvnPkkz&db=hg38&c=chr1&l=229433515&r=229436251&o=229435096&t=229435438&g=encodeCcreCombined&i=EH38E1429971 & https://en.wikipedia.org/wiki/DNase_I_hypersensitive_site
+                                            29.https://en.wikipedia.org/wiki/DNase_I_hypersensitive_site
+                                            30.https://en.wikipedia.org/wiki/Guide_RNA
+                                            31.https://en.wikipedia.org/wiki/Epigenomics#Chromatin_accessibility_assays
+
+                                        </div>
+                                        <!-- Modal footer -->
+                                        <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
+                                            <button data-modal-hide="default-modal" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Exit</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
                       </div>
                       <!-- This is search component -->
                       <div id="nav-searchbar" class="relative mx-auto text-gray-600 lg:block hidden">
