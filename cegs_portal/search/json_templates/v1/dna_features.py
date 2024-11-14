@@ -78,7 +78,7 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
             result["effect_directions"] = feature_obj.effect_directions
 
         if LocSearchProperty.SCREEN_CCRE in feature_properties:
-            result["ccre_type"] = feature_obj.ccre_type[0]
+            result["ccre_type"] = feature_obj.ccre_type[0] if feature_obj.ccre_type else None
 
         if LocSearchProperty.PARENT_INFO in feature_properties:
             result["parent"] = (feature_obj.parent.name if feature_obj.parent else None,)
