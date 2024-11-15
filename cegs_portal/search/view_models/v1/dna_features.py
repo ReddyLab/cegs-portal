@@ -2,12 +2,13 @@ from enum import Enum, StrEnum
 from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Count, OuterRef, Q, QuerySet, Subquery
+from django.db.models import Q, QuerySet
 from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
+    EffectObservationDirectionType,
     Facet,
     FacetValue,
     IdType,
@@ -40,8 +41,6 @@ class LocSearchProperty(StrEnum):
 
 
 REO_COUNT_PROPERTIES = {
-    LocSearchProperty.EFFECT_DIRECTIONS,
-    LocSearchProperty.SIGNIFICANT,
     LocSearchProperty.REO_SOURCE,
 }
 
@@ -295,47 +294,36 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        if any(p in REO_COUNT_PROPERTIES for p in feature_properties):
+        if LocSearchProperty.REO_SOURCE in feature_properties:
             # skip any feature that are not the sources for any REOs
-            features = features.annotate(reo_count=Count("source_for"))
-            filters["reo_count__gt"] = 0
+            features = features.exclude(source_for=None)
 
-        if len(included_fcp) > 0:
+        facet_filter_values = []
+        if included_fcp:
             # we want to filter on functional characterization modality type
 
             # Convert from e.g., "reporterassay" (the property value) to
             # e.g., "Reporter Assay", the value in the DB.
-            db_fcp = [FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp]
-
-            # count how many times one of the requested functional characterization values
-            # shows up in REOs this feature is a source for
-            features = features.annotate(
-                source_fcp=Count(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__value__in=db_fcp),
-                )
-            )
-
-            # count how many times one of the requested functional characterization values
-            # shows up in REOs this feature is a target of
-            features = features.annotate(
-                target_fcp=Count(
-                    "target_of__facet_values__value",
-                    filter=Q(source_for__facet_values__value__in=db_fcp),
-                )
-            )
-
-            # Only include this feature is it's a source for or target of at least one
-            # reo with a requested functional characterization type
-            features = features.filter(Q(source_fcp__gt=0) | Q(target_fcp__gt=0))
+            facet_filter_values.extend(FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp)
 
         if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
+            facet_filter_values.extend(f.value for f in EffectObservationDirectionType)
+
+        if facet_filter_values:
             features = features.annotate(
                 effect_directions=ArrayAgg(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__facet__name="Direction"),
+                    "facet_values__value",
+                    filter=Q(facet_values__value__in=facet_filter_values),
                     default=[],
                 )
+            )
+
+        if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
+            features = features.filter(effect_directions__overlap=[f.value for f in EffectObservationDirectionType])
+
+        if included_fcp:
+            features = features.filter(
+                effect_directions__overlap=[FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp]
             )
 
         if LocSearchProperty.SIGNIFICANT in feature_properties:
@@ -343,7 +331,11 @@ class DNAFeatureSearch:
 
         if LocSearchProperty.SCREEN_CCRE in feature_properties:
             features = features.annotate(
-                ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
+                ccre_type=ArrayAgg(
+                    "facet_values__value",
+                    filter=Q(facet_values__id__in=ccre_facet_values),
+                    default=[],
+                )
             )
 
         features = features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent")

@@ -572,20 +572,30 @@ def genoverse_features():
     pels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.PELS.value)
     dels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.DELS.value)
 
+    fcm_facet = FacetFactory(description="", name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value)
+    reporter_assay = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.REPORTER_ASSAY)
+    crispri = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRI)
+    crispra = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRA)
+
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
+
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.DHS,
         significant_reo=True,
+        facet_values=(pels, reporter_assay, enriched),
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
-        facet_values=(pels,),
         significant_reo=True,
+        facet_values=(pels, crispri, crispra, enriched),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
@@ -616,11 +626,6 @@ def genoverse_features():
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
-
-    fcm_facet = FacetFactory(description="", name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value)
-    reporter_assay = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.REPORTER_ASSAY)
-    crispri = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRI)
-    crispra = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRA)
 
     _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched, reporter_assay))
     _ = RegEffectFactory(sources=(f2,), facet_values=(enriched, crispri, crispra))
