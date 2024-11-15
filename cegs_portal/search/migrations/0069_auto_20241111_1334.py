@@ -46,8 +46,8 @@ class Migration(migrations.Migration):
                	JOIN search_regulatoryeffectobservation_facet_values as sreofv ON sreo.id = sreofv.regulatoryeffectobservation_id
                	JOIN search_facetvalue as sfv ON sreofv.facetvalue_id = sfv.id
                	WHERE sfv.value in ('{FunctionalCharacterizationType.REPORTER_ASSAY}', '{FunctionalCharacterizationType.CRISPRI}', '{FunctionalCharacterizationType.CRISPRA}',
-                    '{EffectObservationDirectionType.BOTH}', '{EffectObservationDirectionType.ENRICHED}', '{EffectObservationDirectionType.DEPLETED}',
-                    '{EffectObservationDirectionType.NON_SIGNIFICANT}')
+                    '{EffectObservationDirectionType.BOTH.value}', '{EffectObservationDirectionType.ENRICHED.value}', '{EffectObservationDirectionType.DEPLETED.value}',
+                    '{EffectObservationDirectionType.NON_SIGNIFICANT.value}')
                	ORDER BY sreo.id)
             INSERT INTO search_dnafeature_facet_values (dnafeature_id, facetvalue_id) (
                	SELECT sdf.id, reof.fvid
