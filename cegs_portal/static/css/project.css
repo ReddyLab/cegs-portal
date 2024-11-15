@@ -1436,6 +1436,10 @@ input[type="submit"], input[type="button"], button {
   min-width: 100%;
 }
 
+.max-w-7xl {
+  max-width: 80rem;
+}
+
 .max-w-fit {
   max-width: -webkit-fit-content;
   max-width: -moz-fit-content;
