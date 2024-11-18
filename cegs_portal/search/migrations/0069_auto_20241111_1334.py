@@ -61,8 +61,8 @@ class Migration(migrations.Migration):
             WHERE sdffv.facetvalue_id IN
                	(SELECT id FROM search_facetvalue
                	WHERE search_facetvalue.value in ('{FunctionalCharacterizationType.REPORTER_ASSAY}', '{FunctionalCharacterizationType.CRISPRI}', '{FunctionalCharacterizationType.CRISPRA}',
-                    '{EffectObservationDirectionType.BOTH}', '{EffectObservationDirectionType.ENRICHED}', '{EffectObservationDirectionType.DEPLETED}',
-                    '{EffectObservationDirectionType.NON_SIGNIFICANT}'))
+                    '{EffectObservationDirectionType.BOTH.value}', '{EffectObservationDirectionType.ENRICHED.value}', '{EffectObservationDirectionType.DEPLETED.value}',
+                    '{EffectObservationDirectionType.NON_SIGNIFICANT.value}'))
             """,
         ),
     ]
