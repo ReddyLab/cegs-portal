@@ -408,11 +408,8 @@
                                     <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
                                 Filter DNA Features
-                                <div class="relative group inline-block">
-                                    <i class="ml-2 fa-solid fa-circle-info"></i>
-                                    <span class="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-64 px-2 py-1 text-sm border border-gray-300 bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        DNA features include regulatory elements, genes, exons, and transcripts.
-                                    </span>
+                                <div class="ml-2">
+                                    {% include 'search/v1/partials/_help_tooltip.html' with help_text="DNA features include regulatory elements, genes, exons, and transcripts." %}
                                 </div>
                             </div>
                         </div>
