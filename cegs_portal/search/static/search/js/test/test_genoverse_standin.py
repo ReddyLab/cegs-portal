@@ -54,6 +54,30 @@ def test_genoverse_track_model_functional_characterization(client: Client, genov
         functional_characterization_test(client, genoverse_features, fc)
 
 
+def reo_type_test(client: Client, genoverse_features, reo_type):
+    reo_property, feature_count = reo_type
+    chrom = genoverse_features["chrom"]
+    assembly = genoverse_features["ref_genome"]
+    start = genoverse_features["start"]
+    end = genoverse_features["end"]
+
+    response = client.get(
+        f"/search/featureloc/{chrom}/{start + 100}/{end - 100}?assembly={assembly}&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&property=effect_directions&property={reo_property}"  # noqa: E501
+    )
+
+    assert response.status_code == 200
+
+    json_content = json.loads(response.content)
+
+    assert isinstance(json_content, list)
+    assert len(json_content) == feature_count
+
+
+def test_genoverse_track_model_reo_types(client: Client, genoverse_features):
+    for fc in [("enhancer", 2), ("repressor", 1), ("squelcher", 1)]:
+        reo_type_test(client, genoverse_features, fc)
+
+
 def test_genoverse_track_view_cCRE(client: Client, genoverse_features):
     chrom = genoverse_features["chrom"]
     assembly = genoverse_features["ref_genome"]

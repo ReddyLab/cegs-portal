@@ -282,7 +282,7 @@ def feature() -> DNAFeature:
 def effect_dir_feature() -> DNAFeature:
     return DNAFeatureFactory(
         ref_genome="hg38",
-        effect_directions=[
+        facet_value_agg=[
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.NON_SIGNIFICANT.value,
@@ -579,6 +579,7 @@ def genoverse_features():
 
     direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
     enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
     non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
     f1 = DNAFeatureFactory(
@@ -595,7 +596,7 @@ def genoverse_features():
         location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
         significant_reo=True,
-        facet_values=(pels, crispri, crispra, enriched),
+        facet_values=(pels, crispri, crispra, enriched, depleted),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
