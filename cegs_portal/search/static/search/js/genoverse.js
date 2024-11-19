@@ -364,6 +364,16 @@ Genoverse.Track.Model.CRISPRa = Genoverse.Track.Model.TestedElements.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=significant&property=crispra",
 });
 
+Genoverse.Track.Model.Enhancers = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=enhancer",
+});
+Genoverse.Track.Model.Repressors = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=repressor",
+});
+Genoverse.Track.Model.Squelchers = Genoverse.Track.Model.TestedElements.extend({
+    url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&search_type=overlap&accept=application/json&format=genoverse&feature_type=DHS&feature_type=cCRE&feature_type=gRNA&feature_type=Chromatin%20Accessible%20Region&property=effect_directions&property=squelcher",
+});
+
 Genoverse.Track.Model.Gene.Portal = Genoverse.Track.Model.Gene.extend({
     url: "/search/featureloc/__CHR__/__START__/__END__?assembly=__ASSEMBLY__&accept=application/json&format=genoverse&feature_type=Gene",
     dataRequestLimit: 5000000,
@@ -835,6 +845,24 @@ Genoverse.Track.TestedElements.CRISPRa = Genoverse.Track.TestedElements.extend({
     id: "tested-elements-crispra",
     name: "CRISPRa Tested Elements",
     model: Genoverse.Track.Model.CRISPRa,
+});
+
+Genoverse.Track.TestedElements.Enhancers = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-enhancer",
+    name: "Candidate Enhancer / Promotors",
+    model: Genoverse.Track.Model.Enhancers,
+});
+
+Genoverse.Track.TestedElements.Repressors = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-repressor",
+    name: "Candidate Repressors",
+    model: Genoverse.Track.Model.Repressors,
+});
+
+Genoverse.Track.TestedElements.Squelchers = Genoverse.Track.TestedElements.extend({
+    id: "tested-elements-squelcher",
+    name: "Candidate Squelchers",
+    model: Genoverse.Track.Model.Squelchers,
 });
 
 Genoverse.Track.Gene = Genoverse.Track.extend({
