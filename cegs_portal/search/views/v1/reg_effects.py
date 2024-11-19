@@ -202,7 +202,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
 
