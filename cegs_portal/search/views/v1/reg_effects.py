@@ -180,9 +180,15 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
     def get(self, request, options, data, *args, **kwargs):
         regeffects, feature, dna_feature = data
         help_text = f"Regulatory effect observations targeting {dna_feature.name}"
+        source_help_text = f"Regulatory effect observations in the listed genes, with { feature.get_feature_type_display() } as the source."
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        data = {"regeffects": reg_effect_page, "feature": feature, "help_text": help_text}
+        data = {
+            "regeffects": reg_effect_page,
+            "feature": feature,
+            "help_text": help_text,
+            "source_help_text": source_help_text,
+        }
 
         if request.headers.get("HX-Request"):
             return render(request, self.table_partial, data)
@@ -196,7 +202,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
 
@@ -205,8 +211,9 @@ class SourceEffectsView(FeatureEffectsView):
     table_partial = "search/v1/partials/_reg_effect.html"
     tsv_renderer = re_data
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
+        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.feature_source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -216,7 +223,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects, feature
+        return reg_effects, feature, dna_feature
 
     def get_tsv(self, request, options, data, feature_id):
         if is_bed6(options):
