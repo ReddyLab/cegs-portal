@@ -178,10 +178,11 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, *args, **kwargs):
-        regeffects, feature = data
+        regeffects, feature, dna_feature = data
+        help_text = f"Regulatory effect observations targeting {dna_feature.name}"
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        data = {"regeffects": reg_effect_page, "feature": feature}
+        data = {"regeffects": reg_effect_page, "feature": feature, "help_text": help_text}
 
         if request.headers.get("HX-Request"):
             return render(request, self.table_partial, data)
@@ -195,7 +196,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
 
@@ -231,8 +232,9 @@ class TargetEffectsView(FeatureEffectsView):
     table_partial = "search/v1/partials/_target_reg_effect.html"
     tsv_renderer = target_data
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
+        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.feature_target_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -242,13 +244,13 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects, feature
+        return reg_effects, feature, dna_feature
 
     def get_tsv(self, request, options, data, feature_id):
-        feature = DNAFeature.objects.get(accession_id=feature_id)
+        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
         if is_bed6(options):
-            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
+            filename = f"{dna_feature.name}_targeting_regulatory_effect_observations_table_data.bed"
         else:
-            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+            filename = f"{dna_feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
 
         return super().get_tsv(request, options, data[0], filename=filename)
