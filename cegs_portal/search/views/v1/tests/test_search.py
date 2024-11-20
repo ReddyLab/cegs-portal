@@ -622,7 +622,7 @@ def test_sigdata(reg_effects, client: Client):
     <div class="text-xl font-bold">Top Significant Regulatory Effect Observations <div class="relative group inline-block">
     <i class="fa-solid fa-circle-info"></i>
     <span class="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-64 px-2 py-1 text-sm border border-gray-300 bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        Top 5 significant regulatory effect observations for each experiment in this region.
+        Top 5 significant regulatory effect observations for each experiment that covers this region.
     </span>
     </div> </div>
 

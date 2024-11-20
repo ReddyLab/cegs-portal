@@ -178,8 +178,8 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, *args, **kwargs):
-        regeffects, feature, dna_feature = data
-        help_text = f"Regulatory effect observations targeting {dna_feature.name}"
+        regeffects, feature = data
+        help_text = f"Regulatory effect observations targeting {feature.name}"
         source_help_text = f"Regulatory effect observations in the listed genes, with { feature.get_feature_type_display() } as the source."
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
@@ -196,13 +196,13 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return super().get(request, options, data, *args, **kwargs)
 
     def get_json(self, request, options, data, *args, **kwargs):
-        regeffects, _, _ = data
+        regeffects, _ = data
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
 
         return super().get_json(request, options, reg_effect_page, *args, **kwargs)
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         raise NotImplementedError("FeatureEffectsView.get_data")
 
 
@@ -211,9 +211,8 @@ class SourceEffectsView(FeatureEffectsView):
     table_partial = "search/v1/partials/_reg_effect.html"
     tsv_renderer = re_data
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
-        placeholder_feature = DNAFeature()
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.feature_source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -223,7 +222,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects, feature, placeholder_feature
+        return reg_effects, feature
 
     def get_tsv(self, request, options, data, feature_id):
         if is_bed6(options):
@@ -239,9 +238,8 @@ class TargetEffectsView(FeatureEffectsView):
     table_partial = "search/v1/partials/_target_reg_effect.html"
     tsv_renderer = target_data
 
-    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
+    def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
-        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.feature_target_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -251,13 +249,13 @@ class TargetEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects, feature, dna_feature
+        return reg_effects, feature
 
-    def get_tsv(self, request, options, data, feature_id):
-        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
+    def get_tsv(self, request, options, data):
+        _, feature = data
         if is_bed6(options):
-            filename = f"{dna_feature.name}_targeting_regulatory_effect_observations_table_data.bed"
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
         else:
-            filename = f"{dna_feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
+            filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.tsv"
 
         return super().get_tsv(request, options, data[0], filename=filename)
