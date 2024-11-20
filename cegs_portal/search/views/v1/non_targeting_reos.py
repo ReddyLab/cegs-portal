@@ -72,7 +72,8 @@ class NonTargetRegEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get(self, request, options, data, feature_id):
         reo_page, feature = data
-        response_values = {"non_targeting_reos": reo_page, "feature": feature}
+        help_text = f"Nearby regulatory effect observations that have not been experimentally linked to {feature.name} or any other gene"
+        response_values = {"non_targeting_reos": reo_page, "feature": feature, "help_text": help_text}
 
         if request.headers.get("HX-Target"):
             return render(
