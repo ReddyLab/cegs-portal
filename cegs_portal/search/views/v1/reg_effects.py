@@ -196,7 +196,7 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
         return super().get(request, options, data, *args, **kwargs)
 
     def get_json(self, request, options, data, *args, **kwargs):
-        regeffects, _ = data
+        regeffects, _, _ = data
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
 
@@ -213,7 +213,7 @@ class SourceEffectsView(FeatureEffectsView):
 
     def get_data(self, options, feature_id) -> tuple[QuerySet[RegulatoryEffectObservation], DNAFeature, DNAFeature]:
         feature = RegEffectSearch.id_feature_search(feature_id)
-        dna_feature = DNAFeature.objects.get(accession_id=feature_id)
+        placeholder_feature = DNAFeature()
         if self.request.user.is_anonymous:
             reg_effects = RegEffectSearch.feature_source_search_public(feature_id, options.get("sig_only"))
         elif self.request.user.is_superuser or self.request.user.is_portal_admin:
@@ -223,7 +223,7 @@ class SourceEffectsView(FeatureEffectsView):
                 feature_id, options.get("sig_only"), self.request.user.all_experiments()
             )
 
-        return reg_effects, feature, dna_feature
+        return reg_effects, feature, placeholder_feature
 
     def get_tsv(self, request, options, data, feature_id):
         if is_bed6(options):
