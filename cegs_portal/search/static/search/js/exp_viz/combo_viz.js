@@ -39,33 +39,35 @@ import {
     setLegendIntervals,
 } from "./ui.js";
 
-function intersect_array(arr1, arr2) {
-    if (arr1.length == 0 || arr2.length == 0) {
-        return [];
+function union_array(arr1, arr2) {
+    if (arr1.length == 0) {
+        return arr2.slice();
     }
 
-    let intersection = [];
-    for (let val of arr1) {
-        if (arr2.indexOf(val) != -1) {
-            intersection.push(val);
+    if (arr2.length == 0) {
+        return arr1.slice();
+    }
+
+    let union = arr1.slice();
+    for (let val of arr2) {
+        if (arr1.indexOf(val) == -1) {
+            union.push(val);
         }
     }
 
-    return intersection;
+    return union;
 }
 
-function intersect_obj(obj1, obj2) {
-    if (obj1.length == 0 || obj2.length == 0) {
-        return {};
+function union_obj(obj1, obj2) {
+    let union = {};
+    for (let key in obj1) {
+        union[key] = obj1[key];
     }
 
-    let intersection = {};
-    for (let key in obj1) {
-        if (obj2.hasOwnProperty(key) && obj2[key] === obj1[key]) {
-            intersection[key] = obj1[key];
-        }
+    for (let key in obj2) {
+        if (!union.hasOwnProperty(key)) union[key] = obj2[key];
     }
-    return intersection;
+    return union;
 }
 
 function distinct(sortedArray) {
@@ -84,8 +86,6 @@ function merge_facets(experiments_facets) {
         return experiments_facets[0];
     }
 
-    let new_facets = [];
-
     // Create an array of objects mapping facet ids to facets
     let facet_maps = experiments_facets.map((facet_array) =>
         facet_array.reduce((acc, f) => {
@@ -93,21 +93,25 @@ function merge_facets(experiments_facets) {
             return acc;
         }, {}),
     );
-    let base_facets = facet_maps[0];
-    let rest_facets = facet_maps.slice(1);
 
     // Get the IDs of facets that are in all experiments
     let facet_id_arrays = experiments_facets.map((facet_array) => facet_array.map((f) => f.id));
-    let facet_id_intersection = facet_id_arrays
-        .slice(1)
-        .reduce((acc, ids) => intersect_array(acc, ids), facet_id_arrays[0]);
+    let facet_id_union = facet_id_arrays.slice(1).reduce((acc, ids) => union_array(acc, ids), facet_id_arrays[0]);
+    let new_facets = {};
 
-    for (let facet_id of facet_id_intersection) {
-        let new_facet = base_facets[facet_id];
-        for (let facets of rest_facets) {
-            let curr_facet = facets[facet_id];
+    for (let facet_id of facet_id_union) {
+        for (let facet_set of facet_maps) {
+            let curr_facet = facet_set[facet_id];
+            if (curr_facet === undefined) continue;
+
+            let new_facet = new_facets[facet_id];
+            if (new_facet === undefined) {
+                new_facets[facet_id] = curr_facet;
+                continue;
+            }
+
             if (new_facet.facet_type == "FacetType.CATEGORICAL") {
-                new_facet.values = intersect_obj(curr_facet.values, new_facet.values);
+                new_facet.values = union_obj(curr_facet.values, new_facet.values);
             } else if (new_facet.facet_type == "FacetType.NUMERIC" && new_facet.range) {
                 new_facet.range = [
                     Math.min(new_facet.range[0], curr_facet.range[0]),
@@ -120,10 +124,9 @@ function merge_facets(experiments_facets) {
                 ];
             }
         }
-        new_facets.push(new_facet);
     }
 
-    return new_facets;
+    return Object.values(new_facets);
 }
 
 function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
