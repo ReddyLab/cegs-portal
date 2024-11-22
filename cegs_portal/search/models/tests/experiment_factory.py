@@ -3,7 +3,13 @@ from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
 from faker import Faker as F
 
-from cegs_portal.search.models import Biosample, CellLine, Experiment, TissueType
+from cegs_portal.search.models import (
+    Biosample,
+    CellLine,
+    Experiment,
+    ExperimentSource,
+    TissueType,
+)
 from cegs_portal.search.models.tests.analysis_factory import AnalysisFactory
 
 
@@ -58,6 +64,19 @@ class BiosampleFactory(DjangoModelFactory):
         return obj
 
 
+class ExperimentSourceFactory(DjangoModelFactory):
+    class Meta:
+        model = ExperimentSource
+
+    pi = "Tim Reddy"
+    institution = "Duke"
+    experimentalist = Faker("name")
+    project = "CCGR"
+    datasource_url = Faker("url")
+    lab_url = Faker("url")
+    experiment = None
+
+
 class ExperimentFactory(DjangoModelFactory):
     class Meta:
         model = Experiment
@@ -70,6 +89,7 @@ class ExperimentFactory(DjangoModelFactory):
     experiment_type = Faker("text", max_nb_chars=100)
     name = Faker("text", max_nb_chars=512)
     analyses = factory.RelatedFactory(AnalysisFactory, factory_related_name="experiment")
+    attribution = factory.RelatedFactory(ExperimentSourceFactory, factory_related_name="experiment")
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
