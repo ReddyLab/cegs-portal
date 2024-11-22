@@ -32,6 +32,121 @@
             color: lightblue;
         }
 
+        #glossary-modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #glossary-modal > .glossary-modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+
+    #glossary-modal > .glossary-modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top: 10vh;
+
+        /* Sizing for visible dialog */
+        width: 95%;
+        max-height: 85%;
+
+        /* Display properties for visible dialog*/
+        border: solid 1px #999;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+        background-color: white;
+
+        /* Animate when opening */
+        animation-name: zoomIn;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    .close-button {
+        cursor: pointer;
+        display:inline-block;
+    }
+
+    .glossary-modal-button {
+        background-color: inherit !important;
+        color: rgb(71 85 105);
+        font-weight: bold;
+    }
+
+    .glossary-modal-button:hover {
+        background-color: rgb(229 231 235) !important;
+        border-color: white;
+    }
+
+    #glossary-modal .scroll-bounds {
+        margin-bottom: 20px;
+    }
+
+    #glossary-modal .scroll-area {
+        overflow-y: scroll;
+        height: calc(100% - 30px);
+        margin-top: 10px;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #glossary-modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    #glossary-modal.closing > .glossary-modal-content {
+        /* Animate when closing */
+        animation-name: zoomOut;
+        animation-duration: 150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
+
     </style>
     {% endblock %}
     <!-- Le javascript ================================================== -->
@@ -39,7 +154,6 @@
     {% block javascript %}
     <script defer src="{% static 'js/project.js' %}"></script>
     <script defer src="{% static 'js/htmx.min.js' %}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     {% endblock javascript %}
     </head>
 
@@ -97,10 +211,12 @@
                               >
                               <i class="bi bi-patch-question"></i> Help
                           </a>
-
-                            {% include "search/v1/partials/_glossary.html" %}
-
-                      </div>
+                          <button class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white px-2 py-2 rounded hover:bg-blue-700 no-underline bg-transparent" hx-get="{% url 'search:glossary_partial' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#glossary-modal-container">
+                                <i class="fa-solid fa-book"></i> Glossary
+                          </button>
+                          <div id="glossary-modal-container">
+                          </div>
+                     </div>
                       <!-- This is search component -->
                       <div id="nav-searchbar" class="relative mx-auto text-gray-600 lg:block hidden">
                         <form action="{% url 'search:results' %}" method="get" class="flex items-center">
@@ -200,5 +316,14 @@
             });
         </script>
 
+        <script>
+            function closeGlossaryModal() {
+                let modal = document.getElementById("glossary-modal");
+                modal.classList.add("closing") // Kicks off an animation on the modal dialog
+                modal.addEventListener("animationend", (event) => {
+                    modal.remove(); // remove the dialog from the DOM once the animation is over
+                })
+            }
+        </script>
     </body>
 </html>

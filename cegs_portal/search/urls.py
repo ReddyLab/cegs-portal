@@ -9,6 +9,7 @@ app_name = "search"
 urlpatterns = [
     path("", views.index, name="index"),
     path("results/", views.v1.SearchView.as_view(), name="results"),
+    path("glossary-partial/", views.glossary_partial, name="glossary_partial"),
     re_path(
         r"feature/accession/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})/source_for$",
         views.v1.SourceEffectsView.as_view(),
