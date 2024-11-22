@@ -13,26 +13,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" />
 
-    <style>
-        .nav-border {
-            border-bottom: 4px solid rgba(41, 120, 177, 242);
-        }
-        .footer-border {
-            border-top: 4px solid rgba(41, 120, 177, 242);
-        }
+<style>
+    .nav-border {
+        border-bottom: 4px solid rgba(41, 120, 177, 242);
+    }
+    .footer-border {
+        border-top: 4px solid rgba(41, 120, 177, 242);
+    }
 
-        @media (max-width: 600px) {
-            footer img {
-                margin-bottom: 10px;
-                margin-top: 20px;
-            }
+    @media (max-width: 600px) {
+        footer img {
+            margin-bottom: 10px;
+            margin-top: 20px;
         }
+    }
 
-        .footer-link:hover {
-            color: lightblue;
-        }
+    .footer-link:hover {
+        color: lightblue;
+    }
 
-        #glossary-modal {
+    #glossary-modal {
         /* Underlay covers entire screen. */
         position: fixed;
         top: 0px;
@@ -147,7 +147,7 @@
         100% {transform: scale(0.9);}
     }
 
-    </style>
+</style>
     {% endblock %}
     <!-- Le javascript ================================================== -->
     {# Placed at the top of the document so pages load faster with defer #}
@@ -211,7 +211,7 @@
                               >
                               <i class="bi bi-patch-question"></i> Help
                           </a>
-                          <button class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white px-2 py-2 rounded hover:bg-blue-700 no-underline bg-transparent" hx-get="{% url 'search:glossary_partial' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#glossary-modal-container">
+                          <button class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white px-2 py-2 rounded hover:bg-blue-700 no-underline bg-transparent" hx-get="{% url 'search:glossary' %}" hx-trigger="click" hx-swap="innerHTML" hx-target="#glossary-modal-container">
                                 <i class="fa-solid fa-book"></i> Glossary
                           </button>
                           <div id="glossary-modal-container">
