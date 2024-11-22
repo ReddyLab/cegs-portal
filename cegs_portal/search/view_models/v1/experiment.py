@@ -51,7 +51,7 @@ class ExperimentSearch:
     def multi_accession_search(cls, accession_ids: list[str]):
         experiment = (
             Experiment.objects.filter(accession_id__in=accession_ids)
-            .select_related("default_analysis")
+            .select_related("default_analysis", "attribution")
             .prefetch_related("data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "files")
         )
         return experiment

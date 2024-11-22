@@ -404,39 +404,82 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="content-container min-w-fit max-w-fit flex justify-center">
-            <div class="min-w-full">
-                <div class="bg-white border-b">
-                    <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
-                    <div class="text-sm font-medium text-gray-900 mb-4 text-left">
-                        {{ experiment.description }}
-                    </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.experiment_type }}
-                    </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.cell_lines|join:", " }}
-                    </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.tissue_types|join:", " }}
-                    </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assembly</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.genome_assembly }}
-                    </div>
+        <div class="content-container mx-auto max-w-fit grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
+                  <div class="text-sm font-medium text-gray-900 mb-4 text-left">
+                      {{ experiment.description }}
+                  </div>
+              </div>
+              <div class="bg-gray-100 border-b flex items-center">
+                  <div class="px-6 py-4whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assay</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.experiment_type }}
+                  </div>
+              </div>
+              <div class="bg-white border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Cell Lines</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.cell_lines|join:", " }}
+                  </div>
+              </div>
+              <div class="bg-gray-100 border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Tissue Type</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.tissue_types|join:", " }}
+                  </div>
+              </div>
+              <div class="bg-white border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assembly</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.genome_assembly }}
+                  </div>
+              </div>
+          </div>
+          {% if experiment.attribution %}
+          <div>
+            <div class="bg-white border-b">
+                <div class="text-xl text-slate-500 font-bold mb-4 text-left">Attribution</div>
+            </div>
+            <div class="bg-gray-100 border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">PI</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.pi }}
                 </div>
             </div>
+            <div class="bg-white border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Institution</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.institution }}
+                </div>
+            </div>
+            {% if experiment.attribution.experimentalist is not None %}
+            <div class="bg-gray-100 border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Experimentalist</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.experimentalist }}
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.datasource_url is not None %}
+            <div class="bg-white border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Data Source</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.datasource_url }}">{{ experiment.attribution.datasource_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.lab_url is not None %}
+            <div class="bg-gray-100 border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Lab Website</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.lab_url }}">{{ experiment.attribution.lab_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
     </div>
     <div
