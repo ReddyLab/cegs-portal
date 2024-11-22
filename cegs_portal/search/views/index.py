@@ -14,7 +14,7 @@ def index(request):
     )
 
 
-def glossary_partial(request):
+def glossary(request):
     if request.headers.get("HX-Target") == "glossary-modal-container":
         return render(
             request,
