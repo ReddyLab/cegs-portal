@@ -43,6 +43,14 @@ def test_experiment_json(experiment: Experiment):
         "assay": experiment.experiment_type,
         "biosamples": [b_json(b) for b in experiment.biosamples.all()],
         "files": [f_json(file) for file in experiment.files.all()],
+        "attribution": {
+            "pi": experiment.attribution.pi,
+            "institution": experiment.attribution.institution,
+            "experimentalist": experiment.attribution.experimentalist,
+            "project": experiment.attribution.project,
+            "datasource_url": experiment.attribution.datasource_url,
+            "lab_url": experiment.attribution.lab_url,
+        },
     }
 
 
