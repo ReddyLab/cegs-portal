@@ -442,20 +442,20 @@
             <div class="bg-white border-b">
                 <div class="text-xl text-slate-500 font-bold mb-4 text-left">Attribution</div>
             </div>
-            <div class="bg-gray-100 border-b flex items-center">
+            <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
                 <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">PI</div>
                 <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                     {{ experiment.attribution.pi }}
                 </div>
             </div>
-            <div class="bg-white border-b flex items-center">
+            <div class="{% cycle rowcolors %} border-b flex items-center">
                 <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Institution</div>
                 <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                     {{ experiment.attribution.institution }}
                 </div>
             </div>
             {% if experiment.attribution.experimentalist is not None %}
-            <div class="bg-gray-100 border-b flex items-center">
+            <div class="{% cycle rowcolors %} border-b flex items-center">
                 <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Experimentalist</div>
                 <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                     {{ experiment.attribution.experimentalist }}
@@ -463,7 +463,7 @@
             </div>
             {% endif %}
             {% if experiment.attribution.datasource_url is not None %}
-            <div class="bg-white border-b flex items-center">
+            <div class="{% cycle rowcolors %} border-b flex items-center">
                 <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Data Source</div>
                 <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
                     <a class="link" href="{{ experiment.attribution.datasource_url }}">{{ experiment.attribution.datasource_url }}</a>
@@ -471,7 +471,7 @@
             </div>
             {% endif %}
             {% if experiment.attribution.lab_url is not None %}
-            <div class="bg-gray-100 border-b flex items-center">
+            <div class="{% cycle rowcolors %} border-b flex items-center">
                 <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Lab Website</div>
                 <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
                     <a class="link" href="{{ experiment.attribution.lab_url }}">{{ experiment.attribution.lab_url }}</a>
