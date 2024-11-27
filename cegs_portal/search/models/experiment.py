@@ -104,10 +104,10 @@ class ExperimentCollection(Accessioned, Faceted, AccessControlled):
 class ExperimentSource(models.Model):
     pi = models.CharField(max_length=512, null=False)
     institution = models.CharField(max_length=512, null=False)
-    experimentalist = models.CharField(max_length=512, blank=True)
-    project = models.CharField(max_length=512, blank=True)
-    datasource_url = models.URLField(blank=True)
-    lab_url = models.URLField(blank=True)
+    experimentalist = models.CharField(max_length=512, blank=True, null=True)
+    project = models.CharField(max_length=512, blank=True, null=True)
+    datasource_url = models.URLField(blank=True, null=True)
+    lab_url = models.URLField(blank=True, null=True)
     experiment = models.OneToOneField(Experiment, on_delete=models.CASCADE, related_name="attribution")
 
 
