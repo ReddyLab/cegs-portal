@@ -854,7 +854,7 @@ h3 {
 
 a.link, a.link:visited {
   color: #3490dc;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .data-table a,
