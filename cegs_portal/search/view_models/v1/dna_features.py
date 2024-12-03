@@ -147,6 +147,16 @@ class DNAFeatureSearch:
         return features
 
     @classmethod
+    def id_closest_search_public(cls, *args, **kwargs):
+        return cls.id_closest_search(*args, **kwargs).filter(public=True, archived=False)
+
+    @classmethod
+    def id_closest_search_private(cls, *args, **kwargs):
+        return cls.id_closest_search(*args[:-1], **kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )
+
+    @classmethod
     def expr_id(cls, feature_id: str) -> str:
         if feature_id.startswith("DCP"):
             feature = DNAFeature.objects.filter(accession_id=feature_id).values_list(

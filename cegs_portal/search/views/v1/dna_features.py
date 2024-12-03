@@ -271,7 +271,15 @@ class DNAFeatureClosestFeatures(ExperimentAccessMixin, MultiResponseFormatView):
         raise Http400("Access this only using htmx or JSON")
 
     def get_data(self, options, id_type, feature_id):
-        return DNAFeatureSearch.id_closest_search(id_type, feature_id, options["feature_types"])
+        if self.request.user.is_anonymous:
+            features = DNAFeatureSearch.id_closest_search_public(id_type, feature_id, options["feature_types"])
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            features = DNAFeatureSearch.id_closest_search(id_type, feature_id, options["feature_types"])
+        else:
+            features = DNAFeatureSearch.id_closest_search_private(
+                id_type, feature_id, options["feature_types"], self.request.user.all_experiments()
+            )
+        return features
 
 
 class DNAFeatureLoc(MultiResponseFormatView):
