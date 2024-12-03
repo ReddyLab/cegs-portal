@@ -293,10 +293,9 @@
                 </div>
                 <div class="title-separator"></div>
                 <fieldset id="closest-types" name="closest-facetfield">
-                    <legend class="flex flex-row group font-bold min-w-full" id="closest-facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div>
-                    </legend>
+                    <legend class="flex flex-row group font-bold min-w-full" id="closest-facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div></legend>
                     <div class="flex flex-row flex-wrap gap-1 justify-center" aria-labelledby="closest-facetHeader{{ forloop.counter }}">
-                        {% for feature_type in dna_feature_types %}
+                        {% for feature_type in closest_dna_feature_types %}
                         <div class="checkbox-divider">
                             <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
                             <label for="{{ feature_type }}">{{ feature_type }}</label>

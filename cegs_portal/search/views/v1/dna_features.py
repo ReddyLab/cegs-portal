@@ -191,6 +191,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
+                "closest_dna_feature_types": [
+                    feature_type.value
+                    for feature_type in DNAFeatureType
+                    if feature_type not in [DNAFeatureType.GENE, DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT]
+                ],
                 "all_assemblies": assembly_list,
                 "id_type": id_type,
                 "feature_id": feature_id,
