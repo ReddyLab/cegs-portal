@@ -1,0 +1,31 @@
+{% load humanize %}
+{% load custom_helpers %}
+
+<table class="data-table">
+    <tr>
+        <th class="chrom-first-end-cap chrom-dark-band">Type</th>
+        <th class="chrom-light-band chrom-right-centromere">Cell Line</th>
+        <th class="chrom-left-centromere chrom-light-band">Location</th>
+        <th class="chrom-dark-band">Distance from TSS (bp)</th>
+        <th class="chrom-last-end-cap chrom-light-band">Feature Details</th>
+    </tr>
+
+{% for close_feature in closest_features %}
+    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
+        <td>{{ close_feature.get_feature_type_display }}</td>
+        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
+        <td>
+            <span>{{ close_feature.chrom_name }}</span>:
+            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}:{{ close_feature.strand|if_strand }}</span>
+        </td>
+        <td>{{ close_feature.closest_gene_distance|distance_display }}</td>
+        <td>
+            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
+            </svg>
+            </a>
+        </td>
+    </tr>
+{% endfor %}
+</table>

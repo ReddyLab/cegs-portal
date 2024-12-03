@@ -208,6 +208,67 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         return DNAFeatureSearch.id_search(id_type, feature_id, None, feature_properties=options["feature_properties"])
 
 
+class DNAFeatureClosestFeatures(ExperimentAccessMixin, MultiResponseFormatView):
+    json_renderer = features
+    table_partial = "search/v1/partials/_closest_features.html"
+
+    def get_experiment_accession_id(self):
+        try:
+            return DNAFeatureSearch.expr_id(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return DNAFeatureSearch.is_public(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return DNAFeatureSearch.is_archived(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            assembly
+                * Should match a genome assembly that exists in the DB
+            feature_type (multiple)
+                * Should match a feature type (gene, transcript, etc.)
+            id_type
+                * "accession"
+                * "ensembl"
+                * "name"
+            feature_id
+        """
+        options = super().request_options(request)
+        options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
+        options["feature_types"] = request.GET.getlist("type", [])
+        return options
+
+    def get(self, request, options, data, id_type, feature_id):
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "closest_features": data,
+                },
+            )
+
+        raise Http400("Access this only using htmx or JSON")
+
+    def get_data(self, options, id_type, feature_id):
+        return DNAFeatureSearch.id_closest_search(id_type, feature_id, options["feature_types"])
+
+
 class DNAFeatureLoc(MultiResponseFormatView):
     json_renderer = features
     template = "search/v1/dna_features.html"
