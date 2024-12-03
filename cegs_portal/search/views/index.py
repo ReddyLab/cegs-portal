@@ -12,3 +12,13 @@ def index(request):
         "search/index.html",
         {"form": form, "gene_form": gene_form, "location_form": location_form},
     )
+
+
+def glossary(request):
+    if request.headers.get("HX-Target") == "glossary-modal-container":
+        return render(
+            request,
+            "search/v1/partials/_glossary.html",
+        )
+
+    return render(request, "search/v1/partials/_glossary.html")

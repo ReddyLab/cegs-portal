@@ -1,2 +1,2 @@
 from . import v1
-from .index import index
+from .index import glossary, index
