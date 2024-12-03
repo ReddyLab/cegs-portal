@@ -209,6 +209,10 @@
                         aria-labelledby="analyzeExperiments">
                         <div class="w-full h-1/2 border border-gray-300 p-5" id="view-experiments">
                           <div class="italic flex justify-center text-center" id="experiments-link">Please select at least one experiment.</div>
+                          <div class="italic mt-2">
+                           Note: Selected experiments must be within the same genome assembly for analysis
+                           {% include 'search/v1/partials/_help_tooltip.html' with help_text="Filter by genome assembly and select the desired experiments." %}
+                          </div>
                         </div>
                       </div>
                     </div>
