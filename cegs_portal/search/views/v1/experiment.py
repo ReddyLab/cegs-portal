@@ -205,6 +205,12 @@ class ExperimentListView(MultiResponseFormatView):
             else:
                 facets[value.facet.name] = [value]
 
+        sorted_facets = {}
+        if "Genome Assembly" in facets:
+            sorted_facets["Genome Assembly"] = facets.pop("Genome Assembly")
+
+        sorted_facets.update(facets)
+
         if request.headers.get("HX-Target") == "multi-exp-modal-container":
             return render(
                 request,
@@ -212,7 +218,7 @@ class ExperimentListView(MultiResponseFormatView):
                 {
                     "experiments": experiment_objects,
                     "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                    "facets": facets,
+                    "facets": sorted_facets,
                 },
             )
 
@@ -223,7 +229,7 @@ class ExperimentListView(MultiResponseFormatView):
                 {
                     "experiments": experiment_objects,
                     "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                    "facets": facets,
+                    "facets": sorted_facets,
                 },
             )
 
@@ -234,7 +240,7 @@ class ExperimentListView(MultiResponseFormatView):
                 "logged_in": not request.user.is_anonymous,
                 "experiments": experiment_objects,
                 "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                "facets": facets,
+                "facets": sorted_facets,
             },
         )
 
