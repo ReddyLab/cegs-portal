@@ -2,7 +2,7 @@ from enum import Enum, StrEnum
 from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Q, QuerySet
+from django.db.models import F, Func, Q, QuerySet, Subquery
 from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
@@ -106,6 +106,55 @@ class DNAFeatureSearch:
             features = features.distinct()
 
         return features
+
+    @classmethod
+    def id_closest_search(
+        cls,
+        id_type: str,
+        feature_id: str,
+        feature_types: list[str],
+        assembly: Optional[str] = None,
+    ) -> QuerySet[DNAFeature]:
+        query = {}
+        gene_query = {}
+        if id_type == IdType.ENSEMBL:
+            gene_query["ensembl_id"] = feature_id
+        elif id_type == IdType.GENE_NAME:
+            gene_query["name__iexact"] = feature_id
+        elif id_type == IdType.ACCESSION:
+            gene_query["accession_id"] = feature_id
+        else:
+            raise ViewModelError(f"Invalid ID type: {id_type}")
+
+        if assembly is not None:
+            query["ref_genome"] = assembly
+
+        new_feature_types: list[DNAFeatureType] = []
+        for ft in feature_types:
+            new_feature_types.append(DNAFeatureType(ft))
+
+        if len(new_feature_types) > 0:
+            query["feature_type__in"] = new_feature_types
+
+        print(query)
+        features = DNAFeature.objects.filter(
+            closest_gene_id__in=Subquery(DNAFeature.objects.filter(**gene_query).values_list("id"))
+        ).order_by(Func(F("closest_gene_distance"), function="ABS").asc())
+
+        if query:
+            features = features.filter(**query)
+
+        return features
+
+    @classmethod
+    def id_closest_search_public(cls, *args, **kwargs):
+        return cls.id_closest_search(*args, **kwargs).filter(public=True, archived=False)
+
+    @classmethod
+    def id_closest_search_private(cls, *args, **kwargs):
+        return cls.id_closest_search(*args[:-1], **kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )
 
     @classmethod
     def expr_id(cls, feature_id: str) -> str:

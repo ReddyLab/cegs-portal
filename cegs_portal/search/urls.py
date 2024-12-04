@@ -11,6 +11,11 @@ urlpatterns = [
     path("results/", views.v1.SearchView.as_view(), name="results"),
     path("glossary/", views.glossary, name="glossary"),
     re_path(
+        r"feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)/closest$",
+        views.v1.DNAFeatureClosestFeatures.as_view(),
+        name="closest_dna_features",
+    ),
+    re_path(
         r"feature/accession/(?P<feature_id>DCP[A-Z]{1,4}[A-F0-9]{8,10})/source_for$",
         views.v1.SourceEffectsView.as_view(),
         name="source_effects",

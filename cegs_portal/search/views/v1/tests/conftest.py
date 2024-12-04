@@ -151,3 +151,52 @@ def dna_features() -> Iterable[DNAFeature]:
 @pytest.fixture
 def dna_features_hg19() -> Iterable[DNAFeature]:
     return _dna_features("hg19")
+
+
+@pytest.fixture
+def dna_features_with_closest_gene() -> Iterable[DNAFeature]:
+    gene = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.GENE,
+        chrom_name="chr1",
+        location=Int4Range(1, 100),
+    )
+    f1 = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.CCRE,
+        chrom_name="chr1",
+        location=Int4Range(1, 100),
+        closest_gene=gene,
+    )
+    f2 = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.CCRE,
+        chrom_name="chr1",
+        location=Int4Range(200, 300),
+        closest_gene=gene,
+    )
+    f3 = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.CCRE,
+        chrom_name="chr1",
+        location=Int4Range(1000, 2000),
+        closest_gene=gene,
+    )
+    f4 = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.CAR,
+        chrom_name="chr1",
+        location=Int4Range(50_000, 60_000),
+        closest_gene=gene,
+        public=False,
+    )
+    f5 = DNAFeatureFactory(
+        parent=None,
+        feature_type=DNAFeatureType.CAR,
+        chrom_name="chr1",
+        location=Int4Range(70_000, 80_000),
+        closest_gene=gene,
+        archived=True,
+    )
+
+    return [gene, f1, f2, f3, f4, f5]
