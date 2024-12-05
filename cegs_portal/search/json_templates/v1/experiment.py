@@ -28,6 +28,30 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
         "files": [file(f) for f in experiment_obj.files.all()],
     }
 
+    try:
+        attribution = {
+            "pi": experiment_obj.attribution.pi,
+            "institution": experiment_obj.attribution.institution,
+        }
+
+        if experiment_obj.attribution.experimentalist:
+            attribution["experimentalist"] = experiment_obj.attribution.experimentalist
+
+        if experiment_obj.attribution.project:
+            attribution["project"] = experiment_obj.attribution.project
+
+        if experiment_obj.attribution.datasource_url:
+            attribution["datasource_url"] = experiment_obj.attribution.datasource_url
+
+        if experiment_obj.attribution.lab_url:
+            attribution["lab_url"] = experiment_obj.attribution.lab_url
+
+        result["attribution"] = attribution
+    except Experiment.attribution.RelatedObjectDoesNotExist:
+        # It's fine, logic-wise, if this fails; it means that this experiment is currently
+        # unattributed. We should try not to have any unattributed experiments, though.
+        pass
+
     return result
 
 

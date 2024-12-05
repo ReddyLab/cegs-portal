@@ -9,6 +9,7 @@ from .experiment import (
     Experiment,
     ExperimentCollection,
     ExperimentDataFile,
+    ExperimentSource,
     FunctionalCharacterizationType,
     GenomeAssemblyType,
     Pipeline,

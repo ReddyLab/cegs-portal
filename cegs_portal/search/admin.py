@@ -9,6 +9,7 @@ from cegs_portal.search.models import (
     DNAFeature,
     Experiment,
     ExperimentCollection,
+    ExperimentSource,
     Facet,
     FacetValue,
     File,
@@ -102,6 +103,18 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
         return f"{obj.value} ({obj.facet.name})"
 
 
+class ExperimentSourceInlineAdmin(admin.StackedInline):
+    model = ExperimentSource
+    min_num = 1
+    max_num = 1
+    verbose_name = "Experiment Attribution"
+
+    @admin.display
+    def source_info(self, obj):
+        lab = f", {obj.lab}" if obj.lab else ""
+        return f"{obj.pi}{lab}"
+
+
 class ExperimentForm(forms.ModelForm):
     class Meta:
         widgets = {
@@ -111,7 +124,7 @@ class ExperimentForm(forms.ModelForm):
 
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentFacetValueInlineAdmin, FileInlineAdmin]
+    inlines = [ExperimentSourceInlineAdmin, ExperimentFacetValueInlineAdmin, FileInlineAdmin]
     fields = [
         "public",
         "archived",

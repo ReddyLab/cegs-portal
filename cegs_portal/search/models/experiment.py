@@ -101,6 +101,16 @@ class ExperimentCollection(Accessioned, Faceted, AccessControlled):
     experiments = models.ManyToManyField(Experiment, related_name="collections", blank=True)
 
 
+class ExperimentSource(models.Model):
+    pi = models.CharField(max_length=512, null=False)
+    institution = models.CharField(max_length=512, null=False)
+    experimentalist = models.CharField(max_length=512, blank=True, null=True)
+    project = models.CharField(max_length=512, blank=True, null=True)
+    datasource_url = models.URLField(blank=True, null=True)
+    lab_url = models.URLField(blank=True, null=True)
+    experiment = models.OneToOneField(Experiment, on_delete=models.CASCADE, related_name="attribution")
+
+
 # Deprecated in favor of File + ExperimentDataFileInfo
 class ExperimentDataFile(models.Model):
     description = models.CharField(max_length=4096, null=True, blank=True)
