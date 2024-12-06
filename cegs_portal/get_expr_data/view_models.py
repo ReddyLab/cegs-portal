@@ -475,23 +475,34 @@ def for_facet_query_input(facets: list[int]) -> list[list[int]]:
 
     with connection.cursor() as cursor:
         cursor.execute(query, [facets])
-        query_input.append([int(fid) for fid, in cursor.fetchall()])
+        facet_ids = [int(fid) for fid, in cursor.fetchall()]
+        query_input.append(facet_ids)
+        query_input.append(facet_ids)
 
     return query_input
 
 
 def public_experiments_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""SELECT accession_id
-                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
-                            FROM (SELECT se.accession_id, sefv.facetvalue_id = ANY(%s) as facet_bool
-                                FROM search_experiment AS se
+    query = r"""WITH
+                    facet_table AS (
+                        SELECT se.accession_id, sfv.facet_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                         FROM search_experiment AS se
                                 JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
                                 JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
-                                WHERE sfv.facet_id = ANY(%s) and se.public = true and se.archived = false
-                                GROUP BY se.accession_id, sefv.facetvalue_id
-                                ORDER BY se.accession_id) AS facet_table
-                            GROUP BY facet_table.accession_id) AS facet_bool_table
-                    WHERE facet_bool_table.facet_match = true
+                         WHERE sfv.facet_id = ANY(%s) and se.public = true and se.archived = false
+                         GROUP BY se.accession_id, sfv.facet_id, sefv.facetvalue_id
+                         ORDER BY se.accession_id),
+                    facet_or_table AS (
+                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
+                          FROM facet_table
+                          GROUP BY facet_table.accession_id, facet_id),
+                    facet_and_table AS (
+                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
+                          FROM facet_or_table
+                          GROUP BY facet_or_table.accession_id)
+                SELECT accession_id
+                FROM facet_and_table
+                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
             """
     with connection.cursor() as cursor:
         cursor.execute(query, query_input)
@@ -501,17 +512,26 @@ def public_experiments_for_facets(query_input: list[list[int]]) -> set[str]:
 
 
 def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""SELECT accession_id
-                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
-                            FROM (SELECT se.accession_id, sefv.facetvalue_id = ANY(%s) as facet_bool
-                                FROM search_experiment AS se
+    query = r"""WITH
+                    facet_table AS (
+                        SELECT se.accession_id, sfv.facet_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                         FROM search_experiment AS se
                                 JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
                                 JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
-                                WHERE sfv.facet_id = ANY(%s)
-                                GROUP BY se.accession_id, sefv.facetvalue_id
-                                ORDER BY se.accession_id) AS facet_table
-                            GROUP BY facet_table.accession_id) AS facet_bool_table
-                    WHERE facet_bool_table.facet_match = true
+                         WHERE sfv.facet_id = ANY(%s)
+                         GROUP BY se.accession_id, sfv.facet_id, sefv.facetvalue_id
+                         ORDER BY se.accession_id),
+                    facet_or_table AS (
+                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
+                          FROM facet_table
+                          GROUP BY facet_table.accession_id, facet_id),
+                    facet_and_table AS (
+                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
+                          FROM facet_or_table
+                          GROUP BY facet_or_table.accession_id)
+                SELECT accession_id
+                FROM facet_and_table
+                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
             """
     with connection.cursor() as cursor:
         cursor.execute(query, query_input)
@@ -521,17 +541,26 @@ def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
 
 
 def analyses_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""SELECT accession_id
-                    FROM (SELECT accession_id, bool_and(facet_table.facet_bool) as facet_match
-                            FROM (SELECT sa.accession_id, safv.facetvalue_id = ANY(%s) as facet_bool
-                                FROM search_analysis AS sa
-                                JOIN search_analysis_facet_values AS safv ON sa.id = safv.analysis_id
+    query = r"""WITH
+                    facet_table AS (
+                        SELECT sa.accession_id, sfv.facet_id, safv.facetvalue_id = ANY(%s) as facet_bool
+                         FROM search_analysis AS sa
+                                JOIN search_analysis_facet_values AS safv ON sa.id = safv.experiment_id
                                 JOIN search_facetvalue AS sfv on sfv.id = safv.facetvalue_id
-                                WHERE sfv.facet_id = ANY(%s)
-                                GROUP BY sa.accession_id, safv.facetvalue_id
-                                ORDER BY sa.accession_id) AS facet_table
-                            GROUP BY facet_table.accession_id) AS facet_bool_table
-                    WHERE facet_bool_table.facet_match = true
+                         WHERE sfv.facet_id = ANY(%s)
+                         GROUP BY sa.accession_id, sfv.facet_id, safv.facetvalue_id
+                         ORDER BY sa.accession_id),
+                    facet_or_table AS (
+                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
+                          FROM facet_table
+                          GROUP BY facet_table.accession_id, facet_id),
+                    facet_and_table AS (
+                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
+                          FROM facet_or_table
+                          GROUP BY facet_or_table.accession_id)
+                SELECT accession_id
+                FROM facet_and_table
+                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
             """
     with connection.cursor() as cursor:
         cursor.execute(query, query_input)
