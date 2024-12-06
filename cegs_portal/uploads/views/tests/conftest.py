@@ -110,16 +110,14 @@ def facets() -> list[Facet]:
     _ = FacetValueFactory(facet=source_type_facet, value="CAR")
     _ = FacetValueFactory(facet=source_type_facet, value="DHS")
 
-    cell_line_facet = FacetFactory(description="", name=Experiment.Facet.CELL_LINE.value)
-    _ = FacetValueFactory(facet=cell_line_facet, value="iPSC")
-    _ = FacetValueFactory(facet=cell_line_facet, value="K562")
-    _ = FacetValueFactory(facet=cell_line_facet, value="NPC")
-    _ = FacetValueFactory(facet=cell_line_facet, value="CD8")
-
-    tissue_type_facet = FacetFactory(description="", name=Experiment.Facet.TISSUE_TYPE.value)
-    _ = FacetValueFactory(facet=tissue_type_facet, value="Stem")
-    _ = FacetValueFactory(facet=tissue_type_facet, value="Bone Marrow")
-    _ = FacetValueFactory(facet=tissue_type_facet, value="T Cell")
+    biosample_facet = FacetFactory(description="", name=Experiment.Facet.BIOSAMPLE.value)
+    _ = FacetValueFactory(facet=biosample_facet, value="iPSC")
+    _ = FacetValueFactory(facet=biosample_facet, value="K562")
+    _ = FacetValueFactory(facet=biosample_facet, value="NPC")
+    _ = FacetValueFactory(facet=biosample_facet, value="CD8")
+    _ = FacetValueFactory(facet=biosample_facet, value="Stem")
+    _ = FacetValueFactory(facet=biosample_facet, value="Bone Marrow")
+    _ = FacetValueFactory(facet=biosample_facet, value="T Cell")
 
     # The reason there's a check to see if the crispr and assembly facets already exist is because
     # they are created when pytest is run with --create-db but deleted at the end of the run. So
@@ -143,8 +141,7 @@ def facets() -> list[Facet]:
         promoter_facet,
         assay_facet,
         source_type_facet,
-        cell_line_facet,
-        tissue_type_facet,
+        biosample_facet,
     ]
 
 
