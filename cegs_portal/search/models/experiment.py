@@ -61,8 +61,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
         SOURCE_TYPES = "Experiment Source Type"
-        CELL_LINE = "Cell Line"
-        TISSUE_TYPE = "Tissue Type"
+        BIOSAMPLE = "Biosample"
         GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
         FUNCTIONAL_CHARACTERIZATION = "Functional Characterization Modality"  # FunctionalCharacterizationType
 
