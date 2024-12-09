@@ -849,7 +849,7 @@ Genoverse.Track.TestedElements.CRISPRa = Genoverse.Track.TestedElements.extend({
 
 Genoverse.Track.TestedElements.Enhancers = Genoverse.Track.TestedElements.extend({
     id: "tested-elements-enhancer",
-    name: "Candidate Enhancer / Promotors",
+    name: "Candidate Enhancer / Promoters",
     model: Genoverse.Track.Model.Enhancers,
 });
 
