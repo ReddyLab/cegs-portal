@@ -31,6 +31,9 @@ VALID_FEATURELOC_PROPS = {
     "crispri",
     "crispra",
     "parent_info",
+    "enhancer",
+    "repressor",
+    "squelcher",
 }
 
 
