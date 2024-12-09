@@ -216,7 +216,7 @@
                         </div>
                       </div>
                     </div>
-                    {% if logged_in %}
+
                     <div
                       class="bg-white hidden md:block">
                       <h2 class="accordion-header mb-0" id="downloadData">
@@ -229,7 +229,7 @@
                           aria-expanded="false"
                           aria-controls="collapseThree">
                           <div class="text-xl font-bold text-slate-500">
-                            <i class="bi bi-download mr-1"></i> Download Data from Selected Experiments
+                            <i class="bi bi-download mr-1"></i> {% if logged_in %}Download Data from Selected Experiments{% else %}Please Login to Download Data from Selected Experiments{% endif %}
                           </div>
                           <span
                             class="ml-auto h-6 w-6 shrink-0 fill-[#336dec] transition-transform duration-200 ease-in-out group-[[data-te-collapse-collapsed]]:mr-0 group-[[data-te-collapse-collapsed]]:rotate-180 group-[[data-te-collapse-collapsed]]:fill-[#212529] motion-reduce:transition-none">
@@ -248,24 +248,29 @@
                           </span>
                         </button>
                       </h2>
-                      <div
-                        id="collapseThree"
-                        class="!visible hidden"
-                        data-te-collapse-item
-                        aria-labelledby="downloadData">
-                        <div class="px-5 py-4">
-                          <form name="dataDownloadForm">
-                            <div>
-                                <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
-                                <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
-                                <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
-                            </div>
-                          </form>
-                          <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
+                      <div id="logged-in-only-container">
+                        {% if not logged_in %}
+                        <div id="logged-in-only-overlay"></div>
+                        {% endif %}
+                        <div
+                          id="collapseThree"
+                          class="!visible hidden"
+                          data-te-collapse-item
+                          aria-labelledby="downloadData">
+                          <div class="px-5 py-4">
+                            <form name="dataDownloadForm">
+                              <div>
+                                  <label class="font-bold flex justify-center" for="dataDlFile">Select a .bed File with Regions of Interest</label>
+                                  <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                                  <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
+                              </div>
+                            </form>
+                            <div id="dataDownloadLink" class="italic mt-5 mb-5 flex justify-center">Please select at least one experiment.</div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    {% endif %}
+
                   </div>
                   </div>
               </fieldset>

@@ -323,8 +323,13 @@
                         </fieldset>
                     </div>
 
-                    {% if logged_in %}
                     <div class="content-container hidden md:block">
+                      <div id="logged-in-only-container">
+                        {% if not logged_in %}
+                        <div id="logged-in-only-overlay" class="grid grid-cols-1 place-content-center">
+                            <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
+                        </div>
+                        {% endif %}
                         <form name="dataDownloadForm">
                             <div>
                                 <label class="font-bold flex justify-center" for="dataDlAll">Download Region Data*</label>
@@ -334,8 +339,8 @@
                         </form>
                         <div id="dataDownloadLink" class="mt-5 mb-5"></div>
                         <div class="text-sm flex justify-center">Includes all observations, filtered by selected facets</div>
+                      </div>
                     </div>
-                    {% endif %}
                 </div>
 
                 <div class="flex flex-col gap-4 basis-3/4">
