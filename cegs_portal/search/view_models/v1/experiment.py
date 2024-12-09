@@ -65,6 +65,7 @@ class ExperimentSearch:
                 cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
             )
             .order_by("accession_id")
+            .select_related("default_analysis")
             .prefetch_related("biosamples")
         )
 

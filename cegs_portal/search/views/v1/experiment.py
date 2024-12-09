@@ -179,6 +179,7 @@ class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
 class ExperimentListView(MultiResponseFormatView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
+    table_partial = "search/v1/partials/_experiment_list.html"
 
     def request_options(self, request):
         """
@@ -197,6 +198,15 @@ class ExperimentListView(MultiResponseFormatView):
 
     def get(self, request, options, data):
         experiment_objects, facet_values = data
+
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "experiments": experiment_objects,
+                },
+            )
 
         facets = {}
         for value in facet_values.all():
