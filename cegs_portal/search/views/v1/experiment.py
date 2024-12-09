@@ -199,15 +199,6 @@ class ExperimentListView(MultiResponseFormatView):
     def get(self, request, options, data):
         experiment_objects, facet_values = data
 
-        if request.headers.get("HX-Request"):
-            return render(
-                request,
-                self.table_partial,
-                {
-                    "experiments": experiment_objects,
-                },
-            )
-
         facets = {}
         for value in facet_values.all():
             if value.facet.name in facets:
@@ -240,6 +231,15 @@ class ExperimentListView(MultiResponseFormatView):
                     "experiments": experiment_objects,
                     "experiment_ids": [expr.accession_id for expr in experiment_objects],
                     "facets": sorted_facets,
+                },
+            )
+
+        if request.headers.get("HX-Target") == "experiment-list":
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "experiments": experiment_objects,
                 },
             )
 
