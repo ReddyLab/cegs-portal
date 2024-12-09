@@ -19,7 +19,13 @@ export function facetFilterSetup() {
         checkbox.checked = experimentFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
         checkbox.addEventListener("change", (_event) => {
             let url = experimentListURL(facetCheckboxes);
-            window.history.pushState({}, document.title, url);
+
+            // We don't want to mess with the state when using this from a modal
+            // on an experiment/multi-experiment page
+            if (window.location.pathname === "/search/experiment") {
+                window.history.pushState({}, document.title, url);
+            }
+
             htmx.ajax("GET", `/search/${url}`, "#experiment-list")
                 .then(() => {
                     addDragListeners();
