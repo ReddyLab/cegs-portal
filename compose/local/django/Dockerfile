@@ -113,6 +113,8 @@ RUN mkdir -p ${APP_HOME}/cegs_portal/media/expr_data_dir
 RUN chmod ug+w ${APP_HOME}/cegs_portal/media/
 RUN chmod ug+w ${APP_HOME}/cegs_portal/media/expr_data_dir
 
+RUN  date "+%Y-%m-%d" > ${APP_HOME}/cegs_portal/templates/build_date.html
+
 # make django owner of the WORKDIR directory as well.
 RUN chown -R django:root ${APP_HOME}
 

@@ -1,4 +1,5 @@
 from django import template
+from django.template.loader import get_template
 
 register = template.Library()
 
@@ -32,3 +33,8 @@ def if_strand(value):
         return value
     else:
         return "."
+
+
+@register.inclusion_tag(get_template("build_date.html"))
+def display_build_date():
+    return {}
