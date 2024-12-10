@@ -1532,6 +1532,10 @@ input[type="submit"], input[type="button"], button {
       flex-wrap: nowrap;
 }
 
+.place-content-center {
+  place-content: center;
+}
+
 .items-start {
   -webkit-box-align: start;
       -ms-flex-align: start;
@@ -2183,6 +2187,18 @@ fieldset legend {
 
 .inline_url_field div {
   display: inline;
+}
+
+#logged-in-only-container {
+  contain: paint layout;
+}
+
+#logged-in-only-overlay {
+  z-index: 1000;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  height: 100%;
 }
 
 /* The navbar styles are copied from bootstrap.css (getbootstrap.com) and then modified */
