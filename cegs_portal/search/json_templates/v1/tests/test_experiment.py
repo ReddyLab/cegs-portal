@@ -21,6 +21,7 @@ def test_experiments_json(experiment_list_data: tuple[Any, Any]):
                 "name": e.name,
                 "description": e.description if e.description is not None else "",
                 "biosamples": [b_json(b) for b in e.biosamples.all()],
+                "genome_assembly": e.default_analysis.genome_assembly,
             }
             for e in experiments_obj
         ]

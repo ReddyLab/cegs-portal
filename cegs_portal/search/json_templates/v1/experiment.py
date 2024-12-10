@@ -12,6 +12,7 @@ def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, A
                 "name": e.name,
                 "description": e.description if e.description is not None else "",
                 "biosamples": [biosample(b) for b in e.biosamples.all()],
+                "genome_assembly": e.default_analysis.genome_assembly if e.default_analysis else None,
             }
             for e in experiments_obj
         ],
