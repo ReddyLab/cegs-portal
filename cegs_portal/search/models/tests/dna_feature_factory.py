@@ -45,19 +45,19 @@ class DNAFeatureFactory(DjangoModelFactory):
     def _create(cls, model_class, *args, **kwargs):
         # in DNAFeatureSearch#loc_search the "effect_directions" property adds
         # an "effect_directions" annotation to DNAFeature objects
-        if "effect_directions" in kwargs:
-            effect_dirs = kwargs["effect_directions"]
-            del kwargs["effect_directions"]
+        if "facet_value_agg" in kwargs:
+            facet_value_agg = kwargs["facet_value_agg"]
+            del kwargs["facet_value_agg"]
         else:
-            effect_dirs = None
+            facet_value_agg = None
 
         obj = model_class(*args, **kwargs)
         if "accession_id" not in kwargs:
             obj.accession_id = cls._faker.unique.hexify(text="DCPGENE^^^^^^^^^^", upper=True)
             obj.save()
 
-        if effect_dirs is not None:
-            setattr(obj, "effect_directions", effect_dirs)
+        if facet_value_agg is not None:
+            setattr(obj, "facet_value_agg", facet_value_agg)
 
         return obj
 
