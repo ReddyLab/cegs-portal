@@ -831,19 +831,19 @@ Genoverse.Track.TestedElements = Genoverse.Track.extend({
 
 Genoverse.Track.TestedElements.ReporterAssay = Genoverse.Track.TestedElements.extend({
     id: "tested-elements-reporterassay",
-    name: "Reporter Assay Tested Elements",
+    name: "Reporter Assay Hits",
     model: Genoverse.Track.Model.ReporterAssay,
 });
 
 Genoverse.Track.TestedElements.CRISPRi = Genoverse.Track.TestedElements.extend({
     id: "tested-elements-crispri",
-    name: "CRISPRi Tested Elements",
+    name: "CRISPRi Hits",
     model: Genoverse.Track.Model.CRISPRi,
 });
 
 Genoverse.Track.TestedElements.CRISPRa = Genoverse.Track.TestedElements.extend({
     id: "tested-elements-crispra",
-    name: "CRISPRa Tested Elements",
+    name: "CRISPRa Hits",
     model: Genoverse.Track.Model.CRISPRa,
 });
 
