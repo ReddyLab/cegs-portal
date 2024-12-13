@@ -14,6 +14,7 @@ from huey.contrib.djhuey import db_task
 from psycopg.types.range import Int4Range, NumericRange
 
 from cegs_portal.get_expr_data.models import ExperimentData, expr_data_base_path
+from cegs_portal.search.models import ExperimentCollection
 
 MAX_FILENAME_LENGTH = 255  # This comes from the ExperimentData.filename field/maximum macos filename length
 
@@ -65,7 +66,7 @@ class Facets:
 
 
 def validate_expr(expr) -> bool:
-    return re.match(r"^DCPEXPR[A-F0-9]{8,10}$", expr) is not None
+    return re.match(r"^DCP(EXPR|EXCL)[A-F0-9]{8,10}$", expr) is not None
 
 
 def validate_an(expr) -> bool:
@@ -241,6 +242,16 @@ def output_experiment_data_csv(
     facets: Facets,
     output_filename: str,
 ):
+    if experiments is not None:
+        collections = [exp for exp in experiments if exp[:7] == "DCPEXCL"]
+        experiments_temp = [exp for exp in experiments if exp[:7] == "DCPEXPR"]
+        collection_experiments = list(
+            ExperimentCollection.objects.filter(accession_id__in=collections).values_list(
+                "experiments__accession_id", flat=True
+            )
+        )
+        experiments = experiments_temp + collection_experiments
+
     experiment_data_info = ExperimentData(user=user, filename=output_filename)
     experiment_data_info.save()
     experiment_data = retrieve_experiment_data(

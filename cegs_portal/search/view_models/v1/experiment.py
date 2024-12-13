@@ -35,13 +35,21 @@ class ExperimentSearch:
         return cast(bool, experiment[0])
 
     @classmethod
-    def experiment_statuses(cls, expr_ids: list[str]) -> bool:
-        experiments = Experiment.objects.filter(accession_id__in=expr_ids).values_list(
-            "accession_id", "public", "archived"
+    def experiment_statuses(cls, accession_ids: list[str]) -> list[list[str]]:
+        collections = [exp for exp in accession_ids if exp[:7] == "DCPEXCL"]
+        experiments_temp = [exp for exp in accession_ids if exp[:7] == "DCPEXPR"]
+        collection_experiments = list(
+            ExperimentCollection.objects.filter(accession_id__in=collections).values_list(
+                "experiments__accession_id", flat=True
+            )
+        )
+        accession_ids = experiments_temp + collection_experiments
+        experiments = list(
+            Experiment.objects.filter(accession_id__in=accession_ids).values_list("accession_id", "public", "archived")
         )
 
         if len(experiments) == 0:
-            raise ObjectNotFoundError(f"Experiments {expr_ids} not found")
+            raise ObjectNotFoundError(f"Experiments {accession_ids} not found")
 
         return experiments
 
@@ -51,12 +59,20 @@ class ExperimentSearch:
 
     @classmethod
     def multi_accession_search(cls, accession_ids: list[str]):
-        experiment = (
+        collections = [exp for exp in accession_ids if exp[:7] == "DCPEXCL"]
+        experiments_temp = [exp for exp in accession_ids if exp[:7] == "DCPEXPR"]
+        collection_experiments = list(
+            ExperimentCollection.objects.filter(accession_id__in=collections).values_list(
+                "experiments__accession_id", flat=True
+            )
+        )
+        accession_ids = experiments_temp + collection_experiments
+        experiments = (
             Experiment.objects.filter(accession_id__in=accession_ids)
             .select_related("default_analysis", "attribution")
             .prefetch_related("data_files", "biosamples__cell_line", "biosamples__cell_line__tissue_type", "files")
         )
-        return experiment
+        return experiments
 
     @classmethod
     def _experiments(cls, facet_ids, experiments, public_query, query, user_type, private_experiments):
