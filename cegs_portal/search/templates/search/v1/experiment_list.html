@@ -317,7 +317,7 @@
               </fieldset>
           </div>
         </div>
-        <div class="md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-list">
+        <div class="w-full md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-list">
             {% include 'search/v1/partials/_experiment_list.html' with experiments=experiments %}
         </div>
       </div>
@@ -578,7 +578,7 @@
               </fieldset>
           </div>
         </div>
-        <div class="md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-collection-list">
+        <div class="w-full md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-collection-list">
           {% if not collections.exists %}
           <div class="content-container items-center">
               <div class="flex justify-between">
@@ -607,43 +607,34 @@
 </script>
 <script>
 function checkWidthToCollapse(width) {
+    let headers = [
+      "#combinedExperimentsHeader", "#experimentFiltersHeader", "#selectExperiments button", "#analyzeExperiments button",
+      "#combinedExperimentsHeader-collections", "#experimentCollectionFiltersHeader", "#selectExperiments-collections button", "#analyzeExperiments-collections button",
+    ];
+    let bodies = [
+      "#combinedExperimentsCollapse", "#experimentFiltersCollapse", "#selectExperimentsCollapse", "#analyzeExperimentsCollapse",
+      "#combinedExperimentsCollapse-collections", "#experimentCollectionFiltersCollapse", "#selectExperimentsCollapse-collections", "#analyzeExperimentsCollapse-collections"
+    ];
     if (width <= 1020) {
-        document.querySelector("#combinedExperimentsHeader").setAttribute("aria-expanded", "false");
-        document.querySelector("#combinedExperimentsHeader").setAttribute("data-te-collapse-collapsed", "");
-        document.querySelector("#combinedExperimentsCollapse").classList.add("hidden");
-        document.querySelector("#combinedExperimentsCollapse").removeAttribute("data-te-collapse-show");
+      for (let header of headers) {
+        document.querySelector(header).setAttribute("aria-expanded", "false");
+        document.querySelector(header).setAttribute("data-te-collapse-collapsed", "");
+      }
 
-        document.querySelector("#experimentFiltersHeader").setAttribute("aria-expanded", "false");
-        document.querySelector("#experimentFiltersHeader").setAttribute("data-te-collapse-collapsed", "");
-        document.querySelector("#experimentFiltersCollapse").classList.add("hidden");
-        document.querySelector("#experimentFiltersCollapse").removeAttribute("data-te-collapse-show");
-
-        document.querySelector("#selectExperiments button").setAttribute("aria-expanded", "false");
-        document.querySelector("#analyzeExperiments button").setAttribute("aria-expanded", "false");
-        document.querySelector("#selectExperiments button").setAttribute("data-te-collapse-collapsed", "");
-        document.querySelector("#analyzeExperiments button").setAttribute("data-te-collapse-collapsed", "");
-
-        document.querySelector("#selectExperimentsCollapse").classList.add("hidden");
-        document.querySelector("#analyzeExperimentsCollapse").classList.add("hidden");
-        document.querySelector("#selectExperimentsCollapse").removeAttribute("data-te-collapse-show");
-        document.querySelector("#analyzeExperimentsCollapse").removeAttribute("data-te-collapse-show");
+      for (let body of bodies) {
+        document.querySelector(body).classList.add("hidden");
+        document.querySelector(body).removeAttribute("data-te-collapse-show");
+      }
     } else {
-        document.querySelector("#combinedExperimentsHeader").setAttribute("aria-expanded", "true");
-        document.querySelector("#combinedExperimentsHeader").removeAttribute("data-te-collapse-collapsed");
-        document.querySelector("#combinedExperimentsCollapse").classList.remove("hidden");
-        document.querySelector("#combinedExperimentsCollapse").setAttribute("data-te-collapse-show", "");
-        document.querySelector("#experimentFiltersHeader").setAttribute("aria-expanded", "true");
-        document.querySelector("#experimentFiltersHeader").removeAttribute("data-te-collapse-collapsed");
-        document.querySelector("#experimentFiltersCollapse").classList.remove("hidden");
-        document.querySelector("#experimentFiltersCollapse").setAttribute("data-te-collapse-show", "");
-        document.querySelector("#selectExperiments button").setAttribute("aria-expanded", "true");
-        document.querySelector("#analyzeExperiments button").setAttribute("aria-expanded", "true");
-        document.querySelector("#selectExperiments button").removeAttribute("data-te-collapse-collapsed");
-        document.querySelector("#analyzeExperiments button").removeAttribute("data-te-collapse-collapsed");
-        document.querySelector("#selectExperimentsCollapse").classList.remove("hidden");
-        document.querySelector("#analyzeExperimentsCollapse").classList.remove("hidden");
-        document.querySelector("#selectExperimentsCollapse").setAttribute("data-te-collapse-show", "");
-        document.querySelector("#analyzeExperimentsCollapse").setAttribute("data-te-collapse-show", "");
+      for (let header of headers) {
+        document.querySelector(header).setAttribute("aria-expanded", "true");
+        document.querySelector(header).removeAttribute("data-te-collapse-collapsed");
+      }
+
+      for (let body of bodies) {
+        document.querySelector(body).classList.remove("hidden");
+        document.querySelector(body).setAttribute("data-te-collapse-show", "");
+      }
     }
 }
 
@@ -655,7 +646,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
     window.addEventListener("resize", (event) => {
         let currentWidth = window.innerWidth;
         if (currentWidth != previousWidth) {
-            checkWidthToCollapse(currendWidth);
+            checkWidthToCollapse(currentWidth);
             previousWidth = currentWidth;
         }
     });
