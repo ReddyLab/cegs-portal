@@ -140,7 +140,7 @@ class ExperimentSearch:
             experiment_collections_for_facets,
             user_type,
             private_experiments,
-        )
+        ).prefetch_related("experiments")
 
     @classmethod
     def all_except(cls, accession_id):

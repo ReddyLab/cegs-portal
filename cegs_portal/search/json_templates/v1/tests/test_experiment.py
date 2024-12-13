@@ -6,6 +6,9 @@ from cegs_portal.search.json_templates.v1.experiment import biosample as b_json
 from cegs_portal.search.json_templates.v1.experiment import experiment as exp_json
 from cegs_portal.search.json_templates.v1.experiment import experiments as exps_json
 from cegs_portal.search.json_templates.v1.experiment import file as f_json
+from cegs_portal.search.json_templates.v1.experiment_collection import (
+    experiment_collection,
+)
 from cegs_portal.search.models import Experiment, File
 from cegs_portal.search.models.experiment import Biosample
 
@@ -13,7 +16,8 @@ pytestmark = pytest.mark.django_db
 
 
 def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any]):
-    experiments_obj, _, _, _ = experiment_list_data
+    experiments_obj, collections_obj, _, _ = experiment_list_data
+    collections = sorted(collections_obj, key=lambda x: x.accession_id)
     result = {
         "experiments": [
             {
@@ -24,7 +28,8 @@ def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any]):
                 "genome_assembly": e.default_analysis.genome_assembly,
             }
             for e in experiments_obj
-        ]
+        ],
+        "experiment_collections": [experiment_collection((c, c.experiments.all())) for c in collections],
     }
 
     assert exps_json(experiment_list_data) == result
