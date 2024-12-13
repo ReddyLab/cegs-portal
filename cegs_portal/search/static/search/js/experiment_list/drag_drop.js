@@ -59,7 +59,7 @@ function handleExperimentsLink(experimentListItems, suffix) {
                     class: "expr-list-link",
                 },
                 `Analyze ${experimentListItems.length} Selected ${
-                    experimentListItems.length > 1 ? "Experiments together" : "Experiment"
+                    experimentListItems.length > 1 ? "Experiments/Collections together" : "Experiment/Collection"
                 }`,
             ),
         );
