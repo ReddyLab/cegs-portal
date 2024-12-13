@@ -470,103 +470,69 @@ def sig_reo_loc_search(
 
 
 def for_facet_query_input(facets: list[int]) -> list[list[int]]:
-    query_input = [facets]
-    query = r"""SELECT DISTINCT facet_id FROM search_facetvalue WHERE id = ANY(%s)"""
+    if not facets:
+        return [[], [], []]
+
+    facet_value_ids = set()
+    facet_ids = set()
+    query = r"""SELECT DISTINCT id, facet_id FROM search_facetvalue WHERE id = ANY(%s)"""
 
     with connection.cursor() as cursor:
         cursor.execute(query, [facets])
-        facet_ids = [int(fid) for fid, in cursor.fetchall()]
-        query_input.append(facet_ids)
-        query_input.append(facet_ids)
+        for fvid, fid in cursor.fetchall():
+            facet_value_ids.add(int(fvid))
+            facet_ids.add(int(fid))
 
-    return query_input
+    return [list(facet_value_ids), list(facet_ids), list(facet_ids)]
+
+
+def _for_facets(query_input: list[list[int]], type: str, public: bool = False) -> set[str]:
+    query = f"""WITH
+                    facet_table AS (
+                        SELECT se.accession_id, sfv.facet_id, sefv.facetvalue_id = ANY(%s) as facet_bool
+                         FROM search_{type} AS se
+                                JOIN search_{type}_facet_values AS sefv ON se.id = sefv.{type}_id
+                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
+                         WHERE sfv.facet_id = ANY(%s){"and se.public = true and se.archived = false" if public else ""}
+                         GROUP BY se.accession_id, sfv.facet_id, sefv.facetvalue_id
+                         ORDER BY se.accession_id),
+                    facet_or_table AS (
+                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
+                          FROM facet_table
+                          GROUP BY facet_table.accession_id, facet_id),
+                    facet_and_table AS (
+                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
+                          FROM facet_or_table
+                          GROUP BY facet_or_table.accession_id)
+                SELECT accession_id
+                FROM facet_and_table
+                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
+            """
+    with connection.cursor() as cursor:
+        cursor.execute(query, query_input)
+        items = [id for id, in cursor.fetchall()]
+
+    return items
 
 
 def public_experiments_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""WITH
-                    facet_table AS (
-                        SELECT se.accession_id, sfv.facet_id, sefv.facetvalue_id = ANY(%s) as facet_bool
-                         FROM search_experiment AS se
-                                JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
-                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
-                         WHERE sfv.facet_id = ANY(%s) and se.public = true and se.archived = false
-                         GROUP BY se.accession_id, sfv.facet_id, sefv.facetvalue_id
-                         ORDER BY se.accession_id),
-                    facet_or_table AS (
-                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
-                          FROM facet_table
-                          GROUP BY facet_table.accession_id, facet_id),
-                    facet_and_table AS (
-                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
-                          FROM facet_or_table
-                          GROUP BY facet_or_table.accession_id)
-                SELECT accession_id
-                FROM facet_and_table
-                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
-            """
-    with connection.cursor() as cursor:
-        cursor.execute(query, query_input)
-        experiments = [eid for eid, in cursor.fetchall()]
-
-    return experiments
+    return _for_facets(query_input, "experiment", True)
 
 
 def experiments_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""WITH
-                    facet_table AS (
-                        SELECT se.accession_id, sfv.facet_id, sefv.facetvalue_id = ANY(%s) as facet_bool
-                         FROM search_experiment AS se
-                                JOIN search_experiment_facet_values AS sefv ON se.id = sefv.experiment_id
-                                JOIN search_facetvalue AS sfv on sfv.id = sefv.facetvalue_id
-                         WHERE sfv.facet_id = ANY(%s)
-                         GROUP BY se.accession_id, sfv.facet_id, sefv.facetvalue_id
-                         ORDER BY se.accession_id),
-                    facet_or_table AS (
-                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
-                          FROM facet_table
-                          GROUP BY facet_table.accession_id, facet_id),
-                    facet_and_table AS (
-                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
-                          FROM facet_or_table
-                          GROUP BY facet_or_table.accession_id)
-                SELECT accession_id
-                FROM facet_and_table
-                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
-            """
-    with connection.cursor() as cursor:
-        cursor.execute(query, query_input)
-        experiments = [eid for eid, in cursor.fetchall()]
-
-    return experiments
+    return _for_facets(query_input, "experiment")
 
 
 def analyses_for_facets(query_input: list[list[int]]) -> set[str]:
-    query = r"""WITH
-                    facet_table AS (
-                        SELECT sa.accession_id, sfv.facet_id, safv.facetvalue_id = ANY(%s) as facet_bool
-                         FROM search_analysis AS sa
-                                JOIN search_analysis_facet_values AS safv ON sa.id = safv.experiment_id
-                                JOIN search_facetvalue AS sfv on sfv.id = safv.facetvalue_id
-                         WHERE sfv.facet_id = ANY(%s)
-                         GROUP BY sa.accession_id, sfv.facet_id, safv.facetvalue_id
-                         ORDER BY sa.accession_id),
-                    facet_or_table AS (
-                        SELECT accession_id, bool_or(facet_table.facet_bool) as facet_match
-                          FROM facet_table
-                          GROUP BY facet_table.accession_id, facet_id),
-                    facet_and_table AS (
-                        SELECT accession_id, bool_and(facet_match) as facet_match, count(*) as item_count
-                          FROM facet_or_table
-                          GROUP BY facet_or_table.accession_id)
-                SELECT accession_id
-                FROM facet_and_table
-                WHERE facet_and_table.facet_match = true and facet_and_table.item_count >= array_length(%s, 1)
-            """
-    with connection.cursor() as cursor:
-        cursor.execute(query, query_input)
-        analyses = [aid for aid, in cursor.fetchall()]
+    return _for_facets(query_input, "analysis")
 
-    return analyses
+
+def public_experiment_collections_for_facets(query_input: list[list[int]]) -> set[str]:
+    return _for_facets(query_input, "experimentcollection", True)
+
+
+def experiment_collections_for_facets(query_input: list[list[int]]) -> set[str]:
+    return _for_facets(query_input, "experimentcollection")
 
 
 output_experiment_data_csv_task = db_task()(output_experiment_data_csv)
