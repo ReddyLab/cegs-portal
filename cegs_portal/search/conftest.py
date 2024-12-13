@@ -155,7 +155,9 @@ def experiment_list_data():
     e2.facet_values.add(f1)
     e3.facet_values.add(f1)
     e4.facet_values.add(f2)
+    e5.facet_values.add(f1)
     e5.facet_values.add(f2)
+    e6.facet_values.add(f1)
     e6.facet_values.add(f2)
     return experiments, [f1, f2]
 

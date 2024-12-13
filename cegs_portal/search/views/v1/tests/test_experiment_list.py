@@ -55,7 +55,7 @@ def test_experiment_list_facet_json(
     assert response.status_code == 200
     json_content = response.json()
 
-    assert len(json_content["experiments"]) == 3
+    assert len(json_content["experiments"]) == 5
 
 
 def test_experiment_list_all_facets_json(
@@ -68,7 +68,7 @@ def test_experiment_list_all_facets_json(
     assert response.status_code == 200
     json_content = response.json()
 
-    assert len(json_content["experiments"]) == len(experiments)
+    assert len(json_content["experiments"]) == 2
 
 
 def test_experiment_list_html(public_test_client: RequestBuilder, experiment_list_view):
