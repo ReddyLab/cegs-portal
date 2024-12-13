@@ -16,9 +16,29 @@ export function downloadDataSetup(csrfToken) {
                 null,
                 dataDownloadInput,
                 Array.from(experimentListItems, (item) => item.dataset.accession),
-                csrfToken
+                csrfToken,
             );
         },
-        false
+        false,
+    );
+
+    let dataDownloadInputCollection = g("dataDownloadInput-collections");
+    dataDownloadInputCollection.addEventListener(
+        "change",
+        () => {
+            let experimentListItems = document.getElementsByClassName("experiment-list-item");
+            if (experimentListItems.length == 0) {
+                rc(g("dataDownloadLink-collections"), t("Please select at least one experiment."));
+                return;
+            }
+
+            getDownloadRegions(
+                null,
+                dataDownloadInputCollection,
+                Array.from(experimentListItems, (item) => item.dataset.accession),
+                csrfToken,
+            );
+        },
+        false,
     );
 }
