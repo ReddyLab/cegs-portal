@@ -12,8 +12,8 @@ from cegs_portal.search.models.experiment import Biosample
 pytestmark = pytest.mark.django_db
 
 
-def test_experiments_json(experiment_list_data: tuple[Any, Any]):
-    experiments_obj, _ = experiment_list_data
+def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any]):
+    experiments_obj, _, _, _ = experiment_list_data
     result = {
         "experiments": [
             {

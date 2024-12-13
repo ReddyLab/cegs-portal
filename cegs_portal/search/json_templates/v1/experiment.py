@@ -3,8 +3,8 @@ from typing import Any, Optional
 from cegs_portal.search.models import Biosample, Experiment, File
 
 
-def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, Any]] = None):
-    experiments_obj, _ = experiments_data
+def experiments(experiments_data: tuple[Any, Any, Any, Any], options: Optional[dict[str, Any]] = None):
+    experiments_obj, _, _, _ = experiments_data
     return {
         "experiments": [
             {
