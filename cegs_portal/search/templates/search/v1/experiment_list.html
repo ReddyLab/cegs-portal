@@ -579,7 +579,15 @@
           </div>
         </div>
         <div class="md:order-2 lg:w-3/4 lg:mx-auto" id="experiment-collection-list">
+          {% if not collections.exists %}
+          <div class="content-container items-center">
+              <div class="flex justify-between">
+                  <div class="exp-name">No Collections Found</div>
+              </div>
+          </div>
+          {% else %}
           {% include 'search/v1/partials/_experiment_collection_list.html' with collections=collections %}
+          {% endif %}
         </div>
       </div>
     </div>
