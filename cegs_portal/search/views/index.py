@@ -22,3 +22,13 @@ def glossary(request):
         )
 
     return render(request, "search/v1/partials/_glossary.html")
+
+
+def multi_experiments_help_page(request):
+    if request.headers.get("HX-Target") == "multi-experiments-help-modal-container":
+        return render(
+            request,
+            "search/v1/partials/_multi_experiments_help.html",
+        )
+
+    return render(request, "search/v1/partials/_multi_experiments_help.html")

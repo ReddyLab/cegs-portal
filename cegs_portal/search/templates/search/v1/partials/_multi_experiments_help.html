@@ -1,0 +1,25 @@
+{% load static i18n %}
+
+<div id="help-multi-exp-modal">
+    <div class="help-multi-exp-modal-underlay" onclick="closeHelpModal()"></div>
+    <div class="content-container help-multi-exp-modal-content pb-6">
+        <div class="close-button" onclick="closeHelpModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+        </svg>
+        </div>
+        <div class="scroll-area">
+        <!-- Modal content -->
+                <!-- Modal header -->
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fa-solid fa-flask-vial mr-1"></i>Combine Experiments Help Page
+                </h3>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 space-y-4">
+                <img src="{% static 'multi_exp_page.svg' %}" alt="Center for Combinatorial Gene Regulation"/>
+            </div>
+        </div>
+    </div>
+</div>
