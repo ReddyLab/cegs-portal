@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 
 from .base import *  # noqa
@@ -15,6 +16,8 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[".duke.edu", "", ".ceg
 DATABASES["default"] = env.db("DATABASE_URL")  # noqa F405
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
 DATABASES["default"]["OPTIONS"] = {"pool": True}  # noqa F405
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True  # noqa F405
+
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -140,6 +143,8 @@ LOGGING = {
         },
     },
 }
+
+logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 # Your stuff...
 # ------------------------------------------------------------------------------
