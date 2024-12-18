@@ -70,10 +70,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
                 "analyses": analyses_list,
                 "analysis_selected": analysis_selected,
                 "experiment": data[0],
-                "other_experiments": {
-                    "id": "other_experiments",
-                    "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
-                },
+                "related_experiments": data[1],
             },
         )
 
@@ -82,10 +79,19 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get_data(self, options, exp_id):
         experi = ExperimentSearch.accession_search(exp_id)
-        other_experiments = ExperimentSearch.all_except(exp_id)
 
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
+
+        if self.request.user.is_anonymous:
+            related_experiments = ExperimentSearch.related_experiments(exp_id, UserType.ANONYMOUS)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            related_experiments = ExperimentSearch.related_experiments(exp_id, UserType.ADMIN)
+
+        else:
+            related_experiments = ExperimentSearch.related_experiments(
+                exp_id, UserType.LOGGED_IN, self.request.user.all_experiments()
+            )
 
         experi_cell_lines = set()
         experi_tissue_types = set()
@@ -97,7 +103,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         setattr(experi, "tissue_types", experi_tissue_types)
         setattr(experi, "genome_assembly", experi.default_analysis.genome_assembly)
 
-        return experi, other_experiments
+        return experi, related_experiments
 
 
 class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
@@ -290,7 +296,7 @@ class ExperimentListView(MultiResponseFormatView):
         if self.request.user.is_superuser or self.request.user.is_portal_admin:
             return (
                 ExperimentSearch.experiments(options["facets"], UserType.ADMIN),
-                ExperimentSearch.collections(options["coll_facets"], UserType.ANONYMOUS),
+                ExperimentSearch.collections(options["coll_facets"], UserType.ADMIN),
                 facet_values,
                 collection_facet_values,
             )

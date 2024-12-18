@@ -385,7 +385,7 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="content-container mx-auto max-w-fit grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
           <div>
               <div class="bg-white border-b">
                   <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
@@ -393,25 +393,25 @@
                       {{ experiment.description }}
                   </div>
               </div>
-              <div class="bg-gray-100 border-b flex items-center">
+              <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assay</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.experiment_type }}
                   </div>
               </div>
-              <div class="bg-white border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Cell Lines</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.cell_lines|join:", " }}
                   </div>
               </div>
-              <div class="bg-gray-100 border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Tissue Type</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.tissue_types|join:", " }}
                   </div>
               </div>
-              <div class="bg-white border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assembly</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.genome_assembly }}
@@ -462,6 +462,23 @@
           </div>
           {% endif %}
         </div>
+        {% if related_experiments.exists %}
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
+              </div>
+              {% for related in related_experiments %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ related.description }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+        </div>
+        {% endif %}
     </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"

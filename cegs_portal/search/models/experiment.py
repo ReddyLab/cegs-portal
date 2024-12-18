@@ -77,6 +77,10 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         "Analysis", on_delete=models.SET_NULL, blank=True, null=True, related_name="default_for"
     )
 
+    related_experiments = models.ManyToManyField(
+        "Experiment", related_name="related", blank=True, through="ExperimentRelation"
+    )
+
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
@@ -87,6 +91,16 @@ class Experiment(Accessioned, Faceted, AccessControlled):
 
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
+
+
+class ExperimentRelation(models.Model):
+    this_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="this", on_delete=models.CASCADE
+    )
+    other_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="other", on_delete=models.CASCADE
+    )
+    description = models.CharField(max_length=4096, null=True, blank=True)
 
 
 class ExperimentCollection(Accessioned, Faceted, AccessControlled):

@@ -9,6 +9,7 @@ from cegs_portal.search.models import (
     DNAFeature,
     Experiment,
     ExperimentCollection,
+    ExperimentRelation,
     ExperimentSource,
     Facet,
     FacetValue,
@@ -97,10 +98,29 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
     model = Experiment.facet_values.through
     extra = 0
     verbose_name = "Facet Value"
+    list_select_related = ["facet"]
 
     @admin.display
     def facet_info(self, obj):
         return f"{obj.value} ({obj.facet.name})"
+
+
+class ExperimentRelationForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentRelation
+        fields = (
+            "other_experiment",
+            "description",
+        )
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
+class ExperimentRelationInlineAdmin(admin.StackedInline):
+    form = ExperimentRelationForm
+    model = Experiment.related_experiments.through
+    extra = 0
+    verbose_name = "Related Experiment"
+    fk_name = "this_experiment"
 
 
 class ExperimentSourceInlineAdmin(admin.StackedInline):
@@ -124,7 +144,12 @@ class ExperimentForm(forms.ModelForm):
 
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentSourceInlineAdmin, ExperimentFacetValueInlineAdmin, FileInlineAdmin]
+    inlines = [
+        ExperimentSourceInlineAdmin,
+        ExperimentFacetValueInlineAdmin,
+        FileInlineAdmin,
+        ExperimentRelationInlineAdmin,
+    ]
     fields = [
         "public",
         "archived",
@@ -142,6 +167,8 @@ class ExperimentAdmin(admin.ModelAdmin):
 admin.site.register(Experiment, ExperimentAdmin)
 
 admin.site.register(ExperimentCollection)
+
+admin.site.register(ExperimentRelation)
 
 admin.site.register(Facet)
 

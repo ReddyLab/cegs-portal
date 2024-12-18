@@ -1,7 +1,7 @@
 from typing import Optional, cast
 
 from django.contrib.postgres.aggregates import StringAgg
-from django.db.models import Q, Value
+from django.db.models import F, Q, Value
 
 from cegs_portal.get_expr_data.view_models import (
     experiment_collections_for_facets,
@@ -10,7 +10,12 @@ from cegs_portal.get_expr_data.view_models import (
     public_experiment_collections_for_facets,
     public_experiments_for_facets,
 )
-from cegs_portal.search.models import Experiment, ExperimentCollection, FacetValue
+from cegs_portal.search.models import (
+    Experiment,
+    ExperimentCollection,
+    ExperimentRelation,
+    FacetValue,
+)
 from cegs_portal.search.view_models.errors import ObjectNotFoundError
 from cegs_portal.users.models import UserType
 
@@ -141,6 +146,29 @@ class ExperimentSearch:
             user_type,
             private_experiments,
         ).prefetch_related("experiments")
+
+    @classmethod
+    def related_experiments(
+        cls, accession_id: str, user_type: UserType = UserType.ADMIN, private_experiments: Optional[list[str]] = None
+    ):
+        related = ExperimentRelation.objects.filter(this_experiment_id=accession_id).annotate(
+            archived=F("other_experiment__archived"), name=F("other_experiment__name")
+        )
+
+        match user_type:
+            case UserType.ANONYMOUS:
+                related = related.exclude(other_experiment__public=False)
+            case UserType.LOGGED_IN:
+                if private_experiments is None:
+                    private_experiments = []
+                related = related.filter(
+                    Q(other_experiment__public=True) | Q(other_experiment_id__in=private_experiments)
+                )
+            case UserType.ADMIN:
+                # Admins SEE ALL
+                pass
+
+        return related
 
     @classmethod
     def all_except(cls, accession_id):
