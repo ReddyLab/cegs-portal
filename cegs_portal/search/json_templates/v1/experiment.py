@@ -1,10 +1,13 @@
 from typing import Any, Optional
 
+from cegs_portal.search.json_templates.v1.experiment_collection import (
+    experiment_collection,
+)
 from cegs_portal.search.models import Biosample, Experiment, File
 
 
-def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, Any]] = None):
-    experiments_obj, _ = experiments_data
+def experiments(experiments_data: tuple[Any, Any, Any, Any], options: Optional[dict[str, Any]] = None):
+    experiments_obj, collections_obj, _, _ = experiments_data
     return {
         "experiments": [
             {
@@ -16,6 +19,7 @@ def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, A
             }
             for e in experiments_obj
         ],
+        "experiment_collections": [experiment_collection((c, c.experiments.all()), options) for c in collections_obj],
     }
 
 

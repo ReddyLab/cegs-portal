@@ -159,7 +159,13 @@ def experiment_list_data():
     e5.facet_values.add(f2)
     e6.facet_values.add(f1)
     e6.facet_values.add(f2)
-    return experiments, [f1, f2]
+
+    ec1 = ExperimentCollectionFactory()
+    ec2 = ExperimentCollectionFactory()
+    experiment_collections = sorted([ec1, ec2], key=lambda x: x.accession_id)
+    ec1.facet_values.add(f1)
+    ec2.facet_values.add(f2)
+    return (experiments, experiment_collections, [f1, f2], [f1, f2])
 
 
 def _file(experiment=None) -> File:
