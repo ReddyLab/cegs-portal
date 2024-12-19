@@ -1,5 +1,6 @@
 from enum import Enum, StrEnum
 
+from django.contrib import admin
 from django.contrib.postgres.fields import DateRangeField
 from django.db import models
 
@@ -101,6 +102,14 @@ class ExperimentRelation(models.Model):
         Experiment, to_field="accession_id", related_name="other", on_delete=models.CASCADE
     )
     description = models.CharField(max_length=4096, null=True, blank=True)
+
+    @admin.display(description="From Experiment")
+    def from_experiment(self):
+        return f"{self.this_experiment.accession_id}: {self.this_experiment.name}"
+
+    @admin.display(description="To Experiment")
+    def to_experiment(self):
+        return f"{self.other_experiment.accession_id}: {self.other_experiment.name}"
 
 
 class ExperimentCollection(Accessioned, Faceted, AccessControlled):
