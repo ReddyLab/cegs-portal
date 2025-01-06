@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load custom_helpers %}
 {% block title %}About the CCGR Portal{% endblock title %}
 
 {% block css %}
@@ -35,7 +35,9 @@
         <li>Find effects associated with elements in a specific region</li>
     </ul>
 
-    <div class="min-w-full text-center"><a class="link" href="{% url 'licenses' %}">Software Library and License Information</a></div >
+    <div class="min-w-full text-center"><a class="link" href="{% url 'licenses' %}">Software Library and License Information</a></div>
+
+    <div>Build Date: {% display_build_date %}</div>
 </div>
 
 {% endblock content %}

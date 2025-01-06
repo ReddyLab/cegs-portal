@@ -1,7 +1,7 @@
 {% load humanize %}
 {% load custom_helpers %}
 
-<div class="content-container min-w-full max-w-sm">
+<div class="content-container min-w-full max-w-sm md:max-w-full">
     <div class="table-title flex flex-col md:flex-row items-center justify-between">
         <div class="flex-1">
             <!-- This empty div takes up space on the left for centering and for responsive design-->
@@ -10,6 +10,7 @@
             <i class="fa-solid fa-magnifying-glass-arrow-right hidden md:block ml-1"></i>
             <i class="fa-solid fa-barcode rotate-90 hidden md:block ml-1"></i>
             Targeting Regulatory Effect Observations
+            {% include 'search/v1/partials/_help_tooltip.html' with help_text=help_text %}
         </div>
         <div class="flex-1 flex justify-end items-center">
             <span class="text-lg">Download:</span>

@@ -90,11 +90,6 @@
         animation-timing-function: ease;
     }
 
-    .close-button {
-        cursor: pointer;
-        display:inline-block;
-    }
-
     .multi-exp-modal-button {
         background-color: white !important;
         color: rgb(71 85 105);
@@ -137,26 +132,6 @@
         color: #b94a48;
         padding: 3px;
         border: 2px solid;
-    }
-
-    @keyframes fadeIn {
-        0% {opacity: 0;}
-        100% {opacity: 1;}
-    }
-
-    @keyframes fadeOut {
-        0% {opacity: 1;}
-        100% {opacity: 0;}
-    }
-
-    @keyframes zoomIn {
-        0% {transform: scale(0.9);}
-        100% {transform: scale(1);}
-    }
-
-    @keyframes zoomOut {
-        0% {transform: scale(1);}
-        100% {transform: scale(0.9);}
     }
 
     .intersect-button {
@@ -256,8 +231,13 @@
                     <div id="regionUploadInputReset"></div>
                 </div>
 
-                {% if logged_in %}
                 <div class="facet-content-section content-container mx-auto hidden md:block">
+                  <div class="logged-in-only-container">
+                    {% if not logged_in %}
+                    <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
+                        <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
+                    </div>
+                    {% endif %}
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -274,8 +254,8 @@
                     <div>
                     * Data downloads take facet filtering, except for "Number of Tested Elements" and "Number of Genes Assayed", into account.
                     </div>
+                  </div>
                 </div>
-                {% endif %}
             </div>
 
             <div class="basis-3/4 content-container">

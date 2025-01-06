@@ -1,0 +1,208 @@
+{% load static i18n %}
+
+<div id="glossary-modal">
+    <div class="glossary-modal-underlay" onclick="closeGlossaryModal()"></div>
+    <div class="content-container glossary-modal-content pb-6">
+        <div class="close-button" onclick="closeGlossaryModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+        </svg>
+        </div>
+        <div class="scroll-area">
+        <!-- Modal content -->
+                <!-- Modal header -->
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fa-solid fa-book"></i> CCGR Glossary
+                </h3>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 space-y-4">
+                <p class="text-base leading-relaxed text-gray-600">
+                    <a class="link" href="https://biostat.duke.edu/research/center-combinatorial-gene-regulation">Duke Center for Combinatorial Gene Regulation (CCGR)</a>: The ambitious goal of the Duke Center for Combinatorial Gene Regulation, a Center of Excellence in Genomic Science, is to make combinatorial studies of the function of regulatory elements and noncoding variants routine.
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    <a class="link" href="https://www.genome.gov/Funded-Programs-Projects/Centers-of-Excellence-in-Genomic-Science">Center of Excellence in Genomic Science (CEGS)</a>:  The CEGS program supports multi-investigator, interdisciplinary research teams working together to address biomedical problems through development of integrated, transformative genomic approaches.
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Regulatory Elements
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    DNase I Hypersensitive Site (DHS): A region of chromatin in the genome that is more sensitive to cleavage by the DNase I enzyme. These regions are characterized by increased DNA accessibility, which is due to the local remodeling of the chromatin structure.[<a href="#ref29" class="link">29</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Guide RNA (gRNA): a short RNA sequence that guides the editing of RNA transcripts or DNA.[<a href="#ref30" class="link">30</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Chromatin Accessible Region (CAR): a genomic region where chromatin is open or loosened, allowing DNA-binding proteins and transcription factors to bind to their target sequence.[<a href="#ref31" class="link">31</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Called Regulatory Element (CRE): Regulatory element found but label/name not assigned.
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    cCREs
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Candidate Cis-regulatory Element (cCRE): regions of non-coding DNA which regulate the transcription of neighboring genes.[<a href="#ref27" class="link">27</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Promoter-like Signature (PLS): cCREs with promoter-like biochemical signatures and less than 200 bases from a TSS are labeled as PLS's.[<a href="#ref27" class="link">27</a>][<a href="#ref32" class="link">32</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Proximal Enhancer-like Signature (pELS): cCREs with enhancer-like biochemical signatures and between 200 and 2k bases from a TSS are labeled as pELS's.[<a href="#ref27" class="link">27</a>][<a href="#ref32" class="link">32</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Distal Enhancer-like Signature (dELS): cCREs with enhancer-like biochemical signatures and further than 2k bases from a TSS are labeled as dELS's.[<a href="#ref27" class="link">27</a>][<a href="#ref32" class="link">32</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    H3K4me3: An epigenetic modification to one of the histones that makes up the non-DNA portion of a chromatin structure.[<a href="#ref28" class="link">28</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Techniques and Screens
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    ATAC-STARR-seq: A massively parallel reporter assay (MPRA) that quantifies regulatory activity within accessible chromatin. It combines ATAC-seq (assay for transposase-accessible chromatin using sequencing) with STARR-seq (self-transcribing active regulatory region sequencing) to selectively assay the regulatory potential of accessible DNA.[<a href="#ref1" class="link">1</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Flow-FISH CRISPR screen: A method combining Hybridization Chain Reaction Fluorescent In-Situ Hybridization (HCR-FlowFISH) with Flow Cytometry to quantify native transcripts within their endogenous loci following CRISPR perturbations of regulatory elements.[<a href="#ref2" class="link">2</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Perturb-Seq: A high-throughput method that combines CRISPR-mediated gene inactivations with single-cell RNA sequencing (scRNA-seq) to assess comprehensive gene expression phenotypes for each perturbation.[<a href="#ref3" class="link">3</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Proliferation screen: A type of assay used to measure the rapid increase in cell numbers, often used to assess cell growth, division, and the effects of various treatments on cell proliferation.[<a href="#ref4" class="link">4</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    single-cell CERES (scCERES): a computational method to estimate gene dependency levels from CRISPR-Cas9 essentiality screens while accounting for the copy-number-specific effect.[<a href="#ref5" class="link">5</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    whole-genome CERES (wgCERES):  a computational method to estimate gene dependency levels from CRISPR-Cas9 essentiality screens while accounting for the copy-number-specific effect.[<a href="#ref5" class="link">5</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Cell Lines
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    iPSC (Induced Pluripotent Stem Cells): Pluripotent stem cells generated directly from a somatic cell, capable of differentiating into any cell type in the body.[<a href="#ref6" class="link">6</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    K562: A human immortalized myelogenous leukemia cell line, derived from a 53-year-old female chronic myelogenous leukemia patient.[<a href="#ref7" class="link">7</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    NPC (Neural Progenitor Cells): Cells that can differentiate into various types of neural cells, including neurons and glial cells.[<a href="#ref8" class="link">8</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    CD8: A transmembrane glycoprotein that serves as a co-receptor for the T-cell receptor (TCR), predominantly expressed on cytotoxic T cells.[<a href="#ref9" class="link">9</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    MCF-7: A breast cancer cell line isolated from a 69-year-old woman, used extensively in breast cancer research.[<a href="#ref10" class="link">10</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    HCT116: A human colon cancer cell line used in therapeutic research and drug screenings.[<a href="#ref11" class="link">11</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    DU 145: A human prostate cancer cell line used in cancer research.[<a href="#ref12" class="link">12</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    A549: A human lung carcinoma cell line used in cancer research and drug testing.[<a href="#ref13" class="link">13</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    NCI-H460: A human large cell lung cancer cell line used in cancer research.[<a href="#ref14" class="link">14</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    PC-3: A human prostate cancer cell line used in cancer research.[<a href="#ref15" class="link">15</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    MDA-MB-231: A human breast cancer cell line used in cancer research.[<a href="#ref16" class="link">16</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    HepG2: A human liver cancer cell line used in cancer research.[<a href="#ref17" class="link">17</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    SW620: A human colorectal adenocarcinoma cell line used in cancer research.[<a href="#ref18" class="link">18</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Functional Characterization Modalities
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    scCRISPRi: Single-cell CRISPR interference, a technique used to study gene function at single-cell resolution by inhibiting gene expression.[<a href="#ref19" class="link">19</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    CRISPRi: CRISPR interference, a technique that uses a catalytically dead Cas9 (dCas9) to inhibit gene expression.[<a href="#ref19" class="link">19</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    CRISPRa: CRISPR activation, a technique that uses dCas9 fused to transcriptional activators to increase gene expression.[<a href="#ref20" class="link">20</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Reporter Assay: An assay that uses a reporter gene to measure the activity of a particular gene or regulatory element.[<a href="#ref21" class="link">21</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Genome Assemblies
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    GRCh37/hg19: Genome Assembly 37 from the Genome Reference Consortium (aka hg19). This version has been widely used in genomics projects, including long-term, global studies like the 1,000 Genomes Project. It has been superseded by GRCh38.[<a href="#ref22" class="link">22</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    GRCh38/hg38:  Genome Assembly 38 from the Genome Reference Consortium (aka hg38). Corrected and improved version of GRCh37.[<a href="#ref22" class="link">22</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Genomic Terms
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Gene: A gene is the basic physical and functional unit of heredity. Genes are made up of DNA and each chromosome contains many genes.[<a href="#ref23" class="link">23</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Transcript: The <a class="link" href="https://www.britannica.com/science/messenger-RNA">messenger RNA (mRNA)</a> molecule created via gene transcripts is called a transcript. A single gene can have multiple transcripts.[<a href="#ref24" class="link">24</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Exon: The sections of DNA (or RNA) that code for proteins.[<a href="#ref25" class="link">25</a>]
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    Identifiers
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Ensembl ID: is an identifier used by the Ensembl database to label features like genes, transcripts, exons, or proteins.[<a href="#ref26" class="link">26</a>]
+                </p>
+                <p class="text-base leading-relaxed text-gray-600">
+                    Accession ID: An identifier used by the Duke CCGR Portal to label experiments and their analyses. The format of the accession ID is DCPYYYYXXXXXXXXXX. where the abbreviation DCP stands for ‘Duke CCGR Portal’. The "YYYY" section is used to indicate the type of item being accessioned and is not necessarily four characters long. For example, "EXPR" is used for experiments and "AN" is used for analyses. The Xs are the unique (within that type) number for the item and are a hexadecimal digits (0-F). Example: DCPEXPR0000000002 is Experiment 2.
+                </p>
+                <p class="text-base text-xl leading-relaxed text-gray-800">
+                    References
+                </p>
+                    <ul>
+                        <li id="ref1">1. <a href="https://github.com/HodgesGenomicsLab/ATAC-STARR-seq" class="link">https://github.com/HodgesGenomicsLab/ATAC-STARR-seq</a></li>
+                        <li id="ref2">2. <a href="https://www.biorxiv.org/content/10.1101/2020.05.11.078675v1.full.pdf" class="link">https://www.biorxiv.org/content/10.1101/2020.05.11.078675v1.full.pdf</a></li>
+                        <li id="ref3">3. <a href="https://en.wikipedia.org/wiki/Perturb-seq" class="link">https://en.wikipedia.org/wiki/Perturb-seq</a></li>
+                        <li id="ref4">4. <a href="https://www.news-medical.net/life-sciences/What-is-a-Cell-Proliferation-Assay.aspx" class="link">https://www.news-medical.net/life-sciences/What-is-a-Cell-Proliferation-Assay.aspx</a></li>
+                        <li id="ref5">5. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5709193/" class="link">https://pmc.ncbi.nlm.nih.gov/articles/PMC5709193/</a></li>
+                        <li id="ref6">6. <a href="https://en.wikipedia.org/wiki/Induced_pluripotent_stem_cell" class="link">https://en.wikipedia.org/wiki/Induced_pluripotent_stem_cell</a></li>
+                        <li id="ref7">7. <a href="https://en.wikipedia.org/wiki/K562_cells" class="link">https://en.wikipedia.org/wiki/K562_cells</a></li>
+                        <li id="ref8">8. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6291443/" class="link">https://pmc.ncbi.nlm.nih.gov/articles/PMC6291443/</a></li>
+                        <li id="ref9">9. <a href="https://en.wikipedia.org/wiki/CD8" class="link">https://en.wikipedia.org/wiki/CD8</a></li>
+                        <li id="ref10">10. <a href="https://en.wikipedia.org/wiki/MCF-7" class="link">https://en.wikipedia.org/wiki/MCF-7</a></li>
+                        <li id="ref11">11. <a href="https://en.wikipedia.org/wiki/HCT116_cells" class="link">https://en.wikipedia.org/wiki/HCT116_cells</a></li>
+                        <li id="ref12">12. <a href="https://en.wikipedia.org/wiki/DU145" class="link">https://en.wikipedia.org/wiki/DU145</a></li>
+                        <li id="ref13">13. <a href="https://en.wikipedia.org/wiki/A549_cell" class="link">https://en.wikipedia.org/wiki/A549_cell</a></li>
+                        <li id="ref14">14. <a href="https://en.wikipedia.org/wiki/NCI-60#NCI-H460" class="link">https://en.wikipedia.org/wiki/NCI-60#NCI-H460</a></li>
+                        <li id="ref15">15. <a href="https://en.wikipedia.org/wiki/PC3" class="link">https://en.wikipedia.org/wiki/PC3</a></li>
+                        <li id="ref16">16. <a href="https://en.wikipedia.org/wiki/MDA-MB231" class="link">https://en.wikipedia.org/wiki/MDA-MB231</a></li>
+                        <li id="ref17">17. <a href="https://en.wikipedia.org/wiki/Hep_G2" class="link">https://en.wikipedia.org/wiki/Hep_G2</a></li>
+                        <li id="ref18">18. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5783577/" class="link">https://pmc.ncbi.nlm.nih.gov/articles/PMC5783577/</a></li>
+                        <li id="ref19">19. <a href="https://en.wikipedia.org/wiki/CRISPR_interference" class="link">https://en.wikipedia.org/wiki/CRISPR_interference</a></li>
+                        <li id="ref20">20. <a href="https://en.wikipedia.org/wiki/CRISPR_activation" class="link">https://en.wikipedia.org/wiki/CRISPR_activation</a></li>
+                        <li id="ref21">21. <a href="https://en.wikipedia.org/wiki/Reporter_gene" class="link">https://en.wikipedia.org/wiki/Reporter_gene</a></li>
+                        <li id="ref22">22. <a href="https://www.ncbi.nlm.nih.gov/grc/data" class="link">https://www.ncbi.nlm.nih.gov/grc/data</a></li>
+                        <li id="ref23">23. <a href="https://medlineplus.gov/genetics/understanding/basics/gene/" class="link">https://medlineplus.gov/genetics/understanding/basics/gene/</a></li>
+                        <li id="ref24">24. <a href="https://en.wikipedia.org/wiki/Transcription_(biology)" class="link">https://en.wikipedia.org/wiki/Transcription_(biology)</a></li>
+                        <li id="ref25">25. <a href="https://www.nature.com/scitable/definition/exon-270/" class="link">https://www.nature.com/scitable/definition/exon-270/</a></li>
+                        <li id="ref26">26. <a href="https://mart.ensembl.org/info/genome/stable_ids/index.html" class="link">https://mart.ensembl.org/info/genome/stable_ids/index.html</a></li>
+                        <li id="ref27">27. <a href="https://genome.ucsc.edu/cgi-bin/hgTrackUi?db=mm10&g=encodeCcreCombined" class="link">https://genome.ucsc.edu/cgi-bin/hgTrackUi?db=mm10&g=encodeCcreCombined</a></li>
+                        <li id="ref28">28. <a href="https://en.wikipedia.org/wiki/H3K4me3" class="link">https://en.wikipedia.org/wiki/H3K4me3</a></li>
+                        <li id="ref29">29. <a href="https://en.wikipedia.org/wiki/DNase_I_hypersensitive_site" class="link">https://en.wikipedia.org/wiki/DNase_I_hypersensitive_site</a></li>
+                        <li id="ref30">30. <a href="https://en.wikipedia.org/wiki/Guide_RNA" class="link">https://en.wikipedia.org/wiki/Guide_RNA</a></li>
+                        <li id="ref31">31. <a href="https://en.wikipedia.org/wiki/Epigenomics#Chromatin_accessibility_assays" class="link">https://en.wikipedia.org/wiki/Epigenomics#Chromatin_accessibility_assays</a></li>
+                        <li id="ref32">32. <a href="https://screen.wenglab.org" class="link">https://screen.wenglab.org ("About")</a></li>
+                     </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-from .dna_features import DNAFeatureId, DNAFeatureLoc
+from .dna_features import DNAFeatureClosestFeatures, DNAFeatureId, DNAFeatureLoc
 from .experiment import ExperimentListView, ExperimentsView, ExperimentView
 from .experiment_collection import ExperimentCollectionView
 from .experiment_coverage import CombinedExperimentView, ExperimentCoverageView

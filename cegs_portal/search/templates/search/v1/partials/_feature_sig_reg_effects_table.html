@@ -4,7 +4,10 @@
 <div class="min-w-full max-w-sm">
 {% if sig_reg_effects|length > 0 %}
     <div class="flex flex-col sm:flex-row max-w-full min-w-full justify-between items-center">
-        <div class="text-xl font-bold justify-self-center text-center">Significant Regulatory Effect Observations</div>
+        <div class="text-xl font-bold justify-self-center text-center">
+            Significant Regulatory Effect Observations
+            {% include 'search/v1/partials/_help_tooltip.html' with help_text="All significant regulatory effect observations found in this region." %}
+        </div>
         <div class="flex justify-end items-center">
             <span class="text-lg">Download:</span>
             <a href="{% url 'search:feature_sigreo' %}?{{ content_query }}&accept=text/tab-separated-values&tsv_format=original">

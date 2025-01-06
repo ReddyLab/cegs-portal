@@ -2,14 +2,16 @@ from enum import Enum, StrEnum
 from typing import Any, Optional, cast
 
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Count, OuterRef, Q, QuerySet, Subquery
+from django.db.models import F, Func, Q, QuerySet, Subquery
 from psycopg.types.range import Int4Range
 
 from cegs_portal.search.models import (
     DNAFeature,
     DNAFeatureType,
+    EffectObservationDirectionType,
     Facet,
     FacetValue,
+    FunctionalCharacterizationType,
     IdType,
     RegulatoryEffectObservation,
     RegulatoryEffectObservationSet,
@@ -34,6 +36,31 @@ class LocSearchProperty(StrEnum):
     REO_SOURCE = "reo_source"
     SCREEN_CCRE = "screen_ccre"
     SIGNIFICANT = "significant"
+    REPORTER_ASSAY = "reporterassay"
+    CRISPRI = "crispri"
+    CRISPRA = "crispra"
+    ENHANCER = "enhancer"
+    REPRESSOR = "repressor"
+    SQUELCHER = "squelcher"
+
+
+FUNCTIONAL_CHARACTERIZATION_PROPERTIES = {
+    LocSearchProperty.REPORTER_ASSAY,
+    LocSearchProperty.CRISPRI,
+    LocSearchProperty.CRISPRA,
+}
+
+REO_TYPE_PROPERTIES = {
+    LocSearchProperty.ENHANCER,
+    LocSearchProperty.REPRESSOR,
+    LocSearchProperty.SQUELCHER,
+}
+
+FUNCTIONAL_CHARACTERIZATION_VALUES = {
+    LocSearchProperty.REPORTER_ASSAY.value: "Reporter Assay",
+    LocSearchProperty.CRISPRI.value: "CRISPRi",
+    LocSearchProperty.CRISPRA.value: "CRISPRa",
+}
 
 
 def join_fields(*field_names):
@@ -85,6 +112,55 @@ class DNAFeatureSearch:
             features = features.distinct()
 
         return features
+
+    @classmethod
+    def id_closest_search(
+        cls,
+        id_type: str,
+        feature_id: str,
+        feature_types: list[str],
+        assembly: Optional[str] = None,
+    ) -> QuerySet[DNAFeature]:
+        query = {}
+        gene_query = {}
+        if id_type == IdType.ENSEMBL:
+            gene_query["ensembl_id"] = feature_id
+        elif id_type == IdType.GENE_NAME:
+            gene_query["name__iexact"] = feature_id
+        elif id_type == IdType.ACCESSION:
+            gene_query["accession_id"] = feature_id
+        else:
+            raise ViewModelError(f"Invalid ID type: {id_type}")
+
+        if assembly is not None:
+            query["ref_genome"] = assembly
+
+        new_feature_types: list[DNAFeatureType] = []
+        for ft in feature_types:
+            new_feature_types.append(DNAFeatureType(ft))
+
+        if len(new_feature_types) > 0:
+            query["feature_type__in"] = new_feature_types
+
+        print(query)
+        features = DNAFeature.objects.filter(
+            closest_gene_id__in=Subquery(DNAFeature.objects.filter(**gene_query).values_list("id"))
+        ).order_by(Func(F("closest_gene_distance"), function="ABS").asc())
+
+        if query:
+            features = features.filter(**query)
+
+        return features
+
+    @classmethod
+    def id_closest_search_public(cls, *args, **kwargs):
+        return cls.id_closest_search(*args, **kwargs).filter(public=True, archived=False)
+
+    @classmethod
+    def id_closest_search_private(cls, *args, **kwargs):
+        return cls.id_closest_search(*args[:-1], **kwargs).filter(
+            Q(archived=False) & (Q(public=True) | Q(experiment_accession_id__in=args[-1]))
+        )
 
     @classmethod
     def expr_id(cls, feature_id: str) -> str:
@@ -213,6 +289,7 @@ class DNAFeatureSearch:
         facets: list[int] = cast(list[int], list),
     ) -> QuerySet[DNAFeature]:
         filters: dict[str, Any] = {"chrom_name": chromo}
+        feature_properties_set = set(feature_properties)
 
         new_feature_types: list[DNAFeatureType] = []
         for ft in feature_types:
@@ -238,16 +315,7 @@ class DNAFeatureSearch:
         field_lookup = join_fields(field, lookup)
         filters[field_lookup] = Int4Range(int(start), int(end), "[)")
 
-        prefetch_values = ["parent", "parent_accession"]
-
-        if LocSearchProperty.SCREEN_CCRE in feature_properties:
-            ccre_facet_id = Facet.objects.get(name="cCRE Category").id
-            ccre_facet_values = FacetValue.objects.filter(facet_id=ccre_facet_id).values_list("id", flat=True)
-            facets += ccre_facet_values
-
-        if len(facets) > 0:
-            filters["facet_values__id__in"] = facets
-            prefetch_values.extend(["facet_values", "facet_values__facet"])
+        prefetch_values = []
 
         if LocSearchProperty.REG_EFFECTS in feature_properties:
             # The facet presets are used when getting the "direction" property
@@ -270,40 +338,118 @@ class DNAFeatureSearch:
 
         features = DNAFeature.objects
 
-        reo_count_properties = {
-            LocSearchProperty.EFFECT_DIRECTIONS,
-            LocSearchProperty.SIGNIFICANT,
-            LocSearchProperty.REO_SOURCE,
-        }
-        if any(p in reo_count_properties for p in feature_properties):
+        if LocSearchProperty.REO_SOURCE in feature_properties:
             # skip any feature that are not the sources for any REOs
-            features = features.annotate(reo_count=Count("source_for"))
-            filters["reo_count__gt"] = 0
+            features = features.exclude(source_for=None)
+
+        facet_filter_values = set()
+
+        included_fcp = feature_properties_set & FUNCTIONAL_CHARACTERIZATION_PROPERTIES
+        if included_fcp:
+            # we want to filter on functional characterization modality type
+
+            # Convert from e.g., "reporterassay" (the property value) to
+            # e.g., "Reporter Assay", the value in the DB.
+            facet_filter_values.update(FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp)
+
+        reo_types = feature_properties_set & REO_TYPE_PROPERTIES
+        if reo_types:
+            facet_filter_values.update(f.value for f in EffectObservationDirectionType)
+            facet_filter_values.update(f for f in FunctionalCharacterizationType)
 
         if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
+            facet_filter_values.update(f.value for f in EffectObservationDirectionType)
+
+        if facet_filter_values:
             features = features.annotate(
-                effect_directions=ArrayAgg(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__facet__name="Direction"),
+                facet_value_agg=ArrayAgg(
+                    "facet_values__value",
+                    filter=Q(facet_values__value__in=facet_filter_values),
                     default=[],
                 )
             )
 
-        if LocSearchProperty.SIGNIFICANT in feature_properties:
-            features = features.annotate(
-                sig_count=Count(
-                    "source_for__facet_values__value",
-                    filter=Q(source_for__facet_values__value__in=["Depleted Only", "Enriched Only", "Mixed"]),
-                )
+        if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
+            features = features.filter(facet_value_agg__overlap=[f.value for f in EffectObservationDirectionType])
+
+        if included_fcp:
+            features = features.filter(
+                facet_value_agg__overlap=[FUNCTIONAL_CHARACTERIZATION_VALUES[p] for p in included_fcp]
             )
-            filters["sig_count__gt"] = 0
+
+        # These are for filtering based on what kind of feature we want -- enhancer, repressor, or "squelcher"
+        # Note that this logic ONLY WORKS when each feature is associated with, at most, one experiment. If we associate
+        # a feature with multiple experiments this logic will no longer work. For intance, if we get a CRISPRa experiment
+        # with a DEPLETED value and a CRISPRi experiment with ENRICHED value, this _should_ be a squelcher and a repressor.
+        # But it would also look like an enhancer because CRISPRa and ENRICHED are both facets there.
+        if reo_types:
+            for reo_type in reo_types:
+                match reo_type:
+                    case LocSearchProperty.ENHANCER:
+                        features = features.filter(
+                            Q(
+                                facet_value_agg__contains=[
+                                    FunctionalCharacterizationType.CRISPRA,
+                                    EffectObservationDirectionType.ENRICHED.value,
+                                ]
+                            )
+                            | Q(
+                                facet_value_agg__contains=[
+                                    FunctionalCharacterizationType.CRISPRI,
+                                    EffectObservationDirectionType.DEPLETED.value,
+                                ]
+                            )
+                            | Q(
+                                facet_value_agg__contains=[
+                                    FunctionalCharacterizationType.REPORTER_ASSAY,
+                                    EffectObservationDirectionType.ENRICHED.value,
+                                ]
+                            )
+                        )
+                    case LocSearchProperty.REPRESSOR:
+                        features = features.filter(
+                            Q(
+                                facet_value_agg__contains=[
+                                    FunctionalCharacterizationType.CRISPRI,
+                                    EffectObservationDirectionType.ENRICHED.value,
+                                ]
+                            )
+                            | Q(
+                                facet_value_agg__contains=[
+                                    FunctionalCharacterizationType.REPORTER_ASSAY,
+                                    EffectObservationDirectionType.DEPLETED.value,
+                                ]
+                            )
+                        )
+                    case LocSearchProperty.SQUELCHER:
+                        features = features.filter(
+                            facet_value_agg__contains=[
+                                FunctionalCharacterizationType.CRISPRA,
+                                EffectObservationDirectionType.DEPLETED.value,
+                            ]
+                        )
+        if LocSearchProperty.SIGNIFICANT in feature_properties:
+            filters["significant_reo"] = True
 
         if LocSearchProperty.SCREEN_CCRE in feature_properties:
+            ccre_facet_id = Facet.objects.get(name="cCRE Category").id
+            ccre_facet_value_ids = FacetValue.objects.filter(facet_id=ccre_facet_id).values_list("id", flat=True)
             features = features.annotate(
-                ccre_type=Subquery(FacetValue.objects.filter(id__in=OuterRef("facet_values__id")).values("value"))
+                ccre_type=ArrayAgg(
+                    "facet_values__value",
+                    filter=Q(facet_values__id__in=ccre_facet_value_ids),
+                    default=[],
+                )
             )
+            facets += ccre_facet_value_ids
 
-        features = features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent")
+        if len(facets) > 0:
+            filters["facet_values__id__in"] = facets
+            prefetch_values.extend(["facet_values", "facet_values__facet"])
+
+        features = (
+            features.filter(**filters).prefetch_related(*prefetch_values).select_related("parent", "parent_accession")
+        )
 
         return features.order_by("location")
 

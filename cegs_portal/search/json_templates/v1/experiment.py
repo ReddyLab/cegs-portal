@@ -1,10 +1,13 @@
 from typing import Any, Optional
 
+from cegs_portal.search.json_templates.v1.experiment_collection import (
+    experiment_collection,
+)
 from cegs_portal.search.models import Biosample, Experiment, File
 
 
-def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, Any]] = None):
-    experiments_obj, _ = experiments_data
+def experiments(experiments_data: tuple[Any, Any, Any, Any], options: Optional[dict[str, Any]] = None):
+    experiments_obj, collections_obj, _, _ = experiments_data
     return {
         "experiments": [
             {
@@ -12,9 +15,11 @@ def experiments(experiments_data: tuple[Any, Any], options: Optional[dict[str, A
                 "name": e.name,
                 "description": e.description if e.description is not None else "",
                 "biosamples": [biosample(b) for b in e.biosamples.all()],
+                "genome_assembly": e.default_analysis.genome_assembly if e.default_analysis else None,
             }
             for e in experiments_obj
         ],
+        "experiment_collections": [experiment_collection((c, c.experiments.all()), options) for c in collections_obj],
     }
 
 
@@ -27,6 +32,30 @@ def experiment(experiment_obj: Experiment, options: Optional[dict[str, Any]] = N
         "biosamples": [biosample(b) for b in experiment_obj.biosamples.all()],
         "files": [file(f) for f in experiment_obj.files.all()],
     }
+
+    try:
+        attribution = {
+            "pi": experiment_obj.attribution.pi,
+            "institution": experiment_obj.attribution.institution,
+        }
+
+        if experiment_obj.attribution.experimentalist:
+            attribution["experimentalist"] = experiment_obj.attribution.experimentalist
+
+        if experiment_obj.attribution.project:
+            attribution["project"] = experiment_obj.attribution.project
+
+        if experiment_obj.attribution.datasource_url:
+            attribution["datasource_url"] = experiment_obj.attribution.datasource_url
+
+        if experiment_obj.attribution.lab_url:
+            attribution["lab_url"] = experiment_obj.attribution.lab_url
+
+        result["attribution"] = attribution
+    except Experiment.attribution.RelatedObjectDoesNotExist:
+        # It's fine, logic-wise, if this fails; it means that this experiment is currently
+        # unattributed. We should try not to have any unattributed experiments, though.
+        pass
 
     return result
 

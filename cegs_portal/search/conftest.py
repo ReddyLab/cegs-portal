@@ -18,6 +18,7 @@ from cegs_portal.search.models import (
     Experiment,
     Facet,
     File,
+    FunctionalCharacterizationType,
     RegulatoryEffectObservation,
 )
 from cegs_portal.search.models.experiment import ExperimentCollection
@@ -154,9 +155,17 @@ def experiment_list_data():
     e2.facet_values.add(f1)
     e3.facet_values.add(f1)
     e4.facet_values.add(f2)
+    e5.facet_values.add(f1)
     e5.facet_values.add(f2)
+    e6.facet_values.add(f1)
     e6.facet_values.add(f2)
-    return experiments, [f1, f2]
+
+    ec1 = ExperimentCollectionFactory()
+    ec2 = ExperimentCollectionFactory()
+    experiment_collections = sorted([ec1, ec2], key=lambda x: x.accession_id)
+    ec1.facet_values.add(f1)
+    ec2.facet_values.add(f2)
+    return (experiments, experiment_collections, [f1, f2], [f1, f2])
 
 
 def _file(experiment=None) -> File:
@@ -281,7 +290,7 @@ def feature() -> DNAFeature:
 def effect_dir_feature() -> DNAFeature:
     return DNAFeatureFactory(
         ref_genome="hg38",
-        effect_directions=[
+        facet_value_agg=[
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.ENRICHED.value,
             EffectObservationDirectionType.NON_SIGNIFICANT.value,
@@ -560,7 +569,7 @@ def paged_source_reg_effects() -> Pageable[RegulatoryEffectObservation]:
 
 
 @pytest.fixture
-def genoverse_dhs_features():
+def genoverse_features():
     chrom = "chr10"
     start = 1_000_000
     length = 10_000
@@ -571,18 +580,31 @@ def genoverse_dhs_features():
     pels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.PELS.value)
     dels = FacetValueFactory(facet=screen_facet, value=CCRECategoryType.DELS.value)
 
+    fcm_facet = FacetFactory(description="", name=Experiment.Facet.FUNCTIONAL_CHARACTERIZATION.value)
+    reporter_assay = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.REPORTER_ASSAY)
+    crispri = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRI)
+    crispra = FacetValueFactory(facet=fcm_facet, value=FunctionalCharacterizationType.CRISPRA)
+
+    direction_facet = FacetFactory(description="", name=RegulatoryEffectObservation.Facet.DIRECTION.value)
+    enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
+    depleted = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.DEPLETED.value)
+    non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
+
     f1 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=Int4Range(start, start + length),
         feature_type=DNAFeatureType.DHS,
+        significant_reo=True,
+        facet_values=(pels, reporter_assay, enriched),
     )
     f2 = DNAFeatureFactory(
         ref_genome=ref_genome,
         chrom_name=chrom,
         location=Int4Range(start + length + gap, start + length * 2 + gap),
         feature_type=DNAFeatureType.CCRE,
-        facet_values=(pels,),
+        significant_reo=True,
+        facet_values=(pels, crispri, crispra, enriched, depleted),
     )
     f3 = DNAFeatureFactory(
         ref_genome=ref_genome,
@@ -614,8 +636,8 @@ def genoverse_dhs_features():
     enriched = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.ENRICHED.value)
     non_sig = FacetValueFactory(facet=direction_facet, value=EffectObservationDirectionType.NON_SIGNIFICANT.value)
 
-    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched,))
-    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched,))
+    _ = RegEffectFactory(sources=(f1,), targets=(g1,), facet_values=(enriched, reporter_assay))
+    _ = RegEffectFactory(sources=(f2,), facet_values=(enriched, crispri, crispra))
     _ = RegEffectFactory(sources=(f3,), facet_values=(non_sig,))
 
     return {

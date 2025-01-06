@@ -25,21 +25,8 @@
         </div>
     </div>
 
-    <div class="max-w-screen-lg">
-      {% for experiment in experiments.all %}
-          <a href="{% url 'search:experiment' experiment.accession_id %}" class="exp-list-content-container-link experiment-summary">
-              <div class="container items-center">
-                  <div class="flex justify-between">
-                      <div class="exp-name">{{ experiment.name }}</div>
-                  </div>
-                  <div>{{ experiment.description }}</div>
-                  <div class="flex justify-between">
-                      <div class="cell-lines">Cell Lines: {{ experiment.cell_lines }}</div>
-                      <div class="accession-id">{{ experiment.accession_id }}</div>
-                  </div>
-              </div>
-          </a>
-      {% endfor %}
+    <div class="max-w-screen-lg" id="experiment-list">
+      {% include 'search/v1/partials/_experiment_list.html' with experiments=experiments %}
     </div >
 </div>
 

@@ -101,7 +101,7 @@ def feature_entry(
     source_file_id = "\\N" if source_file_id is None else source_file_id
     parent_id = "\\N" if parent_id is None else parent_id
     parent_accession_id = "\\N" if parent_accession_id is None else parent_accession_id
-    return f"{id_}\t{accession_id}\t{ids}\t{ensembl_id}\t{name}\t{cell_line}\t{chrom_name}\t{closest_gene_id}\t{closest_gene_distance}\t{closest_gene_name}\t{closest_gene_ensembl_id}\t{location}\t{strand}\t{genome_assembly}\t{genome_assembly_patch}\t{feature_type}\t{feature_subtype}\t{source_file_id}\t{experiment_accession_id}\t{parent_id}\t{parent_accession_id}\t{misc}\t{archived}\t{public}\n"
+    return f"{id_}\t{accession_id}\t{ids}\t{ensembl_id}\t{name}\t{cell_line}\t{chrom_name}\t{closest_gene_id}\t{closest_gene_distance}\t{closest_gene_name}\t{closest_gene_ensembl_id}\t{location}\t{strand}\t{genome_assembly}\t{genome_assembly_patch}\t{feature_type}\t{feature_subtype}\t{source_file_id}\t{experiment_accession_id}\t{parent_id}\t{parent_accession_id}\t{misc}\tFALSE\t{archived}\t{public}\n"
 
 
 def feature_facet_entry(feature_id, facet_id):
@@ -152,6 +152,7 @@ def bulk_feature_save(features: StringIO):
                 parent_id,
                 parent_accession_id,
                 misc,
+                significant_reo,
                 archived,
                 public
             ) FROM STDIN"""

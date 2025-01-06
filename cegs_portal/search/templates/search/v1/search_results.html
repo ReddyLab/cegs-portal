@@ -78,11 +78,6 @@
         animation-timing-function: ease;
     }
 
-    .close-button {
-        cursor: pointer;
-        display:inline-block;
-    }
-
     #modal .scroll-bounds {
         margin-bottom: 20px;
     }
@@ -105,26 +100,6 @@
         animation-name: zoomOut;
         animation-duration: 150ms;
         animation-timing-function: ease;
-    }
-
-    @keyframes fadeIn {
-        0% {opacity: 0;}
-        100% {opacity: 1;}
-    }
-
-    @keyframes fadeOut {
-        0% {opacity: 1;}
-        100% {opacity: 0;}
-    }
-
-    @keyframes zoomIn {
-        0% {transform: scale(0.9);}
-        100% {transform: scale(1);}
-    }
-
-    @keyframes zoomOut {
-        0% {transform: scale(1);}
-        100% {transform: scale(0.9);}
     }
 
     .search-results-data-table td {
@@ -348,8 +323,13 @@
                         </fieldset>
                     </div>
 
-                    {% if logged_in %}
                     <div class="content-container hidden md:block">
+                      <div class="logged-in-only-container">
+                        {% if not logged_in %}
+                        <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
+                            <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
+                        </div>
+                        {% endif %}
                         <form name="dataDownloadForm">
                             <div>
                                 <label class="font-bold flex justify-center" for="dataDlAll">Download Region Data*</label>
@@ -359,8 +339,8 @@
                         </form>
                         <div id="dataDownloadLink" class="mt-5 mb-5"></div>
                         <div class="text-sm flex justify-center">Includes all observations, filtered by selected facets</div>
+                      </div>
                     </div>
-                    {% endif %}
                 </div>
 
                 <div class="flex flex-col gap-4 basis-3/4">
@@ -408,6 +388,9 @@
                                     <path d="M3.9 54.9C10.5 40.9 24.5 32 40 32H472c15.5 0 29.5 8.9 36.1 22.9s4.6 30.5-5.2 42.5L320 320.9V448c0 12.1-6.8 23.2-17.7 28.6s-23.8 4.3-33.5-3l-64-48c-8.1-6-12.8-15.5-12.8-25.6V320.9L9 97.3C-.7 85.4-2.8 68.8 3.9 54.9z"/>
                                 </svg>
                                 Filter DNA Features
+                                <div class="ml-2">
+                                    {% include 'search/v1/partials/_help_tooltip.html' with help_text="DNA features include regulatory elements, genes, exons, and transcripts." %}
+                                </div>
                             </div>
                         </div>
                         <div class="flex items-center justify-center"><span class="inline text-sm" id="filter-loc-header">{{ region.chromo }}: {{ region.range.lower|intcomma }} - {{ region.range.upper|intcomma }}</span><span class="inline text-xs ml-1">({{ assembly }})</span></div>
@@ -599,7 +582,12 @@
                 Genoverse.Track.Scalebar,
                 Genoverse.Track.cCRE,
                 Genoverse.Track.Coverage,
-                Genoverse.Track.DHS.Effects,
+                Genoverse.Track.TestedElements.ReporterAssay,
+                Genoverse.Track.TestedElements.CRISPRi,
+                Genoverse.Track.TestedElements.CRISPRa,
+                Genoverse.Track.TestedElements.Enhancers,
+                Genoverse.Track.TestedElements.Repressors,
+                Genoverse.Track.TestedElements.Squelchers,
                 Genoverse.Track.Gene,
             ]
         });

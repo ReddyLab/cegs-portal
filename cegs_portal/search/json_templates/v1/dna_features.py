@@ -1,7 +1,11 @@
 from typing import Any, Iterable, Optional, TypedDict, Union, cast
 
 from cegs_portal.search.json_templates import genoversify
-from cegs_portal.search.models import DNAFeature, RegulatoryEffectObservation
+from cegs_portal.search.models import (
+    DNAFeature,
+    EffectObservationDirectionType,
+    RegulatoryEffectObservation,
+)
 from cegs_portal.search.view_models.v1.dna_features import LocSearchProperty
 from cegs_portal.utils.pagination_types import Pageable, PageableJson
 
@@ -26,6 +30,8 @@ FeatureJson = TypedDict(
         "closest_gene_name": str,
     },
 )
+
+DIRECTIONS = {dir.value for dir in EffectObservationDirectionType}
 
 
 def features(
@@ -75,10 +81,11 @@ def feature(feature_obj: DNAFeature, options: Optional[dict[str, Any]] = None) -
             result["target_of"] = [reg_effect(r, options) for r in feature_obj.target_of.all()]
 
         if LocSearchProperty.EFFECT_DIRECTIONS in feature_properties:
-            result["effect_directions"] = feature_obj.effect_directions
+            # Filter out non-direction values
+            result["effect_directions"] = [fv for fv in feature_obj.facet_value_agg if fv in DIRECTIONS]
 
         if LocSearchProperty.SCREEN_CCRE in feature_properties:
-            result["ccre_type"] = feature_obj.ccre_type
+            result["ccre_type"] = feature_obj.ccre_type[0] if feature_obj.ccre_type else None
 
         if LocSearchProperty.PARENT_INFO in feature_properties:
             result["parent"] = (feature_obj.parent.name if feature_obj.parent else None,)

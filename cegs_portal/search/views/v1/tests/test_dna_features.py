@@ -9,7 +9,11 @@ from django.test import Client
 
 from cegs_portal.conftest import RequestBuilder
 from cegs_portal.search.models import DNAFeature, DNAFeatureType
-from cegs_portal.search.views.v1 import DNAFeatureId, DNAFeatureLoc
+from cegs_portal.search.views.v1 import (
+    DNAFeatureClosestFeatures,
+    DNAFeatureId,
+    DNAFeatureLoc,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -17,6 +21,11 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def id_view():
     return DNAFeatureId.as_view()
+
+
+@pytest.fixture
+def closest_view():
+    return DNAFeatureClosestFeatures.as_view()
 
 
 @pytest.fixture
@@ -386,6 +395,73 @@ def test_get_archived_feature_name_with_authenticated_authorized_group_client(
         group_login_test_client.get(
             f"/search/feature/name/{quote_plus(archived_feature.name)}?accept=application/json"
         ).request(id_view, id_type="name", feature_id=archived_feature.name)
+
+
+def test_get_no_closest_feature_accession_html(public_test_client: RequestBuilder, closest_view):
+    with pytest.raises(Http404):
+        public_test_client.get("/search/feature/accession/DCPGENE0000000000").request(
+            closest_view, id_type="accession", feature_id="DCPGENE0000000000"
+        )
+
+
+def test_get_closest_features_accession_with_anonymous_client(
+    public_test_client: RequestBuilder, closest_view, dna_features_with_closest_gene
+):
+    gene = dna_features_with_closest_gene[0]
+    response = public_test_client.get(
+        f"/search/feature/accession/{gene.accession_id}/closest?accept=application/json"
+    ).request(closest_view, id_type="accession", feature_id=gene.accession_id)
+    assert response.status_code == 200
+
+    json_content = response.json()
+    assert len(json_content) == 3
+
+
+def test_get_closest_features_accession_with_authenticated_client(
+    login_test_client: RequestBuilder, closest_view, dna_features_with_closest_gene
+):
+    gene = dna_features_with_closest_gene[0]
+    response = login_test_client.get(
+        f"/search/feature/accession/{gene.accession_id}/closest?accept=application/json"
+    ).request(closest_view, id_type="accession", feature_id=gene.accession_id)
+    assert response.status_code == 200
+
+    json_content = response.json()
+    assert len(json_content) == 3
+
+
+def test_get_closest_features_accession_with_authenticated_authorized_client(
+    login_test_client: RequestBuilder, closest_view, dna_features_with_closest_gene
+):
+    gene = dna_features_with_closest_gene[0]
+    private_feature = dna_features_with_closest_gene[4]
+    assert private_feature.experiment_accession_id is not None
+
+    login_test_client.set_user_experiments([private_feature.experiment_accession_id])
+    response = login_test_client.get(
+        f"/search/feature/accession/{gene.accession_id}/closest?accept=application/json"
+    ).request(closest_view, id_type="accession", feature_id=gene.accession_id)
+    assert response.status_code == 200
+
+    json_content = response.json()
+    assert len(json_content) == 4
+
+
+def test_get_closest_features_accession_with_authenticated_authorized_group_client(
+    group_login_test_client: RequestBuilder, closest_view, dna_features_with_closest_gene
+):
+    gene = dna_features_with_closest_gene[0]
+    private_feature = dna_features_with_closest_gene[4]
+    assert private_feature.experiment_accession_id is not None
+
+    group_login_test_client.set_group_experiments([private_feature.experiment_accession_id])
+    response = group_login_test_client.get(
+        f"/search/feature/accession/{gene.accession_id}/closest?accept=application/json"
+    ).request(closest_view, id_type="accession", feature_id=gene.accession_id)
+    assert response.status_code == 200
+
+    json_content = response.json()
+    assert len(json_content) == 4
 
 
 def test_get_feature_loc_e2e(client: Client, feature: DNAFeature):

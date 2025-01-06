@@ -66,11 +66,6 @@
         animation-timing-function: ease;
     }
 
-    .close-button {
-        cursor: pointer;
-        display:inline-block;
-    }
-
     .exp-modal-button {
         background-color: white !important;
         color: rgb(71 85 105);
@@ -107,26 +102,6 @@
         animation-name: zoomOut;
         animation-duration: 150ms;
         animation-timing-function: ease;
-    }
-
-    @keyframes fadeIn {
-        0% {opacity: 0;}
-        100% {opacity: 1;}
-    }
-
-    @keyframes fadeOut {
-        0% {opacity: 1;}
-        100% {opacity: 0;}
-    }
-
-    @keyframes zoomIn {
-        0% {transform: scale(0.9);}
-        100% {transform: scale(1);}
-    }
-
-    @keyframes zoomOut {
-        0% {transform: scale(1);}
-        100% {transform: scale(0.9);}
     }
 
     .noUi-horizontal {
@@ -352,8 +327,14 @@
                     <div id="regionUploadInputReset"></div>
                 </div>
 
-                {% if logged_in %}
+
                 <div class="facet-content-section content-container hidden md:block">
+                  <div class="logged-in-only-container">
+                    {% if not logged_in %}
+                    <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
+                        <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
+                    </div>
+                    {% endif %}
                     <form name="dataDownloadForm">
                         <div>
                             <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
@@ -370,8 +351,8 @@
                     <div class="flex justify-center">
                     * Data downloads take facet filtering, except for "Number of {{ experiment.get_source_type_display }}s" and "Number of Genes Assayed", into account.
                     </div>
+                  </div>
                 </div>
-                {% endif %}
             </div>
 
             <div class="content-container basis-3/4">
@@ -404,40 +385,100 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="content-container min-w-fit max-w-fit flex justify-center">
-            <div class="min-w-full">
-                <div class="bg-white border-b">
-                    <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
-                    <div class="text-sm font-medium text-gray-900 mb-4 text-left">
-                        {{ experiment.description }}
-                    </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assay</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.experiment_type }}
-                    </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Cell Lines</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.cell_lines|join:", " }}
-                    </div>
-                </div>
-                <div class="bg-gray-100 border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Tissue Type</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.tissue_types|join:", " }}
-                    </div>
-                </div>
-                <div class="bg-white border-b flex items-center">
-                    <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-1/4">Assembly</div>
-                    <div class="text-sm text-gray-500 font-light px-6 py-4 whitespace-nowrap italic ml-4 w-3/4">
-                        {{ experiment.genome_assembly }}
-                    </div>
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
+                  <div class="text-sm font-medium text-gray-900 mb-4 text-left">
+                      {{ experiment.description }}
+                  </div>
+              </div>
+              <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assay</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.experiment_type }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Cell Lines</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.cell_lines|join:", " }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Tissue Type</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.tissue_types|join:", " }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assembly</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.genome_assembly }}
+                  </div>
+              </div>
+          </div>
+          {% if experiment.attribution %}
+          <div>
+            <div class="bg-white border-b">
+                <div class="text-xl text-slate-500 font-bold mb-4 text-left">Attribution</div>
+            </div>
+            <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">PI</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.pi }}
                 </div>
             </div>
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Institution</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.institution }}
+                </div>
+            </div>
+            {% if experiment.attribution.experimentalist is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Experimentalist</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.experimentalist }}
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.datasource_url is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Data Source</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.datasource_url }}">{{ experiment.attribution.datasource_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.lab_url is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Lab Website</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.lab_url }}">{{ experiment.attribution.lab_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
+        {% if related_experiments.exists %}
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
+              </div>
+              {% for related in related_experiments %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ related.description }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+        </div>
+        {% endif %}
     </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"

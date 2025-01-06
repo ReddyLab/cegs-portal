@@ -256,7 +256,7 @@
             role="tabpanel"
             aria-labelledby="tabs-nearest-reo-tab"
         >
-            {% if reos %}
+            {% if reos.exists %}
             <div class="mb-8" id="non-target-table" hx-get="{% url 'search:non_target_reo' feature.accession_id %}" hx-trigger="load" >
             </div>
             {% endif %}
@@ -286,38 +286,26 @@
                             d="M416 0c17.7 0 32 14.3 32 32c0 59.8-30.3 107.5-69.4 146.6c-28 28-62.5 53.5-97.3 77.4l-2.5 1.7c-11.9 8.1-23.8 16.1-35.5 23.9l0 0 0 0 0 0-1.6 1c-6 4-11.9 7.9-17.8 11.9c-20.9 14-40.8 27.7-59.3 41.5H283.3c-9.8-7.4-20.1-14.7-30.7-22.1l7-4.7 3-2c15.1-10.1 30.9-20.6 46.7-31.6c25 18.1 48.9 37.3 69.4 57.7C417.7 372.5 448 420.2 448 480c0 17.7-14.3 32-32 32s-32-14.3-32-32H64c0 17.7-14.3 32-32 32s-32-14.3-32-32c0-59.8 30.3-107.5 69.4-146.6c28-28 62.5-53.5 97.3-77.4c-34.8-23.9-69.3-49.3-97.3-77.4C30.3 139.5 0 91.8 0 32C0 14.3 14.3 0 32 0S64 14.3 64 32H384c0-17.7 14.3-32 32-32zM338.6 384H109.4c-10.1 10.6-18.6 21.3-25.5 32H364.1c-6.8-10.7-15.3-21.4-25.5-32zM109.4 128H338.6c10.1-10.7 18.6-21.3 25.5-32H83.9c6.8 10.7 15.3 21.3 25.5 32zm55.4 48c18.4 13.8 38.4 27.5 59.3 41.5c20.9-14 40.8-27.7 59.3-41.5H164.7z"/>
                     </svg>
                     Closest DNA Features
+                    <div class="ml-2">
+                        {% include 'search/v1/partials/_help_tooltip.html' with help_text="Closest DNA features to transcription start site (TSS). DNA features include regulatory elements, genes, exons, and transcripts." %}
+                    </div>
                     </div>
                 </div>
                 <div class="title-separator"></div>
-                <div class="overflow-x-auto">
-                <table class="data-table">
-                    <tr>
-                        <th class="chrom-first-end-cap chrom-dark-band">Type</th>
-                        <th class="chrom-light-band chrom-right-centromere">Cell Line</th>
-                        <th class="chrom-left-centromere chrom-light-band">Location</th>
-                        <th class="chrom-dark-band">Distance from TSS (bp)</th>
-                        <th class="chrom-last-end-cap chrom-light-band">Feature Details</th>
-                    </tr>
-
-                {% for close_feature in closest_features %}
-                    <tr data-href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
-                        <td>{{ close_feature.get_feature_type_display }}</td>
-                        <td>{{ close_feature.cell_line|default:"N/A" }}</td>
-                        <td>
-                            <span>{{ close_feature.chrom_name }}</span>:
-                            <span>{{ close_feature.location.lower|intcomma }} - {{ close_feature.location.upper|add:"-1"|intcomma }}:{{ close_feature.strand|if_strand }}</span>
-                        </td>
-                        <td>{{ close_feature.closest_gene_distance|distance_display }}</td>
-                        <td>
-                            <a href="{% url 'search:dna_features' 'accession' close_feature.accession_id %}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="svg-link-arrow bi bi-arrow-up-right-square-fill" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM5.904 10.803 10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z"/>
-                            </svg>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </table>
+                <fieldset id="closest-types" name="closest-facetfield">
+                    <legend class="flex flex-row group font-bold min-w-full" id="closest-facetHeader{{ forloop.counter }}"><div>{{ facet.name }}</div></legend>
+                    <div class="flex flex-row flex-wrap gap-1 justify-center" aria-labelledby="closest-facetHeader{{ forloop.counter }}">
+                        {% for feature_type in closest_dna_feature_types %}
+                        <div class="checkbox-divider">
+                            <input type="checkbox" id="{{ feature_type }}" name="feature_type" value="{{ feature_type }}"></input>
+                            <label for="{{ feature_type }}">{{ feature_type }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <div class="title-separator"></div>
+                <div id="closest-features-table" class="overflow-x-auto">
+                  {% include 'search/v1/partials/_closest_features.html' with closest_features=closest_features %}
                 </div>
             </div>
         </div>
@@ -335,6 +323,9 @@
                 <div class="table-title table-container-header">
                     <div class="table-container-title">
                         <span><i class="fa-solid fa-magnifying-glass"></i> Find Nearby DNA Features</span>
+                        <div class="ml-2">
+                            {% include 'search/v1/partials/_help_tooltip.html' with help_text="DNA features include regulatory elements, genes, exons, and transcripts." %}
+                        </div>
                     </div>
                 </div>
                 <form hx-get="{% url 'search:dna_feature_loc' feature.chrom_name feature.location.lower feature.location.upper%}?assembly={{ feature.ref_genome }}" hx-trigger="submit" hx-indicator="#spinner" hx-swap="innerHTML" hx-target="#features-table" class="text-center">
@@ -432,6 +423,9 @@
 {% block inline_javascript %}
 <script type="module">
     import { e, g } from "{% static 'search/js/dom.js' %}";
+    import { closestFeatureTypeSetup } from "{% static 'search/js/dna_feature/closest_feat_type.js' %}";
+
+    closestFeatureTypeSetup("{{ feature.accession_id }}");
 
     let assembly = {
             assembly: "{{ feature.ref_genome }}",
@@ -459,7 +453,12 @@
                 Genoverse.Track.Scalebar,
                 Genoverse.Track.cCRE,
                 Genoverse.Track.Coverage,
-                Genoverse.Track.DHS.Effects,
+                Genoverse.Track.TestedElements.ReporterAssay,
+                Genoverse.Track.TestedElements.CRISPRi,
+                Genoverse.Track.TestedElements.CRISPRa,
+                Genoverse.Track.TestedElements.Enhancers,
+                Genoverse.Track.TestedElements.Repressors,
+                Genoverse.Track.TestedElements.Squelchers,
                 Genoverse.Track.Gene,
             ]
         });

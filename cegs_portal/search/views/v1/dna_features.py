@@ -20,6 +20,33 @@ DEFAULT_TABLE_LENGTH = 20
 HG19 = "hg19"
 HG38 = "hg38"
 ALL_ASSEMBLIES = [HG38, HG19]  # Ordered by descending "importance"
+VALID_FEATUREID_PROPS = {"regeffects"}
+VALID_FEATURELOC_PROPS = {
+    "regeffects",
+    "screen_ccre",
+    "effect_directions",
+    "significant",
+    "reo_source",
+    "reporterassay",
+    "crispri",
+    "crispra",
+    "parent_info",
+    "enhancer",
+    "repressor",
+    "squelcher",
+}
+
+
+def validate_properties(property_list):
+    def f(properties):
+        if not all(p in property_list for p in properties):
+            raise Http400(f"Invalid query properties ({properties})")
+
+    return f
+
+
+validate_id_properties = validate_properties(VALID_FEATUREID_PROPS)
+validate_loc_properties = validate_properties(VALID_FEATURELOC_PROPS)
 
 
 def normalize_assembly(value):
@@ -78,12 +105,12 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         options = super().request_options(request)
         options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
         options["feature_properties"] = request.GET.getlist("property", [])
+        validate_id_properties(options["feature_properties"])
         options["json_format"] = request.GET.get("format", None)
         options["sig_only"] = truthy_to_bool(request.GET.get("sig_only", True))
         return options
 
     def get(self, request, options, data, id_type, feature_id):
-        reo_page = None
         feature_assemblies = []
         features = list(data.all())
         selected_feature = None
@@ -126,17 +153,11 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
         else:
             targets = None
 
-        reos = DNAFeatureSearch.non_targeting_reo_search(selected_feature.accession_id, options.get("sig_only"))
-        if reos.exists():  # use exists here because we _don't_ want to load all of the reos
-            paginated_reos = Paginator(reos, DEFAULT_TABLE_LENGTH)
-            reo_page = paginated_reos.page(1)
-        else:
-            reo_page = None
-
         tabs = []
         child_feature_type = None
 
-        if reo_page is not None:
+        reos = DNAFeatureSearch.non_targeting_reo_search(selected_feature.accession_id, options.get("sig_only"))
+        if reos.exists() is not None:
             tabs.append("nearest reo")
 
         # According to the documentation
@@ -168,11 +189,16 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
                 "closest_features": closest_features,
                 "sources": sources,
                 "targets": targets,
-                "reos": reo_page,
+                "reos": reos,
                 "feature_name": selected_feature.name,
                 "tabs": tabs,
                 "child_feature_type": child_feature_type,
                 "dna_feature_types": [feature_type.value for feature_type in DNAFeatureType],
+                "closest_dna_feature_types": [
+                    feature_type.value
+                    for feature_type in DNAFeatureType
+                    if feature_type not in [DNAFeatureType.GENE, DNAFeatureType.EXON, DNAFeatureType.TRANSCRIPT]
+                ],
                 "all_assemblies": assembly_list,
                 "id_type": id_type,
                 "feature_id": feature_id,
@@ -188,6 +214,75 @@ class DNAFeatureId(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get_data(self, options, id_type, feature_id):
         return DNAFeatureSearch.id_search(id_type, feature_id, None, feature_properties=options["feature_properties"])
+
+
+class DNAFeatureClosestFeatures(ExperimentAccessMixin, MultiResponseFormatView):
+    json_renderer = features
+    table_partial = "search/v1/partials/_closest_features.html"
+
+    def get_experiment_accession_id(self):
+        try:
+            return DNAFeatureSearch.expr_id(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_public(self):
+        try:
+            return DNAFeatureSearch.is_public(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def is_archived(self):
+        try:
+            return DNAFeatureSearch.is_archived(self.kwargs["feature_id"])
+        except ObjectNotFoundError as e:
+            raise Http404(str(e))
+
+    def request_options(self, request):
+        """
+        Headers used:
+            accept
+                * application/json
+        GET queries used:
+            accept
+                * application/json
+            assembly
+                * Should match a genome assembly that exists in the DB
+            feature_type (multiple)
+                * Should match a feature type (gene, transcript, etc.)
+            id_type
+                * "accession"
+                * "ensembl"
+                * "name"
+            feature_id
+        """
+        options = super().request_options(request)
+        options["assembly"] = normalize_assembly(request.GET.get("assembly", None))
+        options["feature_types"] = request.GET.getlist("type", [])
+        return options
+
+    def get(self, request, options, data, id_type, feature_id):
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "closest_features": data,
+                },
+            )
+
+        raise Http400("Access this only using htmx or JSON")
+
+    def get_data(self, options, id_type, feature_id):
+        if self.request.user.is_anonymous:
+            features = DNAFeatureSearch.id_closest_search_public(id_type, feature_id, options["feature_types"])
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            features = DNAFeatureSearch.id_closest_search(id_type, feature_id, options["feature_types"])
+        else:
+            features = DNAFeatureSearch.id_closest_search_private(
+                id_type, feature_id, options["feature_types"], self.request.user.all_experiments()
+            )
+        return features
 
 
 class DNAFeatureLoc(MultiResponseFormatView):
@@ -214,6 +309,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
                 * "effect_directions" - include effect directions of associated REOs
                 * "significant" - include only feature that are the source of significant REOs
                 * "reo_source" - include features that are the source for an REO
+                * "reporterassay", "crispri", "crispra" - include features from these kinds of experiments
             search_type
                 * "exact" - match location exactly
                 * "overlap" - match any overlapping feature
@@ -227,6 +323,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["assembly"] = normalize_assembly(request.GET.get("assembly", HG38))
         options["feature_types"] = request.GET.getlist("feature_type", [])
         options["feature_properties"] = request.GET.getlist("property", [])
+        validate_loc_properties(options["feature_properties"])
         options["search_type"] = request.GET.get("search_type", "overlap")
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
         options["page"] = int(request.GET.get("page", 1))
@@ -235,6 +332,7 @@ class DNAFeatureLoc(MultiResponseFormatView):
         options["json_format"] = request.GET.get("format", None)
         options["dist"] = int(request.GET.get("dist", 0))
         options["tsv_format"] = request.GET.get("tsv_format", None)
+
         return options
 
     def get(self, request, options, data, chromo, start, end):

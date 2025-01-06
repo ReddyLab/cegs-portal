@@ -179,9 +179,16 @@ class FeatureEffectsView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get(self, request, options, data, *args, **kwargs):
         regeffects, feature = data
+        help_text = f"Regulatory effect observations targeting {feature.name}"
+        source_help_text = f"Regulatory effect observations in the listed genes, with { feature.get_feature_type_display() } as the source."
         reg_effect_paginator = Paginator(regeffects, options["per_page"])
         reg_effect_page = reg_effect_paginator.get_page(options["page"])
-        data = {"regeffects": reg_effect_page, "feature": feature}
+        data = {
+            "regeffects": reg_effect_page,
+            "feature": feature,
+            "help_text": help_text,
+            "source_help_text": source_help_text,
+        }
 
         if request.headers.get("HX-Request"):
             return render(request, self.table_partial, data)
@@ -244,8 +251,8 @@ class TargetEffectsView(FeatureEffectsView):
 
         return reg_effects, feature
 
-    def get_tsv(self, request, options, data, feature_id):
-        feature = DNAFeature.objects.get(accession_id=feature_id)
+    def get_tsv(self, request, options, data):
+        _, feature = data
         if is_bed6(options):
             filename = f"{feature.name}_targeting_regulatory_effect_observations_table_data.bed"
         else:

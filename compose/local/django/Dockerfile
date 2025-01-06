@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.11.9-slim-bullseye
+ARG PYTHON_VERSION=3.11.11-slim-bullseye
 ARG RUST_VERSION=1.77-bullseye
 
 # define an alias for the specfic python version used in this file.
@@ -90,7 +90,7 @@ COPY --chown=django:root --from=rust /build/ccgr_portal_cov_viz/cov_viz_manifest
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
@@ -112,6 +112,8 @@ RUN chmod +x /start_huey
 RUN mkdir -p ${APP_HOME}/cegs_portal/media/expr_data_dir
 RUN chmod ug+w ${APP_HOME}/cegs_portal/media/
 RUN chmod ug+w ${APP_HOME}/cegs_portal/media/expr_data_dir
+
+RUN  date "+%Y-%m-%d" > ${APP_HOME}/cegs_portal/templates/build_date.html
 
 # make django owner of the WORKDIR directory as well.
 RUN chown -R django:root ${APP_HOME}

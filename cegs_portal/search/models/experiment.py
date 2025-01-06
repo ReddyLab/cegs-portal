@@ -1,5 +1,6 @@
 from enum import Enum, StrEnum
 
+from django.contrib import admin
 from django.contrib.postgres.fields import DateRangeField
 from django.db import models
 
@@ -61,8 +62,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
     class Facet(Enum):
         ASSAYS = "Experiment Assays"
         SOURCE_TYPES = "Experiment Source Type"
-        CELL_LINE = "Cell Line"
-        TISSUE_TYPE = "Tissue Type"
+        BIOSAMPLE = "Biosample"
         GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
         FUNCTIONAL_CHARACTERIZATION = "Functional Characterization Modality"  # FunctionalCharacterizationType
 
@@ -78,6 +78,10 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         "Analysis", on_delete=models.SET_NULL, blank=True, null=True, related_name="default_for"
     )
 
+    related_experiments = models.ManyToManyField(
+        "Experiment", related_name="related", blank=True, through="ExperimentRelation"
+    )
+
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
@@ -90,6 +94,24 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
 
 
+class ExperimentRelation(models.Model):
+    this_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="this", on_delete=models.CASCADE
+    )
+    other_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="other", on_delete=models.CASCADE
+    )
+    description = models.CharField(max_length=4096, null=True, blank=True)
+
+    @admin.display(description="From Experiment")
+    def from_experiment(self):
+        return f"{self.this_experiment.accession_id}: {self.this_experiment.name}"
+
+    @admin.display(description="To Experiment")
+    def to_experiment(self):
+        return f"{self.other_experiment.accession_id}: {self.other_experiment.name}"
+
+
 class ExperimentCollection(Accessioned, Faceted, AccessControlled):
     class Meta(Accessioned.Meta):
         indexes = [
@@ -99,6 +121,16 @@ class ExperimentCollection(Accessioned, Faceted, AccessControlled):
     name = models.CharField(max_length=512)
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiments = models.ManyToManyField(Experiment, related_name="collections", blank=True)
+
+
+class ExperimentSource(models.Model):
+    pi = models.CharField(max_length=512, null=False)
+    institution = models.CharField(max_length=512, null=False)
+    experimentalist = models.CharField(max_length=512, blank=True, null=True)
+    project = models.CharField(max_length=512, blank=True, null=True)
+    datasource_url = models.URLField(blank=True, null=True)
+    lab_url = models.URLField(blank=True, null=True)
+    experiment = models.OneToOneField(Experiment, on_delete=models.CASCADE, related_name="attribution")
 
 
 # Deprecated in favor of File + ExperimentDataFileInfo

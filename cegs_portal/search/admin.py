@@ -9,6 +9,8 @@ from cegs_portal.search.models import (
     DNAFeature,
     Experiment,
     ExperimentCollection,
+    ExperimentRelation,
+    ExperimentSource,
     Facet,
     FacetValue,
     File,
@@ -96,10 +98,41 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
     model = Experiment.facet_values.through
     extra = 0
     verbose_name = "Facet Value"
+    list_select_related = ["facet"]
 
     @admin.display
     def facet_info(self, obj):
         return f"{obj.value} ({obj.facet.name})"
+
+
+class ExperimentRelationForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentRelation
+        fields = (
+            "other_experiment",
+            "description",
+        )
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
+class ExperimentRelationInlineAdmin(admin.StackedInline):
+    form = ExperimentRelationForm
+    model = Experiment.related_experiments.through
+    extra = 0
+    verbose_name = "Related Experiment"
+    fk_name = "this_experiment"
+
+
+class ExperimentSourceInlineAdmin(admin.StackedInline):
+    model = ExperimentSource
+    min_num = 1
+    max_num = 1
+    verbose_name = "Experiment Attribution"
+
+    @admin.display
+    def source_info(self, obj):
+        lab = f", {obj.lab}" if obj.lab else ""
+        return f"{obj.pi}{lab}"
 
 
 class ExperimentForm(forms.ModelForm):
@@ -111,7 +144,12 @@ class ExperimentForm(forms.ModelForm):
 
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentFacetValueInlineAdmin, FileInlineAdmin]
+    inlines = [
+        ExperimentSourceInlineAdmin,
+        ExperimentFacetValueInlineAdmin,
+        FileInlineAdmin,
+        ExperimentRelationInlineAdmin,
+    ]
     fields = [
         "public",
         "archived",
@@ -128,7 +166,22 @@ class ExperimentAdmin(admin.ModelAdmin):
 
 admin.site.register(Experiment, ExperimentAdmin)
 
-admin.site.register(ExperimentCollection)
+
+class ExperimentCollectionAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+
+
+admin.site.register(ExperimentCollection, ExperimentCollectionAdmin)
+
+
+class ExperimentRelationAdmin(admin.ModelAdmin):
+    list_display = ("from_experiment", "to_experiment")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("this_experiment", "other_experiment")
+
+
+admin.site.register(ExperimentRelation, ExperimentRelationAdmin)
 
 admin.site.register(Facet)
 
