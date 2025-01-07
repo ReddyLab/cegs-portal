@@ -35,6 +35,10 @@ USE_I18N = True
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
+# https://docs.djangoproject.com/en/5.1/ref/settings/#file-upload-max-memory-size
+# Make sure NGINX allows files this size to be uploaded:
+# https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # DATABASES
 # ------------------------------------------------------------------------------
