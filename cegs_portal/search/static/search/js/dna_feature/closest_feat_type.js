@@ -5,7 +5,12 @@ let closestFeaturesURL = function (feature_accession_id, facetQuery) {
 };
 
 export function closestFeatureTypeSetup(feature_accession_id) {
-    let typeCheckboxes = g("closest-types").querySelectorAll("input[type=checkbox]");
+    let typeCheckboxes = g("closest-types");
+    if (typeCheckboxes == null) {
+        return;
+    }
+
+    typeCheckboxes = typeCheckboxes.querySelectorAll("input[type=checkbox]");
 
     typeCheckboxes.forEach((checkbox) => {
         checkbox.checked = false; // reset the checkboxes after a page reload.
