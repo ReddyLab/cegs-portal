@@ -1,4 +1,5 @@
 import csv
+import logging
 import math
 from dataclasses import dataclass
 from io import StringIO
@@ -24,6 +25,8 @@ from .metadata import AnalysisMetadata, InternetFile
 from .types import Facets, FeatureType
 
 MIN_SIG = 1e-100
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -101,7 +104,10 @@ class Analysis:
 
             raw_p_value = float(line["raw_p_val"])
             adjusted_p_value = float(line["adj_p_val"])
-            effect_size = float(line["effect_size"])
+            try:
+                effect_size = float(line["effect_size"])
+            except ValueError:
+                effect_size = None
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
 
             for _, facet_value in categorical_facets:
@@ -151,14 +157,20 @@ class Analysis:
                 for source in reo.sources:
                     source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
                     if source_string not in source_cache:
-                        source_cache[source_string] = DNAFeature.objects.filter(
-                            experiment_accession_id=experiment_accession_id,
-                            chrom_name=source.chrom,
-                            location=Int4Range(source.start, source.end),
-                            strand=source.strand,
-                            ref_genome=genome_assembly,
-                            feature_type=DNAFeatureType(source.feature_type),
-                        ).values_list("id", flat=True)[0]
+                        try:
+                            source_cache[source_string] = DNAFeature.objects.filter(
+                                experiment_accession_id=experiment_accession_id,
+                                chrom_name=source.chrom,
+                                location=Int4Range(source.start, source.end),
+                                strand=source.strand,
+                                ref_genome=genome_assembly,
+                                feature_type=DNAFeatureType(source.feature_type),
+                            ).values_list("id", flat=True)[0]
+                        except Exception:
+                            logger.debug(
+                                f"{experiment_accession_id} {source.chrom}:{Int4Range(source.start, source.end)}:{source.strand} {genome_assembly} {source.feature_type}"
+                            )
+                            raise
 
                     feature_id = source_cache[source_string]
                     sources.write(source_entry(reo_id, feature_id))
@@ -172,9 +184,13 @@ class Analysis:
 
                 for target in reo.targets:
                     if target not in target_cache:
-                        target_cache[target] = DNAFeature.objects.filter(
-                            ref_genome=genome_assembly, ensembl_id=target
-                        ).values_list("id", flat=True)[0]
+                        try:
+                            target_cache[target] = DNAFeature.objects.filter(
+                                ref_genome=genome_assembly, ensembl_id=target
+                            ).values_list("id", flat=True)[0]
+                        except Exception:
+                            logger.debug(f"{genome_assembly} {target}")
+                            raise
 
                     targets.write(target_entry(reo_id, target_cache[target]))
 

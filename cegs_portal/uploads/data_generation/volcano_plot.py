@@ -1,3 +1,4 @@
+import logging
 import os
 import struct
 
@@ -10,8 +11,11 @@ from cegs_portal.search.models import (
     RegulatoryEffectObservation,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def gen_volcano_plot(analysis, analysis_dir):
+    logger.info(f"Generating volcano plot {analysis.accession_id}")
     ctrl_facet = Facet.objects.get(name=DNAFeature.Facet.GRNA_TYPE.value)
     targeting_facet = FacetValue.objects.filter(facet=ctrl_facet, value=GrnaType.TARGETING.value).values_list(
         "id", flat=True
@@ -35,9 +39,9 @@ def gen_volcano_plot(analysis, analysis_dir):
     )
 
     out_filename = os.path.join(analysis_dir, "vpdata.pd")
-    with open(out_filename, "wb") as out_file:
-        for reo in reos:
-            try:
+    try:
+        with open(out_filename, "wb") as out_file:
+            for reo in reos:
                 reo_facets = reo["reo_facets"]
                 p_val = float(reo_facets[RegulatoryEffectObservation.Facet.SIGNIFICANCE.value])
                 p_val_log_10 = float(reo_facets[RegulatoryEffectObservation.Facet.LOG_SIGNIFICANCE.value])
@@ -82,6 +86,9 @@ def gen_volcano_plot(analysis, analysis_dir):
                 )
 
                 out_file.write(data)
-            except Exception as ex:
-                print(reo)
-                raise ex
+    except Exception as ex:
+        logger.debug(str(ex))
+        try:
+            os.remove(out_filename)
+        except FileNotFoundError:
+            pass

@@ -1,5 +1,5 @@
+import logging
 import os
-import shutil
 from subprocess import CalledProcessError
 
 from django.contrib.staticfiles import finders
@@ -9,6 +9,8 @@ from cegs_portal.search.models import Analysis
 from .experiment_coverage import gen_coverage, gen_coverage_manifest
 from .qq_plot import gen_qq_plot
 from .volcano_plot import gen_volcano_plot
+
+logger = logging.getLogger(__name__)
 
 
 def get_analysis_dir(analysis):
@@ -29,8 +31,12 @@ def create_analysis_dir(analysis):
     return analysis_path
 
 
-def delete_analysis_dir(analysis_dir):
-    shutil.rmtree(analysis_dir)
+def delete_coverage_files(analysis_dir):
+    analysis_dir_fd = os.open(analysis_dir, os.O_RDONLY)
+    for file in os.listdir(analysis_dir):
+        if file.endswith((".fd", ".ecd", "coverage_manifest.json")):
+            os.remove(file, dir_fd=analysis_dir_fd)
+    os.close(analysis_dir_fd)
 
 
 def gen_all_coverage(analysis_accession):
@@ -39,9 +45,19 @@ def gen_all_coverage(analysis_accession):
     analysis_dir = create_analysis_dir(analysis)
 
     try:
+        logger.info(f"{analysis_accession}: Generating volcano plot")
         gen_volcano_plot(analysis, analysis_dir=analysis_dir)
-        gen_qq_plot(analysis, analysis_dir=analysis_dir)
+    except:
+        logger.error(f"Volcano plot generation failed: {analysis.accession_id}")
 
+    try:
+        logger.info(f"{analysis_accession}: Generating QQ plot")
+        gen_qq_plot(analysis, analysis_dir=analysis_dir)
+    except:
+        logger.error(f"QQ plot generation failed: {analysis.accession_id}")
+
+    try:
+        logger.info(f"{analysis_accession}: Generating coverate")
         gen_coverage(analysis, analysis_dir=analysis_dir)
         gen_coverage_manifest(analysis, analysis_dir=analysis_dir)
         for chrom_name in [
@@ -72,7 +88,6 @@ def gen_all_coverage(analysis_accession):
             "MT",
         ]:
             gen_coverage(analysis, analysis_dir=analysis_dir, bin_size=100_000, chrom_name=f"chr{chrom_name}")
-
     except CalledProcessError:
-        delete_analysis_dir(analysis_dir)
-        raise
+        logger.error(f"Coverage generation failed: {analysis.accession_id}")
+        delete_coverage_files(analysis_dir)
