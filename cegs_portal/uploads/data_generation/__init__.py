@@ -57,7 +57,7 @@ def gen_all_coverage(analysis_accession):
         logger.error(f"QQ plot generation failed: {analysis.accession_id}")
 
     try:
-        logger.info(f"{analysis_accession}: Generating coverate")
+        logger.info(f"{analysis_accession}: Generating coverage")
         gen_coverage(analysis, analysis_dir=analysis_dir)
         gen_coverage_manifest(analysis, analysis_dir=analysis_dir)
         for chrom_name in [
