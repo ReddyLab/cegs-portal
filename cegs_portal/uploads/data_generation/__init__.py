@@ -48,13 +48,13 @@ def gen_all_coverage(analysis_accession):
         logger.info(f"{analysis_accession}: Generating volcano plot")
         gen_volcano_plot(analysis, analysis_dir=analysis_dir)
     except:
-        logger.error(f"Volcano plot generation failed: {analysis.accession_id}")
+        raise RuntimeError(f"Volcano plot generation failed: {analysis.accession_id}")
 
     try:
         logger.info(f"{analysis_accession}: Generating QQ plot")
         gen_qq_plot(analysis, analysis_dir=analysis_dir)
     except:
-        logger.error(f"QQ plot generation failed: {analysis.accession_id}")
+        raise RuntimeError(f"QQ plot generation failed: {analysis.accession_id}")
 
     try:
         logger.info(f"{analysis_accession}: Generating coverage")
@@ -89,5 +89,5 @@ def gen_all_coverage(analysis_accession):
         ]:
             gen_coverage(analysis, analysis_dir=analysis_dir, bin_size=100_000, chrom_name=f"chr{chrom_name}")
     except CalledProcessError:
-        logger.error(f"Coverage generation failed: {analysis.accession_id}")
         delete_coverage_files(analysis_dir)
+        raise RuntimeError(f"Coverage generation failed: {analysis.accession_id}")
