@@ -88,6 +88,7 @@ def gen_all_coverage(analysis_accession):
             "MT",
         ]:
             gen_coverage(analysis, analysis_dir=analysis_dir, bin_size=100_000, chrom_name=f"chr{chrom_name}")
-    except CalledProcessError:
+    except Exception as e:
+        logger.error(str(e))
         delete_coverage_files(analysis_dir)
         raise RuntimeError(f"Coverage generation failed: {analysis.accession_id}")
