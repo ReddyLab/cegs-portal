@@ -1,3 +1,5 @@
+import logging
+
 from django.db import connection
 from huey.contrib.djhuey import db_task
 
@@ -9,6 +11,9 @@ from cegs_portal.utils.decorators import skip_receiver_in_testing
 def update_experiment_access(experiment, created):
     if created:
         return
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"{experiment.accession_id} Updating Experiment Access")
 
     with connection.cursor() as cursor:
         cursor.execute(
