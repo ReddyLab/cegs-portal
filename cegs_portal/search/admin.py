@@ -163,6 +163,12 @@ class ExperimentAdmin(admin.ModelAdmin):
     list_filter = ["public", "archived"]
     search_fields = ["name", "description"]
 
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        obj.save(update_access=True)
+
 
 admin.site.register(Experiment, ExperimentAdmin)
 
@@ -253,6 +259,12 @@ class AnalysisAdmin(admin.ModelAdmin):
             return description
 
         return f"{description[:30]}..."
+
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        obj.save(update_access=True)
 
 
 admin.site.register(Analysis, AnalysisAdmin)

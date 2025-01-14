@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 from django.db import connection
 from huey.contrib.djhuey import db_task
@@ -15,7 +14,6 @@ def update_experiment_access(experiment, created):
 
     logger = logging.getLogger(__name__)
     logger.info(f"{experiment.accession_id} Updating Experiment Access")
-    traceback.print_stack()
 
     with connection.cursor() as cursor:
         cursor.execute(
