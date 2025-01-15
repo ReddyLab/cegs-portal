@@ -13,6 +13,6 @@ def handle_error(f, status: TaskStatus):
             return f(*args, **kwargs)
         except Exception as e:
             status.error(str(e))
-            logger.error(str(e))
+            logger.exception(str(e), exc_info=e)
 
     return wrapper
