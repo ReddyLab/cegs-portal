@@ -66,7 +66,7 @@ def gen_qq_plot(analysis, analysis_dir):
             del qq_data[key]
 
     if len(qq_data) == 0:
-        logger.debug(f"{analysis.acccession_id}: No QQ Plot data")
+        logger.debug(f"{analysis.accession_id}: No QQ Plot data")
         return
 
     sample_size = min([len(x) for x in qq_data.values()])
