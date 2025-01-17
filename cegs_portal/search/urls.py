@@ -10,6 +10,8 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("results/", views.v1.SearchView.as_view(), name="results"),
     path("glossary/", views.glossary, name="glossary"),
+    path("experiment-help/", views.experiment_help_page, name="experiment-help"),
+    path("multi-experiments-help/", views.multi_experiments_help_page, name="multi-experiments-help"),
     re_path(
         r"feature/(?P<id_type>\w+)/(?P<feature_id>[A-Za-z0-9][A-Za-z0-9\.\-]+)/closest$",
         views.v1.DNAFeatureClosestFeatures.as_view(),
