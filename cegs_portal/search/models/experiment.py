@@ -86,8 +86,11 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
     def save(self, *args, **kwargs):
+        update_access = kwargs.get("update_access", False)
+        if "update_access" in kwargs:
+            del kwargs["update_access"]
         super(Experiment, self).save(*args, **kwargs)
-        if kwargs.get("update_access", False):
+        if update_access:
             created = self.pk is None
             update_experiment_access(self, created)
 
