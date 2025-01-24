@@ -29,10 +29,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             raise Http404(str(e))
 
     def is_archived(self):
-        try:
-            return ExperimentSearch.is_archived(self.kwargs["exp_id"])
-        except ObjectNotFoundError as e:
-            raise Http404(str(e))
+        return False  # it's okay to see archived experiments
 
     def request_options(self, request):
         """
@@ -48,6 +45,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, exp_id):
+        experiment, related_experiments = data
         analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
         analyses_list = []
 
@@ -62,6 +60,14 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             else:
                 analyses_list.append(("", analysis))
 
+        related_experiments = [
+            {
+                "name": r.other_experiment.name,
+                "other_experiment_id": r.other_experiment_id,
+                "description": r.description if r.description != "" else "No Description",
+            }
+            for r in related_experiments
+        ]
         return super().get(
             request,
             options,
@@ -69,8 +75,8 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
                 "logged_in": not request.user.is_anonymous,
                 "analyses": analyses_list,
                 "analysis_selected": analysis_selected,
-                "experiment": data[0],
-                "related_experiments": data[1],
+                "experiment": experiment,
+                "related_experiments": related_experiments,
             },
         )
 

@@ -462,9 +462,9 @@
           </div>
           {% endif %}
         </div>
-        {% if related_experiments.exists or experiment.collections.exists %}
-        <div class="content-container min-w-full grid grid-cols-1 {% if related_experiments.exists and experiment.collections.exists %}lg:grid-cols-2 {% endif %}gap-4">
-          {% if related_experiments.exists %}
+        {% if related_experiments or experiment.collections.exists %}
+        <div class="content-container min-w-full grid grid-cols-1 {% if related_experiments and experiment.collections.exists %}lg:grid-cols-2 {% endif %}gap-4">
+          {% if related_experiments %}
           <div>
               <div class="bg-white border-b">
                   <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
@@ -473,7 +473,7 @@
               <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
                   <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
                   <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
-                      {{ related.description|default_if_none:"No Description" }}
+                      {{ related.description|linebreaksbr }}
                   </div>
               </div>
               {% endfor %}

@@ -107,36 +107,37 @@ def test_experiment_with_authenticated_authorized_group_client(
 def test_archived_experiment_with_anonymous_client(
     public_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
-    with pytest.raises(PermissionDenied):
-        public_test_client.get(
-            f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
-        ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    response = public_test_client.get(
+        f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    assert response.status_code == 200
 
 
 def test_archived_experiment_with_authenticated_client(
     login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
-    with pytest.raises(PermissionDenied):
-        login_test_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json").request(
-            experiment_view, exp_id=archived_experiment.accession_id
-        )
+    response = login_test_client.get(
+        f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    assert response.status_code == 200
 
 
 def test_archived_experiment_with_authenticated_authorized_client(
     login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
     login_test_client.set_user_experiments([archived_experiment.accession_id])
-    with pytest.raises(PermissionDenied):
-        login_test_client.get(f"/search/experiment/{archived_experiment.accession_id}?accept=application/json").request(
-            experiment_view, exp_id=archived_experiment.accession_id
-        )
+
+    response = login_test_client.get(
+        f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    assert response.status_code == 200
 
 
 def test_archived_experiment_with_authenticated_authorized_group_client(
     group_login_test_client: RequestBuilder, experiment_view, archived_experiment: Experiment
 ):
     group_login_test_client.set_group_experiments([archived_experiment.accession_id])
-    with pytest.raises(PermissionDenied):
-        group_login_test_client.get(
-            f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
-        ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    response = group_login_test_client.get(
+        f"/search/experiment/{archived_experiment.accession_id}?accept=application/json"
+    ).request(experiment_view, exp_id=archived_experiment.accession_id)
+    assert response.status_code == 200
