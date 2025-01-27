@@ -164,6 +164,11 @@
 {% block content %}
 <div class="flex flex-column justify-center min-w-full">
     <div class="content-container min-w-fit max-w-fit">
+        {% if experiment.archived %}
+        <div class="bg-red-300 text-center text-xl font-bold py-2 my-1">
+            This experiment has been archived.
+        </div>
+        {% endif %}
         <div class="bg-white border-b">
             <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
                 <span><i class="fa-solid fa-flask-vial mr-1"></i>{{ experiment.name }}
@@ -462,8 +467,9 @@
           </div>
           {% endif %}
         </div>
-        {% if related_experiments.exists %}
-        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+        {% if related_experiments or experiment.collections.exists %}
+        <div class="content-container min-w-full grid grid-cols-1 {% if related_experiments and experiment.collections.exists %}lg:grid-cols-2 {% endif %}gap-4">
+          {% if related_experiments %}
           <div>
               <div class="bg-white border-b">
                   <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
@@ -472,11 +478,27 @@
               <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
                   <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
                   <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
-                      {{ related.description }}
+                      {{ related.description|linebreaksbr }}
                   </div>
               </div>
               {% endfor %}
           </div>
+          {% endif %}
+          {% if experiment.collections.exists %}
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Collections</div>
+              </div>
+              {% for collection in experiment.collections.all %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment_collection' collection.accession_id %}">{{ collection.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ collection.description|default_if_none:"No Description" }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+          {% endif %}
         </div>
         {% endif %}
     </div>

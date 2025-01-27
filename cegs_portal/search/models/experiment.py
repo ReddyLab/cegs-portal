@@ -86,9 +86,13 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
     def save(self, *args, **kwargs):
-        created = self.pk is None
+        update_access = kwargs.get("update_access", False)
+        if "update_access" in kwargs:
+            del kwargs["update_access"]
         super(Experiment, self).save(*args, **kwargs)
-        update_experiment_access(self, created)
+        if update_access:
+            created = self.pk is None
+            update_experiment_access(self, created)
 
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
@@ -169,9 +173,10 @@ class Analysis(Accessioned, Faceted, AccessControlled):
     p_value_adj_method = models.CharField(max_length=128, default="unknown")
 
     def save(self, *args, **kwargs):
-        created = self.pk is None
         super(Analysis, self).save(*args, **kwargs)
-        update_analysis_access(self, created)
+        if kwargs.get("update_access", False):
+            created = self.pk is None
+            update_analysis_access(self, created)
 
     def __str__(self):
         description = self.description

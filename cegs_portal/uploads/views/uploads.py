@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 
 from django.contrib.auth.decorators import permission_required
@@ -22,6 +23,8 @@ from cegs_portal.uploads.view_models import (
 )
 
 BAD_URLS = ["", None]
+
+logger = logging.getLogger(__name__)
 
 
 def get_data_value(request, value):
@@ -71,6 +74,8 @@ def upload(request):
                 task_status = TaskStatus(user=request.user, description=f"({experiment_accession}) {desc}")
                 handle_partial_upload(experiment_data, analysis_data, experiment_accession, task_status, request.user)
 
+            logger.info(f"Upload handled: {task_status.status}")
+
             if json_response:
                 return JsonResponse({"task_status_id": task_status.id})
             else:
@@ -85,16 +90,22 @@ def handle_full_upload(full_file, experiment_accession, task_status, user):
     """Handle upload as single compressed file"""
     task_status.start()
 
+    logger.info(f"{experiment_accession}: Starting upload")
+
     c_load_error = handle_error(c_load, task_status)
     analysis_accession = c_load_error(full_file, experiment_accession)
 
     transaction.on_commit(
         handle_error(partial(add_experiment_to_user, experiment_accession=experiment_accession, user=user), task_status)
     )
+
+    logger.info(f"{experiment_accession}: Adding data to ReoSourcesTargets")
     ReoSourcesTargets.load_analysis(analysis_accession)
     ReoSourcesTargetsSigOnly.load_analysis(analysis_accession)
-    transaction.on_commit(handle_error(partial(gen_all_coverage, analysis_accession=analysis_accession), task_status))
 
+    logger.info(f"{experiment_accession}: Generating coverage/graph files")
+    transaction.on_commit(handle_error(partial(gen_all_coverage, analysis_accession=analysis_accession), task_status))
+    logger.info(f"{experiment_accession}: Done")
     transaction.on_commit(lambda: task_status.finish())
 
 
@@ -103,6 +114,8 @@ def handle_partial_upload(experiment_file, analysis_file, experiment_accession, 
     """Handle upload as two parts: experiment_file, if applicable, then analysis_file if applicable"""
 
     task_status.start()
+
+    logger.info(f"{experiment_accession}: Starting partial upload")
 
     if experiment_file is not None:
         expr_load_error = handle_error(expr_load, task_status)
@@ -124,4 +137,5 @@ def handle_partial_upload(experiment_file, analysis_file, experiment_accession, 
             handle_error(partial(gen_all_coverage, analysis_accession=analysis_accession), task_status)
         )
 
+    logger.info(f"{experiment_accession}: Done")
     transaction.on_commit(lambda: task_status.finish())

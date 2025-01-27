@@ -1,9 +1,12 @@
 import json
+import logging
 from io import StringIO
 from os import SEEK_SET
 from typing import Optional
 
 from django.db import connection, transaction
+
+logger = logging.getLogger(__name__)
 
 
 def reo_entry(
@@ -28,7 +31,7 @@ def bulk_reo_save(
 ):
     with transaction.atomic(), connection.cursor() as cursor:
         effects.seek(0, SEEK_SET)
-        print("Adding RegulatoryEffectObservations")
+        logger.info("Adding RegulatoryEffectObservations")
         with cursor.copy(
             """COPY search_regulatoryeffectobservation (
                 id,
@@ -45,7 +48,7 @@ def bulk_reo_save(
 
     with transaction.atomic(), connection.cursor() as cursor:
         categorical_facets.seek(0, SEEK_SET)
-        print("Adding categorical facets to effects")
+        logger.info("Adding categorical facets to effects")
         with cursor.copy(
             "COPY search_regulatoryeffectobservation_facet_values (regulatoryeffectobservation_id, facetvalue_id) FROM STDIN"
         ) as copy:
@@ -53,7 +56,7 @@ def bulk_reo_save(
 
     with transaction.atomic(), connection.cursor() as cursor:
         source_associations.seek(0, SEEK_SET)
-        print("Adding sources to RegulatoryEffectObservations")
+        logger.info("Adding sources to RegulatoryEffectObservations")
         with cursor.copy(
             "COPY search_regulatoryeffectobservation_sources (regulatoryeffectobservation_id, dnafeature_id) FROM STDIN"
         ) as copy:
@@ -61,7 +64,7 @@ def bulk_reo_save(
 
         if target_associations is not None:
             target_associations.seek(0, SEEK_SET)
-            print("Adding targets to RegulatoryEffectObservations")
+            logger.info("Adding targets to RegulatoryEffectObservations")
             with cursor.copy(
                 "COPY search_regulatoryeffectobservation_targets (regulatoryeffectobservation_id, dnafeature_id) FROM STDIN"
             ) as copy:
@@ -126,7 +129,7 @@ def ccre_associate_entry(feature_id, ccre_id):
 
 def bulk_feature_save(features: StringIO):
     features.seek(0, SEEK_SET)
-    print("Adding features")
+    logger.info("Adding features")
     with transaction.atomic(), connection.cursor() as cursor:
         with cursor.copy(
             """COPY search_dnafeature (
@@ -163,14 +166,14 @@ def bulk_feature_save(features: StringIO):
 def bulk_feature_facet_save(facets):
     with transaction.atomic(), connection.cursor() as cursor:
         facets.seek(0, SEEK_SET)
-        print("Adding facets to features")
+        logger.info("Adding facets to features")
         with cursor.copy("COPY search_dnafeature_facet_values (dnafeature_id, facetvalue_id) FROM STDIN") as copy:
             copy.write(facets.getvalue())
 
 
 def bulk_save_associations(associations):
     associations.seek(0, SEEK_SET)
-    print("Adding ccre associations to features")
+    logger.info("Adding ccre associations to features")
     with transaction.atomic(), connection.cursor() as cursor:
         with cursor.copy(
             "COPY search_dnafeature_associated_ccres (from_dnafeature_id, to_dnafeature_id) FROM STDIN"

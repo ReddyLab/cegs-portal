@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime, timezone
 from enum import StrEnum
 from io import StringIO
@@ -21,6 +22,8 @@ from .biosample import ExperimentBiosample
 from .file import FileMetadata
 
 MAX_METADATA_CONTENT_LENGTH = 65_536
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisMetadataKeys(StrEnum):
@@ -149,7 +152,7 @@ class AnalysisMetadata(Metadata):
 
     def db_del(self, analysis=None):
         if self.accession_id is None and analysis is None:
-            print("Analysis has not been saved: There is no accession ID")
+            logger.warning("Analysis has not been saved: There is no accession ID")
             return
 
         if self.accession_id is not None:
