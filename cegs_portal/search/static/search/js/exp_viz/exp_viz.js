@@ -96,7 +96,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
         );
         genome = await getJson(`${staticRoot}genome_data/${manifest.genome.file}`);
     } catch (error) {
-        let coverage = g("tabs-coverage");
+        let coverage = g("tabs-overview");
         rc(
             coverage,
             e(
