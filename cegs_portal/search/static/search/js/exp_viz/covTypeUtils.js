@@ -58,8 +58,8 @@ function valueInterval(selector) {
 }
 
 export const levelCountInterval = valueInterval((d) => d.count);
-export const sigInterval = valueInterval((d) => d.max_log10_sig);
-export const effectInterval = valueInterval((d) => d.max_abs_effect);
+export const sigInterval = valueInterval((d) => d.log10_sig);
+export const effectInterval = valueInterval((d) => d.effect);
 
 let getLegendIntervalFunc = coverageTypeFunctions(levelCountInterval, sigInterval, effectInterval);
 

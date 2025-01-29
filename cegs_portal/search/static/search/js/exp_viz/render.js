@@ -39,12 +39,12 @@ let sourceRenderDataTransform = coverageTypeDeferredFunctions(
     (state) => (d) => {
         let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
         let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return significanceRange != 0 ? (d.max_log10_sig - significanceInterval[0]) / significanceRange : 0.5;
+        return significanceRange != 0 ? (d.log10_sig - significanceInterval[0]) / significanceRange : 0.5;
     },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return effectSizeRange != 0 ? (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
+        return effectSizeRange != 0 ? (d.effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
     },
 );
 
@@ -59,20 +59,32 @@ let targetRenderDataTransform = coverageTypeDeferredFunctions(
     (state) => (d) => {
         let significanceInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).sig;
         let significanceRange = significanceInterval[1] - significanceInterval[0];
-        return significanceRange != 0 ? (d.max_log10_sig - significanceInterval[0]) / significanceRange : 0.5;
+        return significanceRange != 0 ? (d.log10_sig - significanceInterval[0]) / significanceRange : 0.5;
     },
     (state) => (d) => {
         let effectSizeInterval = state.g(STATE_NUMERIC_FILTER_INTERVALS).effect;
         let effectSizeRange = effectSizeInterval[1] - effectSizeInterval[0];
-        return effectSizeRange != 0 ? (d.max_abs_effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
+        return effectSizeRange != 0 ? (d.effect - effectSizeInterval[0]) / effectSizeRange : 0.5;
     },
 );
 
-function sourceTooltipDataLabel(state) {
-    return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Greatest Effect Size"];
-}
+let sourceTooltipDataLabel = coverageTypeDeferredFunctions(
+    (state) => {
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Greatest Effect Size"];
+    },
+    (state) => {
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Effect Size"];
+    },
+    (state) => {
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Greatest Effect Size", "Significance"];
+    },
+);
 
-let targetTooltipDataLabel = ["Gene Count", "Largest Significance", "Greatest Effect Size"];
+let targetTooltipDataLabel = coverageTypeFunctions(
+    ["Gene Count", "Largest Significance", "Greatest Effect Size"],
+    ["Gene Count", "Largest Significance", "Effect Size"],
+    ["Gene Count", "Greatest Effect Size", "Significance"],
+);
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
@@ -86,23 +98,59 @@ let targetLegendTitle = coverageTypeFunctions(
     "Size of Effect on Assayed Genes",
 );
 
-let tooltipDataSelectors = [
-    (d) => d.count,
-    (d) => {
-        if (d.max_log10_sig >= 0.001) {
-            return d.max_log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
-        } else {
-            return d.max_log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
-        }
-    },
-    (d) => {
-        if (Math.abs(d.max_abs_effect) >= 0.001) {
-            return d.max_abs_effect.toFixed(3); // e.g., 12.34567890 -> 12.345
-        } else {
-            return d.max_abs_effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
-        }
-    },
-];
+let tooltipDataSelectors = coverageTypeFunctions(
+    [
+        (d) => d.count,
+        (d) => {
+            if (d.log10_sig >= 0.001) {
+                return d.log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+        (d) => {
+            if (Math.abs(d.effect) >= 0.001) {
+                return d.effect.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+    ],
+    [
+        (d) => d.count,
+        (d) => {
+            if (d.log10_sig >= 0.001) {
+                return d.log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+        (d) => {
+            if (Math.abs(d.effect) >= 0.001) {
+                return d.effect.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+    ],
+    [
+        (d) => d.count,
+        (d) => {
+            if (Math.abs(d.effect) >= 0.001) {
+                return d.effect.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.effect.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+        (d) => {
+            if (d.log10_sig >= 0.001) {
+                return d.log10_sig.toFixed(3); // e.g., 12.34567890 -> 12.345
+            } else {
+                return d.log10_sig.toExponential(2); // e.g., 0.0000000000345345345 -> 3.45e-11
+            }
+        },
+    ],
+);
 
 export function render(state, genomeRenderer) {
     const viewBox = state.g(STATE_VIEWBOX);
@@ -125,9 +173,9 @@ export function render(state, genomeRenderer) {
             targetColors,
             sourceRenderDataTransform(state),
             targetRenderDataTransform(state),
-            tooltipDataSelectors,
+            tooltipDataSelectors(state),
             sourceTooltipDataLabel(state),
-            targetTooltipDataLabel,
+            targetTooltipDataLabel(state),
             viewBox,
             zoomed,
             highlightRegions,
