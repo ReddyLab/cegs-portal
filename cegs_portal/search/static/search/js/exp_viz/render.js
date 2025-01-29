@@ -70,25 +70,25 @@ let targetRenderDataTransform = coverageTypeDeferredFunctions(
 
 let sourceTooltipDataLabel = coverageTypeDeferredFunctions(
     (state) => {
-        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Greatest Effect Size"];
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Highest Significance (-log10)", "Greatest Effect Size"];
     },
     (state) => {
-        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Largest Significance", "Effect Size"];
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Highest Significance (-log10)", "Effect Size"];
     },
     (state) => {
-        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Greatest Effect Size", "Significance"];
+        return [`${state.g(STATE_SOURCE_TYPE)} Count`, "Greatest Effect Size", "Significance (-log10)"];
     },
 );
 
 let targetTooltipDataLabel = coverageTypeFunctions(
-    ["Gene Count", "Largest Significance", "Greatest Effect Size"],
-    ["Gene Count", "Largest Significance", "Effect Size"],
-    ["Gene Count", "Greatest Effect Size", "Significance"],
+    ["Gene Count", "Highest Significance (-log10)", "Greatest Effect Size"],
+    ["Gene Count", "Highest Significance (-log10)", "Effect Size"],
+    ["Gene Count", "Greatest Effect Size", "Significance (-log10)"],
 );
 
 let sourceLegendTitle = coverageTypeDeferredFunctions(
     (state) => `Number of ${state.g(STATE_SOURCE_TYPE)}s`,
-    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Significance`,
+    (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Significance (-log10)`,
     (state) => `${state.g(STATE_SOURCE_TYPE)} Effect Size`,
 );
 

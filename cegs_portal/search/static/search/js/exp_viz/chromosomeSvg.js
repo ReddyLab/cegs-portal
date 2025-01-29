@@ -30,7 +30,7 @@ export class BucketLocation {
 export class Tooltip {
     constructor(renderContext) {
         this.renderContext = renderContext;
-        this.width = 540;
+        this.width = 620;
         this.height = 225;
         this._range = document.createElementNS(svgns, "text");
         this._range.setAttribute("y", "42");
