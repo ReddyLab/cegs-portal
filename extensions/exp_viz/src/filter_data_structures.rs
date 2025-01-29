@@ -69,6 +69,7 @@ pub struct PyFilter {
     pub numeric_intervals: Option<PyFilterIntervals>,
     #[pyo3(get, set)]
     pub set_op_feature: Option<PySetOpFeature>,
+    #[pyo3(get, set)]
     pub coverage_type: PyCoverageType,
 }
 
