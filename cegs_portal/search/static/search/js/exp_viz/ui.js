@@ -4,6 +4,7 @@ import {
     STATE_CATEGORICAL_FACET_VALUES,
     STATE_COUNT_FILTER_INTERVALS,
     STATE_COUNT_FILTER_VALUES,
+    STATE_COVERAGE_TYPE,
     STATE_FEATURE_FILTER_TYPE,
     STATE_LEGEND_INTERVALS,
     STATE_NUMERIC_FILTER_INTERVALS,
@@ -172,6 +173,7 @@ export function getFilterBody(state, genome, chroms, filter_values, combo_op) {
     let filters = {
         filters: filter_values,
         chromosomes: genome.map((c) => c.chrom),
+        coverage_type: state.g(STATE_COVERAGE_TYPE),
     };
     if (state.g(STATE_ZOOMED)) {
         let zoomChromoIndex = state.g(STATE_ZOOM_GENOME_LOCATION);

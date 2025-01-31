@@ -6,6 +6,7 @@ from os.path import join
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse
 from exp_viz import (
+    CoverageType,
     Filter,
     FilterIntervals,
     SetOpFeature,
@@ -136,7 +137,7 @@ def validate_combinations(combinations):
     return experiment_count
 
 
-def get_filter(filters, chrom, combination_features=None):
+def get_filter(filters, chrom, coverage_type, combination_features=None):
     data_filter = Filter()
     data_filter.categorical_facets = set(filters[0])
     if chrom is not None:
@@ -158,6 +159,16 @@ def get_filter(filters, chrom, combination_features=None):
             data_filter.set_op_feature = SetOpFeature.SourceTarget
         case _:
             data_filter.set_op_feature = None
+
+    match coverage_type:
+        case "coverage-type-count":
+            data_filter.coverage_type = CoverageType.Count
+        case "coverage-type-sig":
+            data_filter.coverage_type = CoverageType.Significance
+        case "coverage-type-effect":
+            data_filter.coverage_type = CoverageType.Effect
+        case _:
+            data_filter.coverage_type = CoverageType.Count
 
     return data_filter
 
@@ -200,6 +211,8 @@ class ExperimentCoverageView(MultiResponseFormatView):
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
         options["zoom_chr"] = zoom_chr
 
+        options["coverage_type"] = body.get("coverage_type")
+
         return options
 
     def post(self, request, options, data):
@@ -214,7 +227,7 @@ class ExperimentCoverageView(MultiResponseFormatView):
         return HttpResponse(data.to_json(), content_type=JSON_MIME)
 
     def post_data(self, options):
-        data_filter = get_filter(options["filters"], options["zoom_chr"])
+        data_filter = get_filter(options["filters"], options["zoom_chr"], options["coverage_type"])
         loaded_data = load_coverage(options["exp_acc_id"], options["zoom_chr"])
         filtered_data = filter_coverage_data_allow_threads(data_filter, loaded_data, None)
         return filtered_data
@@ -259,6 +272,8 @@ class CombinedExperimentView(MultiResponseFormatView):
 
         options["combination_features"] = body.get("combination_features")
 
+        options["coverage_type"] = body.get("coverage_type")
+
         if (zoom_chr := body.get("zoom", None)) is not None and zoom_chr not in CHROM_NAMES:
             raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
         options["zoom_chr"] = zoom_chr
@@ -279,7 +294,9 @@ class CombinedExperimentView(MultiResponseFormatView):
     def post_data(self, options):
         accession_ids = get_analyses(options["combinations"])
 
-        data_filter = get_filter(options["filters"], options["zoom_chr"], options["combination_features"])
+        data_filter = get_filter(
+            options["filters"], options["zoom_chr"], options["coverage_type"], options["combination_features"]
+        )
 
         with ThreadPoolExecutor() as executor:
             load_to_acc_id = {

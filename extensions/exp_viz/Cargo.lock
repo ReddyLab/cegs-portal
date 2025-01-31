@@ -93,7 +93,8 @@ checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 
 [[package]]
 name = "exp_viz"
-version = "0.4.3"
+version = "0.5.0"
+source = "git+https://github.com/ReddyLab/ccgr_portal_cov_viz?rev=993729e3bf799df43ab9e1de9e19f1c42a7c1abb#993729e3bf799df43ab9e1de9e19f1c42a7c1abb"
 dependencies = [
  "bincode",
  "cov_viz_ds",
@@ -106,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "exp_viz_extension"
-version = "0.4.3"
+version = "0.5.0"
 dependencies = [
  "bincode",
  "cov_viz_ds",
