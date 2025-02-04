@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% load static i18n %}
+
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<link href="{% static 'css/nouislider.min.css' %}" rel="stylesheet" />
+<!-- This CSS modifies the range slider look -->
+<style>
+    .noUi-horizontal {
+        height: 10px;
+    }
+
+    .noUi-horizontal .noUi-handle {
+        width: 20px;
+        height: 20px;
+    }
+
+    .noUi-handle {
+        border-radius: 10px;
+    }
+
+    .noUi-handle:before,
+    .noUi-handle:after {
+        display: none;
+    }
+
+    .noUi-connect {
+        background: rgba(1, 33, 105, 1);
+    }
+
+    .noUi-pips-horizontal {
+        transform: translate(6px);
+    }
+
+    select {
+        font-size: 0.9rem;
+        padding: 5px 5px;
+    }
+
+    #chrom-data-legend {
+        position:relative;
+    }
+</style>
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'js/nouislider.min.js' %}"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+{% endblock %}
+
+{% block title %}IGVF Experiment Coverage{% endblock %}
+
+{% block content %}
+<div class="flex flex-column justify-center min-w-full">
+    <div class="content-container min-w-fit max-w-fit">
+        <div class="bg-white border-b">
+            <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
+                <span><i class="fa-solid fa-flask-vial mr-1"></i>IGVF Experiment Coverage</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="min-w-full max-w-full">
+    <div class="flex flex-column justify-center">
+        <ul
+            class="mb-5 flex list-none flex-col flex-wrap border-b-0 pl-0 md:flex-row tab-bar"
+            role="tablist"
+            data-te-nav-ref
+        >
+            <li role="presentation">
+                <a
+                    href="#tabs-overview"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-overview-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-overview"
+                    data-te-nav-active
+                    role="tab"
+                    aria-controls="tabs-overview"
+                    aria-selected="true"
+                    >Overview <i class="bi bi-layers-half"></i
+                ></a>
+            </li>
+            <li role="presentation">
+                <a
+                    href="#tabs-details"
+                    class="my-2 block border-x-0 border-t-0 border-b-2 border-transparent px-7 pt-4 pb-3.5 text-xs font-medium uppercase leading-tight text-neutral-500 hover:isolate hover:border-transparent hover:bg-neutral-100 focus:isolate focus:border-transparent data-[te-nav-active]:border-primary data-[te-nav-active]:text-primary dark:text-neutral-400 dark:hover:bg-transparent dark:data-[te-nav-active]:border-primary-400 dark:data-[te-nav-active]:text-primary-400 no-underline"
+                    id="tabs-details-tab"
+                    data-te-toggle="pill"
+                    data-te-target="#tabs-details"
+                    role="tab"
+                    aria-controls="tabs-details"
+                    aria-selected="false"
+                    >Details <i class="bi bi-file-text"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div
+        class="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-overview"
+        role="tabpanel"
+        aria-labelledby="tabs-overview-tab"
+        data-te-tab-active
+    >
+        <div class="flex flex-col md:flex-row max-w-full gap-x-10">
+            <div id="chrom-data-filters" class="basis-1/4">
+                <!-- content section container for facet side bar -->
+                <div class="facet-content-section content-container">
+                    <div class="text-slate-500 flex justify-center">
+                        <span id="chrom-data-header" class="text-xl font-bold"></span
+                        ><span class="bi bi-layers-half ml-2"></span>
+                    </div>
+                    <div class="title-separator"></div>
+                    <div id="chrom-data-categorical-facets"></div>
+                    <div id="chrom-data-numeric-facets"></div>
+                    <div id="chrom-data-counts"></div>
+                </div>
+
+                <div class="facet-content-section content-container hidden md:block">
+                    <form name="regionUploadForm">
+                        <div>
+                            <label class="font-bold flex justify-center" for="regionFile">Highlight Regions</label>
+                            <input class="hidden" id="regionUploadInput" type="file" accept=".bed" name="regionFile"/>
+                            <label for="regionUploadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload File</label>
+                        </div>
+                    </form>
+                    <div id="regionUploadInputReset"></div>
+                </div>
+
+
+                <div class="facet-content-section content-container hidden md:block">
+                  <div class="logged-in-only-container">
+                    {% if not logged_in %}
+                    <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
+                        <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
+                    </div>
+                    {% endif %}
+                    <form name="dataDownloadForm">
+                        <div>
+                            <label class="font-bold flex justify-center" for="dataDlAll">Download All Selected Data*</label>
+                            <input class="hidden" id="dataDownloadAll" type="button" name="dataDlAll" />
+                            <label for="dataDownloadAll" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Request Data</label>
+                        </div>
+                        <div class="mt-5">
+                            <label class="font-bold flex justify-center" for="dataDlFile">Download Some Selected Data*</label>
+                            <input class="hidden" id="dataDownloadInput" type="file" accept=".bed" name="dataDlFile" />
+                            <label for="dataDownloadInput" class="flex justify-center global-button mt-3 border-2 p-2 text-sm">Upload file</label>
+                        </div>
+                    </form>
+                    <div id="dataDownloadLink" class="mt-5 mb-5"></div>
+                    <div class="flex justify-center">
+                    * Data downloads take facet filtering, except for "Number of {{ experiment.get_source_type_display }}s" and "Number of Genes Assayed", into account.
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="content-container basis-3/4">
+                <!-- content section container for ChromCov -->
+                <div class="flex flex-row flex-wrap gap-x-4 items-center">
+                    <div id="chrom-data-legend"></div>
+                    <div class="flex flex-col">
+                        <div id="reo-count"></div>
+                        <div id="source-count"></div>
+                        <div id="target-count"></div>
+                    </div>
+                    <div>
+                        <label for="covSelect">View:</label>
+                        <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
+                            <option value="sig">Highest Significance</option>
+                            <option value="effect">Greatest Effect Size</option>
+                            <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <div id="chrom-data" class="min-w-[768px] md:min-w-0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
+        id="tabs-details"
+        role="tabpanel"
+        aria-labelledby="tabs-details-tab"
+    >
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
+                  <div class="text-sm font-medium text-gray-900 mb-4 text-left">
+                      {{ experiment.description }}
+                  </div>
+              </div>
+              <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assay</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.experiment_type }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Cell Lines</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.cell_lines|join:", " }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Tissue Type</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.tissue_types|join:", " }}
+                  </div>
+              </div>
+              <div class="{% cycle rowcolors %} border-b flex items-center">
+                  <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assembly</div>
+                  <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                      {{ experiment.genome_assembly }}
+                  </div>
+              </div>
+          </div>
+          {% if experiment.attribution %}
+          <div>
+            <div class="bg-white border-b">
+                <div class="text-xl text-slate-500 font-bold mb-4 text-left">Attribution</div>
+            </div>
+            <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">PI</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.pi }}
+                </div>
+            </div>
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Institution</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.institution }}
+                </div>
+            </div>
+            {% if experiment.attribution.experimentalist is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Experimentalist</div>
+                <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
+                    {{ experiment.attribution.experimentalist }}
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.datasource_url is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Data Source</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.datasource_url }}">{{ experiment.attribution.datasource_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+            {% if experiment.attribution.lab_url is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Lab Website</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    <a class="link" href="{{ experiment.attribution.lab_url }}">{{ experiment.attribution.lab_url }}</a>
+                </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% if related_experiments or experiment.collections.exists %}
+        <div class="content-container min-w-full grid grid-cols-1 {% if related_experiments and experiment.collections.exists %}lg:grid-cols-2 {% endif %}gap-4">
+          {% if related_experiments %}
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
+              </div>
+              {% for related in related_experiments %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ related.description|linebreaksbr }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+          {% endif %}
+          {% if experiment.collections.exists %}
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Collections</div>
+              </div>
+              {% for collection in experiment.collections.all %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment_collection' collection.accession_id %}">{{ collection.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ collection.description|default_if_none:"No Description" }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block inline_javascript %}
+<script type="module">
+    import {exp_viz} from "{% static 'search/js/exp_viz/igvf_viz.js' %}";
+    exp_viz("{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
+</script>
+
+<script src="{% static 'js/tw-elements/index.min.js' %}"></script>
+{% endblock %}
