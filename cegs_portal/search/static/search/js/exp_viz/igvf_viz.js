@@ -235,6 +235,32 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
         }, 300),
     );
 
+    state.ac(
+        STATE_COVERAGE_TYPE,
+        debounce((s, key) => {
+            // Send facet data to server to get filtered data and updated numeric facets
+            let body = getFilterBody(
+                state,
+                genome,
+                coverage.chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+                null,
+            );
+
+            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
+        }, 300),
+    );
+
     state.ac(STATE_NUMERIC_FILTER_INTERVALS, (s, key) => {
         cc(g("chrom-data-numeric-facets"));
         numericFilterControls(state, state.g(STATE_FACETS)).forEach((element) =>
@@ -348,8 +374,8 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
         false,
     );
 
-    state.ac(STATE_COVERAGE_TYPE, (s, key) => {
-        setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
-        render(state, genomeRenderer);
-    });
+    // state.ac(STATE_COVERAGE_TYPE, (s, key) => {
+    //     setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
+    //     render(state, genomeRenderer);
+    // });
 }
