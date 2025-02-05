@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 from collections import defaultdict
@@ -7,13 +8,14 @@ from enum import Enum, StrEnum
 from typing import Optional
 
 from arango.client import ArangoClient
-from django.http import HttpResponseServerError
+from django.http import HttpResponseServerError, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 from huey.contrib.djhuey import db_task
 
 from cegs_portal.igvf.models import QueryCache
 from cegs_portal.search.models import EffectObservationDirectionType
+from cegs_portal.utils.http_exceptions import Http400
 
 logger = logging.getLogger(__name__)
 
@@ -95,12 +97,6 @@ def update_coverage_data():
     cache.save()
 
 
-class SetOpFeature(Enum):
-    SOURCE = 0
-    TARGET = 1
-    SOURCE_TARGET = 2
-
-
 class CoverageType(Enum):
     COUNT = 0
     SIGNIFICANCE = 1
@@ -117,12 +113,11 @@ class FilterIntervals:
 class Filter:
     categorical_facets: set[int]
     chrom: Optional[int]
-    set_op_feature: Optional[SetOpFeature]
     coverage_type: CoverageType
     numeric_intervals: Optional[FilterIntervals]
 
 
-def get_filter(filters, chrom, coverage_type, combination_features=None):
+def get_filter(filters, chrom, coverage_type):
     if chrom is not None:
         chrom = CHROM_NAMES.index(chrom)
 
@@ -133,16 +128,6 @@ def get_filter(filters, chrom, coverage_type, combination_features=None):
         )
     else:
         numeric_intervals = None
-
-    match combination_features:
-        case "sources":
-            set_op_feature = SetOpFeature.SOURCE
-        case "targets":
-            set_op_feature = SetOpFeature.TARGET
-        case "sources-targets":
-            set_op_feature = SetOpFeature.SOURCE_TARGET
-        case _:
-            set_op_feature = None
 
     match coverage_type:
         case "coverage-type-count":
@@ -158,7 +143,6 @@ def get_filter(filters, chrom, coverage_type, combination_features=None):
         categorical_facets=set(filters[0]),
         chrom=chrom,
         numeric_intervals=numeric_intervals,
-        set_op_feature=set_op_feature,
         coverage_type=coverage_type,
     )
 
@@ -223,6 +207,68 @@ class Bucket:
 
 
 def gen_chroms(igvf_value):
+    def gen_assoc_buckets(bucket):
+        new_abs = []
+        for ab in bucket.associated_buckets:
+            new_abs.extend(ab)
+        return new_abs
+
+    chroms = [
+        {"chrom": chrom, "bucket_size": BUCKET_SIZE, "source_intervals": [], "target_intervals": []}
+        for chrom in CHROM_NAMES
+    ]
+
+    reos_sources = igvf_value["sources"]
+    reos_genes = igvf_value["genes"]
+
+    for chrom in reos_sources:
+        buckets = defaultdict(Bucket)
+        chrom_name = chrom["chr"][3:]
+        chrom_idx = CHROM_NAMES.index(chrom_name)
+        for reo in chrom["reos"]:
+            reo = reo["reo"]
+            if reo["log10pvalue"] is None:
+                continue
+            bucket = buckets[((reo["source_start"] // BUCKET_SIZE) * BUCKET_SIZE) + 1]
+            bucket.add_reo(reo, Bucket.ChromKey.GENE)
+
+        chroms[chrom_idx]["source_intervals"] = [
+            {
+                "start": loc,
+                "count": b.count,
+                "associated_buckets": gen_assoc_buckets(b),
+                "log10_sig": b.log10_sig,
+                "effect": b.effect,
+            }
+            for loc, b in buckets.items()
+        ]
+
+    for chrom in reos_genes:
+        buckets = defaultdict(Bucket)
+        chrom_name = chrom["chr"][3:]
+        chrom_idx = CHROM_NAMES.index(chrom_name)
+        for reo in chrom["reos"]:
+            reo = reo["reo"]
+            if reo["log10pvalue"] is None:
+                continue
+            bucket = buckets[((reo["gene_start"] // BUCKET_SIZE) * BUCKET_SIZE) + 1]
+            bucket.add_reo(reo, Bucket.ChromKey.SOURCE)
+
+        chroms[chrom_idx]["target_intervals"] = [
+            {
+                "start": loc,
+                "count": b.count,
+                "associated_buckets": gen_assoc_buckets(b),
+                "log10_sig": b.log10_sig,
+                "effect": b.effect,
+            }
+            for loc, b in buckets.items()
+        ]
+
+    return chroms
+
+
+def gen_filter_chroms(igvf_value, data_filter):
     def gen_assoc_buckets(bucket):
         new_abs = []
         for ab in bucket.associated_buckets:
@@ -350,8 +396,74 @@ def get_stats(igvf_value):
     }
 
 
+def get_filter_stats(igvf_value, filter):
+    reos_sources = igvf_value["sources"]
+    reos_genes = igvf_value["genes"]
+
+    max_sig = float("-infinity")
+    min_sig = float("infinity")
+    max_effect = 0
+    min_effect = float("infinity")
+
+    reo_count = 0
+    sources = set()
+    genes = set()
+
+    for chrom in reos_sources:
+        for reo in chrom["reos"]:
+            reo = reo["reo"]
+            if reo["log10pvalue"] is None:
+                continue
+
+            reo_count += 1
+            sources.add((reo["source_chr"], reo["source_start"], reo["source_end"]))
+            genes.add((reo["gene_chr"], reo["gene_start"], reo["gene_end"]))
+            try:
+                max_sig = max(max_sig, reo["log10pvalue"])
+                min_sig = min(min_sig, reo["log10pvalue"])
+
+                if abs(max_effect) < abs(reo["score"]):
+                    max_effect = reo["score"]
+
+                if abs(min_effect) > abs(reo["score"]):
+                    min_effect = reo["score"]
+            except Exception as e:
+                logger.error(reo)
+                raise e
+
+    for chrom in reos_genes:
+        for reo in chrom["reos"]:
+            reo = reo["reo"]
+            if reo["log10pvalue"] is None:
+                continue
+            sources.add((reo["source_chr"], reo["source_start"], reo["source_end"]))
+            genes.add((reo["gene_chr"], reo["gene_start"], reo["gene_end"]))
+            try:
+                max_sig = max(max_sig, reo["log10pvalue"])
+                min_sig = min(min_sig, reo["log10pvalue"])
+
+                if abs(max_effect) < abs(reo["score"]):
+                    max_effect = reo["score"]
+
+                if abs(min_effect) > abs(reo["score"]):
+                    min_effect = reo["score"]
+            except Exception as e:
+                logger.error(reo)
+                raise e
+
+    return {
+        "max_sig": max_sig,
+        "min_sig": min_sig,
+        "max_effect": max(max_effect, min_effect),
+        "min_effect": min(max_effect, min_effect),
+        "reo_count": reo_count,
+        "source_count": len(sources),
+        "target_count": len(genes),
+    }
+
+
 class CoverageView(View):
-    def get(self, request, *args, **kwargs):
+    def generate_data(self, data_filter=None):
         igvf_data = QueryCache.objects.all().order_by("-created_at").first()
         if igvf_data is None:
             update_coverage_data()
@@ -360,17 +472,58 @@ class CoverageView(View):
         if igvf_data.created_at < (datetime.now(timezone.utc) - timedelta(days=15)):
             update_coverage_data()
 
-        stats = get_stats(igvf_data.value)
+        if data_filter is None:
+            stats = get_stats(igvf_data.value)
+        else:
+            stats = get_filter_stats(igvf_data.value, filter)
+
         logger.debug(stats)
         coverage = {
-            "chromosomes": gen_chroms(igvf_data.value),
+            "chromosomes": (
+                gen_chroms(igvf_data.value) if data_filter is None else gen_filter_chroms(igvf_data.value, filter)
+            ),
             "default_facets": default_facets(),
             "facets": view_facets(stats),
             "reo_count": stats["reo_count"],
             "source_count": stats["source_count"],
             "target_count": stats["target_count"],
         }
-        return render(request, "coverage.html", {"coverage": coverage})
+        return (coverage, stats)
 
-    def post_json(self, request, *args, **kwargs):
-        pass
+    def get(self, request, *args, **kwargs):
+        coverage, _ = self.generate_data()
+        return render(
+            request,
+            "coverage.html",
+            {
+                "coverage": coverage,
+                "logged_in": not request.user.is_anonymous,
+            },
+        )
+
+    def post(self, request, *args, **kwargs):
+        try:
+            body = json.loads(request.body)
+        except Exception as e:
+            raise Http400(f"Invalid request body:\n{request.body}") from e
+
+        if (zoom_chr := body.get("zoom")) is not None and zoom_chr not in CHROM_NAMES:
+            raise Http400(f"Invalid chromosome in zoom: {zoom_chr}")
+        coverage_type = body.get("coverage_type")
+
+        try:
+            body["filters"]
+        except Exception as e:
+            raise Http400(f'Invalid request body, no "filters" object:\n{request.body}') from e
+
+        data_filter = get_filter(body["filters"], zoom_chr, coverage_type)
+        coverage, stats = self.generate_data(data_filter)
+        del coverage["default_facets"]
+        del coverage["facets"]
+        coverage["bucket_size"] = BUCKET_SIZE
+        coverage["numeric_intervals"] = {
+            "effect": (stats["min_effect"], stats["max_effect"]),
+            "sig": (stats["min_sig"], stats["max_sig"]),
+        }
+
+        return JsonResponse(coverage)

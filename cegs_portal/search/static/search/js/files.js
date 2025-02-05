@@ -19,7 +19,7 @@ export function getJson(path) {
     });
 }
 
-export function postJson(path, body) {
+export function postJson(path, body, csrfToken) {
     let init = {
         method: "POST",
         credentials: "include",
@@ -29,6 +29,10 @@ export function postJson(path, body) {
         },
         mode: "same-origin",
     };
+
+    if (csrfToken !== undefined) {
+        init.headers["X-CSRFToken"] = csrfToken;
+    }
 
     return fetch(path, init).then((response) => {
         if (!response.ok) {

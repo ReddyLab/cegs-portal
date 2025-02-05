@@ -64,7 +64,7 @@ function build_state(coverage, genomeRenderer, sourceType) {
         [STATE_ZOOM_GENOME_LOCATION]: undefined,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
-        [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
+        [STATE_CATEGORICAL_FACET_VALUES]: default_facets.map((i) => String(i)),
         [STATE_COVERAGE_DATA]: coverageData,
         [STATE_ALL_FILTERED]: coverageData,
         [STATE_NUMERIC_FILTER_INTERVALS]: {effect: effectSizeFilterInterval, sig: sigFilterInterval},
@@ -163,12 +163,12 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
         let body = getFilterBody(
             state,
             genome,
-            manifest.chromosomes,
+            coverage.chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
             null,
         );
 
-        postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+        postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
         });
     });
@@ -184,12 +184,12 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
             let body = getFilterBody(
                 state,
                 genome,
-                manifest.chromosomes,
+                coverage.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES)],
                 null,
             );
 
-            postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
@@ -216,12 +216,12 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
             let body = getFilterBody(
                 state,
                 genome,
-                manifest.chromosomes,
+                coverage.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
                 null,
             );
 
-            postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
