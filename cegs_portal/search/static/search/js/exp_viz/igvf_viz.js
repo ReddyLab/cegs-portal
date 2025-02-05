@@ -22,10 +22,8 @@ import {
     STATE_NUMERIC_FILTER_INTERVALS,
     STATE_COUNT_FILTER_INTERVALS,
     STATE_HIGHLIGHT_REGIONS,
-    STATE_SELECTED_EXPERIMENT,
     STATE_ITEM_COUNTS,
     STATE_SOURCE_TYPE,
-    STATE_ANALYSIS,
     STATE_COVERAGE_TYPE,
     STATE_LEGEND_INTERVALS,
 } from "./consts.js";
@@ -38,13 +36,13 @@ import {
     setLegendIntervals,
 } from "./ui.js";
 
-function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType) {
-    let coverageData = manifest.chromosomes;
-    let facets = manifest.facets;
-    let default_facets = manifest.hasOwnProperty("default_facets") ? manifest.default_facets : [];
-    let reoCount = manifest.reo_count;
-    let sourceCount = manifest.source_count;
-    let targetCount = manifest.target_count;
+function build_state(coverage, genomeRenderer, sourceType) {
+    let coverageData = coverage.chromosomes;
+    let facets = coverage.facets;
+    let default_facets = coverage.default_facets;
+    let reoCount = coverage.reo_count;
+    let sourceCount = coverage.source_count;
+    let targetCount = coverage.target_count;
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
@@ -60,6 +58,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         legendIntervalFunc = effectInterval;
     }
 
+    console.log({effect: effectSizeFilterInterval, sig: sigFilterInterval});
     let state = new State({
         [STATE_ZOOMED]: false,
         [STATE_ZOOM_GENOME_LOCATION]: undefined,
@@ -73,10 +72,8 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
         [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
         [STATE_HIGHLIGHT_REGIONS]: {},
-        [STATE_SELECTED_EXPERIMENT]: exprAccessionID,
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
-        [STATE_ANALYSIS]: analysisAccessionID,
         [STATE_COVERAGE_TYPE]: coverageValue(coverageSelectorValue),
         [STATE_LEGEND_INTERVALS]: {
             source: legendIntervalFunc(coverageData, "source_intervals"),
@@ -108,11 +105,7 @@ async function getCoverageData(staticRoot) {
     return genome;
 }
 
-function experimentQuery(state) {
-    return `exp=${state.g(STATE_SELECTED_EXPERIMENT)}/${state.g(STATE_ANALYSIS)}`;
-}
-
-export async function exp_viz(staticRoot, csrfToken, loggedIn) {
+export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
     let genome;
     try {
         genome = await getCoverageData(staticRoot);
@@ -120,13 +113,13 @@ export async function exp_viz(staticRoot, csrfToken, loggedIn) {
         console.log(error);
         return;
     }
-    let genomeName = "GRCH37";
+    let genomeName = "GRCH38";
     let sourceType = "Genomic Element";
 
     rc(g("chrom-data-header"), t("Experiment Overview"));
     const genomeRenderer = new GenomeRenderer(genome);
 
-    let state = build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessionID, sourceType);
+    let state = build_state(coverage, genomeRenderer, sourceType);
 
     render(state, genomeRenderer);
 
@@ -175,14 +168,9 @@ export async function exp_viz(staticRoot, csrfToken, loggedIn) {
             null,
         );
 
-        postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
-            (response_json) => {
-                state.u(
-                    STATE_COVERAGE_DATA,
-                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
-                );
-            },
-        );
+        postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+            state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
+        });
     });
 
     state.ac(STATE_ALL_FILTERED, (s, key) => {
@@ -201,25 +189,23 @@ export async function exp_viz(staticRoot, csrfToken, loggedIn) {
                 null,
             );
 
-            postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
-                (response_json) => {
-                    state.u(
-                        STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
-                    );
-                    state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
-                    state.u(
-                        STATE_NUMERIC_FACET_VALUES,
-                        [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                        false,
-                    );
-                    state.u(STATE_ITEM_COUNTS, [
-                        response_json.reo_count,
-                        response_json.source_count,
-                        response_json.target_count,
-                    ]);
-                },
-            );
+            postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
+                );
+                state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
+                state.u(
+                    STATE_NUMERIC_FACET_VALUES,
+                    [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
+                    false,
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
         }, 300),
     );
 
@@ -235,19 +221,17 @@ export async function exp_viz(staticRoot, csrfToken, loggedIn) {
                 null,
             );
 
-            postJson(`/search/experiment_coverage?${experimentQuery(state)}`, JSON.stringify(body)).then(
-                (response_json) => {
-                    state.u(
-                        STATE_COVERAGE_DATA,
-                        mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
-                    );
-                    state.u(STATE_ITEM_COUNTS, [
-                        response_json.reo_count,
-                        response_json.source_count,
-                        response_json.target_count,
-                    ]);
-                },
-            );
+            postJson("/igvf/coverage", JSON.stringify(body)).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
         }, 300),
     );
 
