@@ -27,6 +27,7 @@ EXPERIMENT_SOURCES = [
     DNAFeatureType.GRNA.value,
     DNAFeatureType.DHS.value,
     DNAFeatureType.CRE.value,
+    DNAFeatureType.GE.value,
 ]
 EXPERIMENT_SOURCES_TEXT = "Experimentally Tested Element"
 
@@ -189,7 +190,7 @@ class Search:
                 raise ValueError(f'Unknown DNA Feature Type "{count_value}"')
 
             match count["feature_type"]:
-                case "DNAFeatureType.CAR" | "DNAFeatureType.GRNA" | "DNAFeatureType.DHS":
+                case "DNAFeatureType.CAR" | "DNAFeatureType.GRNA" | "DNAFeatureType.DHS" | "DNAFeatureType.GE":
                     sources.append(count["id"])
                 case "DNAFeatureType.GENE":
                     targets.append(count["id"])
@@ -274,6 +275,8 @@ class Search:
                     sanitized_sources.append(DNAFeatureType.DHS)
                 case "gene":
                     sanitized_genes.append(DNAFeatureType.GENE)
+                case "ge":
+                    sanitized_genes.append(DNAFeatureType.GE)
 
         source_features = DNAFeature.objects.filter(
             chrom_name=region.chromo,
@@ -294,7 +297,7 @@ class Search:
             gene_features = gene_features.filter(feature_type__in=sanitized_genes)
         else:
             source_features = source_features.filter(
-                feature_type__in=[DNAFeatureType.CAR, DNAFeatureType.GRNA, DNAFeatureType.DHS]
+                feature_type__in=[DNAFeatureType.CAR, DNAFeatureType.GRNA, DNAFeatureType.DHS, DNAFeatureType.GE]
             )
             gene_features = gene_features.filter(feature_type__in=[DNAFeatureType.GENE])
 

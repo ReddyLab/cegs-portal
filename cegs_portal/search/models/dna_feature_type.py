@@ -12,6 +12,7 @@ class DNAFeatureType(Enum):
     GRNA = "gRNA"
     CAR = "Chromatin Accessible Region"
     CRE = "Called Regulatory Element"
+    GE = "Genomic Element"
 
     @property
     def accession_abbreviation(self) -> str:
@@ -32,6 +33,8 @@ class DNAFeatureType(Enum):
                 return "CAR"
             case DNAFeatureType.CRE:
                 return "CRE"
+            case DNAFeatureType.GE:
+                return "GE"
             case _:
                 raise ValueError(f"No accession abbreviation defined for {self}")
 
@@ -54,6 +57,8 @@ class DNAFeatureType(Enum):
                 return DNAFeatureType.CAR
             case "DNAFeatureType.CRE":
                 return DNAFeatureType.CRE
+            case "DNAFeatureType.GE":
+                return DNAFeatureType.GE
             case _:
                 raise ValueError(f"No feature type defined for {db_str}")
 
@@ -64,3 +69,4 @@ class DNAFeatureSourceType(models.TextChoices):
     GRNA = "GRNA", DNAFeatureType.GRNA.value
     CAR = "CAR", DNAFeatureType.CAR.value
     CRE = "CRE", DNAFeatureType.CRE.value
+    GE = "GE", DNAFeatureType.GE.value
