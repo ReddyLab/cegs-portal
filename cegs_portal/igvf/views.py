@@ -168,7 +168,7 @@ def view_facets(stats):
             "facet_type": "FacetType.NUMERIC",
             "description": "log2 fold changes",
             "coverage": ["Target", "Source"],
-            "range": [stats["min_effect"], stats["max_effect"]],
+            "range": [stats.min_effect, stats.max_effect],
         },
         {
             "id": "Significance",
@@ -176,7 +176,7 @@ def view_facets(stats):
             "facet_type": "FacetType.NUMERIC",
             "description": "An adjusted p value",
             "coverage": ["Target", "Source"],
-            "range64": [stats["min_sig"], stats["max_sig"]],
+            "range64": [stats.min_sig, stats.max_sig],
         },
     ]
 
@@ -224,250 +224,141 @@ class Bucket:
         self.associated_buckets.add((chrom_idx, bucket))
 
 
-def gen_chroms(igvf_value, filter):
-    def gen_assoc_buckets(bucket):
+def chromosomes(chroms, filter):
+    for chrom in chroms:
+        chrom_name = chrom["chr"][3:]
+        if filter.chrom is not None:
+            if CHROM_NAMES[filter.chrom] != chrom_name:
+                continue
+            chrom_idx = 0
+        else:
+            chrom_idx = CHROM_NAMES.index(chrom_name)
+        yield (chrom_idx, reos(chrom["reos"], filter))
+
+
+def reos(reo_list, filter):
+    for reo in reo_list:
+        reo = reo["reo"]
+        reo_pval = reo["log10pvalue"]
+        reo_sig = reo["significant"]
+        reo_effect = reo["score"]
+
+        if reo_pval is None:
+            continue
+
+        if filter.numeric_intervals is not None:
+            if reo_pval < filter.numeric_intervals.sig[0] or reo_pval > filter.numeric_intervals.sig[1]:
+                continue
+
+            if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
+                continue
+
+        cat_filter = [
+            EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets and reo_sig and reo_effect > 0,
+            EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets and reo_sig and reo_effect < 0,
+            EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
+        ]
+
+        if not any(cat_filter):
+            continue
+
+        yield reo
+
+
+class Chromosomes:
+    class ReoTrack(StrEnum):
+        Source = "source"
+        Gene = "gene"
+
+    def __init__(self, filter):
+        self.bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
+        if filter.chrom is not None:
+            self.chroms = [
+                {
+                    "chrom": CHROM_NAMES[filter.chrom],
+                    "bucket_size": self.bucket_size,
+                    "source_intervals": [],
+                    "target_intervals": [],
+                }
+            ]
+        else:
+            self.chroms = [
+                {"chrom": chrom, "bucket_size": self.bucket_size, "source_intervals": [], "target_intervals": []}
+                for chrom in CHROM_NAMES
+            ]
+
+        self.source_buckets = defaultdict(lambda: defaultdict(Bucket))
+        self.target_buckets = defaultdict(lambda: defaultdict(Bucket))
+        self.filter = filter
+
+    def gen_assoc_buckets(self, bucket):
         new_abs = []
         for ab in bucket.associated_buckets:
             new_abs.extend(ab)
         return new_abs
 
-    bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
-    if filter.chrom is not None:
-        chroms = [
-            {
-                "chrom": CHROM_NAMES[filter.chrom],
-                "bucket_size": bucket_size,
-                "source_intervals": [],
-                "target_intervals": [],
-            }
-        ]
-    else:
-        chroms = [
-            {"chrom": chrom, "bucket_size": bucket_size, "source_intervals": [], "target_intervals": []}
-            for chrom in CHROM_NAMES
-        ]
-
-    reos_sources = igvf_value["sources"]
-    reos_genes = igvf_value["genes"]
-
-    for chrom in reos_sources:
-        chrom_name = chrom["chr"][3:]
-        if filter.chrom is not None:
-            if CHROM_NAMES[filter.chrom] != chrom_name:
-                continue
-            chrom_idx = 0
+    def add_reo(self, chrom_idx, reo, track: ReoTrack):
+        if track == Chromosomes.ReoTrack.Source:
+            buckets = self.source_buckets[chrom_idx]
+            comp_item = Bucket.ChromKey.GENE
         else:
-            chrom_idx = CHROM_NAMES.index(chrom_name)
+            buckets = self.target_buckets[chrom_idx]
+            comp_item = Bucket.ChromKey.SOURCE
+        bucket = buckets[((reo[f"{track}_start"] // self.bucket_size) * self.bucket_size) + 1]
+        bucket.add_reo(reo, comp_item, self.filter)
 
-        buckets = defaultdict(Bucket)
-
-        for reo in chrom["reos"]:
-            reo = reo["reo"]
-            reo_pval = reo["log10pvalue"]
-            reo_sig = reo["significant"]
-            reo_effect = reo["score"]
-
-            if reo_pval is None:
-                continue
-
-            if filter.numeric_intervals is not None:
-                if reo_pval < filter.numeric_intervals.sig[0] or reo_pval > filter.numeric_intervals.sig[1]:
-                    continue
-
-                if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
-                    continue
-
-            cat_filter = [
-                EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect > 0,
-                EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect < 0,
-                EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
+    def chrom_data(self):
+        for i, chrom in enumerate(self.chroms):
+            chrom["source_intervals"] = [
+                {
+                    "start": loc,
+                    "count": b.count,
+                    "associated_buckets": self.gen_assoc_buckets(b),
+                    "log10_sig": b.log10_sig,
+                    "effect": b.effect,
+                }
+                for loc, b in self.source_buckets[i].items()
             ]
 
-            if not any(cat_filter):
-                continue
-
-            bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
-            bucket = buckets[((reo["source_start"] // bucket_size) * bucket_size) + 1]
-            bucket.add_reo(reo, Bucket.ChromKey.GENE, filter)
-
-        chroms[chrom_idx]["source_intervals"] = [
-            {
-                "start": loc,
-                "count": b.count,
-                "associated_buckets": gen_assoc_buckets(b),
-                "log10_sig": b.log10_sig,
-                "effect": b.effect,
-            }
-            for loc, b in buckets.items()
-        ]
-
-    for chrom in reos_genes:
-        chrom_name = chrom["chr"][3:]
-        if filter.chrom is not None:
-            if CHROM_NAMES[filter.chrom] != chrom_name:
-                continue
-            chrom_idx = 0
-        else:
-            chrom_idx = CHROM_NAMES.index(chrom_name)
-
-        buckets = defaultdict(Bucket)
-
-        for reo in chrom["reos"]:
-            reo = reo["reo"]
-            reo_pval = reo["log10pvalue"]
-            reo_sig = reo["significant"]
-            reo_effect = reo["score"]
-
-            if reo_pval is None:
-                continue
-
-            if filter.numeric_intervals is not None:
-                if reo_pval < filter.numeric_intervals.sig[0] or reo_pval > filter.numeric_intervals.sig[1]:
-                    continue
-
-                if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
-                    continue
-
-            cat_filter = [
-                EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect > 0,
-                EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect < 0,
-                EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
+            chrom["target_intervals"] = [
+                {
+                    "start": loc,
+                    "count": b.count,
+                    "associated_buckets": self.gen_assoc_buckets(b),
+                    "log10_sig": b.log10_sig,
+                    "effect": b.effect,
+                }
+                for loc, b in self.target_buckets[i].items()
             ]
-
-            if not any(cat_filter):
-                continue
-
-            bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
-            bucket = buckets[((reo["gene_start"] // bucket_size) * bucket_size) + 1]
-            bucket.add_reo(reo, Bucket.ChromKey.SOURCE, filter)
-
-        chroms[chrom_idx]["target_intervals"] = [
-            {
-                "start": loc,
-                "count": b.count,
-                "associated_buckets": gen_assoc_buckets(b),
-                "log10_sig": b.log10_sig,
-                "effect": b.effect,
-            }
-            for loc, b in buckets.items()
-        ]
-
-    return chroms
+        return self.chroms
 
 
-def get_stats(igvf_value, filter):
-    reos_sources = igvf_value["sources"]
-    reos_genes = igvf_value["genes"]
+class Stats:
+    def __init__(self):
+        self.max_sig = float("-infinity")
+        self.min_sig = float("infinity")
+        self.max_effect = 0
+        self.min_effect = float("infinity")
 
-    max_sig = float("-infinity")
-    min_sig = float("infinity")
-    max_effect = 0
-    min_effect = float("infinity")
+        self.reo_count = 0
+        self.sources = set()
+        self.genes = set()
 
-    reo_count = 0
-    sources = set()
-    genes = set()
+    def add_reo(self, reo, reo_value):
+        reo_pval = reo["log10pvalue"]
+        reo_effect = reo["score"]
 
-    for chrom in reos_sources:
-        for reo in chrom["reos"]:
-            reo = reo["reo"]
-            reo_pval = reo["log10pvalue"]
-            reo_sig = reo["significant"]
-            reo_effect = reo["score"]
-
-            if reo_pval is None:
-                continue
-
-            if filter.numeric_intervals is not None:
-                if reo_pval < filter.numeric_intervals.sig[0] or reo_pval > filter.numeric_intervals.sig[1]:
-                    continue
-
-                if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
-                    continue
-
-            cat_filter = [
-                EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect > 0,
-                EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect < 0,
-                EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
-            ]
-
-            if not any(cat_filter):
-                continue
-
-            reo_count += 1
-            sources.add((reo["source_chr"], reo["source_start"], reo["source_end"]))
-            genes.add((reo["gene_chr"], reo["gene_start"], reo["gene_end"]))
-            try:
-                max_sig = max(max_sig, reo_pval)
-                min_sig = min(min_sig, reo_pval)
-                max_effect = max(max_effect, reo_effect)
-                min_effect = min(min_effect, reo_effect)
-            except Exception as e:
-                logger.error(reo)
-                raise e
-
-    for chrom in reos_genes:
-        for reo in chrom["reos"]:
-            reo = reo["reo"]
-            reo_pval = reo["log10pvalue"]
-            reo_sig = reo["significant"]
-            reo_effect = reo["score"]
-
-            if reo_pval is None:
-                continue
-
-            if filter.numeric_intervals is not None:
-                if reo_pval < filter.numeric_intervals.sig[0] or reo_pval > filter.numeric_intervals.sig[1]:
-                    continue
-
-                if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
-                    continue
-
-            cat_filter = [
-                EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect > 0,
-                EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets
-                and reo_sig
-                and reo_effect < 0,
-                EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
-            ]
-
-            if not any(cat_filter):
-                continue
-
-            sources.add((reo["source_chr"], reo["source_start"], reo["source_end"]))
-            genes.add((reo["gene_chr"], reo["gene_start"], reo["gene_end"]))
-            try:
-                max_sig = max(max_sig, reo_pval)
-                min_sig = min(min_sig, reo_pval)
-                max_effect = max(max_effect, reo_effect)
-                min_effect = min(min_effect, reo_effect)
-            except Exception as e:
-                logger.error(reo)
-                raise e
-
-    return {
-        "max_sig": max_sig,
-        "min_sig": min_sig,
-        "max_effect": max(max_effect, min_effect),
-        "min_effect": min(max_effect, min_effect),
-        "reo_count": reo_count,
-        "source_count": len(sources),
-        "target_count": len(genes),
-    }
+        self.reo_count += reo_value
+        self.sources.add((reo["source_chr"], reo["source_start"], reo["source_end"]))
+        self.genes.add((reo["gene_chr"], reo["gene_start"], reo["gene_end"]))
+        try:
+            self.max_sig = max(self.max_sig, reo_pval)
+            self.min_sig = min(self.min_sig, reo_pval)
+            self.max_effect = max(self.max_effect, reo_effect)
+            self.min_effect = min(self.min_effect, reo_effect)
+        except Exception as e:
+            logger.error(reo)
+            raise e
 
 
 class CoverageView(View):
@@ -480,16 +371,26 @@ class CoverageView(View):
         if igvf_data.created_at < (datetime.now(timezone.utc) - timedelta(days=15)):
             update_coverage_data()
 
-        stats = get_stats(igvf_data.value, data_filter)
+        stats = Stats()
+        chrom_data = Chromosomes(data_filter)
+        for chrom_idx, reo_list in chromosomes(igvf_data.value["sources"], data_filter):
+            for reo in reo_list:
+                stats.add_reo(reo, 1)
+                chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Source)
+
+        for chrom_idx, reo_list in chromosomes(igvf_data.value["genes"], data_filter):
+            for reo in reo_list:
+                stats.add_reo(reo, 0)
+                chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Gene)
 
         logger.debug(stats)
         coverage = {
-            "chromosomes": gen_chroms(igvf_data.value, data_filter),
+            "chromosomes": chrom_data.chrom_data(),
             "default_facets": default_facets(),
             "facets": view_facets(stats),
-            "reo_count": stats["reo_count"],
-            "source_count": stats["source_count"],
-            "target_count": stats["target_count"],
+            "reo_count": stats.reo_count,
+            "source_count": len(stats.sources),
+            "target_count": len(stats.genes),
         }
         return (coverage, stats)
 
@@ -533,8 +434,8 @@ class CoverageView(View):
         del coverage["facets"]
         coverage["bucket_size"] = SMALL_BUCKET_SIZE if data_filter.chrom is not None else LARGE_BUCKET_SIZE
         coverage["numeric_intervals"] = {
-            "effect": (stats["min_effect"], stats["max_effect"]),
-            "sig": (stats["min_sig"], stats["max_sig"]),
+            "effect": (stats.min_effect, stats.max_effect),
+            "sig": (stats.min_sig, stats.max_sig),
         }
 
         return JsonResponse(coverage)
