@@ -1,28 +1,21 @@
 import json
 import logging
-import time
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum, StrEnum
 from typing import Optional
 
-from arango.client import ArangoClient
 from django.http import HttpResponseServerError, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
-from huey.contrib.djhuey import db_task
 
-from cegs_portal.igvf.models import QueryCache
+from cegs_portal.igvf.models import QueryCache, update_coverage_data
 from cegs_portal.search.models import EffectObservationDirectionType
 from cegs_portal.utils.http_exceptions import Http400
 
 logger = logging.getLogger(__name__)
 
-HOSTNAME = "https://db.catalog.igvf.org"
-DB_NAME = "igvf"
-HEADERS = {"Content-Type": "application/json"}
-PAYLOAD = {"username": "guest", "password": "guestigvfcatalog"}
+
 LARGE_BUCKET_SIZE = 2_000_000
 SMALL_BUCKET_SIZE = 100_000
 CHROM_NAMES = [
@@ -52,50 +45,6 @@ CHROM_NAMES = [
     "Y",
     "MT",
 ]
-
-
-@db_task()
-def update_coverage_data():
-    client = ArangoClient(hosts=HOSTNAME)
-    db = client.db(DB_NAME, username=PAYLOAD["username"], password=PAYLOAD["password"])
-    async_db = db.begin_async_execution(return_result=True)
-
-    query = async_db.aql.execute(
-        """
-        LET reos = (
-            FOR rr IN genomic_elements
-            FOR g in genes
-            FOR rrg IN genomic_elements_genes
-              FILTER rrg._to == g._id && rrg._from == rr._id && HAS(rrg, "significant")
-              RETURN merge(rrg, { "gene_chr": g.chr, "gene_start": g.`start`, "gene_end": g.`end`, "source_chr": rr.chr, "source_start": rr.`start`, "source_end": rr.`end`  })
-        )
-
-        LET sources = (FOR reo IN reos
-        COLLECT chr = reo.source_chr INTO groups
-        RETURN { "chr": chr, "reos": groups})
-
-        LET genes = (FOR reo IN reos
-        COLLECT chr = reo.gene_chr INTO groups
-        RETURN { "chr": chr, "reos": groups})
-
-        RETURN {"sources": sources, "genes": genes}
-    """
-    )
-
-    if query is None:
-        return
-
-    logger.debug("IGVF Query started")
-    # Let's wait until the jobs are finished.
-    while query.status() != "done":
-        logger.debug("IGVF Query working")
-        time.sleep(10)
-
-    logger.debug(f"IGVF Query complete: {query.status()}")
-    result = query.result().pop()
-
-    cache = QueryCache(value=result)
-    cache.save()
 
 
 class CoverageType(Enum):
@@ -367,9 +316,6 @@ class CoverageView(View):
         if igvf_data is None:
             update_coverage_data()
             return HttpResponseServerError("No IGVF Data found. Please try again in a few minutes.")
-
-        if igvf_data.created_at < (datetime.now(timezone.utc) - timedelta(days=15)):
-            update_coverage_data()
 
         stats = Stats()
         chrom_data = Chromosomes(data_filter)
