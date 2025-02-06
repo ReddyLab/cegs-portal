@@ -23,7 +23,8 @@ HOSTNAME = "https://db.catalog.igvf.org"
 DB_NAME = "igvf"
 HEADERS = {"Content-Type": "application/json"}
 PAYLOAD = {"username": "guest", "password": "guestigvfcatalog"}
-BUCKET_SIZE = 2000000
+LARGE_BUCKET_SIZE = 2_000_000
+SMALL_BUCKET_SIZE = 100_000
 CHROM_NAMES = [
     "1",
     "2",
@@ -199,10 +200,10 @@ class Bucket:
         self.effect = 0
         self.associated_buckets = set()
 
-    def add_reo(self, reo, comp_item, coverage_type):
+    def add_reo(self, reo, comp_item, filter):
         self.count += 1
 
-        match coverage_type:
+        match filter.coverage_type:
             case CoverageType.COUNT:
                 self.log10_sig = max(self.log10_sig, reo["log10pvalue"])
                 if abs(reo["score"]) > abs(self.effect):
@@ -218,7 +219,8 @@ class Bucket:
 
         chrom_name = reo[f"{comp_item}_chr"][3:]
         chrom_idx = CHROM_NAMES.index(chrom_name)
-        bucket = reo[f"{comp_item}_start"] // BUCKET_SIZE
+        bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
+        bucket = reo[f"{comp_item}_start"] // bucket_size
         self.associated_buckets.add((chrom_idx, bucket))
 
 
@@ -229,18 +231,36 @@ def gen_chroms(igvf_value, filter):
             new_abs.extend(ab)
         return new_abs
 
-    chroms = [
-        {"chrom": chrom, "bucket_size": BUCKET_SIZE, "source_intervals": [], "target_intervals": []}
-        for chrom in CHROM_NAMES
-    ]
+    bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
+    if filter.chrom is not None:
+        chroms = [
+            {
+                "chrom": CHROM_NAMES[filter.chrom],
+                "bucket_size": bucket_size,
+                "source_intervals": [],
+                "target_intervals": [],
+            }
+        ]
+    else:
+        chroms = [
+            {"chrom": chrom, "bucket_size": bucket_size, "source_intervals": [], "target_intervals": []}
+            for chrom in CHROM_NAMES
+        ]
 
     reos_sources = igvf_value["sources"]
     reos_genes = igvf_value["genes"]
 
     for chrom in reos_sources:
-        buckets = defaultdict(Bucket)
         chrom_name = chrom["chr"][3:]
-        chrom_idx = CHROM_NAMES.index(chrom_name)
+        if filter.chrom is not None:
+            if CHROM_NAMES[filter.chrom] != chrom_name:
+                continue
+            chrom_idx = 0
+        else:
+            chrom_idx = CHROM_NAMES.index(chrom_name)
+
+        buckets = defaultdict(Bucket)
+
         for reo in chrom["reos"]:
             reo = reo["reo"]
             reo_pval = reo["log10pvalue"]
@@ -270,8 +290,9 @@ def gen_chroms(igvf_value, filter):
             if not any(cat_filter):
                 continue
 
-            bucket = buckets[((reo["source_start"] // BUCKET_SIZE) * BUCKET_SIZE) + 1]
-            bucket.add_reo(reo, Bucket.ChromKey.GENE, filter.coverage_type)
+            bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
+            bucket = buckets[((reo["source_start"] // bucket_size) * bucket_size) + 1]
+            bucket.add_reo(reo, Bucket.ChromKey.GENE, filter)
 
         chroms[chrom_idx]["source_intervals"] = [
             {
@@ -285,9 +306,16 @@ def gen_chroms(igvf_value, filter):
         ]
 
     for chrom in reos_genes:
-        buckets = defaultdict(Bucket)
         chrom_name = chrom["chr"][3:]
-        chrom_idx = CHROM_NAMES.index(chrom_name)
+        if filter.chrom is not None:
+            if CHROM_NAMES[filter.chrom] != chrom_name:
+                continue
+            chrom_idx = 0
+        else:
+            chrom_idx = CHROM_NAMES.index(chrom_name)
+
+        buckets = defaultdict(Bucket)
+
         for reo in chrom["reos"]:
             reo = reo["reo"]
             reo_pval = reo["log10pvalue"]
@@ -317,8 +345,9 @@ def gen_chroms(igvf_value, filter):
             if not any(cat_filter):
                 continue
 
-            bucket = buckets[((reo["gene_start"] // BUCKET_SIZE) * BUCKET_SIZE) + 1]
-            bucket.add_reo(reo, Bucket.ChromKey.SOURCE, filter.coverage_type)
+            bucket_size = SMALL_BUCKET_SIZE if filter.chrom is not None else LARGE_BUCKET_SIZE
+            bucket = buckets[((reo["gene_start"] // bucket_size) * bucket_size) + 1]
+            bucket.add_reo(reo, Bucket.ChromKey.SOURCE, filter)
 
         chroms[chrom_idx]["target_intervals"] = [
             {
@@ -502,7 +531,7 @@ class CoverageView(View):
         coverage, stats = self.generate_data(data_filter)
         del coverage["default_facets"]
         del coverage["facets"]
-        coverage["bucket_size"] = BUCKET_SIZE
+        coverage["bucket_size"] = SMALL_BUCKET_SIZE if data_filter.chrom is not None else LARGE_BUCKET_SIZE
         coverage["numeric_intervals"] = {
             "effect": (stats["min_effect"], stats["max_effect"]),
             "sig": (stats["min_sig"], stats["max_sig"]),
