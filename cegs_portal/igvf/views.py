@@ -384,15 +384,7 @@ class CoverageView(View):
                 chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Gene)
 
         logger.debug(stats)
-        coverage = {
-            "chromosomes": chrom_data.chrom_data(),
-            "default_facets": default_facets(),
-            "facets": view_facets(stats),
-            "reo_count": stats.reo_count,
-            "source_count": len(stats.sources),
-            "target_count": len(stats.genes),
-        }
-        return (coverage, stats)
+        return chrom_data.chrom_data(), stats
 
     def get(self, request, *args, **kwargs):
         filter = Filter(
@@ -403,12 +395,19 @@ class CoverageView(View):
                 effect=(float("-infinity"), float("infinity")), sig=(float("-infinity"), float("infinity"))
             ),
         )
-        coverage, _ = self.generate_data(filter)
+        chrom_data, stats = self.generate_data(filter)
         return render(
             request,
             "coverage.html",
             {
-                "coverage": coverage,
+                "coverage": {
+                    "chromosomes": chrom_data,
+                    "default_facets": default_facets(),
+                    "facets": view_facets(stats),
+                    "reo_count": stats.reo_count,
+                    "source_count": len(stats.sources),
+                    "target_count": len(stats.genes),
+                },
                 "logged_in": not request.user.is_anonymous,
             },
         )
@@ -429,13 +428,18 @@ class CoverageView(View):
             raise Http400(f'Invalid request body, no "filters" object:\n{request.body}') from e
 
         data_filter = get_filter(body["filters"], zoom_chr, coverage_type)
-        coverage, stats = self.generate_data(data_filter)
-        del coverage["default_facets"]
-        del coverage["facets"]
-        coverage["bucket_size"] = SMALL_BUCKET_SIZE if data_filter.chrom is not None else LARGE_BUCKET_SIZE
-        coverage["numeric_intervals"] = {
-            "effect": (stats.min_effect, stats.max_effect),
-            "sig": (stats.min_sig, stats.max_sig),
-        }
+        chrom_data, stats = self.generate_data(data_filter)
 
-        return JsonResponse(coverage)
+        return JsonResponse(
+            {
+                "chromosomes": chrom_data,
+                "bucket_size": SMALL_BUCKET_SIZE if data_filter.chrom is not None else LARGE_BUCKET_SIZE,
+                "numeric_intervals": {
+                    "effect": (stats.min_effect, stats.max_effect),
+                    "sig": (stats.min_sig, stats.max_sig),
+                },
+                "reo_count": stats.reo_count,
+                "source_count": len(stats.sources),
+                "target_count": len(stats.genes),
+            }
+        )
