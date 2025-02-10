@@ -42,18 +42,24 @@ class Biosample(Accessioned):
         return f"{self.name} ({self.cell_line_name})"
 
 
+# Really, this should be contained in the Experiment class, like Provenance
 class FunctionalCharacterizationType(StrEnum):
     REPORTER_ASSAY = "Reporter Assay"
     CRISPRA = "CRISPRa"
     CRISPRI = "CRISPRi"
 
 
+# Really, this should be contained in the Experiment class, like Provenance
 class GenomeAssemblyType(StrEnum):
     HG19 = "hg19"
     HG38 = "hg38"
 
 
 class Experiment(Accessioned, Faceted, AccessControlled):
+    class Provenance(StrEnum):
+        IGVF = "IGVF"
+        CCGR = "CCGR"
+
     class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["accession_id"], name="exp_accession_id_index"),
@@ -65,6 +71,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         BIOSAMPLE = "Biosample"
         GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
         FUNCTIONAL_CHARACTERIZATION = "Functional Characterization Modality"  # FunctionalCharacterizationType
+        PROVENANCE = "Provenance"  # Provenance
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)

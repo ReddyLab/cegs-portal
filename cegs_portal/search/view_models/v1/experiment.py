@@ -120,6 +120,7 @@ class ExperimentSearch:
             Experiment.objects.annotate(
                 cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
             )
+            .exclude(facet_values__value__in=[Experiment.Provenance.IGVF])
             .order_by("accession_id")
             .select_related("default_analysis")
             .prefetch_related("biosamples")

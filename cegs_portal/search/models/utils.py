@@ -22,6 +22,7 @@ class AccessionType(Enum):
     BIOS = "biosample"
     ANALYSIS = "analysis"
     GE = "genomic element"
+    IGVF = "igvf experiment"
 
     def abbrev(self):
         if self == AccessionType.GENE:
@@ -54,6 +55,8 @@ class AccessionType(Enum):
             return "AN"
         if self == AccessionType.GE:
             return "GE"
+        if self == AccessionType.IGVF:
+            return "IGVF"
 
         raise Exception(f"Invalid Accession type: {self}")
 
