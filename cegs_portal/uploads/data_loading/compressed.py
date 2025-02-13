@@ -22,11 +22,11 @@ def load(compressed_file, experiment_accession_id):
 
         logger.info(f"{experiment_accession_id}: Loading experiment")
         metadata = ExperimentMetadata.load(experiment_filename, experiment_accession_id)
-        Experiment(metadata).load(expr_data_filename).save()
+        Experiment(metadata).add_file_data_source(expr_data_filename).load().save()
 
         logger.info(f"{experiment_accession_id}: Loading analysis")
         metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-        analysis = Analysis(metadata).load(analysis_data_filename).save()
+        analysis = Analysis(metadata).add_file_data_source(analysis_data_filename).load().save()
 
         logger.info(f"{experiment_accession_id}: Finished loading data")
         return analysis.accession_id

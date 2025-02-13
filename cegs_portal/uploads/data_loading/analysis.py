@@ -3,6 +3,7 @@ import logging
 import math
 from dataclasses import dataclass
 from io import StringIO
+from itertools import tee
 from typing import Optional
 
 from django.db import transaction
@@ -75,20 +76,36 @@ class Analysis:
         self.categorical_facet_values = {
             facet_value.value: facet_value for facet_value in FacetValue.objects.filter(facet_id=dir_facet.id).all()
         }
+        self.data_source = None
 
-    def load(self, results_file_location=None):
+    def add_file_data_source(self, results_file_location):
+        def _ds():
+            results_tsv = InternetFile(results_file_location).file
+            reader = csv.DictReader(results_tsv, delimiter="\t", quoting=csv.QUOTE_NONE)
+            for line in reader:
+                yield line
+            results_tsv.close()
+
+        self.data_source = _ds
+
+        return self
+
+    def add_generator_data_source(self, generator):
+        def _ds():
+            [new_gen] = tee(generator, 1)
+            for line in new_gen:
+                yield line
+
+        self.data_source = _ds
+        return self
+
+    def load(self):
+        assert self.data_source is not None
+
         source_type = FeatureType(self.metadata.source_type)
 
-        results_file = self.metadata.results
-
-        if results_file_location is None:
-            results_tsv = InternetFile(results_file.file_location).file
-        else:
-            results_tsv = InternetFile(results_file_location).file
-
-        reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
-        for line in reader:
+        for line in self.data_source():
             chrom_name, start, end, strand = (
                 line["chrom"],
                 int(line["start"]),
@@ -122,7 +139,6 @@ class Analysis:
 
             observations.append(ObservationRow(sources, targets, categorical_facets, num_facets))
 
-        results_tsv.close()
         self.observations = observations
         return self
 
@@ -176,7 +192,9 @@ class Analysis:
                     sources.write(source_entry(reo_id, feature_id))
 
                     feature = DNAFeature.objects.get(id=feature_id)
-                    feature.facet_values.add(fcm_facet_value)
+                    if fcm_facet_value is not None:
+                        feature.facet_values.add(fcm_facet_value)
+
                     if reo_direction:
                         feature.significant_reo = feature.significant_reo or (reo_direction[0] != "Non-significant")
                         feature.facet_values.add(self.categorical_facet_values[reo_direction[0]])
@@ -237,5 +255,5 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-    analysis = Analysis(metadata).load().save()
+    analysis = Analysis(metadata).add_file_data_source(metadata.results.file_location).load().save()
     return analysis.accession_id

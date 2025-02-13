@@ -19,7 +19,7 @@ from cegs_portal.search.models import (
 )
 
 from .biosample import ExperimentBiosample
-from .file import FileMetadata
+from .file import AnalysisResultsMetadata, TestedElementsMetadata
 
 MAX_METADATA_CONTENT_LENGTH = 65_536
 
@@ -46,7 +46,7 @@ class ExperimentMetadataKeys(StrEnum):
     YEAR = "year"
     LAB = "lab"
     FUNCTIONAL_CHARACTERIZATION = "functional_characterization_modality"
-    TESTED_ELEMENTS_FILE = "tested_elements_file"
+    TESTED_ELEMENTS_METADATA = "tested_elements_file"
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -61,6 +61,8 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             return DNAFeatureSourceType.CCRE
         case "called regulatory element":
             return DNAFeatureSourceType.CRE
+        case "genomic element":
+            return DNAFeatureSourceType.GE
         case _:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
@@ -108,19 +110,19 @@ class AnalysisMetadata(Metadata):
     description: str
     name: str
     source_type: str
-    results: FileMetadata
+    results: AnalysisResultsMetadata
     genome_assembly: str
     p_val_threshold: float
     p_val_adj_method: str
     data_format: str
 
-    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id: str):
         self.description = analysis_dict[AnalysisMetadataKeys.DESCRIPTION]
         self.experiment_accession_id = experiment_accession_id
         self.name = analysis_dict[AnalysisMetadataKeys.NAME]
         assert self.name != ""
 
-        self.results = FileMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
+        self.results = AnalysisResultsMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
         self.genome_assembly = analysis_dict[AnalysisMetadataKeys.GENOME_ASSEMBLY]
         self.p_val_threshold = analysis_dict[AnalysisMetadataKeys.P_VAL_THRESHOLD]
         self.p_val_adj_method = analysis_dict.get(AnalysisMetadataKeys.P_VAL_ADJ_METHOD, "unknown")
@@ -171,9 +173,9 @@ class ExperimentMetadata(Metadata):
     biosamples: list[ExperimentBiosample]
     source_type: str
     parent_source_type: Optional[str]
-    tested_elements_file: FileMetadata
+    tested_elements_metadata: TestedElementsMetadata
 
-    def __init__(self, experiment_dict: dict[str, Any], accession_id):
+    def __init__(self, experiment_dict: dict[str, Any], accession_id: str):
         self.description = experiment_dict.get(ExperimentMetadataKeys.DESCRIPTION)
         self.assay = experiment_dict.get(ExperimentMetadataKeys.ASSAY)
         self.name = experiment_dict[ExperimentMetadataKeys.NAME]
@@ -184,9 +186,9 @@ class ExperimentMetadata(Metadata):
         self.parent_source_type = experiment_dict.get(ExperimentMetadataKeys.PARENT_SOURCE_TYPE)
 
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict[ExperimentMetadataKeys.BIOSAMPLES]]
-        self.tested_elements_file = FileMetadata(
-            experiment_dict[ExperimentMetadataKeys.TESTED_ELEMENTS_FILE], self.biosamples
-        )
+        tested_elements_metadata = experiment_dict.get(ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA)
+        if tested_elements_metadata is not None:
+            self.tested_elements_metadata = TestedElementsMetadata(tested_elements_metadata)
 
     def db_save(self):
         experiment = Experiment(
@@ -209,12 +211,12 @@ class ExperimentMetadata(Metadata):
             fc_facet = FacetValue.objects.get(value=self.functional_characterization)
             experiment.facet_values.add(fc_facet)
 
-        assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_file.genome_assembly)
+        assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_metadata.genome_assembly)
         experiment.facet_values.add(assembly_facet)
 
         experiment.save()
 
-        self.tested_elements_file.db_save(experiment)
+        self.tested_elements_metadata.db_save(experiment)
 
         accession_log = AccessionIdLog(
             created_at=datetime.now(timezone.utc),

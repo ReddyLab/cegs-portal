@@ -2,6 +2,7 @@ import csv
 from dataclasses import dataclass, field
 from enum import Enum
 from io import StringIO
+from itertools import tee
 from typing import Any, Optional
 
 from django.db import transaction
@@ -147,26 +148,44 @@ class Experiment:
 
         self.facet_values = grna_type_facet_values | promoter_facet_values
 
-    def load(self, elements_file_location=None):
+        self.data_source = None
+
+    def add_file_data_source(self, elements_file_location):
+        def _ds():
+            elements_tsv = InternetFile(elements_file_location).file
+            reader = csv.DictReader(elements_tsv, delimiter="\t", quoting=csv.QUOTE_NONE)
+            for line in reader:
+                yield line
+            elements_tsv.close()
+
+        self.data_source = _ds
+
+        return self
+
+    def add_generator_data_source(self, generator):
+        def _ds():
+            [new_gen] = tee(generator, 1)
+            for line in new_gen:
+                yield line
+
+        self.data_source = _ds
+        return self
+
+    def load(self):
+        assert self.data_source is not None
+
+        elements_file = self.metadata.tested_elements_metadata
+
         source_type = self.metadata.source_type
         parent_source_type = self.metadata.parent_source_type
 
-        genome_assembly = self.metadata.tested_elements_file.genome_assembly
+        genome_assembly = elements_file.genome_assembly
+        elements_cell_line = self.metadata.biosamples[0].cell_line
 
         new_elements: dict[str, FeatureRow] = {}
         new_parent_elements: dict[str, FeatureRow] = {}
 
-        elements_file = self.metadata.tested_elements_file
-        elements_cell_line = elements_file.biosample.cell_line
-
-        if elements_file_location is None:
-            elements_tsv = InternetFile(elements_file.file_location).file
-        else:
-            elements_tsv = InternetFile(elements_file_location).file
-
-        reader = csv.DictReader(elements_tsv, delimiter=elements_file.delimiter(), quoting=csv.QUOTE_NONE)
-
-        for line in reader:
+        for line in self.data_source():
             parent_chrom, parent_start, parent_end, parent_strand = (
                 line["parent_chrom"],
                 line["parent_start"],
@@ -227,7 +246,6 @@ class Experiment:
                 misc=misc,
             )
 
-        elements_tsv.close()
         self.features = new_elements.values()
         if len(new_parent_elements) > 0:
             self.parent_features = new_parent_elements.values()
@@ -304,7 +322,7 @@ class Experiment:
 
     def _save_ccres(self, features: list[CCREFeature], accession_ids, parent_ccre_assignments: dict[int:int] = None):
         features.sort()
-        ccres = get_ccres(self.metadata.tested_elements_file.genome_assembly)
+        ccres = get_ccres(self.metadata.tested_elements_metadata.genome_assembly)
         new_ccres = StringIO()
         ccre_associations = StringIO()
         features_with_associated_ccres: dict[int:int] = {}
@@ -428,12 +446,12 @@ class Experiment:
                 parents = None
                 parent_ccre_assignments = None
                 if self.parent_features is not None:
-                    parent_file = self.metadata.tested_elements_file
-                    parents = self._save_features(self.parent_features, accession_ids, parent_file.id_)
+                    parent_file = self.metadata.tested_elements_metadata
+                    parents = self._save_features(self.parent_features, accession_ids, parent_file.source_file_id)
                     parent_ccre_assignments = self._save_ccres(list(parents.values()), accession_ids)
 
-                feature_file = self.metadata.tested_elements_file
-                features = self._save_features(self.features, accession_ids, feature_file.id_, parents)
+                feature_file = self.metadata.tested_elements_metadata
+                features = self._save_features(self.features, accession_ids, feature_file.source_file_id, parents)
                 self._save_ccres(list(features.values()), accession_ids, parent_ccre_assignments)
 
         return self
@@ -441,4 +459,4 @@ class Experiment:
 
 def load(experiment_filename, accession_id):
     metadata = ExperimentMetadata.load(experiment_filename, accession_id)
-    Experiment(metadata).load().save()
+    Experiment(metadata).add_file_data_source(metadata.tested_elements_metadata.file_location).load().save()

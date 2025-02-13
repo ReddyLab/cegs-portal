@@ -20,7 +20,7 @@ from cegs_portal.search.models.tests.facet_factory import (
     FacetFactory,
     FacetValueFactory,
 )
-from cegs_portal.uploads.data_loading.file import FileMetadata
+from cegs_portal.uploads.data_loading.file import TestedElementsMetadata
 
 
 class MockExperimentMetadata:
@@ -31,7 +31,7 @@ class MockExperimentMetadata:
         self.experiment = ExperimentFactory()
         self.assay = "Perturb-Seq"
         self.accession_id = self.experiment.accession_id
-        self.tested_elements_file = FileMetadata(
+        self.tested_elements_metadata = TestedElementsMetadata(
             {
                 "description": "test file",
                 "filename": "elements_file",
