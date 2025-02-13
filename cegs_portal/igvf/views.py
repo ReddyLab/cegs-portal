@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum, StrEnum
 from typing import Optional
 
-from django.http import HttpResponseServerError, JsonResponse
+from django.http import Http404, HttpResponseServerError, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
@@ -310,6 +310,10 @@ class Stats:
             raise e
 
 
+def experiment_exists(expr_id):
+    return QueryCache.objects.filter(experiment_accession_id=expr_id).exists()
+
+
 class CoverageView(View):
     def generate_data(self, experiment, data_filter):
         igvf_data = QueryCache.objects.filter(experiment_accession_id=experiment).order_by("-created_at").first()
@@ -333,6 +337,9 @@ class CoverageView(View):
         return chrom_data.chrom_data(), stats
 
     def get(self, request, exp_id, *args, **kwargs):
+        if not experiment_exists(exp_id):
+            raise Http404(f"No IGVF experiment {exp_id} found")
+
         filter = Filter(
             chrom=None,
             categorical_facets=set(default_facets()),
@@ -360,6 +367,9 @@ class CoverageView(View):
         )
 
     def post(self, request, exp_id, *args, **kwargs):
+        if not experiment_exists(exp_id):
+            raise Http404(f"No IGVF experiment {exp_id} found")
+
         try:
             body = json.loads(request.body)
         except Exception as e:

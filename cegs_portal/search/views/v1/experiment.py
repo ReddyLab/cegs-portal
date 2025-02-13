@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models.validators import validate_accession_id
@@ -30,6 +31,12 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def is_archived(self):
         return False  # it's okay to see archived experiments
+
+    def dispatch(self, request, *args, **kwargs):
+        if ExperimentSearch.is_igvf(self.kwargs["exp_id"]):
+            return HttpResponseRedirect(reverse("igvf:coverage", kwargs={"exp_id": self.kwargs["exp_id"]}))
+
+        return super().dispatch(request, *args, **kwargs)
 
     def request_options(self, request):
         """

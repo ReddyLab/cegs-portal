@@ -59,6 +59,12 @@ class ExperimentSearch:
         return experiments
 
     @classmethod
+    def is_igvf(cls, expr_id: str) -> bool:
+        return Experiment.objects.filter(
+            accession_id=expr_id, facet_values__value__in=[Experiment.Provenance.IGVF]
+        ).exists()
+
+    @classmethod
     def accession_search(cls, accession_id: str):
         return cls.multi_accession_search([accession_id]).first()
 
