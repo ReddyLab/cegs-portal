@@ -105,7 +105,7 @@ async function getCoverageData(staticRoot) {
     return genome;
 }
 
-export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
+export async function exp_viz(coverage, accession, staticRoot, csrfToken, loggedIn) {
     let genome;
     try {
         genome = await getCoverageData(staticRoot);
@@ -168,7 +168,7 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
             null,
         );
 
-        postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
+        postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
         });
     });
@@ -189,7 +189,7 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
                 null,
             );
 
-            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
@@ -221,7 +221,7 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
                 null,
             );
 
-            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
@@ -247,7 +247,7 @@ export async function exp_viz(coverage, staticRoot, csrfToken, loggedIn) {
                 null,
             );
 
-            postJson("/igvf/coverage", JSON.stringify(body), csrfToken).then((response_json) => {
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),

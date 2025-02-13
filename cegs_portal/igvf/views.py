@@ -311,8 +311,8 @@ class Stats:
 
 
 class CoverageView(View):
-    def generate_data(self, data_filter):
-        igvf_data = QueryCache.objects.all().order_by("-created_at").first()
+    def generate_data(self, experiment, data_filter):
+        igvf_data = QueryCache.objects.filter(experiment_accession_id=experiment).order_by("-created_at").first()
         if igvf_data is None:
             update_coverage_data()
             return HttpResponseServerError("No IGVF Data found. Please try again in a few minutes.")
@@ -332,7 +332,7 @@ class CoverageView(View):
         logger.debug(stats)
         return chrom_data.chrom_data(), stats
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, exp_id, *args, **kwargs):
         filter = Filter(
             chrom=None,
             categorical_facets=set(default_facets()),
@@ -341,11 +341,12 @@ class CoverageView(View):
                 effect=(float("-infinity"), float("infinity")), sig=(float("-infinity"), float("infinity"))
             ),
         )
-        chrom_data, stats = self.generate_data(filter)
+        chrom_data, stats = self.generate_data(exp_id, filter)
         return render(
             request,
             "coverage.html",
             {
+                "accession_id": exp_id,
                 "coverage": {
                     "chromosomes": chrom_data,
                     "default_facets": default_facets(),
@@ -358,7 +359,7 @@ class CoverageView(View):
             },
         )
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, exp_id, *args, **kwargs):
         try:
             body = json.loads(request.body)
         except Exception as e:
@@ -374,7 +375,7 @@ class CoverageView(View):
             raise Http400(f'Invalid request body, no "filters" object:\n{request.body}') from e
 
         data_filter = get_filter(body["filters"], zoom_chr, coverage_type)
-        chrom_data, stats = self.generate_data(data_filter)
+        chrom_data, stats = self.generate_data(exp_id, data_filter)
 
         return JsonResponse(
             {

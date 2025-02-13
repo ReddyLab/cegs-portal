@@ -311,7 +311,7 @@
     import {g} from "{% static 'search/js/dom.js' %}";
     import {exp_viz} from "{% static 'search/js/exp_viz/igvf_viz.js' %}";
     let coverage = JSON.parse(g("coverage").innerText);
-    exp_viz(coverage, "{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
+    exp_viz(coverage, "{{ accession_id }}", "{% get_static_prefix %}", "{{ csrf_token }}", "{{ logged_in }}" == "True");
 </script>
 
 <script src="{% static 'js/tw-elements/index.min.js' %}"></script>
