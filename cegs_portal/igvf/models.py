@@ -8,6 +8,7 @@ from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 
 from cegs_portal.search.models import DNAFeature
+from cegs_portal.search.models import Experiment as Expr
 from cegs_portal.search.models.validators import validate_accession_id
 from cegs_portal.uploads.data_loading.analysis import Analysis
 from cegs_portal.uploads.data_loading.experiment import Experiment
@@ -102,6 +103,7 @@ def load_experiment(data, experiment_accession_id):
             ExperimentMetadataKeys.DESCRIPTION: "Analysis results from IGVF",
             ExperimentMetadataKeys.SOURCE_TYPE: "Genomic Element",
             ExperimentMetadataKeys.BIOSAMPLES: [{"cell_type": "unknown", "tissue_type": "unknown"}],
+            ExperimentMetadataKeys.PROVENANCE: Expr.Provenance.IGVF,
             ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA: {
                 "filename": "",
                 "file_location": "",

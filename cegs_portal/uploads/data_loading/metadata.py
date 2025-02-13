@@ -47,6 +47,7 @@ class ExperimentMetadataKeys(StrEnum):
     LAB = "lab"
     FUNCTIONAL_CHARACTERIZATION = "functional_characterization_modality"
     TESTED_ELEMENTS_METADATA = "tested_elements_file"
+    PROVENANCE = "provenance"
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -173,6 +174,7 @@ class ExperimentMetadata(Metadata):
     biosamples: list[ExperimentBiosample]
     source_type: str
     parent_source_type: Optional[str]
+    provenance: Optional[str]
     tested_elements_metadata: TestedElementsMetadata
 
     def __init__(self, experiment_dict: dict[str, Any], accession_id: str):
@@ -186,6 +188,7 @@ class ExperimentMetadata(Metadata):
         self.parent_source_type = experiment_dict.get(ExperimentMetadataKeys.PARENT_SOURCE_TYPE)
 
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict[ExperimentMetadataKeys.BIOSAMPLES]]
+        self.provenance = experiment_dict.get(ExperimentMetadataKeys.PROVENANCE)
         tested_elements_metadata = experiment_dict.get(ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA)
         if tested_elements_metadata is not None:
             self.tested_elements_metadata = TestedElementsMetadata(tested_elements_metadata)
@@ -210,6 +213,10 @@ class ExperimentMetadata(Metadata):
         if self.functional_characterization is not None:
             fc_facet = FacetValue.objects.get(value=self.functional_characterization)
             experiment.facet_values.add(fc_facet)
+
+        if self.provenance is not None:
+            p_facet = FacetValue.objects.get(value=self.provenance)
+            experiment.facet_values.add(p_facet)
 
         assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_metadata.genome_assembly)
         experiment.facet_values.add(assembly_facet)
