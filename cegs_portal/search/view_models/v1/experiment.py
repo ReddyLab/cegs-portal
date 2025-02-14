@@ -119,6 +119,28 @@ class ExperimentSearch:
         return experiments
 
     @classmethod
+    def igvf_experiments(
+        cls, facet_ids, user_type: UserType = UserType.ADMIN, private_experiments: Optional[list[str]] = None
+    ):
+        experiments = (
+            Experiment.objects.annotate(
+                cell_lines=StringAgg("biosamples__cell_line_name", ", ", default=Value("")),
+            )
+            .filter(facet_values__value__in=[Experiment.Provenance.IGVF])
+            .order_by("accession_id")
+            .select_related("default_analysis")
+            .prefetch_related("biosamples")
+        )
+        return cls._experiments(
+            facet_ids,
+            experiments,
+            public_experiments_for_facets,
+            experiments_for_facets,
+            user_type,
+            private_experiments,
+        )
+
+    @classmethod
     def experiments(
         cls, facet_ids, user_type: UserType = UserType.ADMIN, private_experiments: Optional[list[str]] = None
     ):
@@ -183,13 +205,29 @@ class ExperimentSearch:
 
     @classmethod
     def _experiment_facet_values(cls, model_class):
-        value_ids = model_class.objects.values_list("facet_values__id").distinct("facet_values__id").all()
+        value_ids = (
+            model_class.objects.exclude(facet_values__value__in=[Experiment.Provenance.IGVF])
+            .values_list("facet_values__id")
+            .distinct("facet_values__id")
+            .all()
+        )
         value_ids = [fv_id[0] for fv_id in value_ids if fv_id is not None]
         return FacetValue.objects.filter(id__in=value_ids).select_related("facet")
 
     @classmethod
     def experiment_facet_values(cls):
         return cls._experiment_facet_values(Experiment)
+
+    @classmethod
+    def igvf_facet_values(cls):
+        value_ids = (
+            Experiment.objects.filter(facet_values__value__in=[Experiment.Provenance.IGVF])
+            .values_list("facet_values__id")
+            .distinct("facet_values__id")
+            .all()
+        )
+        value_ids = [fv_id[0] for fv_id in value_ids if fv_id is not None]
+        return FacetValue.objects.filter(id__in=value_ids).select_related("facet")
 
     @classmethod
     def experiment_collection_facet_values(cls):

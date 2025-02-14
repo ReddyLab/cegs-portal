@@ -59,5 +59,6 @@ function _facetFilterSetup(facetDivId, queryParam, targetID) {
 }
 export function facetFilterSetup() {
     _facetFilterSetup("categorical-facets", "facet", "#experiment-list");
+    _facetFilterSetup("igvf-categorical-facets", "igvf_facet", "#igvf-experiment-list");
     _facetFilterSetup("categorical-collection-facets", "coll_facet", "#experiment-collection-list");
 }

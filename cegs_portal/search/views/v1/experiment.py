@@ -231,13 +231,22 @@ class ExperimentListView(MultiResponseFormatView):
         """
         options = super().request_options(request)
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        options["igvf_facets"] = [int(facet) for facet in request.GET.getlist("igvf_facet", [])]
         options["coll_facets"] = [int(facet) for facet in request.GET.getlist("coll_facet", [])]
         return options
 
     def get(self, request, options, data):
-        experiment_objects, collection_objects, facet_values, collection_facet_values = data
+        (
+            experiment_objects,
+            igvf_objects,
+            collection_objects,
+            facet_values,
+            igvf_facet_values,
+            collection_facet_values,
+        ) = data
 
         sorted_exp_facets = sorted_facets(facet_values)
+        sorted_igvf_facets = sorted_facets(igvf_facet_values)
         sorted_coll_facets = sorted_facets(collection_facet_values)
 
         if request.headers.get("HX-Target") == "multi-exp-modal-container":
@@ -246,8 +255,10 @@ class ExperimentListView(MultiResponseFormatView):
                 "search/v1/partials/_multi_experiment_index.html",
                 {
                     "experiments": experiment_objects,
+                    "igvf_experiments": igvf_objects,
                     "collections": collection_objects,
                     "facets": sorted_exp_facets,
+                    "igvf_facets": sorted_igvf_facets,
                     "collection_facets": sorted_coll_facets,
                 },
             )
@@ -258,8 +269,10 @@ class ExperimentListView(MultiResponseFormatView):
                 "search/v1/partials/_experiment_index.html",
                 {
                     "experiments": experiment_objects,
+                    "igvf_experiments": igvf_objects,
                     "collections": collection_objects,
                     "facets": sorted_exp_facets,
+                    "igvf_facets": sorted_igvf_facets,
                     "collection_facets": sorted_coll_facets,
                 },
             )
@@ -270,6 +283,17 @@ class ExperimentListView(MultiResponseFormatView):
                 self.table_partial,
                 {
                     "experiments": experiment_objects,
+                    "selectable": True,
+                },
+            )
+
+        if request.headers.get("HX-Target") == "igvf-experiment-list":
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "experiments": igvf_objects,
+                    "selectable": False,
                 },
             )
 
@@ -288,37 +312,48 @@ class ExperimentListView(MultiResponseFormatView):
             {
                 "logged_in": not request.user.is_anonymous,
                 "experiments": experiment_objects,
+                "igvf_experiments": igvf_objects,
                 "collections": collection_objects,
                 "facets": sorted_exp_facets,
+                "igvf_facets": sorted_igvf_facets,
                 "collection_facets": sorted_coll_facets,
             },
         )
 
     def get_data(self, options):
         facet_values = ExperimentSearch.experiment_facet_values()
+        igvf_facet_values = ExperimentSearch.igvf_facet_values()
         collection_facet_values = ExperimentSearch.experiment_collection_facet_values()
 
         if self.request.user.is_anonymous:
             return (
                 ExperimentSearch.experiments(options["facets"], UserType.ANONYMOUS),
+                ExperimentSearch.igvf_experiments(options["igvf_facets"], UserType.ANONYMOUS),
                 ExperimentSearch.collections(options["coll_facets"], UserType.ANONYMOUS),
                 facet_values,
+                igvf_facet_values,
                 collection_facet_values,
             )
 
         if self.request.user.is_superuser or self.request.user.is_portal_admin:
             return (
                 ExperimentSearch.experiments(options["facets"], UserType.ADMIN),
+                ExperimentSearch.igvf_experiments(options["igvf_facets"], UserType.ADMIN),
                 ExperimentSearch.collections(options["coll_facets"], UserType.ADMIN),
                 facet_values,
+                igvf_facet_values,
                 collection_facet_values,
             )
 
         return (
             ExperimentSearch.experiments(options["facets"], UserType.LOGGED_IN, self.request.user.all_experiments()),
+            ExperimentSearch.igvf_experiments(
+                options["igvf_facets"], UserType.LOGGED_IN, self.request.user.all_experiments()
+            ),
             ExperimentSearch.collections(
                 options["coll_facets"], UserType.LOGGED_IN, self.request.user.all_experiment_collections()
             ),
             facet_values,
+            igvf_facet_values,
             collection_facet_values,
         )
