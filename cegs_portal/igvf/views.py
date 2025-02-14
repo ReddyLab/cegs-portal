@@ -202,14 +202,19 @@ def reos(reo_list, filter):
             if reo_effect < filter.numeric_intervals.effect[0] or reo_effect > filter.numeric_intervals.effect[1]:
                 continue
 
-        cat_filter = [
-            EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets and reo_sig and reo_effect > 0,
-            EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets and reo_sig and reo_effect < 0,
-            EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
-        ]
+        if filter.categorical_facets:
+            cat_filter = [
+                EffectObservationDirectionType.ENRICHED.value in filter.categorical_facets
+                and reo_sig
+                and reo_effect > 0,
+                EffectObservationDirectionType.DEPLETED.value in filter.categorical_facets
+                and reo_sig
+                and reo_effect < 0,
+                EffectObservationDirectionType.NON_SIGNIFICANT.value in filter.categorical_facets and not reo_sig,
+            ]
 
-        if not any(cat_filter):
-            continue
+            if not any(cat_filter):
+                continue
 
         yield reo
 
