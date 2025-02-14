@@ -6,8 +6,8 @@ from cegs_portal.search.json_templates.v1.experiment_collection import (
 from cegs_portal.search.models import Biosample, Experiment, File
 
 
-def experiments(experiments_data: tuple[Any, Any, Any, Any], options: Optional[dict[str, Any]] = None):
-    experiments_obj, collections_obj, _, _ = experiments_data
+def experiments(experiments_data: tuple[Any, Any, Any, Any, Any, Any], options: Optional[dict[str, Any]] = None):
+    experiments_obj, igvf_obj, collections_obj, _, _, _ = experiments_data
     return {
         "experiments": [
             {
@@ -18,6 +18,16 @@ def experiments(experiments_data: tuple[Any, Any, Any, Any], options: Optional[d
                 "genome_assembly": e.default_analysis.genome_assembly if e.default_analysis else None,
             }
             for e in experiments_obj
+        ],
+        "igvf_experiments": [
+            {
+                "accession_id": e.accession_id,
+                "name": e.name,
+                "description": e.description if e.description is not None else "",
+                "biosamples": [biosample(b) for b in e.biosamples.all()],
+                "genome_assembly": e.default_analysis.genome_assembly if e.default_analysis else None,
+            }
+            for e in igvf_obj
         ],
         "experiment_collections": [experiment_collection((c, c.experiments.all()), options) for c in collections_obj],
     }
