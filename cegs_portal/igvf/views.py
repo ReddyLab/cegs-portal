@@ -338,7 +338,15 @@ class CoverageView(View):
                 stats.add_reo(reo, 0)
                 chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Gene)
 
+        if stats.min_sig == float("infinity"):
+            stats.min_sig = 0
+        if stats.max_sig == float("-infinity"):
+            stats.max_sig = 0
+        if stats.min_effect == float("infinity"):
+            stats.min_effect = 0
+
         logger.debug(stats)
+
         return chrom_data.chrom_data(), stats
 
     def get(self, request, exp_id, *args, **kwargs):
