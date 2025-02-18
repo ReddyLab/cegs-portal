@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 def reo_entry(
     id_,
+    name,
     accession_id,
     experiment_id,
     experiment_accession_id,
@@ -19,8 +20,9 @@ def reo_entry(
     archived="false",
     public="true",
 ):
+    name = "\\N" if name is None else name
     facet_num_values = "\\N" if facet_num_values is None else json.dumps(facet_num_values)
-    return f"{id_}\t{accession_id}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\t{archived}\t{public}\n"
+    return f"{id_}\t{name}\t{accession_id}\t{experiment_id}\t{experiment_accession_id}\t{analysis_accession_id}\t{facet_num_values}\t{archived}\t{public}\n"
 
 
 def bulk_reo_save(
@@ -35,6 +37,7 @@ def bulk_reo_save(
         with cursor.copy(
             """COPY search_regulatoryeffectobservation (
                 id,
+                name,
                 accession_id,
                 experiment_id,
                 experiment_accession_id,

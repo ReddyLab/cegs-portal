@@ -39,6 +39,7 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
 
     objects = RegulatoryEffectObservationSet.as_manager()
 
+    name = models.CharField(max_length=100, unique=True, null=True, blank=True, default=None)
     experiment = models.ForeignKey(Experiment, null=True, on_delete=models.SET_NULL)
     experiment_accession = models.ForeignKey(
         Experiment,

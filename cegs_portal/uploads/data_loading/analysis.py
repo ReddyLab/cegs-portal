@@ -58,6 +58,7 @@ class SourceInfo:
 
 @dataclass
 class ObservationRow:
+    name: Optional[str]
     sources: list[SourceInfo]
     targets: list[str]  # ensembl ids
     categorical_facets: list[list[str]]
@@ -137,7 +138,9 @@ class Analysis:
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
-            observations.append(ObservationRow(sources, targets, categorical_facets, num_facets))
+            name = line.get("name")
+
+            observations.append(ObservationRow(name, sources, targets, categorical_facets, num_facets))
 
         self.observations = observations
         return self
@@ -224,6 +227,7 @@ class Analysis:
                 effects.write(
                     reo_entry(
                         id_=reo_id,
+                        name=reo.name,
                         accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
                         experiment_id=experiment_id,
                         experiment_accession_id=experiment_accession_id,

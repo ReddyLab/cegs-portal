@@ -401,6 +401,7 @@ def gen_reos(data):
                 "adj_p_val": reo_sig,
                 "effect_size": reo_effect,
                 "facets": "",
+                "name": reo["_id"],
             }
 
 
