@@ -32,8 +32,8 @@ class RegulatoryEffectObservation(Accessioned, Faceted, AccessControlled):
     class Facet(Enum):
         DIRECTION = "Direction"  # EffectObservationDirectionType
         RAW_P_VALUE = "Raw p value"  # float
-        SIGNIFICANCE = "Significance"  # float
-        LOG_SIGNIFICANCE = "-log10 Significance"  # float
+        SIGNIFICANCE = "Significance"  # float, adjusted p value
+        LOG_SIGNIFICANCE = "-log10 Significance"  # float, -log10 adjusted p value
         EFFECT_SIZE = "Effect Size"  # float
         AVG_COUNTS_PER_MILLION = "Average Counts per Million"
 

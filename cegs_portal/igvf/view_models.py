@@ -13,6 +13,7 @@ from huey.contrib.djhuey import db_periodic_task
 from cegs_portal.igvf.models import QueryCache
 from cegs_portal.search.models import DNAFeature, EffectObservationDirectionType
 from cegs_portal.search.models import Experiment as Expr
+from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.uploads.data_loading.analysis import Analysis
 from cegs_portal.uploads.data_loading.experiment import Experiment
 from cegs_portal.uploads.data_loading.metadata import (
@@ -380,15 +381,26 @@ def gen_reos(data):
     for chrom in data["sources"]:
         for reo in chrom["reos"]:
             reo = reo["reo"]
-            reo_pval = reo["log10pvalue"]
+            reo_pval = reo["p_value"]
 
-            if reo_pval is None:
+            # If there is no p_value for some reason, log10pvalue should be None regardless
+            # of the p_value placeholder value
+            if reo["log10pvalue"] is None:
                 continue
 
             reo_sig = reo["significant"]
             reo_effect = reo["score"]
             gene_ensembl_id = reo["_to"].split("/")[1]
             gene_name = get_gene_name(gene_ensembl_id, assembly)
+
+            if reo_sig:
+                if reo_effect >= 0:
+                    direction = EffectObservationDirectionType.ENRICHED.value
+                else:
+                    direction = EffectObservationDirectionType.DEPLETED.value
+            else:
+                direction = EffectObservationDirectionType.NON_SIGNIFICANT.value
+            facets = f"{RegulatoryEffectObservation.Facet.DIRECTION.value}={direction}"
 
             yield {
                 "chrom": reo["source_chr"],
@@ -398,9 +410,9 @@ def gen_reos(data):
                 "gene_name": gene_name,
                 "gene_ensembl_id": gene_ensembl_id,
                 "raw_p_val": reo_pval,
-                "adj_p_val": reo_sig,
+                "adj_p_val": reo_pval,
                 "effect_size": reo_effect,
-                "facets": "",
+                "facets": facets,
                 "name": reo["_id"],
             }
 

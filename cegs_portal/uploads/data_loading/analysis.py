@@ -171,7 +171,9 @@ class Analysis:
 
         with ReoIds() as reo_ids:
             for reo_id, reo in zip(reo_ids, self.observations):
-                reo_direction = [fv for f, fv in reo.categorical_facets if f == "Direction"]
+                reo_direction = [
+                    fv for f, fv in reo.categorical_facets if f == RegulatoryEffectObservation.Facet.DIRECTION.value
+                ]
 
                 for source in reo.sources:
                     source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
