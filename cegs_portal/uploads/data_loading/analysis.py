@@ -250,7 +250,10 @@ class Analysis:
 
     def save(self):
         with transaction.atomic():
-            analysis = self.metadata.db_save()
+            if self.metadata.analysis is None:
+                return
+
+            analysis = self.metadata.analysis
             self.accession_id = analysis.accession_id
 
             with AccessionIds(message=f"{self.accession_id}: {self.metadata.name}"[:200]) as accession_ids:
@@ -261,5 +264,6 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
+    metadata.db_save()
     analysis = Analysis(metadata).add_file_data_source(metadata.results.file_location).load().save()
     return analysis.accession_id

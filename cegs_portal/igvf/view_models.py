@@ -2,6 +2,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum, StrEnum
 from functools import lru_cache
 from typing import Optional
@@ -11,8 +12,12 @@ from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 
 from cegs_portal.igvf.models import QueryCache
-from cegs_portal.search.models import DNAFeature, EffectObservationDirectionType
-from cegs_portal.search.models import Experiment as Expr
+from cegs_portal.search.models import (
+    DNAFeature,
+    DNAFeatureType,
+    EffectObservationDirectionType,
+)
+from cegs_portal.search.models import Experiment as ExperimentModel
 from cegs_portal.search.models import RegulatoryEffectObservation
 from cegs_portal.uploads.data_loading.analysis import Analysis
 from cegs_portal.uploads.data_loading.experiment import Experiment
@@ -60,6 +65,32 @@ HOSTNAME = "https://db.catalog.igvf.org"
 DB_NAME = "igvf"
 HEADERS = {"Content-Type": "application/json"}
 PAYLOAD = {"username": "guest", "password": "guestigvfcatalog"}
+
+IGVF_EXPERIMENT_METADATA = {
+    ExperimentMetadataKeys.NAME: "IGVF Analysis Results",
+    ExperimentMetadataKeys.DESCRIPTION: "Analysis results from IGVF",
+    ExperimentMetadataKeys.SOURCE_TYPE: "Genomic Element",
+    ExperimentMetadataKeys.BIOSAMPLES: [{"cell_type": "unknown", "tissue_type": "unknown"}],
+    ExperimentMetadataKeys.PROVENANCE: ExperimentModel.Provenance.IGVF,
+    ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA: {
+        "filename": "",
+        "file_location": "",
+        "genome_assembly": "hg38",
+        "url": "https://db.catalog.igvf.org/",
+    },
+}
+IGVF_ANALYSIS_METADATA = {
+    AnalysisMetadataKeys.NAME: "IGVF Analysis Results",
+    AnalysisMetadataKeys.DESCRIPTION: "Analysis results from IGVF",
+    AnalysisMetadataKeys.GENOME_ASSEMBLY: "hg38",
+    AnalysisMetadataKeys.P_VAL_THRESHOLD: "0.05",
+    AnalysisMetadataKeys.SOURCE_TYPE: "Genomic Element",
+    AnalysisMetadataKeys.RESULTS: {
+        "filename": "",
+        "file_location": "",
+        "url": "https://db.catalog.igvf.org/",
+    },
+}
 
 
 class GetIGVFException(Exception):
@@ -419,48 +450,61 @@ def gen_reos(data):
 
 def load_experiment(data, experiment_accession_id):
     logger.info(f"{experiment_accession_id}: Loading experiment")
-    metadata = ExperimentMetadata(
-        {
-            ExperimentMetadataKeys.NAME: "IGVF Analysis Results",
-            ExperimentMetadataKeys.DESCRIPTION: "Analysis results from IGVF",
-            ExperimentMetadataKeys.SOURCE_TYPE: "Genomic Element",
-            ExperimentMetadataKeys.BIOSAMPLES: [{"cell_type": "unknown", "tissue_type": "unknown"}],
-            ExperimentMetadataKeys.PROVENANCE: Expr.Provenance.IGVF,
-            ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA: {
-                "filename": "",
-                "file_location": "",
-                "genome_assembly": "hg38",
-                "url": "https://db.catalog.igvf.org/",
-            },
-        },
-        experiment_accession_id,
-    )
+    metadata = ExperimentMetadata(IGVF_EXPERIMENT_METADATA, experiment_accession_id)
+    metadata.db_save()
     Experiment(metadata).add_generator_data_source(gen_tested_elements(data)).load().save()
 
     logger.info(f"{experiment_accession_id}: Loading analysis")
 
-    metadata = AnalysisMetadata(
-        {
-            AnalysisMetadataKeys.NAME: "IGVF Analysis Results",
-            AnalysisMetadataKeys.DESCRIPTION: "Analysis results from IGVF",
-            AnalysisMetadataKeys.GENOME_ASSEMBLY: "hg38",
-            AnalysisMetadataKeys.P_VAL_THRESHOLD: "0.05",
-            AnalysisMetadataKeys.SOURCE_TYPE: "Genomic Element",
-            AnalysisMetadataKeys.RESULTS: {
-                "filename": "",
-                "file_location": "",
-                "url": "https://db.catalog.igvf.org/",
-            },
-        },
-        experiment_accession_id,
-    )
+    metadata = AnalysisMetadata(IGVF_ANALYSIS_METADATA, experiment_accession_id)
+    metadata.db_save()
     Analysis(metadata).add_generator_data_source(gen_reos(data)).load().save()
 
     logger.info(f"{experiment_accession_id}: Finished loading data")
 
 
+def gen_new_tested_elements(data, experiment_accession_id):
+    existing_ges = set(
+        DNAFeature.objects.filter(
+            experiment_accession_id=experiment_accession_id, feature_type=DNAFeatureType.GE
+        ).values_list("name", flat=True)
+    )
+
+    for element in gen_tested_elements(data):
+        name = f"{element['chrom']}:{element['start']}-{element['end']}:{element['strand']}"
+        if name not in existing_ges:
+            yield element
+
+
+def gen_new_reos(data, experiment_accession_id):
+    exisiting_reos = set(
+        RegulatoryEffectObservation.objects.filter(experiment_accession_id=experiment_accession_id).values_list(
+            "name", flat=True
+        )
+    )
+
+    for reo in gen_reos(data):
+        if reo["name"] not in exisiting_reos:
+            yield reo
+
+
+def merge_results(data, experiment_accession_id):
+    experiment = ExperimentModel.objects.get(accession_id=experiment_accession_id)
+    expr_metadata = ExperimentMetadata(IGVF_EXPERIMENT_METADATA, experiment_accession_id)
+    expr_metadata.experiment = experiment
+
+    an_metadata = AnalysisMetadata(IGVF_ANALYSIS_METADATA, experiment_accession_id)
+    an_metadata.analysis = experiment.default_analysis
+    an_metadata.accession_id = an_metadata.analysis.accession_id
+
+    Experiment(expr_metadata).add_generator_data_source(
+        gen_new_tested_elements(data, experiment_accession_id)
+    ).load().save()
+    Analysis(an_metadata).add_generator_data_source(gen_new_reos(data, experiment_accession_id)).load().save()
+
+
 @db_periodic_task(crontab(day="*/10"))
-def update_coverage_data():
+def update_coverage_data(experiment_accession_id=None):
     client = ArangoClient(hosts=HOSTNAME)
     db = client.db(DB_NAME, username=PAYLOAD["username"], password=PAYLOAD["password"])
     async_db = db.begin_async_execution(return_result=True)
@@ -499,12 +543,15 @@ def update_coverage_data():
     logger.debug(f"IGVF Query complete: {query.status()}")
     result = query.result().pop()
 
-    experiment_accession_id = get_next_experiment_accession()
+    new_experiment = experiment_accession_id is None
 
     cache = QueryCache(value=result, experiment_accession_id=experiment_accession_id)
     cache.save()
 
-    load_experiment(result, experiment_accession_id)
+    if new_experiment:
+        load_experiment(result, get_next_experiment_accession())
+    else:
+        merge_results(result, experiment_accession_id)
 
 
 def generate_data(experiment, data_filter):
@@ -512,6 +559,9 @@ def generate_data(experiment, data_filter):
     if igvf_data is None:
         update_coverage_data()
         raise GetIGVFException("No IGVF Data found. Please try again in a few minutes.")
+
+    if datetime.now(timezone.utc) - timedelta(days=10) > igvf_data.created_at:
+        update_coverage_data(igvf_data.experiment_accession_id)
 
     stats = Stats()
     chrom_data = Chromosomes(data_filter)

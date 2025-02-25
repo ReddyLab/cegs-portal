@@ -439,7 +439,10 @@ class Experiment:
 
     def save(self):
         with transaction.atomic():
-            experiment = self.metadata.db_save()
+            if self.metadata.experiment is None:
+                return
+
+            experiment = self.metadata.experiment
             self.accession_id = experiment.accession_id
 
             with AccessionIds(message=f"{experiment.accession_id}: {experiment.name}"[:200]) as accession_ids:
@@ -459,4 +462,5 @@ class Experiment:
 
 def load(experiment_filename, accession_id):
     metadata = ExperimentMetadata.load(experiment_filename, accession_id)
+    metadata.db_save()
     Experiment(metadata).add_file_data_source(metadata.tested_elements_metadata.file_location).load().save()

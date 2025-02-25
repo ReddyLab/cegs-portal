@@ -106,7 +106,6 @@ class Metadata:
 
 
 class AnalysisMetadata(Metadata):
-    accession_id: Optional[str] = None
     experiment_accession_id: str
     description: str
     name: str
@@ -116,6 +115,8 @@ class AnalysisMetadata(Metadata):
     p_val_threshold: float
     p_val_adj_method: str
     data_format: str
+    accession_id: Optional[str] = None
+    analysis: Optional[Analysis] = None
 
     def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id: str):
         self.description = analysis_dict[AnalysisMetadataKeys.DESCRIPTION]
@@ -151,6 +152,7 @@ class AnalysisMetadata(Metadata):
 
             self.results.db_save(experiment, analysis)
 
+        self.analysis = analysis
         return analysis
 
     def db_del(self, analysis=None):
@@ -176,6 +178,7 @@ class ExperimentMetadata(Metadata):
     parent_source_type: Optional[str]
     provenance: Optional[str]
     tested_elements_metadata: TestedElementsMetadata
+    experiment: Optional[Experiment] = None
 
     def __init__(self, experiment_dict: dict[str, Any], accession_id: str):
         self.description = experiment_dict.get(ExperimentMetadataKeys.DESCRIPTION)
@@ -240,6 +243,7 @@ class ExperimentMetadata(Metadata):
             experiment.facet_values.add(cell_line_facet)
             experiment.facet_values.add(tissue_type_facet)
 
+        self.experiment = experiment
         return experiment
 
     def db_del(self):
