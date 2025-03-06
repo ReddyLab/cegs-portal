@@ -10,7 +10,6 @@ def create_biosample(apps, schema_editor):
 
     biosample = get_or_create_facet(Facet, "Biosample", "Cell lines and tissue types", "FacetType.CATEGORICAL")
 
-    Facet.objects.get(name="Cell Line")
     try:
         cell_line = Facet.objects.get(name="Cell Line")
         for facet_value in cell_line.values.all():

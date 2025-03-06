@@ -22,13 +22,10 @@ import {
     STATE_NUMERIC_FILTER_INTERVALS,
     STATE_COUNT_FILTER_INTERVALS,
     STATE_HIGHLIGHT_REGIONS,
-    STATE_SELECTED_EXPERIMENTS,
     STATE_ITEM_COUNTS,
     STATE_SOURCE_TYPE,
     STATE_COVERAGE_TYPE,
     STATE_LEGEND_INTERVALS,
-    STATE_FEATURE_FILTER_TYPE,
-    STATE_COMBO_SET_OP,
 } from "./consts.js";
 import {
     numericFilterControls,
@@ -39,103 +36,13 @@ import {
     setLegendIntervals,
 } from "./ui.js";
 
-function union_array(arr1, arr2) {
-    if (arr1.length == 0) {
-        return arr2.slice();
-    }
-
-    if (arr2.length == 0) {
-        return arr1.slice();
-    }
-
-    let union = arr1.slice();
-    for (let val of arr2) {
-        if (arr1.indexOf(val) == -1) {
-            union.push(val);
-        }
-    }
-
-    return union;
-}
-
-function union_obj(obj1, obj2) {
-    let union = {};
-    for (let key in obj1) {
-        union[key] = obj1[key];
-    }
-
-    for (let key in obj2) {
-        if (!union.hasOwnProperty(key)) union[key] = obj2[key];
-    }
-    return union;
-}
-
-function distinct(sortedArray) {
-    let newArray = [sortedArray[0]];
-    for (let element of sortedArray) {
-        if (element != newArray[newArray.length - 1]) {
-            newArray.push(element);
-        }
-    }
-    return newArray;
-}
-
-// Merge is the intersection of facets
-function merge_facets(experiments_facets) {
-    if (experiments_facets.length == 1) {
-        return experiments_facets[0];
-    }
-
-    // Create an array of objects mapping facet ids to facets
-    let facet_maps = experiments_facets.map((facet_array) =>
-        facet_array.reduce((acc, f) => {
-            acc[f.id] = f;
-            return acc;
-        }, {}),
-    );
-
-    // Get the IDs of facets that are in all experiments
-    let facet_id_arrays = experiments_facets.map((facet_array) => facet_array.map((f) => f.id));
-    let facet_id_union = facet_id_arrays.slice(1).reduce((acc, ids) => union_array(acc, ids), facet_id_arrays[0]);
-    let new_facets = {};
-
-    for (let facet_id of facet_id_union) {
-        for (let facet_set of facet_maps) {
-            let curr_facet = facet_set[facet_id];
-            if (curr_facet === undefined) continue;
-
-            let new_facet = new_facets[facet_id];
-            if (new_facet === undefined) {
-                new_facets[facet_id] = curr_facet;
-                continue;
-            }
-
-            if (new_facet.facet_type == "FacetType.CATEGORICAL") {
-                new_facet.values = union_obj(curr_facet.values, new_facet.values);
-            } else if (new_facet.facet_type == "FacetType.NUMERIC" && new_facet.range) {
-                new_facet.range = [
-                    Math.min(new_facet.range[0], curr_facet.range[0]),
-                    Math.max(new_facet.range[1], curr_facet.range[1]),
-                ];
-            } else if (new_facet.facet_type == "FacetType.NUMERIC" && new_facet.range64) {
-                new_facet.range64 = [
-                    Math.min(new_facet.range64[0], curr_facet.range64[0]),
-                    Math.max(new_facet.range64[1], curr_facet.range64[1]),
-                ];
-            }
-        }
-    }
-
-    return Object.values(new_facets);
-}
-
-function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
-    let coverageData = [];
-    let facets = merge_facets(manifests.map((m) => m.facets));
-    let default_facets = manifests[0].hasOwnProperty("default_facets") ? manifests[0].default_facets : []; // merge
-    let reoCount = manifests.map((m) => m.reo_count).reduce((acc, c) => acc + c, 0);
-    let sourceCount = 0;
-    let targetCount = 0;
+function build_state(coverage, genomeRenderer, sourceType) {
+    let coverageData = coverage.chromosomes;
+    let facets = coverage.facets;
+    let default_facets = coverage.default_facets;
+    let reoCount = coverage.reo_count;
+    let sourceCount = coverage.source_count;
+    let targetCount = coverage.target_count;
     let sourceCountInterval = levelCountInterval(coverageData, "source_intervals");
     let targetCountInterval = levelCountInterval(coverageData, "target_intervals");
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
@@ -164,7 +71,6 @@ function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
         [STATE_COUNT_FILTER_INTERVALS]: {source: sourceCountInterval, target: targetCountInterval},
         [STATE_COUNT_FILTER_VALUES]: [sourceCountInterval, targetCountInterval],
         [STATE_HIGHLIGHT_REGIONS]: {},
-        [STATE_SELECTED_EXPERIMENTS]: accessionIDs,
         [STATE_ITEM_COUNTS]: [reoCount, sourceCount, targetCount],
         [STATE_SOURCE_TYPE]: sourceType,
         [STATE_COVERAGE_TYPE]: coverageValue(coverageSelectorValue),
@@ -172,68 +78,47 @@ function build_state(manifests, genomeRenderer, accessionIDs, sourceType) {
             source: legendIntervalFunc(coverageData, "source_intervals"),
             target: legendIntervalFunc(coverageData, "target_intervals"),
         },
-        [STATE_FEATURE_FILTER_TYPE]: g("feature-select").value,
-        [STATE_COMBO_SET_OP]: g("set-op-select").value,
     });
 
     return state;
 }
 
-async function getCombinedCoverageData(staticRoot, accessionIDs) {
-    let manifests;
+async function getCoverageData(staticRoot) {
     let genome;
+
     try {
-        manifests = await Promise.all(
-            accessionIDs.map((accessionIDPair) =>
-                getJson(
-                    `${staticRoot}search/experiments/${accessionIDPair[0]}/${accessionIDPair[1]}/coverage_manifest.json`,
-                ),
+        genome = await getJson(`${staticRoot}genome_data/grch38.json`);
+    } catch (error) {
+        let coverage = g("tabs-overview");
+        rc(
+            coverage,
+            e(
+                "div",
+                {class: "flex flex-row justify-center"},
+                e("div", {class: "content-container grow-0"}, "No experiment coverage information found."),
             ),
         );
-        genome = await getJson(`${staticRoot}genome_data/${manifests[0].genome.file}`);
-    } catch (error) {
-        let consoleError;
-        if (error instanceof Error) {
-            consoleError = "Files necessary to load coverage not found.";
-        }
-
-        throw new Error(consoleError);
+        throw new Error("Files necessary to load coverage not found");
     }
 
-    return [genome, manifests];
+    return genome;
 }
 
-function multipleGenomeAssemblyError(genomeNames) {
-    let message = `These experiment analyses are based on different genomes (${genomeNames.join(", ")}) and cannot be compared.`;
-    let chromData = document.getElementById("chrom-error");
-    a(chromData, e("div", {class: "comparison-error inline-block"}, t(message)));
-}
-
-export async function combined_viz(staticRoot, csrfToken, loggedIn) {
-    let experiment_info = JSON.parse(g("experiment_viz").innerText);
-    let accessionIDs = experiment_info.map((exp) => [exp.accession_id, exp.analysis_accession_id]);
-    let genomeNames = distinct(experiment_info.map((exp) => exp.genome_assembly).sort());
-    if (genomeNames.length > 1) {
-        multipleGenomeAssemblyError(genomeNames);
-        return;
-    }
-
-    let genome, manifests;
+export async function exp_viz(coverage, accession, staticRoot, csrfToken, loggedIn) {
+    let genome;
     try {
-        [genome, manifests] = await getCombinedCoverageData(staticRoot, accessionIDs);
+        genome = await getCoverageData(staticRoot);
     } catch (error) {
         console.log(error);
         return;
     }
-    let genomeName = manifests[0].genome.name;
+    let genomeName = "GRCH38";
+    let sourceType = "Genomic Element";
 
     rc(g("chrom-data-header"), t("Experiment Overview"));
-
     const genomeRenderer = new GenomeRenderer(genome);
 
-    let sourceType = experiment_info.length == 1 ? experiment_info[0].source : "Tested Element";
-
-    let state = build_state(manifests, genomeRenderer, accessionIDs, sourceType);
+    let state = build_state(coverage, genomeRenderer, sourceType);
 
     render(state, genomeRenderer);
 
@@ -254,6 +139,7 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
                 renderer.renderContext.viewWidth,
                 renderer.renderContext.viewHeight,
             ]);
+
             state.u(STATE_ZOOM_GENOME_LOCATION, new BucketLocation(i, new ChromRange(start, end)));
             state.u(STATE_ZOOMED, true);
         }
@@ -276,12 +162,12 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         let body = getFilterBody(
             state,
             genome,
-            manifests[0].chromosomes,
+            coverage.chromosomes,
             [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-            state.g(STATE_COMBO_SET_OP),
+            null,
         );
 
-        postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
+        postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
             state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
         });
     });
@@ -290,36 +176,36 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         render(state, genomeRenderer);
     });
 
-    function get_all_data() {
-        let body = getFilterBody(
-            state,
-            genome,
-            manifests[0].chromosomes,
-            [state.g(STATE_CATEGORICAL_FACET_VALUES)],
-            state.g(STATE_COMBO_SET_OP),
-        );
-
-        postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
-            state.u(STATE_COVERAGE_DATA, mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes));
-            state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
-            state.u(
-                STATE_NUMERIC_FACET_VALUES,
-                [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
-                false,
-            );
-            state.u(STATE_ITEM_COUNTS, [
-                response_json.reo_count,
-                response_json.source_count,
-                response_json.target_count,
-            ]);
-        });
-    }
-
-    get_all_data();
-
     state.ac(
         STATE_CATEGORICAL_FACET_VALUES,
-        debounce((s, key) => get_all_data(), 300),
+        debounce((s, key) => {
+            // Send facet data to server to get filtered data and updated numeric facets
+            let body = getFilterBody(
+                state,
+                genome,
+                coverage.chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES)],
+                null,
+            );
+
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
+                );
+                state.u(STATE_NUMERIC_FILTER_INTERVALS, response_json.numeric_intervals);
+                state.u(
+                    STATE_NUMERIC_FACET_VALUES,
+                    [response_json.numeric_intervals.effect, response_json.numeric_intervals.sig],
+                    false,
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
+        }, 300),
     );
 
     state.ac(
@@ -329,12 +215,38 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
             let body = getFilterBody(
                 state,
                 genome,
-                manifests[0].chromosomes,
+                coverage.chromosomes,
                 [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
-                state.g(STATE_COMBO_SET_OP),
+                null,
             );
 
-            postJson("/search/combined_experiment_coverage", JSON.stringify(body)).then((response_json) => {
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
+                state.u(
+                    STATE_COVERAGE_DATA,
+                    mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
+                );
+                state.u(STATE_ITEM_COUNTS, [
+                    response_json.reo_count,
+                    response_json.source_count,
+                    response_json.target_count,
+                ]);
+            });
+        }, 300),
+    );
+
+    state.ac(
+        STATE_COVERAGE_TYPE,
+        debounce((s, key) => {
+            // Send facet data to server to get filtered data and updated numeric facets
+            let body = getFilterBody(
+                state,
+                genome,
+                coverage.chromosomes,
+                [state.g(STATE_CATEGORICAL_FACET_VALUES), state.g(STATE_NUMERIC_FACET_VALUES)],
+                null,
+            );
+
+            postJson(`/igvf/coverage/${accession}`, JSON.stringify(body), csrfToken).then((response_json) => {
                 state.u(
                     STATE_COVERAGE_DATA,
                     mergeFilteredData(state.g(STATE_COVERAGE_DATA), response_json.chromosomes),
@@ -461,40 +373,8 @@ export async function combined_viz(staticRoot, csrfToken, loggedIn) {
         false,
     );
 
-    state.ac(STATE_COVERAGE_TYPE, (s, key) => {
-        setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
-        render(state, genomeRenderer);
-    });
-
-    //
-    // Feature Filter Selector
-    //
-    let featureFilterSelector = g("feature-select");
-    featureFilterSelector.addEventListener(
-        "change",
-        () => {
-            state.u(STATE_FEATURE_FILTER_TYPE, featureFilterSelector.value);
-        },
-        false,
-    );
-
-    state.ac(STATE_FEATURE_FILTER_TYPE, (s, key) => {
-        get_all_data();
-    });
-
-    //
-    // Experiment Combination Set Operator Selector
-    //
-    let setOpSelector = g("set-op-select");
-    setOpSelector.addEventListener(
-        "change",
-        () => {
-            state.u(STATE_COMBO_SET_OP, setOpSelector.value);
-        },
-        false,
-    );
-
-    state.ac(STATE_COMBO_SET_OP, (s, key) => {
-        get_all_data();
-    });
+    // state.ac(STATE_COVERAGE_TYPE, (s, key) => {
+    //     setLegendIntervals(state, state.g(STATE_COVERAGE_DATA));
+    //     render(state, genomeRenderer);
+    // });
 }

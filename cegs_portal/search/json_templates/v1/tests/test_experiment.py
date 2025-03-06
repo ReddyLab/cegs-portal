@@ -15,8 +15,8 @@ from cegs_portal.search.models.experiment import Biosample
 pytestmark = pytest.mark.django_db
 
 
-def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any]):
-    experiments_obj, collections_obj, _, _ = experiment_list_data
+def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]):
+    experiments_obj, igvf_obj, collections_obj, _, _, _ = experiment_list_data
     collections = sorted(collections_obj, key=lambda x: x.accession_id)
     result = {
         "experiments": [
@@ -28,6 +28,16 @@ def test_experiments_json(experiment_list_data: tuple[Any, Any, Any, Any]):
                 "genome_assembly": e.default_analysis.genome_assembly,
             }
             for e in experiments_obj
+        ],
+        "igvf_experiments": [
+            {
+                "accession_id": e.accession_id,
+                "name": e.name,
+                "description": e.description if e.description is not None else "",
+                "biosamples": [b_json(b) for b in e.biosamples.all()],
+                "genome_assembly": e.default_analysis.genome_assembly,
+            }
+            for e in igvf_obj
         ],
         "experiment_collections": [experiment_collection((c, c.experiments.all())) for c in collections],
     }

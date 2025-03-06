@@ -3,7 +3,7 @@
     <div class="content-container items-center">
         <div class="flex justify-between">
             <div class="exp-name">{{ experiment.name }}</div>
-            <div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>
+            {% if selectable %}<div class="select-experiment font-bold text-2xl" title="Select Experiment" data-accession="{{ experiment.accession_id }}" data-name="{{ experiment.name }}">＋</div>{% endif %}
         </div>
         <div>{{ experiment.description }}</div>
         <div class="flex justify-between">

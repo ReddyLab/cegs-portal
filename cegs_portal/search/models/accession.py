@@ -34,6 +34,8 @@ class AccessionIdLog(models.Model):
         (str(AccessionType.CL), AccessionType.CL.value),
         (str(AccessionType.BIOS), AccessionType.BIOS.value),
         (str(AccessionType.ANALYSIS), AccessionType.ANALYSIS.value),
+        (str(AccessionType.GE), AccessionType.GE.value),
+        (str(AccessionType.IGVF), AccessionType.IGVF.value),
     ]
     created_at = models.DateTimeField()
     accession_type = models.CharField(max_length=100, choices=ACCESSION_TYPE)

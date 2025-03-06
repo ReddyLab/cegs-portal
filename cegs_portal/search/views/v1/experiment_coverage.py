@@ -139,7 +139,7 @@ def validate_combinations(combinations):
 
 def get_filter(filters, chrom, coverage_type, combination_features=None):
     data_filter = Filter()
-    data_filter.categorical_facets = set(filters[0])
+    data_filter.categorical_facets = set(int(f) for f in filters[0])
     if chrom is not None:
         data_filter.chrom = CHROM_NAMES.index(chrom)
 

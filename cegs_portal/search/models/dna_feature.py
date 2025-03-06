@@ -63,6 +63,7 @@ class DNAFeature(Accessioned, Faceted, AccessControlled):
         (str(DNAFeatureType.GRNA), DNAFeatureType.GRNA.value),
         (str(DNAFeatureType.CAR), DNAFeatureType.CAR.value),
         (str(DNAFeatureType.CRE), DNAFeatureType.CRE.value),
+        (str(DNAFeatureType.GE), DNAFeatureType.GE.value),
     )
 
     cell_line = models.CharField(max_length=50, null=True, blank=True)
