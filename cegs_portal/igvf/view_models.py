@@ -8,6 +8,7 @@ from functools import lru_cache
 from typing import Optional
 
 from arango.client import ArangoClient
+from django.conf import settings
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 
@@ -61,10 +62,10 @@ CHROM_NAMES = [
     "MT",
 ]
 
-HOSTNAME = "https://db.catalog.igvf.org"
-DB_NAME = "igvf"
+HOSTNAME = settings.IGVF_HOST
+DB_NAME = settings.IGVF_DB
 HEADERS = {"Content-Type": "application/json"}
-PAYLOAD = {"username": "guest", "password": "guestigvfcatalog"}
+PAYLOAD = {"username": settings.IGVF_USERNAME, "password": settings.IGVF_PASSWORD}
 
 IGVF_EXPERIMENT_METADATA = {
     ExperimentMetadataKeys.NAME: "IGVF Analysis Results",

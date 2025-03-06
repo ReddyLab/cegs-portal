@@ -328,3 +328,7 @@ WHITENOISE_SKIP_COMPRESS_EXTENSIONS = (
     "pd",  # Plot Data
     "fd",  # Feature Data
 )
+IGVF_HOST = env("IGVF_HOST")
+IGVF_DB = env("IGVF_DB")
+IGVF_USERNAME = env("IGVF_USERNAME")
+IGVF_PASSWORD = env("IGVF_PASSWORD")
