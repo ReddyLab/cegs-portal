@@ -211,7 +211,6 @@ export function setFacetControls(state, categoricalFacetControls, defaultFacets,
 
     let effectSizeFilterInterval = facets.filter((f) => f.name === "Effect Size")[0].range;
     let sigFilterInterval = facets.filter((f) => f.name === "Significance")[0].range64;
-    console.log({effect: effectSizeFilterInterval, sig: sigFilterInterval});
     state.u(STATE_NUMERIC_FILTER_INTERVALS, {effect: effectSizeFilterInterval, sig: sigFilterInterval});
 }
 

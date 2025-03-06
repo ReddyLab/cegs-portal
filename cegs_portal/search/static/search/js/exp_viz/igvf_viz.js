@@ -58,7 +58,6 @@ function build_state(coverage, genomeRenderer, sourceType) {
         legendIntervalFunc = effectInterval;
     }
 
-    console.log({effect: effectSizeFilterInterval, sig: sigFilterInterval});
     let state = new State({
         [STATE_ZOOMED]: false,
         [STATE_ZOOM_GENOME_LOCATION]: undefined,
