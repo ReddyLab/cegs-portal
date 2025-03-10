@@ -25,6 +25,7 @@ from cegs_portal.uploads.data_loading.experiment import Experiment
 from cegs_portal.uploads.data_loading.metadata import (
     AnalysisMetadata,
     AnalysisMetadataKeys,
+    AttributionKeys,
     ExperimentMetadata,
     ExperimentMetadataKeys,
 )
@@ -78,6 +79,12 @@ IGVF_EXPERIMENT_METADATA = {
         "file_location": "",
         "genome_assembly": "hg38",
         "url": "https://db.catalog.igvf.org/",
+    },
+    ExperimentMetadataKeys.ATTRIBUTION: {
+        AttributionKeys.PI: "N/A",
+        AttributionKeys.INSTITUTION: "IGVF Consortium",
+        AttributionKeys.PROJECT: "IGVF",
+        AttributionKeys.DATASOURCE_URL: "https://db.catalog.igvf.org/",
     },
 }
 IGVF_ANALYSIS_METADATA = {
@@ -366,8 +373,8 @@ class Stats:
             raise e
 
 
-def experiment_exists(expr_id):
-    return QueryCache.objects.filter(experiment_accession_id=expr_id).exists()
+def get_experiment(expr_id):
+    return ExperimentModel.objects.filter(accession_id=expr_id)
 
 
 @lru_cache

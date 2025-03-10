@@ -14,8 +14,8 @@ from cegs_portal.igvf.view_models import (
     FilterIntervals,
     GetIGVFException,
     default_facets,
-    experiment_exists,
     generate_data,
+    get_experiment,
     get_filter,
     view_facets,
 )
@@ -26,8 +26,11 @@ logger = logging.getLogger(__name__)
 
 class CoverageView(View):
     def get(self, request, exp_id, *args, **kwargs):
-        if not experiment_exists(exp_id):
+        experiment = get_experiment(exp_id)
+        if not experiment.exists():
             raise Http404(f"No IGVF experiment {exp_id} found")
+
+        experiment = experiment.first()
 
         filter = Filter(
             chrom=None,
@@ -48,6 +51,7 @@ class CoverageView(View):
             "coverage.html",
             {
                 "accession_id": exp_id,
+                "experiment": experiment,
                 "coverage": {
                     "chromosomes": chrom_data,
                     "default_facets": default_facets(),
@@ -61,7 +65,7 @@ class CoverageView(View):
         )
 
     def post(self, request, exp_id, *args, **kwargs):
-        if not experiment_exists(exp_id):
+        if not get_experiment(exp_id).exists():
             raise Http404(f"No IGVF experiment {exp_id} found")
 
         try:
