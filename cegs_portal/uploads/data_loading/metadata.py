@@ -15,6 +15,7 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeatureSourceType,
     Experiment,
+    ExperimentSource,
     FacetValue,
 )
 
@@ -48,6 +49,16 @@ class ExperimentMetadataKeys(StrEnum):
     FUNCTIONAL_CHARACTERIZATION = "functional_characterization_modality"
     TESTED_ELEMENTS_METADATA = "tested_elements_file"
     PROVENANCE = "provenance"
+    ATTRIBUTION = "attribution"
+
+
+class AttributionKeys(StrEnum):
+    PI = "pi"  # Required
+    EXPERIMENTALIST = "experimentalist"
+    INSTITUTION = "institution"  # Required
+    PROJECT = "project"
+    DATASOURCE_URL = "datasource_url"
+    LAB_URL = "lab_url"
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -177,6 +188,7 @@ class ExperimentMetadata(Metadata):
     source_type: str
     parent_source_type: Optional[str]
     provenance: Optional[str]
+    attribution: Optional[dict[str, str]]
     tested_elements_metadata: TestedElementsMetadata
     experiment: Optional[Experiment] = None
 
@@ -192,6 +204,7 @@ class ExperimentMetadata(Metadata):
 
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict[ExperimentMetadataKeys.BIOSAMPLES]]
         self.provenance = experiment_dict.get(ExperimentMetadataKeys.PROVENANCE)
+        self.attribution = experiment_dict.get(ExperimentMetadataKeys.ATTRIBUTION)
         tested_elements_metadata = experiment_dict.get(ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA)
         if tested_elements_metadata is not None:
             self.tested_elements_metadata = TestedElementsMetadata(tested_elements_metadata)
@@ -220,6 +233,18 @@ class ExperimentMetadata(Metadata):
         if self.provenance is not None:
             p_facet = FacetValue.objects.get(value=self.provenance)
             experiment.facet_values.add(p_facet)
+
+        if self.attribution is not None:
+            attribution = ExperimentSource(
+                pi=self.attribution[AttributionKeys.PI],
+                institution=self.attribution[AttributionKeys.INSTITUTION],
+                experimentalist=self.attribution.get(AttributionKeys.EXPERIMENTALIST),
+                project=self.attribution.get(AttributionKeys.PROJECT),
+                datasource_url=self.attribution.get(AttributionKeys.DATASOURCE_URL),
+                lab_url=self.attribution.get(AttributionKeys.LAB_URL),
+                experiment=experiment,
+            )
+            attribution.save()
 
         assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_metadata.genome_assembly)
         experiment.facet_values.add(assembly_facet)
