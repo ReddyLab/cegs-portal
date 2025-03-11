@@ -513,6 +513,13 @@ def merge_results(data, experiment_accession_id):
 
 @db_periodic_task(crontab(day="*/10", hour="1", minute="10"))
 def update_coverage_data(experiment_accession_id=None):
+    if experiment_accession_id is None:
+        # Get the experiment accession id of the previous cached query
+        # If this is the first ever cached query there won't be one.
+        cache_data = QueryCache.objects.all().order_by("-created_at").first()
+        if cache_data is not None:
+            experiment_accession_id = cache_data.experiment_accession_id
+
     client = ArangoClient(hosts=HOSTNAME)
     db = client.db(DB_NAME, username=PAYLOAD["username"], password=PAYLOAD["password"])
     async_db = db.begin_async_execution(return_result=True)
@@ -551,13 +558,17 @@ def update_coverage_data(experiment_accession_id=None):
     logger.debug(f"IGVF Query complete: {query.status()}")
     result = query.result().pop()
 
-    new_experiment = experiment_accession_id is None
+    if experiment_accession_id is None:
+        new_experiment = True
+        experiment_accession_id = get_next_experiment_accession()
+    else:
+        new_experiment = False
 
     cache = QueryCache(value=result, experiment_accession_id=experiment_accession_id)
     cache.save()
 
     if new_experiment:
-        load_experiment(result, get_next_experiment_accession())
+        load_experiment(result, experiment_accession_id)
     else:
         merge_results(result, experiment_accession_id)
 
