@@ -511,7 +511,7 @@ def merge_results(data, experiment_accession_id):
     Analysis(an_metadata).add_generator_data_source(gen_new_reos(data, experiment_accession_id)).load().save()
 
 
-@db_periodic_task(crontab(day="*/10"))
+@db_periodic_task(crontab(day="*/10", hour="1", minute="10"))
 def update_coverage_data(experiment_accession_id=None):
     client = ArangoClient(hosts=HOSTNAME)
     db = client.db(DB_NAME, username=PAYLOAD["username"], password=PAYLOAD["password"])
