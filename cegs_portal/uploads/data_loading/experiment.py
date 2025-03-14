@@ -17,7 +17,7 @@ from cegs_portal.search.models import (
     Facet,
     FacetValue,
 )
-from utils.db_ids import FeatureIds
+from cegs_portal.utils.db_ids import FeatureIds
 
 from .closest_gene import get_closest_gene
 from .db import (

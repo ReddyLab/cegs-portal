@@ -13,8 +13,8 @@ from cegs_portal.search.models import (
     GencodeAnnotation,
     GencodeRegion,
 )
+from cegs_portal.utils.db_ids import FeatureIds
 from utils import timer
-from utils.db_ids import FeatureIds
 
 from .db import bulk_feature_save, feature_entry
 
@@ -160,8 +160,8 @@ def create_genes(accession_ids, ref_genome, ref_genome_patch):
                     chrom_name=annotation["chrom_name"],
                     location=annotation["location"],
                     strand=annotation["strand"],
-                    ref_genome=annotation["ref_genome"],
-                    ref_genome_patch=annotation["ref_genome_patch"],
+                    genome_assembly=annotation["ref_genome"],
+                    genome_assembly_patch=annotation["ref_genome_patch"],
                     feature_type=DNAFeatureType.GENE,
                     feature_subtype=annotation["gene_type"],
                 )
@@ -211,8 +211,8 @@ def create_transcripts(accession_ids, gene_ensembl_ids, ref_genome, ref_genome_p
                     chrom_name=annotation["chrom_name"],
                     location=annotation["location"],
                     strand=annotation["strand"],
-                    ref_genome=annotation["ref_genome"],
-                    ref_genome_patch=annotation["ref_genome_patch"],
+                    genome_assembly=annotation["ref_genome"],
+                    genome_assembly_patch=annotation["ref_genome_patch"],
                     feature_type=DNAFeatureType.TRANSCRIPT,
                     feature_subtype=annotation["attributes"]["transcript_type"],
                     parent_id=pid,
@@ -256,8 +256,8 @@ def create_exons(accession_ids, tx_ensembl_ids, ref_genome, ref_genome_patch):
                     chrom_name=annotation["chrom_name"],
                     location=annotation["location"],
                     strand=annotation["strand"],
-                    ref_genome=annotation["ref_genome"],
-                    ref_genome_patch=annotation["ref_genome_patch"],
+                    genome_assembly=annotation["ref_genome"],
+                    genome_assembly_patch=annotation["ref_genome_patch"],
                     feature_type=DNAFeatureType.EXON,
                     parent_id=pid,
                     parent_accession_id=p_a_id,

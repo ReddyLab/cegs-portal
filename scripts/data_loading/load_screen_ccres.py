@@ -11,8 +11,8 @@ from cegs_portal.search.models import (
     Facet,
     FacetValue,
 )
+from cegs_portal.utils.db_ids import FeatureIds
 from utils import get_delimiter, timer
-from utils.db_ids import FeatureIds
 from utils.file import FileMetadata
 
 from . import get_closest_gene
@@ -85,8 +85,8 @@ def load_ccres(ccres_file, accession_ids, source_file, ref_genome, ref_genome_pa
                     closest_gene_distance=distance,
                     closest_gene_name=gene_name,
                     closest_gene_ensembl_id=closest_gene_ensembl_id,
-                    ref_genome=ref_genome,
-                    ref_genome_patch=ref_genome_patch,
+                    genome_assembly=ref_genome,
+                    genome_assembly_patch=ref_genome_patch,
                     feature_type=DNAFeatureType.CCRE,
                     source_file_id=source_file_id,
                     misc={"screen_accession_id": screen_accession_id},

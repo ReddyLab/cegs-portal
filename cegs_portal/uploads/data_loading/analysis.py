@@ -19,7 +19,7 @@ from cegs_portal.search.models import (
     FacetValue,
     RegulatoryEffectObservation,
 )
-from utils.db_ids import ReoIds
+from cegs_portal.utils.db_ids import ReoIds
 
 from .db import bulk_reo_save, cat_facet_entry, reo_entry, source_entry, target_entry
 from .metadata import AnalysisMetadata, InternetFile
