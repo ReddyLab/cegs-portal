@@ -96,12 +96,7 @@ QUERYCOUNT = {
 
 logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
-IGVF_HOST = env("IGVF_HOST", default=None)
-IGVF_DB = env("IGVF_DB", default=None)
-IGVF_USERNAME = env("IGVF_USERNAME", default=None)
-IGVF_PASSWORD = env("IGVF_PASSWORD", default=None)
-
-if IGVF_HOST is None:
-    print(
+if IGVF_HOST is None:  # noqa F405
+    logging.getLogger(__name__).info(
         "Please set the following before connecting to the IGVF catalog: IGVF_HOST, IGVF_DB, IGVF_USERNAME, IGVF_PASSWORD."
     )

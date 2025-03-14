@@ -166,3 +166,8 @@ QUERYCOUNT = {
 }
 
 logging.getLogger("psycopg.pool").setLevel(logging.INFO)
+
+if IGVF_HOST is None:  # noqa F405
+    raise RuntimeError(
+        "Please set the following before connecting to the IGVF catalog: IGVF_HOST, IGVF_DB, IGVF_USERNAME, IGVF_PASSWORD."
+    )
