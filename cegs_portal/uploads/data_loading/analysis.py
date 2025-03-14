@@ -1,7 +1,9 @@
 import csv
+import logging
 import math
 from dataclasses import dataclass
 from io import StringIO
+from itertools import tee
 from typing import Optional
 
 from django.db import transaction
@@ -24,6 +26,8 @@ from .metadata import AnalysisMetadata, InternetFile
 from .types import Facets, FeatureType
 
 MIN_SIG = 1e-100
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -54,6 +58,7 @@ class SourceInfo:
 
 @dataclass
 class ObservationRow:
+    name: Optional[str]
     sources: list[SourceInfo]
     targets: list[str]  # ensembl ids
     categorical_facets: list[list[str]]
@@ -72,20 +77,36 @@ class Analysis:
         self.categorical_facet_values = {
             facet_value.value: facet_value for facet_value in FacetValue.objects.filter(facet_id=dir_facet.id).all()
         }
+        self.data_source = None
 
-    def load(self, results_file_location=None):
+    def add_file_data_source(self, results_file_location):
+        def _ds():
+            results_tsv = InternetFile(results_file_location).file
+            reader = csv.DictReader(results_tsv, delimiter="\t", quoting=csv.QUOTE_NONE)
+            for line in reader:
+                yield line
+            results_tsv.close()
+
+        self.data_source = _ds
+
+        return self
+
+    def add_generator_data_source(self, generator):
+        def _ds():
+            [new_gen] = tee(generator, 1)
+            for line in new_gen:
+                yield line
+
+        self.data_source = _ds
+        return self
+
+    def load(self):
+        assert self.data_source is not None
+
         source_type = FeatureType(self.metadata.source_type)
 
-        results_file = self.metadata.results
-
-        if results_file_location is None:
-            results_tsv = InternetFile(results_file.file_location).file
-        else:
-            results_tsv = InternetFile(results_file_location).file
-
-        reader = csv.DictReader(results_tsv, delimiter=results_file.delimiter(), quoting=csv.QUOTE_NONE)
         observations: list[ObservationRow] = []
-        for line in reader:
+        for line in self.data_source():
             chrom_name, start, end, strand = (
                 line["chrom"],
                 int(line["start"]),
@@ -101,7 +122,10 @@ class Analysis:
 
             raw_p_value = float(line["raw_p_val"])
             adjusted_p_value = float(line["adj_p_val"])
-            effect_size = float(line["effect_size"])
+            try:
+                effect_size = float(line["effect_size"])
+            except ValueError:
+                effect_size = None
             categorical_facets = [f.split("=") for f in line["facets"].split(";")] if line["facets"] != "" else []
 
             for _, facet_value in categorical_facets:
@@ -114,9 +138,10 @@ class Analysis:
                 Facets.RAW_P_VALUE: raw_p_value,
             }
 
-            observations.append(ObservationRow(sources, targets, categorical_facets, num_facets))
+            name = line.get("name")
 
-        results_tsv.close()
+            observations.append(ObservationRow(name, sources, targets, categorical_facets, num_facets))
+
         self.observations = observations
         return self
 
@@ -146,25 +171,35 @@ class Analysis:
 
         with ReoIds() as reo_ids:
             for reo_id, reo in zip(reo_ids, self.observations):
-                reo_direction = [fv for f, fv in reo.categorical_facets if f == "Direction"]
+                reo_direction = [
+                    fv for f, fv in reo.categorical_facets if f == RegulatoryEffectObservation.Facet.DIRECTION.value
+                ]
 
                 for source in reo.sources:
                     source_string = f"{source.chrom}:{source.start}-{source.end}:{source.strand}:{genome_assembly}"
                     if source_string not in source_cache:
-                        source_cache[source_string] = DNAFeature.objects.filter(
-                            experiment_accession_id=experiment_accession_id,
-                            chrom_name=source.chrom,
-                            location=Int4Range(source.start, source.end),
-                            strand=source.strand,
-                            ref_genome=genome_assembly,
-                            feature_type=DNAFeatureType(source.feature_type),
-                        ).values_list("id", flat=True)[0]
+                        try:
+                            source_cache[source_string] = DNAFeature.objects.filter(
+                                experiment_accession_id=experiment_accession_id,
+                                chrom_name=source.chrom,
+                                location=Int4Range(source.start, source.end),
+                                strand=source.strand,
+                                ref_genome=genome_assembly,
+                                feature_type=DNAFeatureType(source.feature_type),
+                            ).values_list("id", flat=True)[0]
+                        except Exception:
+                            logger.debug(
+                                f"{experiment_accession_id} {source.chrom}:{Int4Range(source.start, source.end)}:{source.strand} {genome_assembly} {source.feature_type}"
+                            )
+                            raise
 
                     feature_id = source_cache[source_string]
                     sources.write(source_entry(reo_id, feature_id))
 
                     feature = DNAFeature.objects.get(id=feature_id)
-                    feature.facet_values.add(fcm_facet_value)
+                    if fcm_facet_value is not None:
+                        feature.facet_values.add(fcm_facet_value)
+
                     if reo_direction:
                         feature.significant_reo = feature.significant_reo or (reo_direction[0] != "Non-significant")
                         feature.facet_values.add(self.categorical_facet_values[reo_direction[0]])
@@ -172,9 +207,13 @@ class Analysis:
 
                 for target in reo.targets:
                     if target not in target_cache:
-                        target_cache[target] = DNAFeature.objects.filter(
-                            ref_genome=genome_assembly, ensembl_id=target
-                        ).values_list("id", flat=True)[0]
+                        try:
+                            target_cache[target] = DNAFeature.objects.filter(
+                                ref_genome=genome_assembly, ensembl_id=target
+                            ).values_list("id", flat=True)[0]
+                        except Exception:
+                            logger.debug(f"{genome_assembly} {target}")
+                            raise
 
                     targets.write(target_entry(reo_id, target_cache[target]))
 
@@ -190,6 +229,7 @@ class Analysis:
                 effects.write(
                     reo_entry(
                         id_=reo_id,
+                        name=reo.name,
                         accession_id=accession_ids.incr(AccessionType.REGULATORY_EFFECT_OBS),
                         experiment_id=experiment_id,
                         experiment_accession_id=experiment_accession_id,
@@ -210,7 +250,10 @@ class Analysis:
 
     def save(self):
         with transaction.atomic():
-            analysis = self.metadata.db_save()
+            if self.metadata.analysis is None:
+                return
+
+            analysis = self.metadata.analysis
             self.accession_id = analysis.accession_id
 
             with AccessionIds(message=f"{self.accession_id}: {self.metadata.name}"[:200]) as accession_ids:
@@ -221,5 +264,6 @@ class Analysis:
 
 def load(analysis_filename, experiment_accession_id):
     metadata = AnalysisMetadata.load(analysis_filename, experiment_accession_id)
-    analysis = Analysis(metadata).load().save()
+    metadata.db_save()
+    analysis = Analysis(metadata).add_file_data_source(metadata.results.file_location).load().save()
     return analysis.accession_id

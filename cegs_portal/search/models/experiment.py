@@ -1,5 +1,6 @@
 from enum import Enum, StrEnum
 
+from django.contrib import admin
 from django.contrib.postgres.fields import DateRangeField
 from django.db import models
 
@@ -41,18 +42,24 @@ class Biosample(Accessioned):
         return f"{self.name} ({self.cell_line_name})"
 
 
+# Really, this should be contained in the Experiment class, like Provenance
 class FunctionalCharacterizationType(StrEnum):
     REPORTER_ASSAY = "Reporter Assay"
     CRISPRA = "CRISPRa"
     CRISPRI = "CRISPRi"
 
 
+# Really, this should be contained in the Experiment class, like Provenance
 class GenomeAssemblyType(StrEnum):
     HG19 = "hg19"
     HG38 = "hg38"
 
 
 class Experiment(Accessioned, Faceted, AccessControlled):
+    class Provenance(StrEnum):
+        IGVF = "IGVF"
+        CCGR = "CCGR"
+
     class Meta(Accessioned.Meta):
         indexes = [
             models.Index(fields=["accession_id"], name="exp_accession_id_index"),
@@ -64,6 +71,7 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         BIOSAMPLE = "Biosample"
         GENOME_ASSEMBLY = "Genome Assembly"  # GenomeAssemblyType
         FUNCTIONAL_CHARACTERIZATION = "Functional Characterization Modality"  # FunctionalCharacterizationType
+        PROVENANCE = "Provenance"  # Provenance
 
     description = models.CharField(max_length=4096, null=True, blank=True)
     experiment_type = models.CharField(max_length=100, null=True, blank=True)
@@ -77,16 +85,42 @@ class Experiment(Accessioned, Faceted, AccessControlled):
         "Analysis", on_delete=models.SET_NULL, blank=True, null=True, related_name="default_for"
     )
 
+    related_experiments = models.ManyToManyField(
+        "Experiment", related_name="related", blank=True, through="ExperimentRelation"
+    )
+
     def assay(self):
         return self.facet_values.get(facet__name=Experiment.Facet.ASSAYS.value).value
 
     def save(self, *args, **kwargs):
-        created = self.pk is None
+        update_access = kwargs.get("update_access", False)
+        if "update_access" in kwargs:
+            del kwargs["update_access"]
         super(Experiment, self).save(*args, **kwargs)
-        update_experiment_access(self, created)
+        if update_access:
+            created = self.pk is None
+            update_experiment_access(self, created)
 
     def __str__(self):
         return f"{self.accession_id}: {self.name} ({self.experiment_type})"
+
+
+class ExperimentRelation(models.Model):
+    this_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="this", on_delete=models.CASCADE
+    )
+    other_experiment = models.ForeignKey(
+        Experiment, to_field="accession_id", related_name="other", on_delete=models.CASCADE
+    )
+    description = models.CharField(max_length=4096, null=True, blank=True)
+
+    @admin.display(description="From Experiment")
+    def from_experiment(self):
+        return f"{self.this_experiment.accession_id}: {self.this_experiment.name}"
+
+    @admin.display(description="To Experiment")
+    def to_experiment(self):
+        return f"{self.other_experiment.accession_id}: {self.other_experiment.name}"
 
 
 class ExperimentCollection(Accessioned, Faceted, AccessControlled):
@@ -146,9 +180,10 @@ class Analysis(Accessioned, Faceted, AccessControlled):
     p_value_adj_method = models.CharField(max_length=128, default="unknown")
 
     def save(self, *args, **kwargs):
-        created = self.pk is None
         super(Analysis, self).save(*args, **kwargs)
-        update_analysis_access(self, created)
+        if kwargs.get("update_access", False):
+            created = self.pk is None
+            update_analysis_access(self, created)
 
     def __str__(self):
         description = self.description

@@ -333,9 +333,9 @@
                 </div>
 
                 <div class="facet-content-section content-container mx-auto hidden md:block">
-                  <div id="logged-in-only-container">
+                  <div class="logged-in-only-container">
                     {% if not logged_in %}
-                    <div id="logged-in-only-overlay" class="grid grid-cols-1 place-content-center">
+                    <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
                         <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
                     </div>
                     {% endif %}
@@ -371,7 +371,7 @@
                     <div>
                         <label for="covSelect">View:</label>
                         <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
-                            <option value="sig">Largest Significance</option>
+                            <option value="sig">Highest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">Gene Count</option>
                         </select>

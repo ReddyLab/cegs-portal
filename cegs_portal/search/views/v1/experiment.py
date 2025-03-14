@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 from cegs_portal.search.json_templates.v1.experiment import experiment, experiments
 from cegs_portal.search.models.validators import validate_accession_id
@@ -29,10 +30,13 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             raise Http404(str(e))
 
     def is_archived(self):
-        try:
-            return ExperimentSearch.is_archived(self.kwargs["exp_id"])
-        except ObjectNotFoundError as e:
-            raise Http404(str(e))
+        return False  # it's okay to see archived experiments
+
+    def dispatch(self, request, *args, **kwargs):
+        if ExperimentSearch.is_igvf(self.kwargs["exp_id"]):
+            return HttpResponseRedirect(reverse("igvf:coverage", kwargs={"exp_id": self.kwargs["exp_id"]}))
+
+        return super().dispatch(request, *args, **kwargs)
 
     def request_options(self, request):
         """
@@ -48,6 +52,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         return options
 
     def get(self, request, options, data, exp_id):
+        experiment, related_experiments = data
         analyses = list(ExperimentSearch.all_analysis_id_search(exp_id))
         analyses_list = []
 
@@ -62,6 +67,14 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
             else:
                 analyses_list.append(("", analysis))
 
+        related_experiments = [
+            {
+                "name": r.other_experiment.name,
+                "other_experiment_id": r.other_experiment_id,
+                "description": r.description if r.description != "" else "No Description",
+            }
+            for r in related_experiments
+        ]
         return super().get(
             request,
             options,
@@ -69,11 +82,8 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
                 "logged_in": not request.user.is_anonymous,
                 "analyses": analyses_list,
                 "analysis_selected": analysis_selected,
-                "experiment": data[0],
-                "other_experiments": {
-                    "id": "other_experiments",
-                    "options": [{"value": e.accession_id, "text": f"{e.accession_id}: {e.name}"} for e in data[1]],
-                },
+                "experiment": experiment,
+                "related_experiments": related_experiments,
             },
         )
 
@@ -82,10 +92,19 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
 
     def get_data(self, options, exp_id):
         experi = ExperimentSearch.accession_search(exp_id)
-        other_experiments = ExperimentSearch.all_except(exp_id)
 
         if experi is None:
             raise Http404(f"No experiment with id {exp_id} found.")
+
+        if self.request.user.is_anonymous:
+            related_experiments = ExperimentSearch.related_experiments(exp_id, UserType.ANONYMOUS)
+        elif self.request.user.is_superuser or self.request.user.is_portal_admin:
+            related_experiments = ExperimentSearch.related_experiments(exp_id, UserType.ADMIN)
+
+        else:
+            related_experiments = ExperimentSearch.related_experiments(
+                exp_id, UserType.LOGGED_IN, self.request.user.all_experiments()
+            )
 
         experi_cell_lines = set()
         experi_tissue_types = set()
@@ -97,7 +116,7 @@ class ExperimentView(ExperimentAccessMixin, MultiResponseFormatView):
         setattr(experi, "tissue_types", experi_tissue_types)
         setattr(experi, "genome_assembly", experi.default_analysis.genome_assembly)
 
-        return experi, other_experiments
+        return experi, related_experiments
 
 
 class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
@@ -176,6 +195,22 @@ class ExperimentsView(UserPassesTestMixin, MultiResponseFormatView):
         return ExperimentSearch.multi_accession_search(options["exp_ids"])
 
 
+def sorted_facets(facet_values):
+    facets = {}
+    for value in facet_values.all():
+        if value.facet.name in facets:
+            facets[value.facet.name].append(value)
+        else:
+            facets[value.facet.name] = [value]
+
+    sorted_facets = {}
+    if "Genome Assembly" in facets:
+        sorted_facets["Genome Assembly"] = facets.pop("Genome Assembly")
+
+    sorted_facets.update(facets)
+    return sorted_facets
+
+
 class ExperimentListView(MultiResponseFormatView):
     json_renderer = experiments
     template = "search/v1/experiment_list.html"
@@ -191,26 +226,28 @@ class ExperimentListView(MultiResponseFormatView):
                 * application/json
             facet (multiple)
                 * Should match a categorical facet value
+            coll_facet (multiple)
+                * Should match a categorical facet value
         """
         options = super().request_options(request)
         options["facets"] = [int(facet) for facet in request.GET.getlist("facet", [])]
+        options["igvf_facets"] = [int(facet) for facet in request.GET.getlist("igvf_facet", [])]
+        options["coll_facets"] = [int(facet) for facet in request.GET.getlist("coll_facet", [])]
         return options
 
     def get(self, request, options, data):
-        experiment_objects, facet_values = data
+        (
+            experiment_objects,
+            igvf_objects,
+            collection_objects,
+            facet_values,
+            igvf_facet_values,
+            collection_facet_values,
+        ) = data
 
-        facets = {}
-        for value in facet_values.all():
-            if value.facet.name in facets:
-                facets[value.facet.name].append(value)
-            else:
-                facets[value.facet.name] = [value]
-
-        sorted_facets = {}
-        if "Genome Assembly" in facets:
-            sorted_facets["Genome Assembly"] = facets.pop("Genome Assembly")
-
-        sorted_facets.update(facets)
+        sorted_exp_facets = sorted_facets(facet_values)
+        sorted_igvf_facets = sorted_facets(igvf_facet_values)
+        sorted_coll_facets = sorted_facets(collection_facet_values)
 
         if request.headers.get("HX-Target") == "multi-exp-modal-container":
             return render(
@@ -218,8 +255,11 @@ class ExperimentListView(MultiResponseFormatView):
                 "search/v1/partials/_multi_experiment_index.html",
                 {
                     "experiments": experiment_objects,
-                    "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                    "facets": sorted_facets,
+                    "igvf_experiments": igvf_objects,
+                    "collections": collection_objects,
+                    "facets": sorted_exp_facets,
+                    "igvf_facets": sorted_igvf_facets,
+                    "collection_facets": sorted_coll_facets,
                 },
             )
 
@@ -229,8 +269,11 @@ class ExperimentListView(MultiResponseFormatView):
                 "search/v1/partials/_experiment_index.html",
                 {
                     "experiments": experiment_objects,
-                    "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                    "facets": sorted_facets,
+                    "igvf_experiments": igvf_objects,
+                    "collections": collection_objects,
+                    "facets": sorted_exp_facets,
+                    "igvf_facets": sorted_igvf_facets,
+                    "collection_facets": sorted_coll_facets,
                 },
             )
 
@@ -240,6 +283,26 @@ class ExperimentListView(MultiResponseFormatView):
                 self.table_partial,
                 {
                     "experiments": experiment_objects,
+                    "selectable": True,
+                },
+            )
+
+        if request.headers.get("HX-Target") == "igvf-experiment-list":
+            return render(
+                request,
+                self.table_partial,
+                {
+                    "experiments": igvf_objects,
+                    "selectable": False,
+                },
+            )
+
+        if request.headers.get("HX-Target") == "experiment-collection-list":
+            return render(
+                request,
+                "search/v1/partials/_experiment_collection_list.html",
+                {
+                    "collections": collection_objects,
                 },
             )
 
@@ -249,21 +312,48 @@ class ExperimentListView(MultiResponseFormatView):
             {
                 "logged_in": not request.user.is_anonymous,
                 "experiments": experiment_objects,
-                "experiment_ids": [expr.accession_id for expr in experiment_objects],
-                "facets": sorted_facets,
+                "igvf_experiments": igvf_objects,
+                "collections": collection_objects,
+                "facets": sorted_exp_facets,
+                "igvf_facets": sorted_igvf_facets,
+                "collection_facets": sorted_coll_facets,
             },
         )
 
     def get_data(self, options):
         facet_values = ExperimentSearch.experiment_facet_values()
+        igvf_facet_values = ExperimentSearch.igvf_facet_values()
+        collection_facet_values = ExperimentSearch.experiment_collection_facet_values()
 
         if self.request.user.is_anonymous:
-            return ExperimentSearch.experiments(options["facets"], UserType.ANONYMOUS), facet_values
+            return (
+                ExperimentSearch.experiments(options["facets"], UserType.ANONYMOUS),
+                ExperimentSearch.igvf_experiments(options["igvf_facets"], UserType.ANONYMOUS),
+                ExperimentSearch.collections(options["coll_facets"], UserType.ANONYMOUS),
+                facet_values,
+                igvf_facet_values,
+                collection_facet_values,
+            )
 
         if self.request.user.is_superuser or self.request.user.is_portal_admin:
-            return ExperimentSearch.experiments(options["facets"], UserType.ADMIN), facet_values
+            return (
+                ExperimentSearch.experiments(options["facets"], UserType.ADMIN),
+                ExperimentSearch.igvf_experiments(options["igvf_facets"], UserType.ADMIN),
+                ExperimentSearch.collections(options["coll_facets"], UserType.ADMIN),
+                facet_values,
+                igvf_facet_values,
+                collection_facet_values,
+            )
 
         return (
             ExperimentSearch.experiments(options["facets"], UserType.LOGGED_IN, self.request.user.all_experiments()),
+            ExperimentSearch.igvf_experiments(
+                options["igvf_facets"], UserType.LOGGED_IN, self.request.user.all_experiments()
+            ),
+            ExperimentSearch.collections(
+                options["coll_facets"], UserType.LOGGED_IN, self.request.user.all_experiment_collections()
+            ),
             facet_values,
+            igvf_facet_values,
+            collection_facet_values,
         )

@@ -9,6 +9,7 @@ from cegs_portal.search.models import (
     DNAFeature,
     Experiment,
     ExperimentCollection,
+    ExperimentRelation,
     ExperimentSource,
     Facet,
     FacetValue,
@@ -97,10 +98,29 @@ class ExperimentFacetValueInlineAdmin(admin.StackedInline):
     model = Experiment.facet_values.through
     extra = 0
     verbose_name = "Facet Value"
+    list_select_related = ["facet"]
 
     @admin.display
     def facet_info(self, obj):
         return f"{obj.value} ({obj.facet.name})"
+
+
+class ExperimentRelationForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentRelation
+        fields = (
+            "other_experiment",
+            "description",
+        )
+        widgets = {"description": forms.Textarea(attrs={"rows": 6, "columns": 90})}
+
+
+class ExperimentRelationInlineAdmin(admin.StackedInline):
+    form = ExperimentRelationForm
+    model = Experiment.related_experiments.through
+    extra = 0
+    verbose_name = "Related Experiment"
+    fk_name = "this_experiment"
 
 
 class ExperimentSourceInlineAdmin(admin.StackedInline):
@@ -124,7 +144,12 @@ class ExperimentForm(forms.ModelForm):
 
 class ExperimentAdmin(admin.ModelAdmin):
     form = ExperimentForm
-    inlines = [ExperimentSourceInlineAdmin, ExperimentFacetValueInlineAdmin, FileInlineAdmin]
+    inlines = [
+        ExperimentSourceInlineAdmin,
+        ExperimentFacetValueInlineAdmin,
+        FileInlineAdmin,
+        ExperimentRelationInlineAdmin,
+    ]
     fields = [
         "public",
         "archived",
@@ -138,10 +163,31 @@ class ExperimentAdmin(admin.ModelAdmin):
     list_filter = ["public", "archived"]
     search_fields = ["name", "description"]
 
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        obj.save(update_access=True)
+
 
 admin.site.register(Experiment, ExperimentAdmin)
 
-admin.site.register(ExperimentCollection)
+
+class ExperimentCollectionAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+
+
+admin.site.register(ExperimentCollection, ExperimentCollectionAdmin)
+
+
+class ExperimentRelationAdmin(admin.ModelAdmin):
+    list_display = ("from_experiment", "to_experiment")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("this_experiment", "other_experiment")
+
+
+admin.site.register(ExperimentRelation, ExperimentRelationAdmin)
 
 admin.site.register(Facet)
 
@@ -213,6 +259,12 @@ class AnalysisAdmin(admin.ModelAdmin):
             return description
 
         return f"{description[:30]}..."
+
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        obj.save(update_access=True)
 
 
 admin.site.register(Analysis, AnalysisAdmin)

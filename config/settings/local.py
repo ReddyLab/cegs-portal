@@ -1,3 +1,5 @@
+import logging
+
 from .base import *  # noqa
 from .base import env
 
@@ -12,6 +14,11 @@ SECRET_KEY = env(
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+
+# DATABASES
+# ------------------------------------------------------------------------------
+DATABASES["default"]["OPTIONS"] = {"pool": True}  # noqa F405
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True  # noqa F405
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -61,9 +68,40 @@ if env("USE_DOCKER") == "yes":
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
+# LOGGING
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#logging
+# See https://docs.djangoproject.com/en/dev/topics/logging for
+# more details on how to customize your logging configuration.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"verbose": {"format": "%(levelname)s %(asctime)s %(module)s " "%(process)d %(thread)d %(message)s"}},
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        }
+    },
+    "root": {"level": "DEBUG", "handlers": ["console"]},
+}
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 
 QUERYCOUNT = {
     "DISPLAY_DUPLICATES": 5,
 }
+
+logging.getLogger("psycopg.pool").setLevel(logging.INFO)
+
+IGVF_HOST = env("IGVF_HOST", default=None)
+IGVF_DB = env("IGVF_DB", default=None)
+IGVF_USERNAME = env("IGVF_USERNAME", default=None)
+IGVF_PASSWORD = env("IGVF_PASSWORD", default=None)
+
+if IGVF_HOST is None:
+    print(
+        "Please set the following before connecting to the IGVF catalog: IGVF_HOST, IGVF_DB, IGVF_USERNAME, IGVF_PASSWORD."
+    )

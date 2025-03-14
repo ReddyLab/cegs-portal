@@ -38,8 +38,7 @@ def test_task_status_handle_error(task: TaskStatus):
         raise ValueError("Bad Value")
 
     f = handle_error(error_function, task)
-    with pytest.raises(ValueError):
-        f()
+    f()
 
     assert task.status == TaskStatus.TaskState.ERROR
     assert task.error_message == "Bad Value"

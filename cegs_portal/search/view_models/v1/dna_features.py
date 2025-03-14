@@ -142,7 +142,6 @@ class DNAFeatureSearch:
         if len(new_feature_types) > 0:
             query["feature_type__in"] = new_feature_types
 
-        print(query)
         features = DNAFeature.objects.filter(
             closest_gene_id__in=Subquery(DNAFeature.objects.filter(**gene_query).values_list("id"))
         ).order_by(Func(F("closest_gene_distance"), function="ABS").asc())

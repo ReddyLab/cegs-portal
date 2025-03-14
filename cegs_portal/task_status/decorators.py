@@ -1,6 +1,9 @@
+import logging
 from functools import wraps
 
 from .models import TaskStatus
+
+logger = logging.getLogger(__name__)
 
 
 def handle_error(f, status: TaskStatus):
@@ -10,6 +13,6 @@ def handle_error(f, status: TaskStatus):
             return f(*args, **kwargs)
         except Exception as e:
             status.error(str(e))
-            raise
+            logger.exception(str(e), exc_info=e)
 
     return wrapper

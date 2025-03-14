@@ -24,8 +24,9 @@ class TaskStatus(models.Model):
         self.save()
 
     def finish(self):
-        self.status = self.TaskState.FINISHED
-        self.save()
+        if self.status != self.TaskState.ERROR:
+            self.status = self.TaskState.FINISHED
+            self.save()
 
     def error(self, error_message):
         self.status = self.TaskState.ERROR

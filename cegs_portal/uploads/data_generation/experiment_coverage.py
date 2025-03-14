@@ -49,7 +49,7 @@ def gen_coverage_manifest(analysis: Analysis, analysis_dir: str):
         get_assembly(analysis),
         os.path.join(analysis_dir, "level1.ecd"),
         analysis_dir,
-        " ".join(str(f_id) for f_id in default_facet_ids),
+        *[str(f_id) for f_id in default_facet_ids],
     ]
 
     run(

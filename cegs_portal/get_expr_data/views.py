@@ -60,7 +60,7 @@ def try_process_bed(bed_file) -> LocList:
     return loc_list
 
 
-def get_experiments_analyses(request) -> list[str]:
+def get_experiments_analyses(request) -> tuple[Optional[list[str]], Optional[list[str]]]:
     # We want to use "None" as a sentinial value to indicate that a user wants to
     # search across all experiments or analyses. Unforunately getlist will return an
     # empty list if None is the default, so we have to set a different default and

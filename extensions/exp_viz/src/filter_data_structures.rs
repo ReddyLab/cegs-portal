@@ -1,7 +1,9 @@
 use rustc_hash::FxHashSet;
 
 use cov_viz_ds::{CoverageData, DbID};
-use exp_viz::{Filter, FilterIntervals, FilteredChromosome, FilteredData, SetOpFeature};
+use exp_viz::{
+    CoverageType, Filter, FilterIntervals, FilteredChromosome, FilteredData, SetOpFeature,
+};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -38,6 +40,24 @@ impl PySetOpFeature {
     }
 }
 
+#[pyclass(name = "CoverageType")]
+#[derive(Clone, Debug)]
+pub enum PyCoverageType {
+    Count,
+    Significance,
+    EffectSize,
+}
+
+impl PyCoverageType {
+    pub fn as_coverage_type(&self) -> CoverageType {
+        match self {
+            PyCoverageType::Count => CoverageType::Count,
+            PyCoverageType::Significance => CoverageType::Significance,
+            PyCoverageType::EffectSize => CoverageType::EffectSize,
+        }
+    }
+}
+
 #[pyclass(name = "Filter")]
 #[derive(Debug)]
 pub struct PyFilter {
@@ -49,6 +69,8 @@ pub struct PyFilter {
     pub numeric_intervals: Option<PyFilterIntervals>,
     #[pyo3(get, set)]
     pub set_op_feature: Option<PySetOpFeature>,
+    #[pyo3(get, set)]
+    pub coverage_type: PyCoverageType,
 }
 
 #[pymethods]
@@ -60,6 +82,7 @@ impl PyFilter {
             categorical_facets: FxHashSet::default(),
             numeric_intervals: None,
             set_op_feature: None,
+            coverage_type: PyCoverageType::Count,
         }
     }
 
@@ -75,6 +98,7 @@ impl PyFilter {
             categorical_facets: self.categorical_facets.clone(),
             numeric_intervals: self.numeric_intervals.map(|ci| ci.as_filter_intervals()),
             set_op_feature: self.set_op_feature.as_ref().map(|x| x.as_set_op_feature()),
+            coverage_type: self.coverage_type.as_coverage_type(),
         }
     }
 }

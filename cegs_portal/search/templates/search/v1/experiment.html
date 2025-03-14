@@ -255,6 +255,11 @@
 {% block content %}
 <div class="flex flex-column justify-center min-w-full">
     <div class="content-container min-w-fit max-w-fit">
+        {% if experiment.archived %}
+        <div class="bg-red-300 text-center text-xl font-bold py-2 my-1">
+            This experiment has been archived.
+        </div>
+        {% endif %}
         <div class="bg-white border-b">
             <div class="text-2xl font-bold flex items-center justify-center" style="color: rgb(71 85 105);">
                 <span><i class="fa-solid fa-flask-vial mr-1"></i>{{ experiment.name }}
@@ -431,9 +436,9 @@
 
 
                 <div class="facet-content-section content-container hidden md:block">
-                  <div id="logged-in-only-container">
+                  <div class="logged-in-only-container">
                     {% if not logged_in %}
-                    <div id="logged-in-only-overlay" class="grid grid-cols-1 place-content-center">
+                    <div class="grid grid-cols-1 place-content-center logged-in-only-overlay">
                         <h3 class="flex items-center justify-center">Please Login to Download Data</h3>
                     </div>
                     {% endif %}
@@ -469,7 +474,7 @@
                     <div>
                         <label for="covSelect">View:</label>
                         <select class="global-button border-2 p-2 h-10 text-sm" name="views" id="covSelect">
-                            <option value="sig">Largest Significance</option>
+                            <option value="sig">Highest Significance</option>
                             <option value="effect">Greatest Effect Size</option>
                             <option value="count">{{ experiment.get_source_type_display }}/Gene Count</option>
                         </select>
@@ -487,7 +492,7 @@
         role="tabpanel"
         aria-labelledby="tabs-details-tab"
     >
-        <div class="content-container mx-auto max-w-fit grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
+        <div class="content-container mx-auto min-w-full grid grid-cols-1 {% if experiment.attribution %}lg:grid-cols-2 {% endif %}gap-4">
           <div>
               <div class="bg-white border-b">
                   <div class="text-xl text-slate-500 font-bold mb-4 text-left">Description</div>
@@ -495,25 +500,25 @@
                       {{ experiment.description }}
                   </div>
               </div>
-              <div class="bg-gray-100 border-b flex items-center">
+              <div class="{% cycle 'bg-gray-100' 'bg-white' as rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assay</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.experiment_type }}
                   </div>
               </div>
-              <div class="bg-white border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Cell Lines</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.cell_lines|join:", " }}
                   </div>
               </div>
-              <div class="bg-gray-100 border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Tissue Type</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.tissue_types|join:", " }}
                   </div>
               </div>
-              <div class="bg-white border-b flex items-center">
+              <div class="{% cycle rowcolors %} border-b flex items-center">
                   <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Assembly</div>
                   <div class="text-sm text-gray-500 font-light py-4 whitespace-nowrap italic w-3/4">
                       {{ experiment.genome_assembly }}
@@ -564,6 +569,40 @@
           </div>
           {% endif %}
         </div>
+        {% if related_experiments or experiment.collections.exists %}
+        <div class="content-container min-w-full grid grid-cols-1 {% if related_experiments and experiment.collections.exists %}lg:grid-cols-2 {% endif %}gap-4">
+          {% if related_experiments %}
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Related Experiments</div>
+              </div>
+              {% for related in related_experiments %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment' related.other_experiment_id %}">{{ related.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ related.description|linebreaksbr }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+          {% endif %}
+          {% if experiment.collections.exists %}
+          <div>
+              <div class="bg-white border-b">
+                  <div class="text-xl text-slate-500 font-bold mb-4 text-left">Collections</div>
+              </div>
+              {% for collection in experiment.collections.all %}
+              <div class="{% cycle 'bg-gray-100' 'bg-white' %} border-b flex items-center">
+                  <div class="text-sm px-6 py-4 font-medium w-1/4"><a class="link" href="{% url 'search:experiment_collection' collection.accession_id %}">{{ collection.name }}</a></div>
+                  <div class="text-sm px-6 py-4 text-gray-500 font-light italic w-3/4">
+                      {{ collection.description|default_if_none:"No Description" }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
     </div>
     <div
         class="hidden opacity-0 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"

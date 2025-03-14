@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime, timezone
 from enum import StrEnum
 from io import StringIO
@@ -14,13 +15,16 @@ from cegs_portal.search.models import (
     Analysis,
     DNAFeatureSourceType,
     Experiment,
+    ExperimentSource,
     FacetValue,
 )
 
 from .biosample import ExperimentBiosample
-from .file import FileMetadata
+from .file import AnalysisResultsMetadata, TestedElementsMetadata
 
 MAX_METADATA_CONTENT_LENGTH = 65_536
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisMetadataKeys(StrEnum):
@@ -43,7 +47,18 @@ class ExperimentMetadataKeys(StrEnum):
     YEAR = "year"
     LAB = "lab"
     FUNCTIONAL_CHARACTERIZATION = "functional_characterization_modality"
-    TESTED_ELEMENTS_FILE = "tested_elements_file"
+    TESTED_ELEMENTS_METADATA = "tested_elements_file"
+    PROVENANCE = "provenance"
+    ATTRIBUTION = "attribution"
+
+
+class AttributionKeys(StrEnum):
+    PI = "pi"  # Required
+    EXPERIMENTALIST = "experimentalist"
+    INSTITUTION = "institution"  # Required
+    PROJECT = "project"
+    DATASOURCE_URL = "datasource_url"
+    LAB_URL = "lab_url"
 
 
 def get_source_type(source_type_string) -> DNAFeatureSourceType:
@@ -58,6 +73,8 @@ def get_source_type(source_type_string) -> DNAFeatureSourceType:
             return DNAFeatureSourceType.CCRE
         case "called regulatory element":
             return DNAFeatureSourceType.CRE
+        case "genomic element":
+            return DNAFeatureSourceType.GE
         case _:
             raise Exception(f"Bad source feature string: {source_type_string}")
 
@@ -100,24 +117,25 @@ class Metadata:
 
 
 class AnalysisMetadata(Metadata):
-    accession_id: Optional[str] = None
     experiment_accession_id: str
     description: str
     name: str
     source_type: str
-    results: FileMetadata
+    results: AnalysisResultsMetadata
     genome_assembly: str
     p_val_threshold: float
     p_val_adj_method: str
     data_format: str
+    accession_id: Optional[str] = None
+    analysis: Optional[Analysis] = None
 
-    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id):
+    def __init__(self, analysis_dict: dict[str, Any], experiment_accession_id: str):
         self.description = analysis_dict[AnalysisMetadataKeys.DESCRIPTION]
         self.experiment_accession_id = experiment_accession_id
         self.name = analysis_dict[AnalysisMetadataKeys.NAME]
         assert self.name != ""
 
-        self.results = FileMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
+        self.results = AnalysisResultsMetadata(analysis_dict[AnalysisMetadataKeys.RESULTS])
         self.genome_assembly = analysis_dict[AnalysisMetadataKeys.GENOME_ASSEMBLY]
         self.p_val_threshold = analysis_dict[AnalysisMetadataKeys.P_VAL_THRESHOLD]
         self.p_val_adj_method = analysis_dict.get(AnalysisMetadataKeys.P_VAL_ADJ_METHOD, "unknown")
@@ -145,11 +163,12 @@ class AnalysisMetadata(Metadata):
 
             self.results.db_save(experiment, analysis)
 
+        self.analysis = analysis
         return analysis
 
     def db_del(self, analysis=None):
         if self.accession_id is None and analysis is None:
-            print("Analysis has not been saved: There is no accession ID")
+            logger.warning("Analysis has not been saved: There is no accession ID")
             return
 
         if self.accession_id is not None:
@@ -168,9 +187,12 @@ class ExperimentMetadata(Metadata):
     biosamples: list[ExperimentBiosample]
     source_type: str
     parent_source_type: Optional[str]
-    tested_elements_file: FileMetadata
+    provenance: Optional[str]
+    attribution: Optional[dict[str, str]]
+    tested_elements_metadata: TestedElementsMetadata
+    experiment: Optional[Experiment] = None
 
-    def __init__(self, experiment_dict: dict[str, Any], accession_id):
+    def __init__(self, experiment_dict: dict[str, Any], accession_id: str):
         self.description = experiment_dict.get(ExperimentMetadataKeys.DESCRIPTION)
         self.assay = experiment_dict.get(ExperimentMetadataKeys.ASSAY)
         self.name = experiment_dict[ExperimentMetadataKeys.NAME]
@@ -181,9 +203,11 @@ class ExperimentMetadata(Metadata):
         self.parent_source_type = experiment_dict.get(ExperimentMetadataKeys.PARENT_SOURCE_TYPE)
 
         self.biosamples = [ExperimentBiosample(sample) for sample in experiment_dict[ExperimentMetadataKeys.BIOSAMPLES]]
-        self.tested_elements_file = FileMetadata(
-            experiment_dict[ExperimentMetadataKeys.TESTED_ELEMENTS_FILE], self.biosamples
-        )
+        self.provenance = experiment_dict.get(ExperimentMetadataKeys.PROVENANCE)
+        self.attribution = experiment_dict.get(ExperimentMetadataKeys.ATTRIBUTION)
+        tested_elements_metadata = experiment_dict.get(ExperimentMetadataKeys.TESTED_ELEMENTS_METADATA)
+        if tested_elements_metadata is not None:
+            self.tested_elements_metadata = TestedElementsMetadata(tested_elements_metadata)
 
     def db_save(self):
         experiment = Experiment(
@@ -206,12 +230,28 @@ class ExperimentMetadata(Metadata):
             fc_facet = FacetValue.objects.get(value=self.functional_characterization)
             experiment.facet_values.add(fc_facet)
 
-        assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_file.genome_assembly)
+        if self.provenance is not None:
+            p_facet = FacetValue.objects.get(value=self.provenance)
+            experiment.facet_values.add(p_facet)
+
+        if self.attribution is not None:
+            attribution = ExperimentSource(
+                pi=self.attribution[AttributionKeys.PI],
+                institution=self.attribution[AttributionKeys.INSTITUTION],
+                experimentalist=self.attribution.get(AttributionKeys.EXPERIMENTALIST),
+                project=self.attribution.get(AttributionKeys.PROJECT),
+                datasource_url=self.attribution.get(AttributionKeys.DATASOURCE_URL),
+                lab_url=self.attribution.get(AttributionKeys.LAB_URL),
+                experiment=experiment,
+            )
+            attribution.save()
+
+        assembly_facet = FacetValue.objects.get(value__iexact=self.tested_elements_metadata.genome_assembly)
         experiment.facet_values.add(assembly_facet)
 
         experiment.save()
 
-        self.tested_elements_file.db_save(experiment)
+        self.tested_elements_metadata.db_save(experiment)
 
         accession_log = AccessionIdLog(
             created_at=datetime.now(timezone.utc),
@@ -228,6 +268,7 @@ class ExperimentMetadata(Metadata):
             experiment.facet_values.add(cell_line_facet)
             experiment.facet_values.add(tissue_type_facet)
 
+        self.experiment = experiment
         return experiment
 
     def db_del(self):

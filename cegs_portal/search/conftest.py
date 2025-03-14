@@ -147,19 +147,33 @@ def experiment_list_data():
     _ = (_file(experiment=e5), _file(experiment=e5))
     e6 = ExperimentFactory(biosamples=(BiosampleFactory(),), description=None)
     _ = (_file(experiment=e6), _file(experiment=e6))
-    experiments = sorted([e1, e2, e3, e4, e5, e6], key=lambda x: x.accession_id)
+    experiments = sorted([e1, e2, e3, e4, e5], key=lambda x: x.accession_id)
+    igvf_experiments = [e6]
     f1 = FacetValueFactory()
     f2 = FacetValueFactory()
+    f3 = FacetValueFactory(value=Experiment.Provenance.IGVF)
 
     e1.facet_values.add(f1)
+
     e2.facet_values.add(f1)
+
     e3.facet_values.add(f1)
+
     e4.facet_values.add(f2)
+
     e5.facet_values.add(f1)
     e5.facet_values.add(f2)
+
     e6.facet_values.add(f1)
     e6.facet_values.add(f2)
-    return experiments, [f1, f2]
+    e6.facet_values.add(f3)
+
+    ec1 = ExperimentCollectionFactory()
+    ec2 = ExperimentCollectionFactory()
+    experiment_collections = sorted([ec1, ec2], key=lambda x: x.accession_id)
+    ec1.facet_values.add(f1)
+    ec2.facet_values.add(f2)
+    return (experiments, igvf_experiments, experiment_collections, [f1, f2], [f3], [f1, f2])
 
 
 def _file(experiment=None) -> File:

@@ -1,24 +1,44 @@
 import {g} from "../dom.js";
 import {addDragListeners, addSelectListeners} from "./drag_drop.js";
 
-let experimentListURL = function (facetCheckboxes) {
-    let facetQuery = Array.from(facetCheckboxes) // Convert checkboxes to an array to use filter and map.
-        .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
-        .map((i) => `facet=${i.id}`)
-        .join("&");
+function experimentListURL(queries) {
+    let queryString = queries.map((query) => `${query[0]}=${query[1]}`).join("&");
 
-    return `experiment?${facetQuery !== "" ? facetQuery : ""}`;
-};
+    return `experiment${queryString !== "" ? `?${queryString}` : ""}`;
+}
 
-export function facetFilterSetup() {
-    let facetCheckboxes = g("categorical-facets").querySelectorAll("input[type=checkbox]");
+function allQueriesExcept(queryParams, exception) {
+    let facets = [];
+    for (var query of queryParams) {
+        if (query[0] === exception) {
+            continue;
+        }
+        facets.push(query);
+    }
+    return facets;
+}
 
+function facetQueries(facetCheckboxes, targetParam) {
+    let facets = [];
+    for (var facet of Array.from(facetCheckboxes)) {
+        if (facet.checked) {
+            facets.push([targetParam, facet.id]);
+        }
+    }
+    return facets;
+}
+
+function _facetFilterSetup(facetDivId, queryParam, targetID) {
+    let facetCheckboxes = g(facetDivId).querySelectorAll("input[type=checkbox]");
     let queryParams = new URLSearchParams(window.location.search);
-    let experimentFacets = queryParams.getAll("facet");
+    let currentlySelectedFacets = queryParams.getAll(queryParam);
+
     facetCheckboxes.forEach((checkbox) => {
-        checkbox.checked = experimentFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
+        checkbox.checked = currentlySelectedFacets.includes(checkbox.id); // reset the checkboxes after a page reload.
         checkbox.addEventListener("change", (_event) => {
-            let url = experimentListURL(facetCheckboxes);
+            let queryParams = new URLSearchParams(window.location.search);
+            let queries = [...allQueriesExcept(queryParams, queryParam), ...facetQueries(facetCheckboxes, queryParam)];
+            let url = experimentListURL(queries);
 
             // We don't want to mess with the state when using this from a modal
             // on an experiment/multi-experiment page
@@ -26,7 +46,7 @@ export function facetFilterSetup() {
                 window.history.pushState({}, document.title, url);
             }
 
-            htmx.ajax("GET", `/search/${url}`, "#experiment-list")
+            htmx.ajax("GET", `/search/${url}`, targetID)
                 .then(() => {
                     addDragListeners();
                     addSelectListeners();
@@ -36,4 +56,9 @@ export function facetFilterSetup() {
                 });
         });
     });
+}
+export function facetFilterSetup() {
+    _facetFilterSetup("categorical-facets", "facet", "#experiment-list");
+    _facetFilterSetup("igvf-categorical-facets", "igvf_facet", "#igvf-experiment-list");
+    _facetFilterSetup("categorical-collection-facets", "coll_facet", "#experiment-collection-list");
 }

@@ -30,45 +30,91 @@ def test_experiment_list(client: Client):
 
 
 def test_experiment_list_json(
-    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any]
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
 ):
-    experiments, _ = experiment_list_data
+    experiments, igvf_experiments, collections, _, _, _ = experiment_list_data
     response = public_test_client.get("/search/experiment?accept=application/json").request(experiment_list_view)
     assert response.status_code == 200
     json_content = response.json()
 
     assert len(json_content["experiments"]) == len(experiments)
+    assert len(json_content["igvf_experiments"]) == len(igvf_experiments)
+    assert len(json_content["experiment_collections"]) == len(collections)
 
     for json_expr, expr in zip(json_content["experiments"], experiments):
         assert json_expr["accession_id"] == expr.accession_id
         assert json_expr["name"] == expr.name
         assert json_expr["description"] == (expr.description if expr.description is not None else "")
 
+    for json_expr, expr in zip(json_content["igvf_experiments"], igvf_experiments):
+        assert json_expr["accession_id"] == expr.accession_id
+        assert json_expr["name"] == expr.name
+        assert json_expr["description"] == (expr.description if expr.description is not None else "")
+
 
 def test_experiment_list_facet_json(
-    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any]
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
 ):
-    _, facets = experiment_list_data
+    _, _, _, facets, _, _ = experiment_list_data
     response = public_test_client.get(f"/search/experiment?accept=application/json&facet={facets[0].id}").request(
         experiment_list_view
     )
     assert response.status_code == 200
     json_content = response.json()
 
-    assert len(json_content["experiments"]) == 5
+    assert len(json_content["experiments"]) == 4
+
+
+def test_igvf_experiment_list_facet_json(
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
+):
+    _, _, _, _, facets, _ = experiment_list_data
+    response = public_test_client.get(f"/search/experiment?accept=application/json&igvf_facet={facets[0].id}").request(
+        experiment_list_view
+    )
+    assert response.status_code == 200
+    json_content = response.json()
+
+    assert len(json_content["igvf_experiments"]) == 1
+
+
+def test_experiment_collection_list_facet_json(
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
+):
+    _, _, _, _, _, facets = experiment_list_data
+    response = public_test_client.get(f"/search/experiment?accept=application/json&coll_facet={facets[0].id}").request(
+        experiment_list_view
+    )
+    assert response.status_code == 200
+    json_content = response.json()
+
+    assert len(json_content["experiment_collections"]) == 1
 
 
 def test_experiment_list_all_facets_json(
-    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any]
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
 ):
-    experiments, facets = experiment_list_data
+    _, _, _, facets, _, _ = experiment_list_data
     response = public_test_client.get(
         f"/search/experiment?accept=application/json&facet={facets[0].id}&facet={facets[1].id}"
     ).request(experiment_list_view)
     assert response.status_code == 200
     json_content = response.json()
 
-    assert len(json_content["experiments"]) == 2
+    assert len(json_content["experiments"]) == 1
+
+
+def test_experiment_collection_list_all_facets_json(
+    public_test_client: RequestBuilder, experiment_list_view, experiment_list_data: tuple[Any, Any, Any, Any, Any, Any]
+):
+    _, _, _, _, _, facets = experiment_list_data
+    response = public_test_client.get(
+        f"/search/experiment?accept=application/json&coll_facet={facets[0].id}&coll_facet={facets[1].id}"
+    ).request(experiment_list_view)
+    assert response.status_code == 200
+    json_content = response.json()
+
+    assert len(json_content["experiment_collections"]) == 0
 
 
 def test_experiment_list_html(public_test_client: RequestBuilder, experiment_list_view):
