@@ -264,6 +264,16 @@
                 </div>
             </div>
             {% endif %}
+            {% if source_urls is not None %}
+            <div class="{% cycle rowcolors %} border-b flex items-center">
+                <div class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 min-w-fit w-1/4">Source Files</div>
+                <div class="font-light py-4 whitespace-nowrap italic w-3/4 overflow-x-auto">
+                    {% for file_url in source_urls %}
+                      <a class="link" href="{{ file_url }}">{{ file_url }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
           </div>
           {% endif %}
         </div>
