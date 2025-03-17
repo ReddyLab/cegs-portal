@@ -1,6 +1,5 @@
 import logging
 import os
-from subprocess import CalledProcessError
 
 from django.contrib.staticfiles import finders
 

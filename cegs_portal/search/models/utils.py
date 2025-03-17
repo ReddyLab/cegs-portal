@@ -21,6 +21,8 @@ class AccessionType(Enum):
     CL = "cell line"
     BIOS = "biosample"
     ANALYSIS = "analysis"
+    GE = "genomic element"
+    IGVF = "igvf experiment"
 
     def abbrev(self):
         if self == AccessionType.GENE:
@@ -51,6 +53,10 @@ class AccessionType(Enum):
             return "BIOS"
         if self == AccessionType.ANALYSIS:
             return "AN"
+        if self == AccessionType.GE:
+            return "GE"
+        if self == AccessionType.IGVF:
+            return "IGVF"
 
         raise Exception(f"Invalid Accession type: {self}")
 
@@ -73,6 +79,8 @@ class AccessionType(Enum):
                 return AccessionType.CAR
             case DNAFeatureType.CRE.value:
                 return AccessionType.CRE
+            case DNAFeatureType.GE.value:
+                return AccessionType.GE
 
         raise Exception(f"Invalid DNAFeatureType: {feature_type}")
 

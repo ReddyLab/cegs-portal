@@ -1,37 +1,22 @@
 import json
 import os
-from typing import IO, Any, Dict, Optional
+from typing import IO, Optional
 
 from cegs_portal.search.models import File
 
-from .biosample import ExperimentBiosample
 
-
-class FileMetadata:
+class Metadata:
     description: Optional[str]
     filename: str
     file_location: str
-    genome_assembly: str
     url: Optional[str]
-    misc: dict[str, Any]
-    id_: Optional[int] = None
-    biosample: Optional[ExperimentBiosample] = None
 
-    def __init__(
-        self,
-        file_metadata: Dict[str, str],
-        biosamples: Optional[list[ExperimentBiosample]] = None,
-    ):
+    def __init__(self, file_metadata: dict[str, str]):
         self.description = file_metadata.get("description")
         self.filename = file_metadata["filename"]
         self.file_location = file_metadata["file_location"]
-        self.genome_assembly = file_metadata.get("genome_assembly", None)
         self.url = file_metadata.get("url")
-        self.misc = file_metadata.get("misc")
-
-        if biosamples is not None:
-            biosample_index = file_metadata.get("biosample", 0)
-            self.biosample = biosamples[biosample_index]
+        self.source_file_id = None
 
     def db_save(self, experiment=None, analysis=None):
         source_file = File(
@@ -40,11 +25,10 @@ class FileMetadata:
             analysis=analysis,
             filename=self.filename,
             location=self.file_location,
-            misc=self.misc,
             url=self.url,
         )
         source_file.save()
-        self.id_ = source_file.id
+        self.source_file_id = source_file.id
 
         return source_file
 
@@ -62,10 +46,25 @@ class FileMetadata:
 
     @property
     def file(self):
-        return File.objects.get(filename=self.filename, description=self.description, url=self.url)
+        if self.source_file is not None:
+            return self.source_file
+
+        return File.objects.get(filename=self.filename, description=self.description)
 
     @classmethod
     def json_load(cls, file: IO):
         file_metatadata = json.load(file)
-        metadata = FileMetadata(file_metatadata)
+        metadata = cls(file_metatadata)
         return metadata
+
+
+class TestedElementsMetadata(Metadata):
+    genome_assembly: str
+
+    def __init__(self, file_metadata: dict[str, str]):
+        super().__init__(file_metadata)
+        self.genome_assembly = file_metadata["genome_assembly"]
+
+
+class AnalysisResultsMetadata(Metadata):
+    pass

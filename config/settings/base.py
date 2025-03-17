@@ -91,6 +91,7 @@ LOCAL_APPS = [
     "cegs_portal.get_expr_data.apps.GetExprDataConfig",
     "cegs_portal.uploads.apps.UploadsConfig",
     "cegs_portal.task_status.apps.TaskStatusConfig",
+    "cegs_portal.igvf.apps.IgvfConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -327,3 +328,8 @@ WHITENOISE_SKIP_COMPRESS_EXTENSIONS = (
     "pd",  # Plot Data
     "fd",  # Feature Data
 )
+
+IGVF_HOST = env("IGVF_HOST", default=None)
+IGVF_DB = env("IGVF_DB", default=None)
+IGVF_USERNAME = env("IGVF_USERNAME", default=None)
+IGVF_PASSWORD = env("IGVF_PASSWORD", default=None)

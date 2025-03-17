@@ -63,6 +63,10 @@ build-prod:
     DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
     USE_DOCKER: "no"
     DJANGO_SETTINGS_MODULE: "config.settings.test"
+    IGVF_HOST: ""
+    IGVF_DB: ""
+    IGVF_USERNAME: ""
+    IGVF_PASSWORD: ""
   services:
     - name: "image-mirror-prod-registry.cloud.duke.edu/bitnami/postgresql:13-debian-10"
       alias: postgres

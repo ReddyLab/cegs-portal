@@ -1,0 +1,49 @@
+{% load static i18n %}
+
+<div id="help-multi-exp-modal">
+    <div class="help-multi-exp-modal-underlay" onclick="closeHelpModal()"></div>
+    <div class="content-container help-multi-exp-modal-content pb-6">
+        <div class="close-button" onclick="closeHelpModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+        </svg>
+        </div>
+        <div class="scroll-area">
+        <!-- Modal content -->
+            <!-- Modal header -->
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fa-solid fa-flask-vial mr-1"></i>Multi-Experiment Coverage Information Help Page
+                </h3>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 space-y-4 font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
+                <div class="flex-1 text-2xl font-bold flex items-center justify-center text-gray-600">The multi-experiment coverage page displays significant regulatory effect activity, linking regulatory elements with genes in an interactive chromosome view, integrating data from multiple experiments.</div>
+                <p class="text-lg text-gray-700 mt-4">On the multi-experiment page you can:</p>
+                <ol class="list-decimal ml-5 mt-2">
+                    <div class="mb-2"><i class="bi bi-1-circle"></i> View experiment regulatory effects in an interactive chromosome view.
+                        <div class="list-disc ml-5 mt-1">
+                            <li class="mb-1 italic">Hover and click highlighted regulatory active regions in chromosome</li>
+                        </div>
+                    </div>
+                    <div class="mb-2"><i class="bi bi-2-circle"></i> Compare your data with experiment regulatory activity data:
+                        <div class="list-disc ml-5 mt-1">
+                            <li class="mb-1 italic">Use your .bed file to interactively view your data alongside experiment data in the chromosome view.</li>
+                        </div>
+                    </div>
+                    <div class="mb-2"><i class="bi bi-3-circle"></i> Easily download all experiment regulatory activity.
+                        <div class="list-disc ml-5 mt-1">
+                            <li class="mb-1 italic">Click download button to download data</li>
+                        </div>
+                    </div>
+                    <div class="mb-2"><i class="bi bi-4-circle"></i> Download regulatory activity data from specific regions of choice with ease.
+                        <div class="list-disc ml-5 mt-1">
+                            <li class="mb-1 italic">Use your .bed file to download experiments region data.</li>
+                        </div>
+                    </div>
+                </ol>
+                <img src="{% static 'multi_exp_page_help.svg' %}" alt="Center for Combinatorial Gene Regulation"/>
+            </div>
+        </div>
+    </div>
+</div>

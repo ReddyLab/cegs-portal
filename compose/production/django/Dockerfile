@@ -85,7 +85,7 @@ COPY --chown=django:root --from=rust /build/ccgr_portal_cov_viz/cov_viz_manifest
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
 COPY --chown=django:root --from=python-build-stage /usr/src/app/wheels  /wheels
-COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.4.3-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
+COPY --chown=django:root --from=maturin /exp_viz/target/wheels/exp_viz-0.5.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl /wheels
 
 # use wheels to install python dependencies
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \

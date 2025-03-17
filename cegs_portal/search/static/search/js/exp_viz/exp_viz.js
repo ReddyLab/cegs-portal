@@ -65,7 +65,7 @@ function build_state(manifest, genomeRenderer, exprAccessionID, analysisAccessio
         [STATE_ZOOM_GENOME_LOCATION]: undefined,
         [STATE_VIEWBOX]: [0, 0, genomeRenderer.renderContext.viewWidth, genomeRenderer.renderContext.viewHeight],
         [STATE_FACETS]: facets,
-        [STATE_CATEGORICAL_FACET_VALUES]: default_facets,
+        [STATE_CATEGORICAL_FACET_VALUES]: default_facets.map((i) => String(i)),
         [STATE_COVERAGE_DATA]: coverageData,
         [STATE_ALL_FILTERED]: coverageData,
         [STATE_NUMERIC_FILTER_INTERVALS]: {effect: effectSizeFilterInterval, sig: sigFilterInterval},
@@ -96,7 +96,7 @@ async function getCoverageData(staticRoot, exprAccessionID, analysisAccessionID)
         );
         genome = await getJson(`${staticRoot}genome_data/${manifest.genome.file}`);
     } catch (error) {
-        let coverage = g("tabs-coverage");
+        let coverage = g("tabs-overview");
         rc(
             coverage,
             e(
