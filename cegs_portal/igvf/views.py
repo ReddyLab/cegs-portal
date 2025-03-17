@@ -42,7 +42,7 @@ class CoverageView(View):
         )
 
         try:
-            chrom_data, stats = generate_data(exp_id, filter)
+            chrom_data, stats, source_urls = generate_data(exp_id, filter)
         except GetIGVFException as e:
             return HttpResponseServerError(e.args[0])
 
@@ -52,6 +52,7 @@ class CoverageView(View):
             {
                 "accession_id": exp_id,
                 "experiment": experiment,
+                "source_urls": source_urls,
                 "coverage": {
                     "chromosomes": chrom_data,
                     "default_facets": default_facets(),
@@ -84,7 +85,7 @@ class CoverageView(View):
 
         data_filter = get_filter(body["filters"], zoom_chr, coverage_type)
         try:
-            chrom_data, stats = generate_data(exp_id, data_filter)
+            chrom_data, stats, _ = generate_data(exp_id, data_filter)
         except GetIGVFException as e:
             return HttpResponseServerError(e.args[0])
 

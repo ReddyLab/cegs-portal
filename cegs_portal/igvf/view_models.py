@@ -582,17 +582,22 @@ def generate_data(experiment, data_filter):
     if datetime.now(timezone.utc) - timedelta(days=10) > igvf_data.created_at:
         update_coverage_data(igvf_data.experiment_accession_id)
 
+    source_urls = set()
     stats = Stats()
     chrom_data = Chromosomes(data_filter)
     for chrom_idx, reo_list in chromosomes(igvf_data.value["sources"], data_filter):
         for reo in reo_list:
             stats.add_reo(reo, 1)
             chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Source)
+            if "source_url" in reo:
+                source_urls.add(reo["source_url"])
 
     for chrom_idx, reo_list in chromosomes(igvf_data.value["genes"], data_filter):
         for reo in reo_list:
             stats.add_reo(reo, 0)
             chrom_data.add_reo(chrom_idx, reo, Chromosomes.ReoTrack.Gene)
+            if "source_url" in reo:
+                source_urls.add(reo["source_url"])
 
     if stats.min_sig == float("infinity"):
         stats.min_sig = 0
@@ -603,4 +608,4 @@ def generate_data(experiment, data_filter):
 
     logger.debug(stats)
 
-    return chrom_data.chrom_data(), stats
+    return chrom_data.chrom_data(), stats, source_urls
